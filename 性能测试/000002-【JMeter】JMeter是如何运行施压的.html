@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【JMeter】JMeter是如何运行施压的 &mdash; 测试开发体系 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="【JMeter】JMeter英文版界面介绍" href="000003-%E3%80%90JMeter%E3%80%91JMeter%E8%8B%B1%E6%96%87%E7%89%88%E7%95%8C%E9%9D%A2%E4%BB%8B%E7%BB%8D.html" />
+    <link rel="prev" title="【JMeter】JMeter全部组件概览" href="000001-%E3%80%90JMeter%E3%80%91JMeter%E5%85%A8%E9%83%A8%E7%BB%84%E4%BB%B6%E6%A6%82%E8%A7%88.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 测试开发体系
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80.html">编程语言</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7.html">测试工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6.html">测试框架</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="000001-%E3%80%90JMeter%E3%80%91JMeter%E5%85%A8%E9%83%A8%E7%BB%84%E4%BB%B6%E6%A6%82%E8%A7%88.html">【JMeter】JMeter全部组件概览</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【JMeter】JMeter是如何运行施压的</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">运行文件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">测试计划</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">多线程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">用户即线程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">远程运行</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">小结</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="000003-%E3%80%90JMeter%E3%80%91JMeter%E8%8B%B1%E6%96%87%E7%89%88%E7%95%8C%E9%9D%A2%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter英文版界面介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000004-%E3%80%90JMeter%E3%80%91JMeter%E5%85%83%E4%BB%B6%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97.html">【JMeter】JMeter元件作用域实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000005-%E3%80%90JMeter%E3%80%91JMeter%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E9%85%8D%E7%BD%AE%E9%A1%B9%E8%A7%A3%E6%9E%90.html">【JMeter】JMeter测试计划配置项解析</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000006-%E3%80%90JMeter%E3%80%91JMeter100%E4%B8%AA%E7%BA%BF%E7%A8%8B%E7%AB%9F%E7%84%B6%E5%8F%AA%E6%A8%A1%E6%8B%9F%E5%87%BA1%E4%B8%AA%E5%B9%B6%E5%8F%91.html">【JMeter】JMeter100个线程竟然只模拟出1个并发</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000007-%E3%80%90JMeter%E3%80%91JMeter%E5%85%B3%E8%81%94%E9%99%8C%E7%94%9F%E5%8F%88%E7%86%9F%E6%82%89.html">【JMeter】JMeter关联陌生又熟悉</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000008-%E3%80%90JMeter%E3%80%91JMeter%E5%9B%9B%E7%A7%8D%E5%8F%82%E6%95%B0%E5%8C%96%E6%96%B9%E5%BC%8F.html">【JMeter】JMeter四种参数化方式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000009-%E3%80%90JMeter%E3%80%91JMeter36%E4%B8%AA%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0%E5%8F%8A11%E4%B8%AA%E6%96%B0%E5%A2%9E%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter36个内置函数及11个新增函数介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000010-%E3%80%90JMeter%E3%80%91JMeter%E9%80%BB%E8%BE%91%E6%8E%A7%E5%88%B6%E5%99%A8%E5%AE%8C%E6%95%B4%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter逻辑控制器完整介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000011-%E3%80%90JMeter%E3%80%91JMeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5.html">【JMeter】JMeter定时器设置延迟与同步</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000012-%E3%80%90JMeter%E3%80%91JMeter%E5%93%8D%E5%BA%94%E6%96%AD%E8%A8%80%E5%A4%9F%E7%94%A8%E4%BA%86.html">【JMeter】JMeter响应断言够用了</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000013-%E3%80%90JMeter%E3%80%91JMeter%E6%89%A9%E5%B1%95Java%E8%AF%B7%E6%B1%82.html">【JMeter】JMeter扩展Java请求</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001001-%E3%80%90nGrinder%E3%80%91%E4%BD%A0%E7%9A%84%E4%B8%8B%E4%B8%80%E4%B8%AA%E5%8E%8B%E6%B5%8B%E5%B7%A5%E5%85%B7%E5%8F%AF%E4%BB%A5%E6%98%AFnGrinder.html">【nGrinder】你的下一个压测工具可以是nGrinder</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95.html">接口测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%95%8C%E9%9D%A2%E6%B5%8B%E8%AF%95.html">界面测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6.html">开发框架</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97.html">消息队列</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95%E6%8C%91%E6%88%98.html">算法挑战</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%8A%80%E6%9C%AF%E7%9F%A5%E8%AF%86.html">技术知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%9B%B4%E5%A4%9A%E8%AF%AD%E8%A8%80.html">更多语言</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%86%E5%8F%B2%E6%9D%82%E6%96%87.html">历史杂文</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97.html">更新日志</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">测试开发体系</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a> &raquo;</li>
+        
+      <li>【JMeter】JMeter是如何运行施压的</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/性能测试/000002-【JMeter】JMeter是如何运行施压的.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="jmeterjmeter">
+<h1>【JMeter】JMeter是如何运行施压的<a class="headerlink" href="#jmeterjmeter" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang3.png" /></p>
+<div class="section" id="id1">
+<h2>运行文件<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>JMeter下载地址为：</p>
+<p><a class="reference external" href="https://jmeter.apache.org/download_jmeter.cgi">https://jmeter.apache.org/download_jmeter.cgi</a></p>
+<p>最新版本为5.4.1，依赖于Java8+，下载后无需安装，解压即用。解压后的目录和文件如下：</p>
+<p><img alt="image2" src="../_images/image-20201020211129944.png" /></p>
+<ul class="simple">
+<li><p>bin
+二进制文件目录，包括配置文件、启动文件、启动jar包、示例脚本。比如Windows和Linux系统的两个启动脚本：</p></li>
+</ul>
+<p><img alt="image3" src="../_images/image-20201020212159079.png" /></p>
+<ul class="simple">
+<li><p>docs API离线帮助文档。</p></li>
+<li><p>extras 辅助功能，可用于Ant、Jenkins集成。</p></li>
+<li><p>lib
+lib根目录下存放JMeter基础jar包，lib/ext目录下存放第三方或自定义扩展jar包。</p></li>
+<li><p>licenses 证书文本文件。</p></li>
+<li><p>printable_docs 离线帮助文档。</p></li>
+<li><p>LICENSE 证书说明。</p></li>
+<li><p>NOTICE 版权声明。</p></li>
+<li><p>README 简介。</p></li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h2>测试计划<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>JMeter以图形界面方式启动后，首先映入眼帘的是左侧的TestPlan，测试计划：</p>
+<p><img alt="image4" src="../_images/image-20201019214126072.png" /></p>
+<p>JMeter的UI界面只能同时编辑一个测试计划，如果想再编辑另外一个测试计划，必须再打开一个JMeter界面。这是因为测试计划对应的是.jmx文件！不同的.jmx文件只能在不同的界面中编辑。</p>
+<p>JMeter界面是通过组件拖拽的方式来编写脚本的，脚本的根目录是测试计划。根节点只能有一个，作为根节点，测试计划很适合来做全局配置，比如在User
+Defined Variables处添加键值对格式的全局变量。</p>
+<p>测试计划是默认节点，JMeter还有另外一个不可缺少的次节点：Thread
+Group，线程组。</p>
+</div>
+<div class="section" id="id3">
+<h2>多线程<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>性能测试工具的目的是用少量电脑产生成百上千个并发请求。多进程和多线程正好能用来实现这个需求，书上有句关于进程和线程的至理名言：“进程是操作系统分配资源的最小单位，线程是程序执行的最小单位”。该如何理解呢？前一句的意思是说，每个应用程序都有对应的进程，按照进程来分配资源，可以使得资源利用最大化，避免浪费。后一句的理解得从一个故事讲起，很久以前，进程拿着资源找CPU执行。CPU一看进程太大，说我处理不了。进程只能拆成多个线程给CPU，不但能执行了，还能在线程之间灵活切换。</p>
+<p>多进程和多线程都可以用来模拟并发请求。JMeter是用Java语言写的程序，运行在JVM虚拟机之上，进程的开销比线程大很多，JVM为了保证足够性能，控制了进程的数量。如果用多线程，单台电脑能提供了负载有限，那么就只能用多线程。JMeter只支持多线程！</p>
+<blockquote>
+<div><p>另外一个性能测试工具LoadRunner支持多进程和多线程。</p>
+</div></blockquote>
+</div>
+<div class="section" id="id4">
+<h2>用户即线程<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>JMeter除了Thread
+Group，其他地方都是用的另外一个词：User。实际上它们是一个意思，用户就是线程。JMeter的运行原理就是用多个线程来模拟多个用户！以下是简单示例：</p>
+<p><img alt="image5" src="../_images/image-20201019220624753.png" /></p>
+<p>从图中可以看出，有两个线程组，Thread Group 1和Thread Group
+2，它们分别定义了自己组内的用户要做的事情。不同线程组做的事情是不一样的，但是同一线程组内部做的事情是一模一样的。我们在写JMeter脚本的时候，实际上是在定义每个用户要做哪些事。当运行脚本的时候，JMeter会启动多个线程，都来执行这个脚本，按照我们写的进行执行。</p>
+<blockquote>
+<div><p>由于每个线程启动时间不一样，线程执行时资源环境也有区别，导致线程的执行进度并不完全一致，比如一些线程已经登录完了，另一些线程可能才刚开始登录。后面的文章会给出一些解决办法。</p>
+</div></blockquote>
+</div>
+<div class="section" id="id5">
+<h2>远程运行<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>一台机器提供了线程数量有限，如果想要施压更大的并发，那么就需要多台机器。JMeter天然支持多台机器并发：</p>
+<p><img alt="image6" src="../_images/image-20201006100728993.png" /></p>
+<p>控制机和负载机本质上没有区别，同一台机器既可以做控制机，也可以做负载机，取决于你的负载设计。控制机的作用是管理多台远程负载机，控制远程负载机脚本运行，收集远程负载机测试结果。负载机是实际产生并发的机器，它们向被测应用系统发起负载。</p>
+<p>运行逻辑如下：</p>
+<ul class="simple">
+<li><p>远程负载机启动Agent客户端，等待控制机连接。</p></li>
+<li><p>控制机连接上远程负载机。</p></li>
+<li><p>控制机发送指令到远程负载机启动线程。</p></li>
+<li><p>远程负载机运行脚本，回传结果数据。</p></li>
+<li><p>控制机收集结果并显示。</p></li>
+</ul>
+<p>操作步骤如下：</p>
+<ol class="arabic">
+<li><p>远程负载机启动jmeter-server.bat。</p></li>
+<li><p>在控制机bin:raw-latex:<cite>JMeter</cite>.properties文件中，修改remote_hosts，添加远程负载机的ip和port，多个远程负载机ip
+用逗号分隔，如remote_hosts=192.168.0.1:1664,192.168.0.2:1664。1664是默认RMI端口号（Remote
+Method Invocation，远程方法调用）。</p></li>
+<li><p>在控制机菜单栏Run执行Remote命令：</p>
+<p><img alt="image7" src="../_images/image-20201022195204631.png" /></p>
+</li>
+</ol>
+<blockquote>
+<div><p>如果远程负载机需要参数或jar包，可以手动先把环境准备好，也可以使用自动化工具在脚本运行前从控制机发送到远程负载机。</p>
+</div></blockquote>
+</div>
+<div class="section" id="id6">
+<h2>小结<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>本文先从JMeter运行文件讲起，启动后默认有测试计划，建线程组，线程即用户，用多线程来模拟多用户，这就是JMeter运行起来施压的原理。为了解决单台机器负载能力有限的问题，JMeter还提供了远程运行方式，既可以在局域网用多台机器来控制，也可以部署到云服务器上，进行云压测。</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="000003-%E3%80%90JMeter%E3%80%91JMeter%E8%8B%B1%E6%96%87%E7%89%88%E7%95%8C%E9%9D%A2%E4%BB%8B%E7%BB%8D.html" class="btn btn-neutral float-right" title="【JMeter】JMeter英文版界面介绍" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="000001-%E3%80%90JMeter%E3%80%91JMeter%E5%85%A8%E9%83%A8%E7%BB%84%E4%BB%B6%E6%A6%82%E8%A7%88.html" class="btn btn-neutral float-left" title="【JMeter】JMeter全部组件概览" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 测试开发体系
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

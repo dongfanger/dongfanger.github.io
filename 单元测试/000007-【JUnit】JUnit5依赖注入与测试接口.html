@@ -1,0 +1,538 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【JUnit】JUnit5依赖注入与测试接口 &mdash; 测试开发体系 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="【Mockito】Java单元测试Mock框架Mockito入门介绍" href="001001-%E3%80%90Mockito%E3%80%91Java%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95Mock%E6%A1%86%E6%9E%B6Mockito%E5%85%A5%E9%97%A8%E4%BB%8B%E7%BB%8D.html" />
+    <link rel="prev" title="【JUnit】JUnit5参数化测试的几种方式" href="000006-%E3%80%90JUnit%E3%80%91JUnit5%E5%8F%82%E6%95%B0%E5%8C%96%E6%B5%8B%E8%AF%95%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 测试开发体系
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80.html">编程语言</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7.html">测试工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6.html">测试框架</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="000001-%E3%80%90JUnit%E3%80%91Java%E6%96%B0%E4%B8%80%E4%BB%A3%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6JUnit5%E9%80%9F%E8%A7%88.html">【JUnit】Java新一代单元测试框架JUnit5速览</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000002-%E3%80%90JUnit%E3%80%91JUnit5%E6%B3%A8%E8%A7%A3%E5%AD%A6%E4%B9%A0%E6%8C%87%E5%BC%95.html">【JUnit】JUnit5注解学习指引</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000003-%E3%80%90JUnit%E3%80%91JUnit5%E7%BC%96%E5%86%99%E5%9F%BA%E6%9C%AC%E6%B5%8B%E8%AF%95.html">【JUnit】JUnit5编写基本测试</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000004-%E3%80%90JUnit%E3%80%91JUnit5%E7%9A%84Tag%E3%80%81Filter%E3%80%81Order%E3%80%81Lifecycle.html">【JUnit】JUnit5的Tag、Filter、Order、Lifecycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000005-%E3%80%90JUnit%E3%80%91JUnit5%E7%9A%84%E6%9D%A1%E4%BB%B6%E6%B5%8B%E8%AF%95%E3%80%81%E5%B5%8C%E5%A5%97%E6%B5%8B%E8%AF%95%E3%80%81%E9%87%8D%E5%A4%8D%E6%B5%8B%E8%AF%95.html">【JUnit】JUnit5的条件测试、嵌套测试、重复测试</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000006-%E3%80%90JUnit%E3%80%91JUnit5%E5%8F%82%E6%95%B0%E5%8C%96%E6%B5%8B%E8%AF%95%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F.html">【JUnit】JUnit5参数化测试的几种方式</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【JUnit】JUnit5依赖注入与测试接口</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">依赖注入</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">测试接口</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">小结</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="001001-%E3%80%90Mockito%E3%80%91Java%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95Mock%E6%A1%86%E6%9E%B6Mockito%E5%85%A5%E9%97%A8%E4%BB%8B%E7%BB%8D.html">【Mockito】Java单元测试Mock框架Mockito入门介绍</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95.html">接口测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%95%8C%E9%9D%A2%E6%B5%8B%E8%AF%95.html">界面测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6.html">开发框架</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97.html">消息队列</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95%E6%8C%91%E6%88%98.html">算法挑战</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%8A%80%E6%9C%AF%E7%9F%A5%E8%AF%86.html">技术知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%9B%B4%E5%A4%9A%E8%AF%AD%E8%A8%80.html">更多语言</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%86%E5%8F%B2%E6%9D%82%E6%96%87.html">历史杂文</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97.html">更新日志</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">测试开发体系</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a> &raquo;</li>
+        
+      <li>【JUnit】JUnit5依赖注入与测试接口</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/单元测试/000007-【JUnit】JUnit5依赖注入与测试接口.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="junitjunit5">
+<h1>【JUnit】JUnit5依赖注入与测试接口<a class="headerlink" href="#junitjunit5" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang.png" /></p>
+<div class="section" id="id1">
+<h2>依赖注入<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>以前的JUnit的类构造方法和测试方法都是不能有参数的，<strong>JUnit
+Jupiter有一个颠覆性的改进，就是允许它们有入参，这样就能做依赖注入了。</strong></p>
+<blockquote>
+<div><p>如果你对pytest的fixture有了解的话，就知道这个技术是多么的强大。</p>
+</div></blockquote>
+<p>ParameterResolver是一个接口类，类构造方法和测试方法在运行时，必须由被注册的ParameterResolver进行解析。JUnit
+Jupiter有三个自动注册的内置解析器：</p>
+<ul class="simple">
+<li><p>TestInfoParameterResolver 参数类型为TestInfo</p></li>
+<li><p>RepetitionInfoParameterResolver 参数类型为RepetitionInfo</p></li>
+<li><p>TestReporterParameterResolver 参数类型为TestReporter</p></li>
+</ul>
+<p><strong>TestInfo</strong></p>
+<p>TestInfo包含the display name, the test class, the test method, and
+associated tags等信息。</p>
+<p>示例：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import static</span> <span class="nn">org.junit.jupiter.api.Assertions.assertEquals</span><span class="p">;</span>
+<span class="kn">import static</span> <span class="nn">org.junit.jupiter.api.Assertions.assertTrue</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nn">org.junit.jupiter.api.BeforeEach</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.junit.jupiter.api.DisplayName</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.junit.jupiter.api.Tag</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.junit.jupiter.api.Test</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.junit.jupiter.api.TestInfo</span><span class="p">;</span>
+
+<span class="nd">@DisplayName</span><span class="p">(</span><span class="s">&quot;TestInfo Demo&quot;</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">TestInfoDemo</span> <span class="p">{</span>
+
+    <span class="n">TestInfoDemo</span><span class="p">(</span><span class="n">TestInfo</span> <span class="n">testInfo</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">assertEquals</span><span class="p">(</span><span class="s">&quot;TestInfo Demo&quot;</span><span class="p">,</span> <span class="n">testInfo</span><span class="p">.</span><span class="na">getDisplayName</span><span class="p">());</span>
+    <span class="p">}</span>
+
+    <span class="nd">@BeforeEach</span>
+    <span class="kt">void</span> <span class="nf">init</span><span class="p">(</span><span class="n">TestInfo</span> <span class="n">testInfo</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">String</span> <span class="n">displayName</span> <span class="o">=</span> <span class="n">testInfo</span><span class="p">.</span><span class="na">getDisplayName</span><span class="p">();</span>
+        <span class="n">assertTrue</span><span class="p">(</span><span class="n">displayName</span><span class="p">.</span><span class="na">equals</span><span class="p">(</span><span class="s">&quot;TEST 1&quot;</span><span class="p">)</span> <span class="o">||</span> <span class="n">displayName</span><span class="p">.</span><span class="na">equals</span><span class="p">(</span><span class="s">&quot;test2()&quot;</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Test</span>
+    <span class="nd">@DisplayName</span><span class="p">(</span><span class="s">&quot;TEST 1&quot;</span><span class="p">)</span>
+    <span class="nd">@Tag</span><span class="p">(</span><span class="s">&quot;my-tag&quot;</span><span class="p">)</span>
+    <span class="kt">void</span> <span class="nf">test1</span><span class="p">(</span><span class="n">TestInfo</span> <span class="n">testInfo</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">assertEquals</span><span class="p">(</span><span class="s">&quot;TEST 1&quot;</span><span class="p">,</span> <span class="n">testInfo</span><span class="p">.</span><span class="na">getDisplayName</span><span class="p">());</span>
+        <span class="n">assertTrue</span><span class="p">(</span><span class="n">testInfo</span><span class="p">.</span><span class="na">getTags</span><span class="p">().</span><span class="na">contains</span><span class="p">(</span><span class="s">&quot;my-tag&quot;</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">test2</span><span class="p">()</span> <span class="p">{</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>RepetitionInfo</strong></p>
+<p>主要是<code class="docutils literal notranslate"><span class="pre">&#64;RepeatedTest</span></code>会用到，包含当前重复以及总重复次数等信息。</p>
+<p><strong>TestReporter</strong></p>
+<p>TestReporter能用来输出额外的信息。</p>
+<p>示例：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">class</span> <span class="nc">TestReporterDemo</span> <span class="p">{</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">reportSingleValue</span><span class="p">(</span><span class="n">TestReporter</span> <span class="n">testReporter</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">testReporter</span><span class="p">.</span><span class="na">publishEntry</span><span class="p">(</span><span class="s">&quot;a status message&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">reportKeyValuePair</span><span class="p">(</span><span class="n">TestReporter</span> <span class="n">testReporter</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">testReporter</span><span class="p">.</span><span class="na">publishEntry</span><span class="p">(</span><span class="s">&quot;a key&quot;</span><span class="p">,</span> <span class="s">&quot;a value&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">reportMultipleKeyValuePairs</span><span class="p">(</span><span class="n">TestReporter</span> <span class="n">testReporter</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="n">values</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+        <span class="n">values</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;user name&quot;</span><span class="p">,</span> <span class="s">&quot;dk38&quot;</span><span class="p">);</span>
+        <span class="n">values</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;award year&quot;</span><span class="p">,</span> <span class="s">&quot;1974&quot;</span><span class="p">);</span>
+
+        <span class="n">testReporter</span><span class="p">.</span><span class="na">publishEntry</span><span class="p">(</span><span class="n">values</span><span class="p">);</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>传自定义参数</strong></p>
+<p>除了内置解析器，如果想传自定义参数，那么需要使用<code class="docutils literal notranslate"><span class="pre">&#64;ExtendWith</span></code>注册扩展，比如：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@ExtendWith</span><span class="p">(</span><span class="n">RandomParametersExtension</span><span class="p">.</span><span class="na">class</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">MyRandomParametersTest</span> <span class="p">{</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">injectsInteger</span><span class="p">(</span><span class="nd">@Random</span> <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="nd">@Random</span> <span class="kt">int</span> <span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">assertNotEquals</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">injectsDouble</span><span class="p">(</span><span class="nd">@Random</span> <span class="kt">double</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">assertEquals</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>有点插件的意思，更常见的是<a class="reference external" href="https://github.com/mockito/mockito/blob/release/2.x/subprojects/junit-jupiter/src/main/java/org/mockito/junit/jupiter/MockitoExtension.java">MockitoExtension</a>和<a class="reference external" href="https://github.com/spring-projects/spring-framework/tree/HEAD/spring-test/src/main/java/org/springframework/test/context/junit/jupiter/SpringExtension.java">SpringExtension</a>。</p>
+</div>
+<div class="section" id="id2">
+<h2>测试接口<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>JUnit Jupiter除了测试类和测试方法，其实也有测试接口，比如：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@TestInstance</span><span class="p">(</span><span class="n">Lifecycle</span><span class="p">.</span><span class="na">PER_CLASS</span><span class="p">)</span>
+<span class="kd">interface</span> <span class="nc">TestLifecycleLogger</span> <span class="p">{</span>
+
+    <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">.</span><span class="na">getLogger</span><span class="p">(</span><span class="n">TestLifecycleLogger</span><span class="p">.</span><span class="na">class</span><span class="p">.</span><span class="na">getName</span><span class="p">());</span>
+
+    <span class="nd">@BeforeAll</span>
+    <span class="k">default</span> <span class="kt">void</span> <span class="nf">beforeAllTests</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">logger</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">&quot;Before all tests&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nd">@AfterAll</span>
+    <span class="k">default</span> <span class="kt">void</span> <span class="nf">afterAllTests</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">logger</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">&quot;After all tests&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nd">@BeforeEach</span>
+    <span class="k">default</span> <span class="kt">void</span> <span class="nf">beforeEachTest</span><span class="p">(</span><span class="n">TestInfo</span> <span class="n">testInfo</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">logger</span><span class="p">.</span><span class="na">info</span><span class="p">(()</span> <span class="o">-&gt;</span> <span class="n">String</span><span class="p">.</span><span class="na">format</span><span class="p">(</span><span class="s">&quot;About to execute [%s]&quot;</span><span class="p">,</span>
+            <span class="n">testInfo</span><span class="p">.</span><span class="na">getDisplayName</span><span class="p">()));</span>
+    <span class="p">}</span>
+
+    <span class="nd">@AfterEach</span>
+    <span class="k">default</span> <span class="kt">void</span> <span class="nf">afterEachTest</span><span class="p">(</span><span class="n">TestInfo</span> <span class="n">testInfo</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">logger</span><span class="p">.</span><span class="na">info</span><span class="p">(()</span> <span class="o">-&gt;</span> <span class="n">String</span><span class="p">.</span><span class="na">format</span><span class="p">(</span><span class="s">&quot;Finished executing [%s]&quot;</span><span class="p">,</span>
+            <span class="n">testInfo</span><span class="p">.</span><span class="na">getDisplayName</span><span class="p">()));</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">interface</span> <span class="nc">TestInterfaceDynamicTestsDemo</span> <span class="p">{</span>
+
+    <span class="nd">@TestFactory</span>
+    <span class="k">default</span> <span class="n">Stream</span><span class="o">&lt;</span><span class="n">DynamicTest</span><span class="o">&gt;</span> <span class="nf">dynamicTestsForPalindromes</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">Stream</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&quot;racecar&quot;</span><span class="p">,</span> <span class="s">&quot;radar&quot;</span><span class="p">,</span> <span class="s">&quot;mom&quot;</span><span class="p">,</span> <span class="s">&quot;dad&quot;</span><span class="p">)</span>
+            <span class="p">.</span><span class="na">map</span><span class="p">(</span><span class="n">text</span> <span class="o">-&gt;</span> <span class="n">dynamicTest</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="n">assertTrue</span><span class="p">(</span><span class="n">isPalindrome</span><span class="p">(</span><span class="n">text</span><span class="p">))));</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;Test</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;RepeatedTest</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;ParameterizedTest</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;TestFactory</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&#64;TestTemplate</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;BeforeEach</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">&#64;AfterEach</span></code>能作用到接口的<code class="docutils literal notranslate"><span class="pre">default</span></code>方法上。</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">default</span></code>方法是接口已经实现好了的方法，接口的实现类不需要再编写实现代码，就能直接使用。</p>
+</div></blockquote>
+<p>如果测试类是<code class="docutils literal notranslate"><span class="pre">&#64;TestInstance(Lifecycle.PER_CLASS)</span></code>注解，那么可以使用<code class="docutils literal notranslate"><span class="pre">&#64;BeforeAll</span></code>
+and <code class="docutils literal notranslate"><span class="pre">&#64;AfterAll</span></code>。</p>
+<p><strong>测试接口可以作为模版</strong>。如果测试接口有<code class="docutils literal notranslate"><span class="pre">&#64;ExtendWith</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&#64;Tag</span></code>注解，那么它的实现类也会继承tags and extensions。比如：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@Tag</span><span class="p">(</span><span class="s">&quot;timed&quot;</span><span class="p">)</span>
+<span class="nd">@ExtendWith</span><span class="p">(</span><span class="n">TimingExtension</span><span class="p">.</span><span class="na">class</span><span class="p">)</span>
+<span class="kd">interface</span> <span class="nc">TimeExecutionLogger</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">class</span> <span class="nc">TestInterfaceDemo</span> <span class="kd">implements</span> <span class="n">TestLifecycleLogger</span><span class="p">,</span>
+        <span class="n">TimeExecutionLogger</span><span class="p">,</span> <span class="n">TestInterfaceDynamicTestsDemo</span> <span class="p">{</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">isEqualValue</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">assertEquals</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;a&quot;</span><span class="p">.</span><span class="na">length</span><span class="p">(),</span> <span class="s">&quot;is always equal&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>结果：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">INFO</span>  <span class="n">example</span><span class="o">.</span><span class="n">TestLifecycleLogger</span> <span class="o">-</span> <span class="n">Before</span> <span class="nb">all</span> <span class="n">tests</span>
+<span class="n">INFO</span>  <span class="n">example</span><span class="o">.</span><span class="n">TestLifecycleLogger</span> <span class="o">-</span> <span class="n">About</span> <span class="n">to</span> <span class="n">execute</span> <span class="p">[</span><span class="n">dynamicTestsForPalindromes</span><span class="p">()]</span>
+<span class="n">INFO</span>  <span class="n">example</span><span class="o">.</span><span class="n">TimingExtension</span> <span class="o">-</span> <span class="n">Method</span> <span class="p">[</span><span class="n">dynamicTestsForPalindromes</span><span class="p">]</span> <span class="n">took</span> <span class="mi">19</span> <span class="n">ms</span><span class="o">.</span>
+<span class="n">INFO</span>  <span class="n">example</span><span class="o">.</span><span class="n">TestLifecycleLogger</span> <span class="o">-</span> <span class="n">Finished</span> <span class="n">executing</span> <span class="p">[</span><span class="n">dynamicTestsForPalindromes</span><span class="p">()]</span>
+<span class="n">INFO</span>  <span class="n">example</span><span class="o">.</span><span class="n">TestLifecycleLogger</span> <span class="o">-</span> <span class="n">About</span> <span class="n">to</span> <span class="n">execute</span> <span class="p">[</span><span class="n">isEqualValue</span><span class="p">()]</span>
+<span class="n">INFO</span>  <span class="n">example</span><span class="o">.</span><span class="n">TimingExtension</span> <span class="o">-</span> <span class="n">Method</span> <span class="p">[</span><span class="n">isEqualValue</span><span class="p">]</span> <span class="n">took</span> <span class="mi">1</span> <span class="n">ms</span><span class="o">.</span>
+<span class="n">INFO</span>  <span class="n">example</span><span class="o">.</span><span class="n">TestLifecycleLogger</span> <span class="o">-</span> <span class="n">Finished</span> <span class="n">executing</span> <span class="p">[</span><span class="n">isEqualValue</span><span class="p">()]</span>
+<span class="n">INFO</span>  <span class="n">example</span><span class="o">.</span><span class="n">TestLifecycleLogger</span> <span class="o">-</span> <span class="n">After</span> <span class="nb">all</span> <span class="n">tests</span>
+</pre></div>
+</div>
+<p><strong>测试接口也可以作为契约。</strong>比如：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">Testable</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="p">{</span>
+
+    <span class="n">T</span> <span class="nf">createValue</span><span class="p">();</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">EqualsContract</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="n">Testable</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="p">{</span>
+
+    <span class="n">T</span> <span class="nf">createNotEqualValue</span><span class="p">();</span>
+
+    <span class="nd">@Test</span>
+    <span class="k">default</span> <span class="kt">void</span> <span class="nf">valueEqualsItself</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">T</span> <span class="n">value</span> <span class="o">=</span> <span class="n">createValue</span><span class="p">();</span>
+        <span class="n">assertEquals</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Test</span>
+    <span class="k">default</span> <span class="kt">void</span> <span class="nf">valueDoesNotEqualNull</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">T</span> <span class="n">value</span> <span class="o">=</span> <span class="n">createValue</span><span class="p">();</span>
+        <span class="n">assertFalse</span><span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="na">equals</span><span class="p">(</span><span class="kc">null</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Test</span>
+    <span class="k">default</span> <span class="kt">void</span> <span class="nf">valueDoesNotEqualDifferentValue</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">T</span> <span class="n">value</span> <span class="o">=</span> <span class="n">createValue</span><span class="p">();</span>
+        <span class="n">T</span> <span class="n">differentValue</span> <span class="o">=</span> <span class="n">createNotEqualValue</span><span class="p">();</span>
+        <span class="n">assertNotEquals</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">differentValue</span><span class="p">);</span>
+        <span class="n">assertNotEquals</span><span class="p">(</span><span class="n">differentValue</span><span class="p">,</span> <span class="n">value</span><span class="p">);</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">ComparableContract</span><span class="o">&lt;</span><span class="n">T</span> <span class="kd">extends</span> <span class="n">Comparable</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;</span> <span class="kd">extends</span> <span class="n">Testable</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="p">{</span>
+
+    <span class="n">T</span> <span class="nf">createSmallerValue</span><span class="p">();</span>
+
+    <span class="nd">@Test</span>
+    <span class="k">default</span> <span class="kt">void</span> <span class="nf">returnsZeroWhenComparedToItself</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">T</span> <span class="n">value</span> <span class="o">=</span> <span class="n">createValue</span><span class="p">();</span>
+        <span class="n">assertEquals</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">value</span><span class="p">.</span><span class="na">compareTo</span><span class="p">(</span><span class="n">value</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Test</span>
+    <span class="k">default</span> <span class="kt">void</span> <span class="nf">returnsPositiveNumberWhenComparedToSmallerValue</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">T</span> <span class="n">value</span> <span class="o">=</span> <span class="n">createValue</span><span class="p">();</span>
+        <span class="n">T</span> <span class="n">smallerValue</span> <span class="o">=</span> <span class="n">createSmallerValue</span><span class="p">();</span>
+        <span class="n">assertTrue</span><span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="na">compareTo</span><span class="p">(</span><span class="n">smallerValue</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Test</span>
+    <span class="k">default</span> <span class="kt">void</span> <span class="nf">returnsNegativeNumberWhenComparedToLargerValue</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">T</span> <span class="n">value</span> <span class="o">=</span> <span class="n">createValue</span><span class="p">();</span>
+        <span class="n">T</span> <span class="n">smallerValue</span> <span class="o">=</span> <span class="n">createSmallerValue</span><span class="p">();</span>
+        <span class="n">assertTrue</span><span class="p">(</span><span class="n">smallerValue</span><span class="p">.</span><span class="na">compareTo</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>实现类：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">class</span> <span class="nc">StringTests</span> <span class="kd">implements</span> <span class="n">ComparableContract</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">EqualsContract</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="p">{</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">String</span> <span class="nf">createValue</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s">&quot;banana&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">String</span> <span class="nf">createSmallerValue</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s">&quot;apple&quot;</span><span class="p">;</span> <span class="c1">// &#39;a&#39; &lt; &#39;b&#39; in &quot;banana&quot;</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">String</span> <span class="nf">createNotEqualValue</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s">&quot;cherry&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>小结<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>本文先介绍了JUnit
+Jupiter的颠覆性技术，允许传参以实现依赖注入，然后介绍了除了测试类和测试方法以外的测试接口，它既可以作为测试模板，也可以作为测试契约。</p>
+<blockquote>
+<div><p>参考资料：</p>
+<p><a class="reference external" href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-dependency-injection">https://junit.org/junit5/docs/current/user-guide/#writing-tests-dependency-injection</a></p>
+<p><a class="reference external" href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-test-interfaces-and-default-methods">https://junit.org/junit5/docs/current/user-guide/#writing-tests-test-interfaces-and-default-methods</a></p>
+<p><a class="reference external" href="https://blog.csdn.net/qq_35387940/article/details/104767746">https://blog.csdn.net/qq_35387940/article/details/104767746</a></p>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="001001-%E3%80%90Mockito%E3%80%91Java%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95Mock%E6%A1%86%E6%9E%B6Mockito%E5%85%A5%E9%97%A8%E4%BB%8B%E7%BB%8D.html" class="btn btn-neutral float-right" title="【Mockito】Java单元测试Mock框架Mockito入门介绍" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="000006-%E3%80%90JUnit%E3%80%91JUnit5%E5%8F%82%E6%95%B0%E5%8C%96%E6%B5%8B%E8%AF%95%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F.html" class="btn btn-neutral float-left" title="【JUnit】JUnit5参数化测试的几种方式" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 测试开发体系
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
