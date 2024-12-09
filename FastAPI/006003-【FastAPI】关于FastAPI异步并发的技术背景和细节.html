@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【FastAPI】关于FastAPI异步并发的技术背景和细节 &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="【FastAPI】FastAPI使用typing类型提示" href="006004-%E3%80%90FastAPI%E3%80%91FastAPI%E4%BD%BF%E7%94%A8typing%E7%B1%BB%E5%9E%8B%E6%8F%90%E7%A4%BA.html" />
+    <link rel="prev" title="【FastAPI】FastAPI官方教程太棒了（下）" href="006002-%E3%80%90FastAPI%E3%80%91FastAPI%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B%E5%A4%AA%E6%A3%92%E4%BA%86%EF%BC%88%E4%B8%8B%EF%BC%89.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/pytest.html">pytest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Flask.html">Flask</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="006001-%E3%80%90FastAPI%E3%80%91FastAPI%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B%E5%A4%AA%E6%A3%92%E4%BA%86%EF%BC%88%E4%B8%8A%EF%BC%89.html">【FastAPI】FastAPI官方教程太棒了（上）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="006002-%E3%80%90FastAPI%E3%80%91FastAPI%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B%E5%A4%AA%E6%A3%92%E4%BA%86%EF%BC%88%E4%B8%8B%EF%BC%89.html">【FastAPI】FastAPI官方教程太棒了（下）</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【FastAPI】关于FastAPI异步并发的技术背景和细节</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">技术背景</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">技术细节</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">并发和并行</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#asyncawait">async和await</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">细节中的细节</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="006004-%E3%80%90FastAPI%E3%80%91FastAPI%E4%BD%BF%E7%94%A8typing%E7%B1%BB%E5%9E%8B%E6%8F%90%E7%A4%BA.html">【FastAPI】FastAPI使用typing类型提示</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/FastAPI.html">FastAPI</a> &raquo;</li>
+        
+      <li>【FastAPI】关于FastAPI异步并发的技术背景和细节</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/FastAPI/006003-【FastAPI】关于FastAPI异步并发的技术背景和细节.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fastapifastapi">
+<h1>【FastAPI】关于FastAPI异步并发的技术背景和细节<a class="headerlink" href="#fastapifastapi" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang1.png" /></p>
+<p>FastAPI的路径操作函数，可以使用<code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">def</span></code>定义：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">read_root</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;Hello&quot;</span><span class="p">:</span> <span class="s2">&quot;World&quot;</span><span class="p">}</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">q</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;item_id&quot;</span><span class="p">:</span> <span class="n">item_id</span><span class="p">,</span> <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">q</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>这算得上是FastAPI的典型特征之一。</p>
+<p>关于这个框架设计，有哪些技术背景和细节呢？</p>
+<div class="section" id="id1">
+<h2>技术背景<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>在Python语法里面，如果你想异步请求三方库，需要使用await：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">some_library</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>使用了await就必须在def前面加上async：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">read_results</span><span class="p">():</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">some_library</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">results</span>
+</pre></div>
+</div>
+<p>这是Python语法规定。</p>
+<p>FastAPI并不要求所有的路径操作函数，都必须定义为async，假如你要实时访问某些三方库，可以简单的使用def就行，不用加上await：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">results</span><span class="p">():</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">some_library</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">results</span>
+</pre></div>
+</div>
+<p><strong>但是无论你是否使用async，FastAPI都将异步工作，以达到“Fast”的运行速度。</strong></p>
+<blockquote>
+<div><p>看完文章就明白这句话的意思了。</p>
+</div></blockquote>
+</div>
+<div class="section" id="id2">
+<h2>技术细节<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>Python新版本已经原生支持异步代码了。所谓异步代码，指的是编程语言，会告诉计算机程序，在某个时刻停下来，等待其他任务完成后，再继续运行。在等待期间，计算机程序可以去干点别的事情，而不用一直卡在那里。这些“其他任务”，通常指的是耗时较长的IO操作，比如：</p>
+<ul class="simple">
+<li><p>客户端通过网络发送数据；</p></li>
+<li><p>服务端通过网络发送数据；</p></li>
+<li><p>程序从磁盘读取文件内容；</p></li>
+<li><p>程序将文件内容写入磁盘；</p></li>
+<li><p>远程API操作；</p></li>
+<li><p>数据库操作；</p></li>
+<li><p>数据库查询返回结果；</p></li>
+</ul>
+<p>这些操作主要阻塞在IO等待，所以又叫做IO密集型。</p>
+<div class="section" id="id3">
+<h3>并发和并行<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>异步有时候也叫做并发。并发(Concurrency)和并行(parallelism)是不同的概念，并发是指一个处理器同时处理多个任务，并行是指多个处理器同时处理多个不同的任务，并发是逻辑上的同时发生，并行是物理上的同时发生。</p>
+<p><strong>并发</strong></p>
+<p>餐厅有1个服务员和1个厨子。</p>
+<p>你带女朋友到餐厅排队点汉堡：</p>
+<p><img alt="image2" src="../_images/2022-11-14-15-52-32-image.png" /></p>
+<p>你们给服务员说来2个汉堡：</p>
+<p><img alt="image3" src="../_images/2022-11-14-15-53-48-image.png" /></p>
+<p>服务员给厨师说做2个汉堡：</p>
+<p><img alt="image4" src="../_images/2022-11-14-15-55-19-image.png" /></p>
+<p>然后给了你们一个排号：</p>
+<p><img alt="image5" src="../_images/2022-11-14-15-55-35-image.png" /></p>
+<p>你们开心的等，因为有排号，不需要担心别人会抢走：</p>
+<p><img alt="image6" src="../_images/concurrent-burgers-05.png" /></p>
+<p>叫号了：</p>
+<p><img alt="image7" src="../_images/concurrent-burgers-06.png" /></p>
+<p>取了汉堡高高兴兴的吃：</p>
+<p><img alt="image8" src="../_images/concurrent-burgers-07.png" /></p>
+<p><strong>并行</strong></p>
+<p>餐厅有5个服务员兼厨子。</p>
+<p>你们看哪个窗口有空位：</p>
+<p><img alt="image9" src="../_images/parallel-burgers-01.png" /></p>
+<p>到餐台点2个汉堡：</p>
+<p><img alt="image10" src="../_images/parallel-burgers-02.png" /></p>
+<p>服务员自己跑到厨房做汉堡：</p>
+<p><img alt="image11" src="../_images/parallel-burgers-03.png" /></p>
+<p>你们只能站在原地等，如果走开，可能会被其他人拿走：</p>
+<p><img alt="image12" src="../_images/parallel-burgers-04.png" /></p>
+<p>汉堡做好了：</p>
+<p><img alt="image13" src="../_images/parallel-burgers-05.png" /></p>
+<p>你的女朋友不开心：</p>
+<p><img alt="image14" src="../_images/parallel-burgers-06.png" /></p>
+<p>从这个买汉堡的漫画中，可以看到并行比并发会做更多无意义的等待，并行需要5个人（5个服务员兼厨子），并发只需要2个人（1个服务员1个厨子）。这就是为什么很多Web框架要设计成异步并发了，因为很多客户端会发请求给服务端，然后服务端响应给客户端，如果有太多无用的等待，那么整个应用将慢得无法使用。而且硬件资源有限，并发也能更高效利用资源，节约成本。</p>
+<p>并发一定就比并行好吗？也不是，只有在出现很多等待时，并发才比并行好。比如你们要打扫房间，一间一间的打扫，没有等待，那么并发和并行就没有区别，如果你再叫3个朋友一起打扫，并行就能更快打扫完。这种执行时间完全取决于任务本身而不是等待的情况，又叫做CPU密集型。计算机里的CPU密集型操作通常需要更复杂的数据计算，比如：</p>
+<ul class="simple">
+<li><p>音频或图片处理；</p></li>
+<li><p>计算机视觉；</p></li>
+<li><p>机器学习；</p></li>
+<li><p>深度学习；</p></li>
+</ul>
+<p><strong>FastAPI既支持异步并发，也支持多线程并行。</strong></p>
+</div>
+<div class="section" id="asyncawait">
+<h3>async和await<a class="headerlink" href="#asyncawait" title="Permalink to this headline">¶</a></h3>
+<p>异步并发使用async和await来实现。</p>
+<p><code class="docutils literal notranslate"><span class="pre">async</span></code>定义函数：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">get_burgers</span><span class="p">(</span><span class="n">number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="c1"># Do some asynchronous stuff to create the burgers</span>
+    <span class="k">return</span> <span class="n">burgers</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">await</span></code>调用函数：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/burgers&#39;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">read_burgers</span><span class="p">():</span>
+    <span class="n">burgers</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_burgers</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">burgers</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>细节中的细节<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p><strong>FastAPI会对路径操作函数(path operation
+function)和依赖(dependencies)进行特殊处理</strong>。这个特殊处理是：如果你把函数定义为def而不是async
+def，那么FastAPI会把它放到单独的线程池中，异步执行，这就是FastAPI精彩的地方。就像官方所说，如果你不清楚你函数里面的调用是不是异步(能不能用await)，那么就把它定义为普通函数，FastAPI会采用多线程的方式处理。乱用async，在async里面有同步调用，则会变成串行，Fast秒变Slow。</p>
+<p>而对于其他函数，FastAPI则不会管，def就是同步调用，立马返回结果。</p>
+<p>现在回过头来看前面的那句话：但是无论你是否使用async，FastAPI都将异步工作，以达到“Fast”的运行速度。应该更加明白了。</p>
+<blockquote>
+<div><p>参考资料：</p>
+<p>Concurrency and async / await - FastAPI
+<a class="reference external" href="https://fastapi.tiangolo.com/async/">https://fastapi.tiangolo.com/async/</a></p>
+<p>很火的Fastapi框架，用async函数真的比普通函数快吗？<a class="reference external" href="https://blog.csdn.net/yyw794/article/details/108859240">https://blog.csdn.net/yyw794/article/details/108859240</a></p>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="006004-%E3%80%90FastAPI%E3%80%91FastAPI%E4%BD%BF%E7%94%A8typing%E7%B1%BB%E5%9E%8B%E6%8F%90%E7%A4%BA.html" class="btn btn-neutral float-right" title="【FastAPI】FastAPI使用typing类型提示" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="006002-%E3%80%90FastAPI%E3%80%91FastAPI%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B%E5%A4%AA%E6%A3%92%E4%BA%86%EF%BC%88%E4%B8%8B%EF%BC%89.html" class="btn btn-neutral float-left" title="【FastAPI】FastAPI官方教程太棒了（下）" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

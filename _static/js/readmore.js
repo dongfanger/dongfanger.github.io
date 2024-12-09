@@ -39,7 +39,7 @@ var setIdTimer = setInterval(function () {
             btw.init({
                 id: id,
                 blogId: '26021-1615627409260-510',
-                name: '测试开发体系',
+                name: '指数笔记',
                 qrcode: '../_images/vip.jpg',
                 keyword: '电子书'
             });

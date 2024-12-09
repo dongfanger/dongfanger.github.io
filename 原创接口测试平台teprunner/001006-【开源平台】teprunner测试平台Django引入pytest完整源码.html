@@ -1,0 +1,424 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【开源平台】teprunner测试平台Django引入pytest完整源码 &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="【开源平台】teprunner测试平台测试计划批量运行用例" href="001007-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E6%89%B9%E9%87%8F%E8%BF%90%E8%A1%8C%E7%94%A8%E4%BE%8B.html" />
+    <link rel="prev" title="【开源平台】teprunner测试平台开发用例管理不只有增删改查" href="001005-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E7%94%A8%E4%BE%8B%E7%AE%A1%E7%90%86%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/pytest.html">pytest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Flask.html">Flask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="001001-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E8%90%BD%E5%9C%B0%E5%88%9D%E4%BD%93%E9%AA%8C.html">【开源平台】pytest内核测试平台落地初体验</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001002-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91%E5%AD%A6%E4%B9%A0%E7%89%88pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E4%B8%87%E5%AD%97%E9%95%BF%E6%96%87%E5%85%A5%E9%97%A8%E7%AF%87.html">【开源平台】学习版pytest内核测试平台开发万字长文入门篇</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001003-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E9%83%A8%E7%BD%B2%E5%88%B0Linux%E7%B3%BB%E7%BB%9FDocker.html">【开源平台】teprunner测试平台部署到Linux系统Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001004-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E5%89%8D%E7%BD%AE%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91.html">【开源平台】teprunner测试平台用例前置模块开发</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001005-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E7%94%A8%E4%BE%8B%E7%AE%A1%E7%90%86%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5.html">【开源平台】teprunner测试平台开发用例管理不只有增删改查</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【开源平台】teprunner测试平台Django引入pytest完整源码</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">本文开发内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">编写后端代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">编写前端代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">多线程和多进程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">小结</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="001007-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E6%89%B9%E9%87%8F%E8%BF%90%E8%A1%8C%E7%94%A8%E4%BE%8B.html">【开源平台】teprunner测试平台测试计划批量运行用例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001008-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E7%BC%96%E5%86%99%E7%AD%89%E4%BD%93%E9%AA%8C%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8D%87%E7%BA%A7.html">【开源平台】teprunner测试平台用例编写等体验响应式升级</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001009-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%BF%99%E6%AC%A1%E7%BB%88%E4%BA%8E%E7%A8%B3%E4%BA%86.html">【开源平台】teprunner测试平台定时任务这次终于稳了</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001010-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E9%87%8D%E7%A3%85%E6%9B%B4%E6%96%B0Git%E6%89%93%E9%80%9APyCharm%E4%B8%8E%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0.html">【开源平台】teprunner重磅更新Git打通PyCharm与测试平台</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001011-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%85%A5%E9%97%A8%E7%BA%A7%E9%83%A8%E7%BD%B2%E6%89%8B%E5%86%8C%E5%8F%91%E5%B8%83%E5%95%A6.html">【开源平台】teprunner测试平台入门级部署手册发布啦</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a> &raquo;</li>
+        
+      <li>【开源平台】teprunner测试平台Django引入pytest完整源码</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/原创接口测试平台teprunner/001006-【开源平台】teprunner测试平台Django引入pytest完整源码.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="teprunnerdjangopytest">
+<h1>【开源平台】teprunner测试平台Django引入pytest完整源码<a class="headerlink" href="#teprunnerdjangopytest" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang17.png" /></p>
+<div class="section" id="id1">
+<h2>本文开发内容<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>pytest登场！本文将在Django中引入pytest，原理是先执行tep
+startproject命令创建pytest项目文件，然后从数据库中拉取代码写入文件，最后调用pytest命令运行用例。为了提高运行效率，用例运行是并行的，采用了多线程和多进程，两个都有，这在最后有个单独小结进行比较完整的说明。因为用例运行是异步的，所以前端并不知道什么时候执行完才能拿到运行结果，可以发多个HTTP请求轮询，但这种方式并不优雅，本文将采用WebSocket来实现用例结果查询。具体内容为：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cases/&lt;int:pk&gt;/run</span></code>运行用例接口</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ws/teprunner/cases/&lt;int:case_id&gt;/result/</span></code>用例结果查询接口</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">projects/&lt;int:pk&gt;/export</span></code>下载项目环境接口</p></li>
+<li><p>前端添加WebSocket请求</p></li>
+</ul>
+<p>知识点涉及有点多：tep、pytest、同步、异步、多线程、多进程、回调函数、WebSocket、长连接、全双工、ASGI、WSGI、打ZIP包、文件字节流传输。</p>
+</div>
+<div class="section" id="id2">
+<h2>编写后端代码<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>编辑requirements.txt，添加tep和channels：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tep</span><span class="o">==</span><span class="mf">0.6</span><span class="o">.</span><span class="mi">9</span>
+<span class="n">channels</span><span class="o">==</span><span class="mf">3.0</span><span class="o">.</span><span class="mi">3</span>
+</pre></div>
+</div>
+<p>tep是用来创建pytest项目的，channels是用来实现WebSocket的。</p>
+<p>编辑teprunner/urls.py文件，添加HTTP路由：</p>
+<p><img alt="image2" src="../_images/image-20210330142524151.png" /></p>
+<p>首先实现run接口，新建teprunner/views/run.py文件：</p>
+<p><img alt="image3" src="../_images/image-20210330143312508.png" /></p>
+<p>这是运行用例的主体流程：</p>
+<ol class="arabic simple">
+<li><p>第一步从请求中获取用例id、运行环境、运行人，这里演示了获取user数据的两种方式：接口传参和从token中解析。然后根据project_id，run_env，user_id定义了pytest项目的路径。</p></li>
+<li><p>第二步使用tep
+startproject创建项目文件，清空fixtures和tests目录，目的有两个：一是清掉tep默认fixtures和示例cases，防止对平台产生干扰；二是保证每次运行目录都是干净的，就不用单独去处理前端手动删掉fixture/case后，文件残留的问题。然后从数据库中拉取环境变量、fixtures等数据更新文件。</p></li>
+<li><p>起多个线程，分别执行用例，执行前先拉取用例代码写入文件，这里是单条用例运行，之所以要用for循环，是因为用例迟早是要批量执行，在设计时就考虑到，避免后面走弯路。然后删掉数据库运行结果，通过subprocess起子进程调用pytest命令，最后在线程的回调函数中根据pytest_result保存用例结果到数据库中。</p></li>
+</ol>
+<blockquote>
+<div><p>注意！run_case接口不会直接返回结果，前端是用WebSocket来查询结果的。</p>
+</div></blockquote>
+<p>图中很多函数和类是我封装的，一个一个拆解来看：</p>
+<p><img alt="image4" src="../_images/image-20210330144910537.png" /></p>
+<p>这里定义了Django中存放pytest项目的目录文件，project_temp_name是按照project_id、env_name、user_id来划分的，目的是让运行目录尽量隔离开来，不要相互影响，借鉴了Docker容器的思想，可以把这个目录视为用例运行容器。继续：</p>
+<p><img alt="image5" src="../_images/image-20210330145400722.png" /></p>
+<p>tep
+startproject命令创建pytest项目，pytest文件有特定组织方式，比如conftest.py文件等，tep提供了脚手架一条命令创建项目结构。继续：</p>
+<p><img alt="image6" src="../_images/image-20210330150113236.png" /></p>
+<p>fixture_env_vars.py里面存放了tep的环境变量，Django这里每次都从数据库的env_var表中获取数据，动态更新到文件里面。setdefault是个骚操作，这行代码等价于：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">env_name</span> <span class="ow">in</span> <span class="n">mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="n">mapping</span><span class="p">[</span><span class="n">env_name</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">mapping</span><span class="p">[</span><span class="n">env_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>继续：</p>
+<p><img alt="image7" src="../_images/image-20210330150803479.png" /></p>
+<p>分别从数据库中获取代码写入fixture文件和case文件，把前端传参的运行环境写入conf文件。继续：</p>
+<p><img alt="image8" src="../_images/image-20210330150841503.png" /></p>
+<p>清空fixtures目录，清空tests目录。继续：</p>
+<p><img alt="image9" src="../_images/image-20210330150915085.png" /></p>
+<p>pull_tep_files是写环境变量，写fixture文件，写conf文件三步的集合，复用代码。pull_case_files通过yield定义为了生成器，它和list的区别是不会一次把所有数据产生到内存中，而是每次用的时候产生一次，节约内存开销。delete_case_result用于运行用例前删除case_result表里面已经存在的这条用例的数据。case_result按照用例id和运行人存的多条，每个运行人都有一条属于自己的运行数据，避免数据相互干扰，返给前端的是运行时间最新的那一条！</p>
+<p>继续：</p>
+<p><img alt="image10" src="../_images/image-20210330152606225.png" /></p>
+<p>subprocess.getoutput()可以执行shell命令并返回执行结果，这里就拿到了pytest控制台日志，这个函数是在线程池中异步执行的，主线程不能一直等待它执行，所以需要有个回调函数，等它自己执行完了去调用这个回调函数。save_case_result就是个回调函数，它的入参pytest_result等于pytest_subprocess函数返回的元组，拆包后就能拿到outout、cmd、case_id、run_env、run_user_nickname，从中解析出result和elapsed后，就可以存库了，无则新增，有则更新。</p>
+<p>run接口做好了，再接口做下载环境接口，编辑teprunner/views/project.py：</p>
+<p><img alt="image11" src="../_images/image-20210330153334917.png" /></p>
+<p>打包的代码是从网上找的，把source_dir打包成zip_filename文件。继续：</p>
+<p><img alt="image12" src="../_images/image-20210330153418471.png" /></p>
+<p>file_iterator函数也是网上找的，把二进制文件读取为字节流，传输给前端，需要使用StreamingHttpResponse对象并添加<code class="docutils literal notranslate"><span class="pre">Content-Type</span></code>和<code class="docutils literal notranslate"><span class="pre">Content-Disposition</span></code>。红框的代码跟run接口类似，区别在于目录换成了export_temp_dir()，且不包含测试用例，生成zip文件后会把导出临时目录删掉，防止冲突。</p>
+<p>两个HTTP接口做完了，开始实现WebSocket。WSGI一种网关接口，是Python为了解决Web服务器端与客户端之间的通信问题而产生的，不支持WebSocket；ASGI是WSGI的扩展，意思是异步网关接口，支持WebSocket。编辑teprunnerbackend/urls.py文件：</p>
+<p><img alt="image13" src="../_images/image-20210330154410058.png" /></p>
+<p>添加了WebSocket路由。编辑teprunnerbackend/asgi.py文件：</p>
+<p><img alt="image14" src="../_images/image-20210330154520470.png" /></p>
+<p>添加websocket的URLRouter，http保持默认。编辑teprunnerbackend/settings.py文件：</p>
+<p><img alt="image15" src="../_images/image-20210330154712011.png" /></p>
+<p>INSTALLED_APPS中添加channels，继续：</p>
+<p><img alt="image16" src="../_images/image-20210330154750396.png" /></p>
+<p>添加ASGI应用配置和CHANNEL配置。CHANNEL_LAYERS是一种通信系统，允许多个Consumer实例之间互相通信，以及与外部Django程序实现互通。学习版这里使用的InMemory。</p>
+<blockquote>
+<div><p>生产中不建议使用InMemory，可能会有性能问题，而是应该使用Redis：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">CHANNEL_LAYERS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;BACKEND&quot;</span><span class="p">:</span> <span class="s2">&quot;channels_redis.core.RedisChannelLayer&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CONFIG&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;hosts&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">6379</span><span class="p">)],</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>最后，编辑teprunner/views/case.py文件：</p>
+<p><img alt="image17" src="../_images/image-20210330155440909.png" /></p>
+<p>CaseResultView是继承了JsonWebsocketConsumer，可以接受和发送JSON的WebSocket消费者。这里只是简单使用了channels来实现用例结果查询，connect()在建立连接时，从url中拿到case_id，作为房间名，在channel_layer中创建了房间。disconnect()在断开连接时，把房间从channel_layer中移除。继续：</p>
+<p><img alt="image18" src="../_images/image-20210330160540933.png" /></p>
+<p>receive_json是在后端收到前端消息时调用的。WebSocket是长连接，在建立连接后，不会断开，可以继续传递消息；WebSocket是全双工，不只是客户端向服务器发消息，服务器也能向客户端发消息。这里服务端会给客户端发4次消息：</p>
+<ul class="simple">
+<li><p>第1次，返回用例描述和用例创建人。</p></li>
+<li><p>第2次，准确说会有多次，当查询数据库没有结果时，会返回计时，前端效果是计时从1s递增。</p></li>
+<li><p>第3次，如果查询数据库有结果，返回用例结果。</p></li>
+<li><p>第4次，60s后还没有结果，返回超时信息。</p></li>
+</ul>
+<p>其中CaseResult是用<code class="docutils literal notranslate"><span class="pre">order_by('-run_time')</span></code>取的最新一条。最后的self.close()不是必须的，这里加上是因为频繁建立和关闭连接时，如果只是前端发起close()，后端可能会关闭不及时导致channels报错，后端也加上close()能一定程度上避免报错。</p>
+</div>
+<div class="section" id="id3">
+<h2>编写前端代码<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>新建<code class="docutils literal notranslate"><span class="pre">.env</span></code>文件：</p>
+<p><img alt="image19" src="../_images/image-20210330161926227.png" /></p>
+<p>添加HTTP和WebSocket后端地址，里面以键值对的形式写出环境变量，键名需要以VUE_APP_
+开头。vue-cli打包时会自动寻找这些环境变量，注入到编辑上下文环境中。编辑vue.config.js文件：</p>
+<p><img alt="image20" src="../_images/image-20210330162114047.png" /></p>
+<p>把target替换成<code class="docutils literal notranslate"><span class="pre">.env</span></code>里面的环境变量。</p>
+<p>编辑views/teprunner/case/CaseResult.vue文件：</p>
+<p><img alt="image21" src="../_images/image-20210330162504045.png" /></p>
+<p>socketUrl用到了<code class="docutils literal notranslate"><span class="pre">.env</span></code>中的环境变量。通过new
+WebSocket创建socket对象，使用send()发送消息，传了token。onmessage接收后端发过来的消息。</p>
+<p>每次打开弹窗建立WebSocket连接，每次关闭弹窗断开WebSocket连接：</p>
+<p><img alt="image22" src="../_images/image-20210330162558530.png" /></p>
+<p>前后端是在以用例id作为房间名的房间中，相互传递消息的。多个浏览器的数据不会互串，因为Django
+Server默认是多线程！</p>
+</div>
+<div class="section" id="id4">
+<h2>多线程和多进程<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>每次浏览器发起请求到Django
+Server，Django都会新起一个线程来处理，这是异步的，意味着多个浏览器连续发多个请求，每个请求的上下文都是独立的，也不会阻塞等待。</p>
+<blockquote>
+<div><p>如果Server不是用的Django
+Server而是用的Nginx，需要结合WSGI才能实现多线程。</p>
+</div></blockquote>
+<p>在WebSocket通信时，每个房间都是单个线程自己创建的，数据不会互串，具体原理还没有研究，这个结论我是测试过的：修改后端代码返回随机值，多个浏览器打开同一个Case的结果，后打开的Case结果并不会影响已经打开的Case结果。</p>
+<p>同理，多个浏览器同时运行用例，默认它们就是并行不是串行的，不会存在等待执行的情况，从前面代码可以知道，pytest命令是用subprocess子进程方式调用的，为了看到效果，我找了一个比较慢的Case，用多个浏览器运行了一下：</p>
+<p><img alt="image23" src="../_images/image-20210325174538585.png" /></p>
+<p>赤裸裸的多进程！pytest多进程靠谱么？靠谱，因为pytest-xdist就只支持多进程，以下是截取的官方Github的Issue：</p>
+<p><img alt="image24" src="../_images/image-20210325160632831.png" /></p>
+<p>threads是线程，processes是进程，pytest-xdist没有使用线程。</p>
+<blockquote>
+<div><p>如果想要多台机器分布式运行用例，就要用pytest-xdist。</p>
+</div></blockquote>
+<p>批量运行用例的情况略有不同，当批量运行用例时，前端只会有一个浏览器发起一次请求，让后端拿多个Case来运行，Django只会分配一个线程来处理这个请求！如果我们在这个View里面只是for循环去运行用例，那么这些用例一定是串行的：虽然是用的subprocess，但是启用subprocess的只有这一个线程，必须前一个执行完，才启动下一个。这就是为什么要再定义线程池的原因：</p>
+<p><img alt="image25" src="../_images/image-20210330164803638.png" /></p>
+<p>本文还没有开发批量运行用例的模块，但后端已经实现了这个扩展，只需要再生成一个CaseList就能跑批量了。</p>
+</div>
+<div class="section" id="id5">
+<h2>小结<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>本文把pytest引入到了测试平台中，已经可以跑Case了。文章涉及到的知识点有点繁杂，对我来说这一版也做了不少优化，反复实践和测试，参考资料加了很多。完整源码请到GitHub上获取，按照README命令就能直接把前后项目跑起来看效果。做到这里，teprunner测试平台已经不是个花架子了，而是有着pytest内核引擎驱动的真测试平台。它一定不是你做测试平台的终点，但也许能成为做测试平台的起点，也许能成为撬动地球的支点。</p>
+<blockquote>
+<div><p>参考资料：</p>
+<p>前端源码 <a class="reference external" href="https://github.com/dongfanger/teprunner-frontend">https://github.com/dongfanger/teprunner-frontend</a></p>
+<p>后端源码 <a class="reference external" href="https://github.com/dongfanger/teprunner-backend">https://github.com/dongfanger/teprunner-backend</a></p>
+<p><a class="reference external" href="https://github.com/pytest-dev/pytest-xdist/issues/409">https://github.com/pytest-dev/pytest-xdist/issues/409</a></p>
+<p><a class="reference external" href="https://blog.csdn.net/weixin_42329277/article/details/80741589">https://blog.csdn.net/weixin_42329277/article/details/80741589</a></p>
+<p><a class="reference external" href="https://www.cnblogs.com/xiao987334176/p/14361893.html">https://www.cnblogs.com/xiao987334176/p/14361893.html</a></p>
+<p><a class="reference external" href="https://juejin.cn/post/6844904195758243848">https://juejin.cn/post/6844904195758243848</a></p>
+<p><a class="reference external" href="https://segmentfault.com/q/1010000022975655">https://segmentfault.com/q/1010000022975655</a></p>
+<p><a class="reference external" href="https://channels.readthedocs.io/en/stable/topics/channel_layers.html">https://channels.readthedocs.io/en/stable/topics/channel_layers.html</a></p>
+<p><a class="reference external" href="https://segmentfault.com/a/1190000018096988">https://segmentfault.com/a/1190000018096988</a></p>
+<p><a class="reference external" href="https://www.jianshu.com/p/65807220b44a">https://www.jianshu.com/p/65807220b44a</a></p>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="001007-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E6%89%B9%E9%87%8F%E8%BF%90%E8%A1%8C%E7%94%A8%E4%BE%8B.html" class="btn btn-neutral float-right" title="【开源平台】teprunner测试平台测试计划批量运行用例" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="001005-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E7%94%A8%E4%BE%8B%E7%AE%A1%E7%90%86%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5.html" class="btn btn-neutral float-left" title="【开源平台】teprunner测试平台开发用例管理不只有增删改查" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

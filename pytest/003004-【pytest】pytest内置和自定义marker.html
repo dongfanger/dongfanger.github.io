@@ -1,0 +1,547 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【pytest】pytest内置和自定义marker &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="【pytest】pytest参数化进阶" href="003005-%E3%80%90pytest%E3%80%91pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6.html" />
+    <link rel="prev" title="【pytest】pytest精通fixture" href="003003-%E3%80%90pytest%E3%80%91pytest%E7%B2%BE%E9%80%9Afixture.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/pytest.html">pytest</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="003001-%E3%80%90pytest%E3%80%91pytest%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8.html">【pytest】pytest快速入门</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003002-%E3%80%90pytest%E3%80%91pytest132%E4%B8%AA%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E7%94%A8%E6%B3%95.html">【pytest】pytest132个命令行参数用法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003003-%E3%80%90pytest%E3%80%91pytest%E7%B2%BE%E9%80%9Afixture.html">【pytest】pytest精通fixture</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【pytest】pytest内置和自定义marker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#marker">内置marker</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#usefixtures">usefixtures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#filterwarnings">filterwarnings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#skip">skip</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#skipif">skipif</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#xfail">xfail</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">自定义marker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">简要回顾</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="003005-%E3%80%90pytest%E3%80%91pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6.html">【pytest】pytest参数化进阶</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003006-%E3%80%90pytest%E3%80%91pytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7.html">【pytest】pytest断言技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003007-%E3%80%90pytest%E3%80%91pytest%E7%94%A8%E4%BE%8B%E6%9F%A5%E6%89%BE%E5%8E%9F%E7%90%86.html">【pytest】pytest用例查找原理</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Flask.html">Flask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/pytest.html">pytest</a> &raquo;</li>
+        
+      <li>【pytest】pytest内置和自定义marker</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/pytest/003004-【pytest】pytest内置和自定义marker.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pytestpytestmarker">
+<h1>【pytest】pytest内置和自定义marker<a class="headerlink" href="#pytestpytestmarker" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang10.png" /></p>
+<p>可以通过命令行查看所有marker，包括内置和自定义的</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest --markers
+</pre></div>
+</div>
+<div class="section" id="marker">
+<h2>内置marker<a class="headerlink" href="#marker" title="Permalink to this headline">¶</a></h2>
+<p>内置marker本文先讲usefixtures 、filterwarnings 、skip 、skipif
+、xfail这5个。参数化的marker我会写在《pytest参数化》中，hook的marker我会写在《pytest
+hook》中，插件的marker（pytest-ordering、allure等）我会写在《pytest插件》中。当前只需知道有以上这些分类的marker即可，更多内容请关注后续文章。</p>
+<div class="section" id="usefixtures">
+<h3>usefixtures<a class="headerlink" href="#usefixtures" title="Permalink to this headline">¶</a></h3>
+<p>如果我们只想把fixture注入到test中，test不直接访问fixture的时候，就需要用到usefixtures。</p>
+<p>示例，test需要一个临时目录，但是并不需要知道这个目录具体路径在哪</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of conftest.py</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span> <span class="nf">cleandir</span><span class="p">():</span>
+    <span class="n">old_cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">newpath</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">newpath</span><span class="p">)</span>
+    <span class="k">yield</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">old_cwd</span><span class="p">)</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">newpath</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_setenv.py</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">usefixtures</span><span class="p">(</span><span class="s2">&quot;cleandir&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestDirectoryInit</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">test_cwd_starts_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span> <span class="o">==</span> <span class="p">[]</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;myfile&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_cwd_again_starts_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span> <span class="o">==</span> <span class="p">[]</span>
+</pre></div>
+</div>
+<p>TestDirectoryInit的测试方法需要一个临时目录作为当前工作目录，在类上添加<code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.usefixtures(&quot;cleandir&quot;)</span></code>，类的方法不加fixture也能有“cleandir”的效果。</p>
+<p>usefixtures可以添加多个fixture</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">usefixtures</span><span class="p">(</span><span class="s2">&quot;cleandir&quot;</span><span class="p">,</span> <span class="s2">&quot;anotherfixture&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>usefixtures可以用在<strong>pytestmark</strong>，作用域是定义所在module的所有tests</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pytestmark</span> <span class="o">=</span> <span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">usefixtures</span><span class="p">(</span><span class="s2">&quot;cleandir&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>usefixtures也可以用在<strong>pytest.ini</strong>，作用域是整个项目的所有tests</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of pytest.ini</span>
+<span class="k">[pytest]</span>
+<span class="na">usefixtures</span> <span class="o">=</span> <span class="s">cleandir</span>
+</pre></div>
+</div>
+<p>不过需要注意的是fixture函数本身是不能用usefixtures的，如果想要嵌套fixture，只能通过在fixture修饰的函数中，添加参数这种方式。</p>
+</div>
+<div class="section" id="filterwarnings">
+<h3>filterwarnings<a class="headerlink" href="#filterwarnings" title="Permalink to this headline">¶</a></h3>
+<p>过滤警告信息。</p>
+<p>示例，api_v1()抛出了“api
+v1”的警告，test_one()函数使用filterwarnings过滤掉了</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">warnings</span>
+
+
+<span class="k">def</span> <span class="nf">api_v1</span><span class="p">():</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">(</span><span class="s2">&quot;api v1, should use functions from v2&quot;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="mi">1</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore:api v1&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_one</span><span class="p">():</span>
+    <span class="k">assert</span> <span class="n">api_v1</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>同样可以添加到pytestmark和pytest.ini中。</p>
+</div>
+<div class="section" id="skip">
+<h3>skip<a class="headerlink" href="#skip" title="Permalink to this headline">¶</a></h3>
+<p>跳过，不测试。</p>
+<p>示例，skip需要添加reason哦</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="n">reason</span><span class="o">=</span><span class="s2">&quot;no way of currently testing this&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_the_unknown</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>不过，更实用的方式是调用pytest.skip(reason)函数，而不是用mark，这样就可以用if判断跳不跳</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_config</span><span class="p">():</span>
+        <span class="n">pytest</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="s2">&quot;unsupported configuration&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>allow_module_level 可以跳过整个module</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;win&quot;</span><span class="p">):</span>
+    <span class="n">pytest</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="s2">&quot;skipping windows-only tests&quot;</span><span class="p">,</span> <span class="n">allow_module_level</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="skipif">
+<h3>skipif<a class="headerlink" href="#skipif" title="Permalink to this headline">¶</a></h3>
+<p>if判断跳不跳，还可以用skipif。</p>
+<p>示例，如果Python版本小于3.6就跳过测试</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skipif</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;requires python3.6 or higher&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>如果想在summary中看到reason，需要添加-rs参数。</p>
+<p>可以把skipif赋值给<strong>变量</strong>，然后直接引用变量，或者把变量import到其他module中使用</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_mymodule.py</span>
+<span class="kn">import</span> <span class="nn">mymodule</span>
+
+<span class="n">minversion</span> <span class="o">=</span> <span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skipif</span><span class="p">(</span>
+    <span class="n">mymodule</span><span class="o">.</span><span class="n">__versioninfo__</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;at least mymodule-1.1 required&quot;</span>
+<span class="p">)</span>
+
+
+<span class="nd">@minversion</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## test_myothermodule.py</span>
+<span class="kn">from</span> <span class="nn">test_mymodule</span> <span class="kn">import</span> <span class="n">minversion</span>
+
+<span class="nd">@minversion</span>
+<span class="k">def</span> <span class="nf">test_anotherfunction</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>skipif添加到class上，会跳过类中所有方法。</p>
+<p>可以使用pytestmark跳过module内所有test</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## test_module.py</span>
+<span class="n">pytestmark</span> <span class="o">=</span> <span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skipif</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>如果function有多个skipif作用，只要有一个为True，就会跳过。</p>
+</div>
+<div class="section" id="xfail">
+<h3>xfail<a class="headerlink" href="#xfail" title="Permalink to this headline">¶</a></h3>
+<p>明知失败，依然前行！不好意思跑偏了。xfail就是expected fail，预期失败</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">xfail</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>执行后summary不会统计为“failed”，会单独列出来。如果结果失败了，“expected
+to fail” (XFAIL)；如果结果成功了，“unexpectedly passing”
+(XPASS)。但是<strong>整个执行结果是”Tests passed“。</strong></p>
+<p>if判断</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_config</span><span class="p">():</span>
+        <span class="n">pytest</span><span class="o">.</span><span class="n">xfail</span><span class="p">(</span><span class="s2">&quot;failing configuration (but should work)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>值得注意的是，marker会继续执行所有test代码，pytest.xfail()函数会抛出异常，中断执行后续代码</p>
+<p>添加<strong>condition</strong>，判断条件</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">xfail</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;bug in a 3rd party library&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>添加<strong>reason</strong>，理由</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">xfail</span><span class="p">(</span><span class="n">reason</span><span class="o">=</span><span class="s2">&quot;known parser issue&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>添加<strong>raises</strong>，抛出异常/错误</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">xfail</span><span class="p">(</span><span class="n">raises</span><span class="o">=</span><span class="ne">RuntimeError</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>添加<strong>run</strong>，禁止运行</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">xfail</span><span class="p">(</span><span class="n">run</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>添加<strong>strict</strong>，严格模式，即使xpass也会强制失败，summary中有输出信息”[XPASS(strict)]
+“，测试结果为”Tests failed“。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">xfail</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>断言成功也强制失败，确实够强势的！</p>
+<p>可以在ini文件中定义全局strict</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[pytest]</span>
+<span class="na">xfail_strict</span><span class="o">=</span><span class="s">true</span>
+</pre></div>
+</div>
+<p>在命令行添加<strong>–runxfail</strong>，忽略xfail
+marker，相当于没有添加这个标记的效果，该成功就成功，该失败就失败，再强势也不虚，哈哈，恶灵退散。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest --runxfail
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">--</span><span class="n">runxfail</span>
+</pre></div>
+</div>
+<p>再强势也不虚，恶灵退散，哈哈。</p>
+</div>
+</div>
+<div class="section" id="id1">
+<h2>自定义marker<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>通过注解自定义marker</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_server.py</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">webtest</span>
+<span class="k">def</span> <span class="nf">test_send_http</span><span class="p">():</span>
+    <span class="k">pass</span>  <span class="c1"># perform some webtest test for your app</span>
+
+
+<span class="k">def</span> <span class="nf">test_something_quick</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+
+<span class="k">def</span> <span class="nf">test_another</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">TestClass</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">test_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>在命令行通过<code class="docutils literal notranslate"><span class="pre">-m</span></code>指定运行mark打标的test</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ pytest -v -m webtest
+</pre></div>
+</div>
+<p>也可以反选</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ pytest -v -m <span class="s2">&quot;not webtest&quot;</span>
+</pre></div>
+</div>
+<p>但是，这样定义的marker是<strong>未注册</strong>的！在执行后会警告，PytestUnknownMarkWarning。如果添加了命令行参数<code class="docutils literal notranslate"><span class="pre">--strict-markers</span></code>，未注册的marker会<strong>报错</strong>。</p>
+<p>可以在pytest.ini文件中注册，冒号后面的所有代码都是marker说明，包括换行</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[pytest]</span>
+<span class="na">markers</span> <span class="o">=</span><span class="s"></span>
+<span class="s">    slow: marks tests as slow (deselect with &#39;-m &quot;not slow&quot;&#39;)</span>
+<span class="s">    serial</span>
+</pre></div>
+</div>
+<p>更高级的，可以在pytest_configure hook函数中注册，这主要用在第三方插件</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pytest_configure</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">addinivalue_line</span><span class="p">(</span>
+        <span class="s2">&quot;markers&quot;</span><span class="p">,</span> <span class="s2">&quot;env(name): mark test to run only on named environment&quot;</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>简要回顾<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>本文介绍了5个pytest内置的marker，接着介绍了如何自定义marker和注册marker。通过marker，可以让我们更灵活的执行用例。</p>
+<blockquote>
+<div><p><em>参考资料</em></p>
+<p>docs-pytest-org-en-stable</p>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="003005-%E3%80%90pytest%E3%80%91pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6.html" class="btn btn-neutral float-right" title="【pytest】pytest参数化进阶" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="003003-%E3%80%90pytest%E3%80%91pytest%E7%B2%BE%E9%80%9Afixture.html" class="btn btn-neutral float-left" title="【pytest】pytest精通fixture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

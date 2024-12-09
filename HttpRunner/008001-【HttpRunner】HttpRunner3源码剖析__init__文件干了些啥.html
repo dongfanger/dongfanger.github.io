@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【HttpRunner】HttpRunner3源码剖析__init__文件干了些啥 &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="【HttpRunner】HttpRunner3的HTTP请求是怎么发出去的" href="008002-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E7%9A%84HTTP%E8%AF%B7%E6%B1%82%E6%98%AF%E6%80%8E%E4%B9%88%E5%8F%91%E5%87%BA%E5%8E%BB%E7%9A%84.html" />
+    <link rel="prev" title="HttpRunner" href="../chapters/HttpRunner.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/pytest.html">pytest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Flask.html">Flask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【HttpRunner】HttpRunner3源码剖析__init__文件干了些啥</a></li>
+<li class="toctree-l2"><a class="reference internal" href="008002-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E7%9A%84HTTP%E8%AF%B7%E6%B1%82%E6%98%AF%E6%80%8E%E4%B9%88%E5%8F%91%E5%87%BA%E5%8E%BB%E7%9A%84.html">【HttpRunner】HttpRunner3的HTTP请求是怎么发出去的</a></li>
+<li class="toctree-l2"><a class="reference internal" href="008003-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E7%9A%84%E7%94%A8%E4%BE%8B%E6%98%AF%E6%80%8E%E4%B9%88%E8%BF%90%E8%A1%8C%E8%B5%B7%E6%9D%A5%E7%9A%84.html">【HttpRunner】HttpRunner3的用例是怎么运行起来的</a></li>
+<li class="toctree-l2"><a class="reference internal" href="008004-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E7%9A%84%E5%8F%98%E9%87%8F%E6%98%AF%E5%A6%82%E4%BD%95%E4%BC%A0%E9%80%92%E7%9A%84.html">【HttpRunner】HttpRunner3的变量是如何传递的</a></li>
+<li class="toctree-l2"><a class="reference internal" href="008005-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E7%9A%84%24%E7%AC%A6%E5%8F%B7%E6%98%AF%E5%A6%82%E4%BD%95%E8%A7%A3%E6%9E%90%E7%9A%84.html">【HttpRunner】HttpRunner3的$符号是如何解析的</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/HttpRunner.html">HttpRunner</a> &raquo;</li>
+        
+      <li>【HttpRunner】HttpRunner3源码剖析__init__文件干了些啥</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/HttpRunner/008001-【HttpRunner】HttpRunner3源码剖析__init__文件干了些啥.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="httprunnerhttprunner3-init">
+<h1>【HttpRunner】HttpRunner3源码剖析__init__文件干了些啥<a class="headerlink" href="#httprunnerhttprunner3-init" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang4.png" /></p>
+<p>大家好，我是刚哥。</p>
+<p>从这篇文章开始，将对HttpRunner3的源码进行剖析。</p>
+<p>为什么是HttpRunner3？其实pytest是一个更强大的测试框架，无奈它的源码实在是太复杂了，连学习pytest的使用都要花上很多时间，哪还有那么多精力去看它的源码。而其他很多所谓的测试框架实在是太粗糙了，学不到东西不说，还可能学错。HttpRunner正好介于两者之间，既不复杂，也不简单，刚刚好。</p>
+<p>对源码进行怎样的剖析？HttpRunner的源码包括这几个目录：docs（文档）、examples（示例）、httprunner（源文件）、tests（测试文件），我只会选择httprunner（源文件）来进行剖析，它的源码全在这个目录下。看源码是特别费脑的，但是就算费脑也可能还是看的云里雾里，这时候方法就显得格外重要了。我觉得需要带着问题去看，比如<strong>``__init__``文件干了些啥？项目初始化结构是怎么来的？请求是怎么发出去的？用例是怎么运行的？报告是怎么生成的？</strong>等等等。</p>
+<p>本文先从<code class="docutils literal notranslate"><span class="pre">httprunner/__init__.py</span></code>这个初始化文件开始，由浅入深，由易入难。它的内容很简单：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;3.1.6&quot;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s2">&quot;One-stop solution for HTTP(S) testing.&quot;</span>
+
+<span class="c1">## import firstly for monkey patch if needed</span>
+<span class="kn">from</span> <span class="nn">httprunner.ext.locust</span> <span class="kn">import</span> <span class="n">main_locusts</span>
+<span class="kn">from</span> <span class="nn">httprunner.parser</span> <span class="kn">import</span> <span class="n">parse_parameters</span> <span class="k">as</span> <span class="n">Parameters</span>
+<span class="kn">from</span> <span class="nn">httprunner.runner</span> <span class="kn">import</span> <span class="n">HttpRunner</span>
+<span class="kn">from</span> <span class="nn">httprunner.testcase</span> <span class="kn">import</span> <span class="n">Config</span><span class="p">,</span> <span class="n">Step</span><span class="p">,</span> <span class="n">RunRequest</span><span class="p">,</span> <span class="n">RunTestCase</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;__version__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__description__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;HttpRunner&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Config&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Step&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RunRequest&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RunTestCase&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Parameters&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">__version__</span></code>是版本号，会在很多地方用到：</p>
+<p><img alt="image2" src="../_images/image-20220110194500550.png" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">__description__</span></code>是描述，也会在很多地方用到：</p>
+<p><img alt="image3" src="../_images/image-20220110194538582.png" /></p>
+<p>这一行代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## import firstly for monkey patch if needed</span>
+<span class="kn">from</span> <span class="nn">httprunner.ext.locust</span> <span class="kn">import</span> <span class="n">main_locusts</span>
+</pre></div>
+</div>
+<p>main_locusts是在<code class="docutils literal notranslate"><span class="pre">httprunner/ext/locust/__init__.py</span></code>文件中定义的。注释是说，先把这个模块导入进来，如果需要的话，可以在这里添加猴子补丁。有点费解，只有这一处代码：</p>
+<p><img alt="image4" src="../_images/image-20220110195454494.png" /></p>
+<p>先看下<code class="docutils literal notranslate"><span class="pre">__all__</span></code>的作用，再来猜测。</p>
+<p><code class="docutils literal notranslate"><span class="pre">__all__</span></code>是为了方便其他地方直接通过<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">httprunner</span> <span class="pre">import</span></code>来导入包，比如里面的HttpRunner是<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">httprunner.runner</span> <span class="pre">import</span> <span class="pre">HttpRunner</span></code>这样导入的，加入到<code class="docutils literal notranslate"><span class="pre">__all__</span></code>以后，就能直接<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">httprunner</span> <span class="pre">import</span> <span class="pre">HttpRunner</span></code>来导入了：</p>
+<p><img alt="image5" src="../_images/image-20220110195702901.png" /></p>
+<p>省去了<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">httprunner.runner</span></code>这种代码。</p>
+<p>那么那个猴子补丁，我对它用法的猜测是这样的：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">## import firstly for monkey patch if needed</span>
+<span class="kn">from</span> <span class="nn">httprunner.ext.locust</span> <span class="kn">import</span> <span class="n">main_locusts</span>
+
+<span class="k">def</span> <span class="nf">main_locusts_monkey_patch</span><span class="p">():</span>
+    <span class="c1"># ...</span>
+
+
+<span class="n">main_locusts</span> <span class="o">=</span> <span class="n">main_locusts_monkey_patch</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;main_locusts&quot;</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>有任何不同想法，欢迎加群讨论哟。</p>
+<blockquote>
+<div><p>参考资料：</p>
+<p><a class="reference external" href="https://github.com/httprunner/httprunner">https://github.com/httprunner/httprunner</a></p>
+</div></blockquote>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="008002-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E7%9A%84HTTP%E8%AF%B7%E6%B1%82%E6%98%AF%E6%80%8E%E4%B9%88%E5%8F%91%E5%87%BA%E5%8E%BB%E7%9A%84.html" class="btn btn-neutral float-right" title="【HttpRunner】HttpRunner3的HTTP请求是怎么发出去的" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../chapters/HttpRunner.html" class="btn btn-neutral float-left" title="HttpRunner" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

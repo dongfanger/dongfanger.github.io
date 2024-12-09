@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【测试工具】一次全量数据对比工具发现问题的过程与思考 &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="原创接口测试框架tep" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html" />
+    <link rel="prev" title="【测试工具】功能测试用例自动生成算法Pairwise工具" href="010001-%E3%80%90%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E3%80%91%E5%8A%9F%E8%83%BD%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%AE%97%E6%B3%95Pairwise%E5%B7%A5%E5%85%B7.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/pytest.html">pytest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Flask.html">Flask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="000001-JSON%E8%BD%ACSQL%E5%B0%8F%E5%B7%A5%E5%85%B7%E6%BA%90%E7%A0%81%E5%88%86%E4%BA%AB.html">JSON转SQL小工具源码分享</a></li>
+<li class="toctree-l2"><a class="reference internal" href="010001-%E3%80%90%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E3%80%91%E5%8A%9F%E8%83%BD%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%AE%97%E6%B3%95Pairwise%E5%B7%A5%E5%85%B7.html">【测试工具】功能测试用例自动生成算法Pairwise工具</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【测试工具】一次全量数据对比工具发现问题的过程与思考</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">一次全量数据对比工具发现问题的过程与思考</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a> &raquo;</li>
+        
+      <li>【测试工具】一次全量数据对比工具发现问题的过程与思考</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/原创小工具/010002-【测试工具】一次全量数据对比工具发现问题的过程与思考.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="id1">
+<h1>【测试工具】一次全量数据对比工具发现问题的过程与思考<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang16.png" /></p>
+<div class="section" id="id2">
+<h2>一次全量数据对比工具发现问题的过程与思考<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p><img alt="image2" src="../_images/wanggang16.png" /></p>
+<p>如果没有这次全量数据对比工具，那么也许这个历史问题会继续隐藏着，直到发生线上事故才暴露出来，毕竟人工抽样验证发现的概率只有<strong>5.8%</strong>。</p>
+<p>背景是发票系统有18500个电子发票订单被财务系统驳回了，驳回原因是财务系统上线了全电发票需求，上线后电子发票枚举被误删，无法处理电子发票。需要我们发票系统对这18500电子发票订单，重新触发提票，让发票能正常开出来。也就是，我们需要刷数。刷数是个高危操作，极易引发线上问题。</p>
+<p>经验教训告诉我们，刷数虽然是一种处理线上问题的方法，但是也特别容易引起二次事故。对于刷数，我们需要像新需求一样对待，经过完备的需求分析、设计评审、代码评审。主要考虑以下3点：</p>
+<ul class="simple">
+<li><p>刷数范围，怎么筛选问题数据，评审过滤条件；</p></li>
+<li><p>刷数程序，怎么修复问题数据，评审代码逻辑；</p></li>
+<li><p>验证方法，怎么验证修复数据，分析测试场景；</p></li>
+</ul>
+<p>在刷数实施前，群里报备，周知相关方及相关人员。先试刷，验证无问题后，再全刷，最后验证问题数据已经得以修复。这一套刷数流程，通过加强前期评审，能很好地预防缺陷，增强刷数成功的信心。但是人工评估可能遗漏场景，可能对真实数据情况把握不全，刷数的关键还在于最后的数据验证。</p>
+<p>抽样验证还是全量验证，这是一个问题。抽样验证是人工随机挑几个数据进行验证，我们通常倾向于使用抽样验证，一是抽样验证是一种科学的有效的验证方法，虽然它存在一定概率的遗漏，但是很多时候是可以接受的风险；二是抽样验证也是无奈之举，找不到办法进行全量验证。我们遇到的困难是，数据存在ES中，批量把所有数据查出来很麻烦，也无法直接编写校验逻辑，全量验证似乎是不可能的。</p>
+<p>全量验证有2个思路：</p>
+<ul class="simple">
+<li><p>如果能直连库，那么先提数，再写程序对比；</p></li>
+<li><p>如果只能WEB页面查数，那么使用Python爬虫提数，再写程序对比；</p></li>
+</ul>
+<p>后者适用于我们的情况。ES能通过WEB页面查询数据，只要是WEB页面，即使有Cookie，也能爬取到接口数据。F12抓包到查询接口的URL、Cookie、入参后，使用Python的requests库可以爬取查询结果数据：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://xxx&#39;</span>
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Cookie&#39;</span><span class="p">:</span> <span class="s1">&#39;xxx&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span>
+<span class="p">}</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">request</span><span class="p">(</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>我们使用这种方式，传入订单号，查询到了申请单数据，以便进行对比校验逻辑。而订单号，研发打在了日志里，需要下载日志文件后，进行解析，可以使用Python切片：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">orders</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;some.log&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s1">&#39;xxx&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">orders</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;orderId=&#39;</span><span class="p">):</span><span class="n">line</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;,已执行&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;orderId=&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">orders</span><span class="p">))</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;orders.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">orders</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">.index</span></code>可以定位到关键词的索引，然后<code class="docutils literal notranslate"><span class="pre">[:]</span></code>切片获取指定内容。</p>
+<p>日志解析订单号+爬虫获取申请单+编写对比校验逻辑，全量数据对比工具就完成了。可是18500单，上万级别数据，要全部对比完，至少要几个小时。是时候使用多线程了。</p>
+<p>多线程第一步，拆解数据，将18500单拆成以100单为一组的列表：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">split_list</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    将列表 lst 拆分成每份 size 个元素的子列表，并返回一个包含所有子列表的列表。</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">size</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">size</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>多线程第二步，队列提数，让多个线程依次从列表中取出数据，每个线程每次取不同的数据：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">threading</span>
+
+<span class="c1">### 待处理的数据列表</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+
+<span class="c1">### 创建锁对象</span>
+<span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+
+<span class="c1">### 定义线程函数</span>
+<span class="k">def</span> <span class="nf">process_data</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">data</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># 加锁</span>
+        <span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="c1"># 如果列表为空，说明所有数据已被处理完毕，退出循环</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+            <span class="k">break</span>
+        <span class="c1"># 取出列表中的第一个数据</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># 释放锁</span>
+        <span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+        <span class="c1"># 对数据进行处理</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing data:&quot;</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+
+<span class="c1">### 创建多个线程</span>
+<span class="n">threads</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">process_data</span><span class="p">)</span>
+    <span class="n">threads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="c1">### 启动所有线程</span>
+<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="c1">### 等待所有线程结束</span>
+<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;All data processed.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>阻塞队列是通过加锁来实现的，每个线程在取数前先加锁，然后<code class="docutils literal notranslate"><span class="pre">pop(0)</span></code>取出列表中的第一个数据，再释放锁。上述程序修改①data②数据处理逻辑③线程数即可使用。</p>
+<p>对比工具使用多线程后，运行时间从小时级别降到了分钟级别。当天研发本来以为要跑很久，准备第二天再来看，就先撤了。我执着了一下多线程实现，在ChatGPT帮助下，很快就把结果跑出来。赶紧打电话摇人，让研发回来看问题，研发那时刚到家，掏出钥匙把门打开。在全量对比前，我们也都做了一轮抽样验证，均没有发现任何问题。18500单全量对比，发现有1064单存在问题，能抽样发现的概率只有5.8%。</p>
+<p>总结，分析这些问题原因：</p>
+<ul class="simple">
+<li><p>遗漏了1种数据情况，评估不到位</p></li>
+<li><p>未考虑到刷数环境影响，在预发环境刷数，上下游环境都是预发，可能跟线上版本不一样，尤其是做写操作时，格外需要注意</p></li>
+<li><p>刷数程序本身缺陷，这个缺陷隐藏在一段用了很多次刷数的历史代码里面，不是100%会导致问题</p></li>
+</ul>
+<p>可以发现，大数据量验证，人工无法百分百保证数据准确性，抽样检查，94.2%概率发现不了问题。最稳妥的办法，还是全量对比，让每条数据，都经过对比规则的检验。</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html" class="btn btn-neutral float-right" title="原创接口测试框架tep" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="010001-%E3%80%90%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E3%80%91%E5%8A%9F%E8%83%BD%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%AE%97%E6%B3%95Pairwise%E5%B7%A5%E5%85%B7.html" class="btn btn-neutral float-left" title="【测试工具】功能测试用例自动生成算法Pairwise工具" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

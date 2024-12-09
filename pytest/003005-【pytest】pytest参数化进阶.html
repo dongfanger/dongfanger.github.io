@@ -1,0 +1,755 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【pytest】pytest参数化进阶 &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="【pytest】pytest断言技巧" href="003006-%E3%80%90pytest%E3%80%91pytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7.html" />
+    <link rel="prev" title="【pytest】pytest内置和自定义marker" href="003004-%E3%80%90pytest%E3%80%91pytest%E5%86%85%E7%BD%AE%E5%92%8C%E8%87%AA%E5%AE%9A%E4%B9%89marker.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/pytest.html">pytest</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="003001-%E3%80%90pytest%E3%80%91pytest%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8.html">【pytest】pytest快速入门</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003002-%E3%80%90pytest%E3%80%91pytest132%E4%B8%AA%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E7%94%A8%E6%B3%95.html">【pytest】pytest132个命令行参数用法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003003-%E3%80%90pytest%E3%80%91pytest%E7%B2%BE%E9%80%9Afixture.html">【pytest】pytest精通fixture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003004-%E3%80%90pytest%E3%80%91pytest%E5%86%85%E7%BD%AE%E5%92%8C%E8%87%AA%E5%AE%9A%E4%B9%89marker.html">【pytest】pytest内置和自定义marker</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【pytest】pytest参数化进阶</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">语法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">参数化误区</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">实践</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">简要回顾</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="003006-%E3%80%90pytest%E3%80%91pytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7.html">【pytest】pytest断言技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003007-%E3%80%90pytest%E3%80%91pytest%E7%94%A8%E4%BE%8B%E6%9F%A5%E6%89%BE%E5%8E%9F%E7%90%86.html">【pytest】pytest用例查找原理</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Flask.html">Flask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/pytest.html">pytest</a> &raquo;</li>
+        
+      <li>【pytest】pytest参数化进阶</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/pytest/003005-【pytest】pytest参数化进阶.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pytestpytest">
+<h1>【pytest】pytest参数化进阶<a class="headerlink" href="#pytestpytest" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang10.png" /></p>
+<p>用过unittest的朋友，肯定知道可以借助DDT实现参数化。用过JMeter的朋友，肯定知道JMeter自带了4种参数化方式（见参考资料）。pytest同样支持参数化，而且很简单很实用。</p>
+<div class="section" id="id1">
+<h2>语法<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>在《pytest封神之路第三步 精通fixture》和《pytest封神之路第四步
+内置和自定义marker》两篇文章中，都提到了pytest参数化。那么本文就趁着热乎，赶紧聊一聊pytest的参数化是怎么玩的。</p>
+<p><strong>&#64;pytest.mark.parametrize</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;test_input,expected&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="s2">&quot;3+5&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;2+4&quot;</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;6*9&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)])</span>
+<span class="k">def</span> <span class="nf">test_eval</span><span class="p">(</span><span class="n">test_input</span><span class="p">,</span> <span class="n">expected</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">eval</span><span class="p">(</span><span class="n">test_input</span><span class="p">)</span> <span class="o">==</span> <span class="n">expected</span>
+</pre></div>
+</div>
+<ul>
+<li><p>可以自定义变量，test_input对应的值是“3+5” “2+4”
+“6*9”，expected对应的值是8 6
+42，<strong>多个变量用tuple，多个tuple用list</strong></p></li>
+<li><p>参数化的变量是引用而非复制，意味着如果值是list或dict，改变值会影响后续的test</p></li>
+<li><p>重叠产生笛卡尔积</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">test_foo</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p><strong>&#64;pytest.fixture()</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;module&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;smtp.gmail.com&quot;</span><span class="p">,</span> <span class="s2">&quot;mail.python.org&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">smtp_connection</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">smtp_connection</span> <span class="o">=</span> <span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">param</span><span class="p">,</span> <span class="mi">587</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul>
+<li><p>只能使用request.param来引用</p></li>
+<li><p>参数化生成的test带有ID，可以使用<code class="docutils literal notranslate"><span class="pre">-k</span></code>来筛选执行。默认是根据<code class="docutils literal notranslate"><span class="pre">函数名[参数名]</span></code>来的，可以使用ids来定义</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="nb">list</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="s2">&quot;ham&quot;</span><span class="p">])</span>
+<span class="o">//</span> <span class="n">function</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">ids</span><span class="o">=</span><span class="n">idfn</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>使用<code class="docutils literal notranslate"><span class="pre">--collect-only</span></code>命令行参数可以看到生成的IDs。</p>
+</li>
+</ul>
+<p><strong>参数添加marker</strong></p>
+<p>我们知道了参数化后会生成多个tests，如果有些test需要marker，可以用pytest.param来添加</p>
+<p>marker方式</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_expectation.py</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s2">&quot;test_input,expected&quot;</span><span class="p">,</span>
+    <span class="p">[(</span><span class="s2">&quot;3+5&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;2+4&quot;</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">pytest</span><span class="o">.</span><span class="n">param</span><span class="p">(</span><span class="s2">&quot;6*9&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="n">marks</span><span class="o">=</span><span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">xfail</span><span class="p">)],</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_eval</span><span class="p">(</span><span class="n">test_input</span><span class="p">,</span> <span class="n">expected</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">eval</span><span class="p">(</span><span class="n">test_input</span><span class="p">)</span> <span class="o">==</span> <span class="n">expected</span>
+</pre></div>
+</div>
+<p>fixture方式</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_fixture_marks.py</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pytest</span><span class="o">.</span><span class="n">param</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">marks</span><span class="o">=</span><span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skip</span><span class="p">)])</span>
+<span class="k">def</span> <span class="nf">data_set</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">param</span>
+<span class="k">def</span> <span class="nf">test_data</span><span class="p">(</span><span class="n">data_set</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p><strong>pytest_generate_tests</strong></p>
+<p>用来自定义参数化方案。使用到了hook，hook的知识我会写在《pytest
+hook》中，欢迎关注公众号dongfanger获取最新文章。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of conf.py</span>
+
+
+<span class="k">def</span> <span class="nf">pytest_generate_tests</span><span class="p">(</span><span class="n">metafunc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s2">&quot;test_input&quot;</span> <span class="ow">in</span> <span class="n">metafunc</span><span class="o">.</span><span class="n">fixturenames</span><span class="p">:</span>
+        <span class="n">metafunc</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;test_input&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test.py</span>
+
+
+<span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">test_input</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">test_input</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>定义在conftest.py文件中</p></li>
+<li><p>metafunc有5个属性，fixturenames，module，config，function，cls</p></li>
+<li><p>metafunc.parametrize() 用来实现参数化</p></li>
+<li><p>多个metafunc.parametrize() 的参数名不能重复，否则会报错</p></li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h2>参数化误区<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>在讲示例之前，先简单分享我的菜鸡行为。假设我们现在需要对50个接口测试，验证某一角色的用户访问这些接口会返回403。我的做法是，把接口请求全部参数化了，test函数里面只有断言，<strong>伪代码</strong>大致如下</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">api</span><span class="p">():</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span> <span class="nf">func</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">request</span><span class="p">()</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s1">&#39;req&#39;</span><span class="p">,</span> <span class="n">api</span><span class="p">())</span>
+<span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">req</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">res</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span>
+</pre></div>
+</div>
+<p>这样参数化以后，会产生<strong>50个tests</strong>，如果断言失败了，会单独标记为failed，不影响其他test结果。咋一看还行，但是有个问题，在回归的时候，可能只需要验证其中部分接口，就没有办法灵活的调整，必须全部跑一遍才行。这是一个<strong>相对错误的示范</strong>，至于正确的应该怎么写，相信每个人心中都有一个答案，能解决问题就是ok的。我想表达的是，<strong>参数化要适当，不要滥用，最好只对测试数据做参数化</strong>。</p>
+</div>
+<div class="section" id="id3">
+<h2>实践<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>本文的<strong>重点</strong>来了，参数化的语法比较简单，实际应用是关键。这部分通过11个例子，来实践一下。<strong>示例覆盖的知识点有点多，建议留大段时间细看。</strong></p>
+<p>1.使用hook添加命令行参数–all，“param1”是参数名，带–all参数时是range(5)
+== [0, 1, 2, 3, 4]，生成5个tests。不带参数时是range(2)。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_compute.py</span>
+
+
+<span class="k">def</span> <span class="nf">test_compute</span><span class="p">(</span><span class="n">param1</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">param1</span> <span class="o">&lt;</span> <span class="mi">4</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of conftest.py</span>
+
+
+<span class="k">def</span> <span class="nf">pytest_addoption</span><span class="p">(</span><span class="n">parser</span><span class="p">):</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">addoption</span><span class="p">(</span><span class="s2">&quot;--all&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;run all combinations&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">pytest_generate_tests</span><span class="p">(</span><span class="n">metafunc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s2">&quot;param1&quot;</span> <span class="ow">in</span> <span class="n">metafunc</span><span class="o">.</span><span class="n">fixturenames</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">metafunc</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getoption</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">):</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">metafunc</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;param1&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">end</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>2.testdata是测试数据，包括2组。test_timedistance_v0不带ids。test_timedistance_v1带list格式的ids。test_timedistance_v2的ids为函数。test_timedistance_v3使用pytest.param同时定义测试数据和id。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_time.py</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="n">testdata</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span>
+    <span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">timedelta</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
+<span class="p">]</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;a,b,expected&quot;</span><span class="p">,</span> <span class="n">testdata</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_timedistance_v0</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">expected</span><span class="p">):</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span>
+    <span class="k">assert</span> <span class="n">diff</span> <span class="o">==</span> <span class="n">expected</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;a,b,expected&quot;</span><span class="p">,</span> <span class="n">testdata</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;forward&quot;</span><span class="p">,</span> <span class="s2">&quot;backward&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">test_timedistance_v1</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">expected</span><span class="p">):</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span>
+    <span class="k">assert</span> <span class="n">diff</span> <span class="o">==</span> <span class="n">expected</span>
+
+
+<span class="k">def</span> <span class="nf">idfn</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="p">(</span><span class="n">datetime</span><span class="p">,)):</span>
+        <span class="c1"># note this wouldn&#39;t show any hours/minutes/seconds</span>
+        <span class="k">return</span> <span class="n">val</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;a,b,expected&quot;</span><span class="p">,</span> <span class="n">testdata</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">idfn</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_timedistance_v2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">expected</span><span class="p">):</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span>
+    <span class="k">assert</span> <span class="n">diff</span> <span class="o">==</span> <span class="n">expected</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s2">&quot;a,b,expected&quot;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="n">pytest</span><span class="o">.</span><span class="n">param</span><span class="p">(</span>
+            <span class="n">datetime</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;forward&quot;</span>
+        <span class="p">),</span>
+        <span class="n">pytest</span><span class="o">.</span><span class="n">param</span><span class="p">(</span>
+            <span class="n">datetime</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">timedelta</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;backward&quot;</span>
+        <span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_timedistance_v3</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">expected</span><span class="p">):</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span>
+    <span class="k">assert</span> <span class="n">diff</span> <span class="o">==</span> <span class="n">expected</span>
+</pre></div>
+</div>
+<p>3.兼容unittest的testscenarios</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_scenarios.py</span>
+<span class="k">def</span> <span class="nf">pytest_generate_tests</span><span class="p">(</span><span class="n">metafunc</span><span class="p">):</span>
+    <span class="n">idlist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">argvalues</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">scenario</span> <span class="ow">in</span> <span class="n">metafunc</span><span class="o">.</span><span class="n">cls</span><span class="o">.</span><span class="n">scenarios</span><span class="p">:</span>
+        <span class="n">idlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scenario</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">scenario</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="n">argnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+        <span class="n">argvalues</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">items</span><span class="p">])</span>
+    <span class="n">metafunc</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="n">argnames</span><span class="p">,</span> <span class="n">argvalues</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">idlist</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s2">&quot;class&quot;</span><span class="p">)</span>
+
+
+<span class="n">scenario1</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;basic&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;attribute&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">})</span>
+<span class="n">scenario2</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;advanced&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;attribute&quot;</span><span class="p">:</span> <span class="s2">&quot;value2&quot;</span><span class="p">})</span>
+
+
+<span class="k">class</span> <span class="nc">TestSampleWithScenarios</span><span class="p">:</span>
+    <span class="n">scenarios</span> <span class="o">=</span> <span class="p">[</span><span class="n">scenario1</span><span class="p">,</span> <span class="n">scenario2</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">test_demo1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_demo2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>4.初始化数据库连接</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_backends.py</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="k">def</span> <span class="nf">test_db_initialized</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+    <span class="c1"># a dummy test</span>
+    <span class="k">if</span> <span class="n">db</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;DB2&quot;</span><span class="p">:</span>
+        <span class="n">pytest</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;deliberately failing for demo purposes&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of conftest.py</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="k">def</span> <span class="nf">pytest_generate_tests</span><span class="p">(</span><span class="n">metafunc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s2">&quot;db&quot;</span> <span class="ow">in</span> <span class="n">metafunc</span><span class="o">.</span><span class="n">fixturenames</span><span class="p">:</span>
+        <span class="n">metafunc</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;db&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;d1&quot;</span><span class="p">,</span> <span class="s2">&quot;d2&quot;</span><span class="p">],</span> <span class="n">indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">DB1</span><span class="p">:</span>
+    <span class="s2">&quot;one database object&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">DB2</span><span class="p">:</span>
+    <span class="s2">&quot;alternative database object&quot;</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span> <span class="nf">db</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">param</span> <span class="o">==</span> <span class="s2">&quot;d1&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">DB1</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">request</span><span class="o">.</span><span class="n">param</span> <span class="o">==</span> <span class="s2">&quot;d2&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">DB2</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid internal test config&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>5.如果不加indirect=True，会生成2个test，fixt的值分别是“a”和“b”。如果加了indirect=True，会先执行fixture，fixt的值分别是“aaa”和“bbb”。indirect=True结合fixture可以在生成test前，对参数变量额外处理。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span> <span class="nf">fixt</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">param</span> <span class="o">*</span> <span class="mi">3</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;fixt&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="n">indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_indirect</span><span class="p">(</span><span class="n">fixt</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fixt</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+</pre></div>
+</div>
+<p>6.多个参数时，indirect赋值list可以指定某些变量应用fixture，没有指定的保持原值。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_indirect_list.py</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;function&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">x</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">param</span> <span class="o">*</span> <span class="mi">3</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;function&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">y</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">param</span> <span class="o">*</span> <span class="mi">2</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;x, y&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">)],</span> <span class="n">indirect</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">test_indirect</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;aaa&quot;</span>
+    <span class="k">assert</span> <span class="n">y</span> <span class="o">==</span> <span class="s2">&quot;b&quot;</span>
+</pre></div>
+</div>
+<p>7.兼容unittest参数化</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of ./test_parametrize.py</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="k">def</span> <span class="nf">pytest_generate_tests</span><span class="p">(</span><span class="n">metafunc</span><span class="p">):</span>
+    <span class="c1"># called once per each test function</span>
+    <span class="n">funcarglist</span> <span class="o">=</span> <span class="n">metafunc</span><span class="o">.</span><span class="n">cls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">metafunc</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span>
+    <span class="n">argnames</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">funcarglist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">metafunc</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+        <span class="n">argnames</span><span class="p">,</span> <span class="p">[[</span><span class="n">funcargs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">argnames</span><span class="p">]</span> <span class="k">for</span> <span class="n">funcargs</span> <span class="ow">in</span> <span class="n">funcarglist</span><span class="p">]</span>
+    <span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">TestClass</span><span class="p">:</span>
+    <span class="c1"># a map specifying multiple argument sets for a test method</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;test_equals&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="nb">dict</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">3</span><span class="p">)],</span>
+        <span class="s2">&quot;test_zerodivision&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">0</span><span class="p">)],</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">test_equals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span>
+
+    <span class="k">def</span> <span class="nf">test_zerodivision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ZeroDivisionError</span><span class="p">):</span>
+            <span class="n">a</span> <span class="o">/</span> <span class="n">b</span>
+</pre></div>
+</div>
+<p>8.在不同python解释器之间测试对象序列化。python1把对象pickle-dump到文件。python2从文件中pickle-load对象。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">module containing a parametrized tests testing cross-python</span>
+<span class="sd">serialization via the pickle module.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="n">pythonlist</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;python3.5&quot;</span><span class="p">,</span> <span class="s2">&quot;python3.6&quot;</span><span class="p">,</span> <span class="s2">&quot;python3.7&quot;</span><span class="p">]</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">pythonlist</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">python1</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">tmpdir</span><span class="p">):</span>
+    <span class="n">picklefile</span> <span class="o">=</span> <span class="n">tmpdir</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;data.pickle&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Python</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">param</span><span class="p">,</span> <span class="n">picklefile</span><span class="p">)</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">pythonlist</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">python2</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">python1</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Python</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">param</span><span class="p">,</span> <span class="n">python1</span><span class="o">.</span><span class="n">picklefile</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Python</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">picklefile</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pythonpath</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pythonpath</span><span class="p">:</span>
+            <span class="n">pytest</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{!r}</span><span class="s2"> not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">picklefile</span> <span class="o">=</span> <span class="n">picklefile</span>
+
+    <span class="k">def</span> <span class="nf">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="n">dumpfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">picklefile</span><span class="o">.</span><span class="n">dirpath</span><span class="p">(</span><span class="s2">&quot;dump.py&quot;</span><span class="p">)</span>
+        <span class="n">dumpfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
+                <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                import pickle</span>
+<span class="sd">                f = open({!r}, &#39;wb&#39;)</span>
+<span class="sd">                s = pickle.dump({!r}, f, protocol=2)</span>
+<span class="sd">                f.close()</span>
+<span class="sd">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">picklefile</span><span class="p">),</span> <span class="n">obj</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">pythonpath</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">dumpfile</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">load_and_is_true</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">):</span>
+        <span class="n">loadfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">picklefile</span><span class="o">.</span><span class="n">dirpath</span><span class="p">(</span><span class="s2">&quot;load.py&quot;</span><span class="p">)</span>
+        <span class="n">loadfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
+                <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                import pickle</span>
+<span class="sd">                f = open({!r}, &#39;rb&#39;)</span>
+<span class="sd">                obj = pickle.load(f)</span>
+<span class="sd">                f.close()</span>
+<span class="sd">                res = eval({!r})</span>
+<span class="sd">                if not res:</span>
+<span class="sd">                raise SystemExit(1)</span>
+<span class="sd">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">picklefile</span><span class="p">),</span> <span class="n">expression</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">loadfile</span><span class="p">)</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">pythonpath</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">loadfile</span><span class="p">)))</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;obj&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">42</span><span class="p">,</span> <span class="p">{},</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">3</span><span class="p">}])</span>
+<span class="k">def</span> <span class="nf">test_basic_objects</span><span class="p">(</span><span class="n">python1</span><span class="p">,</span> <span class="n">python2</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="n">python1</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="n">python2</span><span class="o">.</span><span class="n">load_and_is_true</span><span class="p">(</span><span class="s2">&quot;obj == </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>9.假设有个API，basemod是原始版本，optmod是优化版本，验证二者结果一致。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of conftest.py</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;session&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">basemod</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pytest</span><span class="o">.</span><span class="n">importorskip</span><span class="p">(</span><span class="s2">&quot;base&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;session&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;opt2&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">optmod</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pytest</span><span class="o">.</span><span class="n">importorskip</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">param</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of base.py</span>
+
+
+<span class="k">def</span> <span class="nf">func1</span><span class="p">():</span>
+    <span class="k">return</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of opt1.py</span>
+
+
+<span class="k">def</span> <span class="nf">func1</span><span class="p">():</span>
+    <span class="k">return</span> <span class="mf">1.0001</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_module.py</span>
+<span class="k">def</span> <span class="nf">test_func1</span><span class="p">(</span><span class="n">basemod</span><span class="p">,</span> <span class="n">optmod</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">round</span><span class="p">(</span><span class="n">basemod</span><span class="o">.</span><span class="n">func1</span><span class="p">(),</span> <span class="mi">3</span><span class="p">)</span> <span class="o">==</span> <span class="nb">round</span><span class="p">(</span><span class="n">optmod</span><span class="o">.</span><span class="n">func1</span><span class="p">(),</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>10.使用pytest.param添加marker和id。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## content of test_pytest_param_example.py</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s2">&quot;test_input,expected&quot;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;3+5&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+        <span class="n">pytest</span><span class="o">.</span><span class="n">param</span><span class="p">(</span><span class="s2">&quot;1+7&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="n">marks</span><span class="o">=</span><span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">basic</span><span class="p">),</span>
+        <span class="n">pytest</span><span class="o">.</span><span class="n">param</span><span class="p">(</span><span class="s2">&quot;2+4&quot;</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">marks</span><span class="o">=</span><span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">basic</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;basic_2+4&quot;</span><span class="p">),</span>
+        <span class="n">pytest</span><span class="o">.</span><span class="n">param</span><span class="p">(</span>
+            <span class="s2">&quot;6*9&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="n">marks</span><span class="o">=</span><span class="p">[</span><span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">basic</span><span class="p">,</span> <span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">xfail</span><span class="p">],</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;basic_6*9&quot;</span>
+        <span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_eval</span><span class="p">(</span><span class="n">test_input</span><span class="p">,</span> <span class="n">expected</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">eval</span><span class="p">(</span><span class="n">test_input</span><span class="p">)</span> <span class="o">==</span> <span class="n">expected</span>
+</pre></div>
+</div>
+<p>11.使用pytest.raises让部分test抛出Error。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<span class="o">//</span> <span class="mf">3.7</span><span class="o">+</span> <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">nullcontext</span> <span class="k">as</span> <span class="n">does_not_raise</span>
+<span class="nd">@contextmanager</span>
+<span class="k">def</span> <span class="nf">does_not_raise</span><span class="p">():</span>
+    <span class="k">yield</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s2">&quot;example_input,expectation&quot;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">does_not_raise</span><span class="p">()),</span>
+        <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">does_not_raise</span><span class="p">()),</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">does_not_raise</span><span class="p">()),</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ZeroDivisionError</span><span class="p">)),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_division</span><span class="p">(</span><span class="n">example_input</span><span class="p">,</span> <span class="n">expectation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test how much I know division.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">expectation</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="mi">6</span> <span class="o">/</span> <span class="n">example_input</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>简要回顾<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>本文先讲了参数化的语法，包括marker，fixture，hook方式，以及如何给参数添加marker，然后重点列举了几个实战示例。参数化用好了能节省编码，达到事半功倍的效果。</p>
+<blockquote>
+<div><p><em>参考资料</em></p>
+<p>docs-pytest-org-en-stable</p>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="003006-%E3%80%90pytest%E3%80%91pytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7.html" class="btn btn-neutral float-right" title="【pytest】pytest断言技巧" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="003004-%E3%80%90pytest%E3%80%91pytest%E5%86%85%E7%BD%AE%E5%92%8C%E8%87%AA%E5%AE%9A%E4%B9%89marker.html" class="btn btn-neutral float-left" title="【pytest】pytest内置和自定义marker" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

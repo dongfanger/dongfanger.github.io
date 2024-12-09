@@ -1,0 +1,1300 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>RabbitMQ消息队列官方教程Java学习笔记 &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="为什么Kafka这么快" href="001001-%E4%B8%BA%E4%BB%80%E4%B9%88Kafka%E8%BF%99%E4%B9%88%E5%BF%AB.html" />
+    <link rel="prev" title="中间件" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">RabbitMQ消息队列官方教程Java学习笔记</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">消息队列</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id2">生产者和消费者</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#windowsrabbitmq">Windows安装RabbitMQ</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#java">Java客户端</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">生产消息</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">消费消息</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">运行效果</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">任务分发</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id7">消息确认</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id8">消息持久化</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9">均衡调度</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id10">完整代码</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">发布订阅</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#exchange">Exchange</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12">临时队列</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13">绑定</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id14">完整代码</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id16">运行效果</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id18">消息路由</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#binding-key">binding key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id19">代码实现</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id20">运行效果</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#topic">Topic</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#topic-exchange">Topic Exchange</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id22">完整代码</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id24">运行效果</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#rpc">RPC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id26">代码实现</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id28">运行效果</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="001001-%E4%B8%BA%E4%BB%80%E4%B9%88Kafka%E8%BF%99%E4%B9%88%E5%BF%AB.html">为什么Kafka这么快</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/pytest.html">pytest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Flask.html">Flask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a> &raquo;</li>
+        
+      <li>RabbitMQ消息队列官方教程Java学习笔记</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/中间件/000001-RabbitMQ消息队列官方教程Java学习笔记.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="rabbitmqjava">
+<h1>RabbitMQ消息队列官方教程Java学习笔记<a class="headerlink" href="#rabbitmqjava" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang12.png" /></p>
+<div class="section" id="id1">
+<h2>消息队列<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>RabbitMQ是一个消息队列，它能够接收和转发消息。这个过程就像寄快递一样，把物件打包给快递小哥，快递小哥会负责把物件派送到正确的地址。</p>
+<div class="section" id="id2">
+<h3>生产者和消费者<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p><strong>生产者</strong>就是用来生产消息（发送消息）的：</p>
+<p><img alt="image2" src="../_images/producer.png" /></p>
+<p><strong>消费者</strong>就是用来消费消息（接收消息）的：</p>
+<p><img alt="image3" src="../_images/consumer.png" /></p>
+<p>在生产者和消费者之间的就是<strong>消息队列</strong>：</p>
+<p><img alt="image4" src="../_images/queue.png" /></p>
+<p>它相当于消息缓冲区，最多能存储多少数据只受限于机器的内存和磁盘。多个生产者可以发送消息给同一个队列，多个消费者也可以从同一个队列接收消息。</p>
+<p><img alt="image5" src="../_images/python-one-overall.png" /></p>
+</div>
+<div class="section" id="windowsrabbitmq">
+<h3>Windows安装RabbitMQ<a class="headerlink" href="#windowsrabbitmq" title="Permalink to this headline">¶</a></h3>
+<p>参考mall商城学习教程的RabbitMQ部分内容：</p>
+<p><a class="reference external" href="http://www.macrozheng.com/#/architect/mall_arch_09">http://www.macrozheng.com/#/architect/mall_arch_09</a>?id=rabbitmq</p>
+<p>原文中<code class="docutils literal notranslate"><span class="pre">rabbitmq-server-3.7.14.exe</span></code>下载地址失效了，改从这里下载：</p>
+<p><a class="reference external" href="https://github.com/rabbitmq/rabbitmq-server/releases/tag/v3.7.14">https://github.com/rabbitmq/rabbitmq-server/releases/tag/v3.7.14</a></p>
+<p>安装完成后，确认服务已开启：</p>
+<p><img alt="image6" src="../_images/image-20220326205428623.png" /></p>
+<p>进入RabbitMQ安装目录下的sbin目录：</p>
+<p><img alt="image7" src="../_images/image-20220326204901185.png" /></p>
+<p>在地址栏输入cmd并回车启动命令行，然后输入以下命令启动管理功能：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>rabbitmq-plugins <span class="nb">enable</span> rabbitmq_management
+</pre></div>
+</div>
+<p>RabbitMQ运行在本地机器上：</p>
+<p><a class="reference external" href="http://localhost:15672/">http://localhost:15672/</a></p>
+<p><img alt="image8" src="../_images/image-20220326182614819.png" /></p>
+<p>默认用户名密码为guest / guest：</p>
+<p><img alt="image9" src="../_images/image-20220326205726347.png" /></p>
+</div>
+<div class="section" id="java">
+<h3>Java客户端<a class="headerlink" href="#java" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">amqp-client-5.7.1.jar</span></code>是RabbitMQ官方提供的Java客户端：</p>
+<p><a class="reference external" href="https://www.rabbitmq.com/tutorials/tutorial-one-java.html">https://www.rabbitmq.com/tutorials/tutorial-one-java.html</a></p>
+<p><img alt="image10" src="../_images/image-20220326142538038.png" /></p>
+<p>既可以直接下载jar包，也可以在Maven中添加依赖：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">dependency</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">groupId</span><span class="o">&gt;</span><span class="n">com</span><span class="p">.</span><span class="na">rabbitmq</span><span class="o">&lt;/</span><span class="n">groupId</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="n">amqp</span><span class="o">-</span><span class="n">client</span><span class="o">&lt;/</span><span class="n">artifactId</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span><span class="mf">5.14.2</span><span class="o">&lt;/</span><span class="n">version</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">dependency</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h3>生产消息<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p><img alt="image11" src="../_images/sending.png" /></p>
+<p>导包：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>创建类Send，定义队列名为hello：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Send</span> <span class="p">{</span>
+  <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">QUEUE_NAME</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span><span class="p">;</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+      <span class="p">...</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>建立连接：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+<span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+<span class="k">try</span> <span class="p">(</span><span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+     <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">())</span> <span class="p">{</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>代码中创建了一个Connection实例和一个Channel实例，它们都用try语句包裹了起来，这是因为Connection和Channel类都实现了<code class="docutils literal notranslate"><span class="pre">java.io.Closeable</span></code>，try语句会自动关闭连接。</p>
+<p>声明消息队列，并发送<code class="docutils literal notranslate"><span class="pre">Hello World!</span></code>消息到队列中：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">(</span><span class="n">QUEUE_NAME</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+<span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;Hello World!&quot;</span><span class="p">;</span>
+<span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">QUEUE_NAME</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">());</span>
+<span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Sent &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>声明消息队列是个幂等操作，重复声明不会重复创建队列。</p>
+<p>消息体是字节数组（byte array）。</p>
+<p><code class="docutils literal notranslate"><span class="pre">Send.java</span></code>完整代码：</p>
+<p><a class="reference external" href="https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/Send.java">https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/Send.java</a></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nn">java.nio.charset.StandardCharsets</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Send</span> <span class="p">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">QUEUE_NAME</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span><span class="p">;</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+        <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+        <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+        <span class="k">try</span> <span class="p">(</span><span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+             <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">())</span> <span class="p">{</span>
+            <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">(</span><span class="n">QUEUE_NAME</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+            <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;Hello World!&quot;</span><span class="p">;</span>
+            <span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">QUEUE_NAME</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">(</span><span class="n">StandardCharsets</span><span class="p">.</span><span class="na">UTF_8</span><span class="p">));</span>
+            <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Sent &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h3>消费消息<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p><img alt="image12" src="../_images/receiving.png" /></p>
+<p>消费消息的代码跟生产消息的代码类似，也需要导包，建立连接：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.DeliverCallback</span><span class="p">;</span>
+
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Recv</span> <span class="p">{</span>
+
+  <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">QUEUE_NAME</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span><span class="p">;</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+    <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+    <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+    <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">();</span>
+
+    <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">(</span><span class="n">QUEUE_NAME</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+    <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [*] Waiting for messages. To exit press CTRL+C&quot;</span><span class="p">);</span>
+
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>消费者也声明了一个消息队列</strong>，因为有可能消费者比生产者先启动。这样能确保消费消息时，有队列存在。</p>
+<p><strong>消费者没有用try语句</strong>，因为消费者一直在异步监听消息，如果把连接关闭了，它就没法消费了。</p>
+<p>导包中有个<code class="docutils literal notranslate"><span class="pre">DeliverCallback</span></code>，通过它就能消费消息：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">DeliverCallback</span> <span class="n">deliverCallback</span> <span class="o">=</span> <span class="p">(</span><span class="n">consumerTag</span><span class="p">,</span> <span class="n">delivery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{</span>
+    <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getBody</span><span class="p">(),</span> <span class="s">&quot;UTF-8&quot;</span><span class="p">);</span>
+    <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Received &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+<span class="p">};</span>
+<span class="n">channel</span><span class="p">.</span><span class="na">basicConsume</span><span class="p">(</span><span class="n">QUEUE_NAME</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="n">deliverCallback</span><span class="p">,</span> <span class="n">consumerTag</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="p">});</span>
+</pre></div>
+</div>
+<p>因为发送消息和接收消息都是异步的，所以它叫做，callback，回调。</p>
+<p><code class="docutils literal notranslate"><span class="pre">Recv.java</span></code>完整代码：</p>
+<p><a class="reference external" href="https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/Recv.java">https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/Recv.java</a></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.DeliverCallback</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Recv</span> <span class="p">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">QUEUE_NAME</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span><span class="p">;</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+        <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+        <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+        <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+        <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">();</span>
+
+        <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">(</span><span class="n">QUEUE_NAME</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [*] Waiting for messages. To exit press CTRL+C&quot;</span><span class="p">);</span>
+
+        <span class="n">DeliverCallback</span> <span class="n">deliverCallback</span> <span class="o">=</span> <span class="p">(</span><span class="n">consumerTag</span><span class="p">,</span> <span class="n">delivery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{</span>
+            <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getBody</span><span class="p">(),</span> <span class="n">StandardCharsets</span><span class="p">.</span><span class="na">UTF_8</span><span class="p">);</span>
+            <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Received &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+        <span class="p">};</span>
+        <span class="n">channel</span><span class="p">.</span><span class="na">basicConsume</span><span class="p">(</span><span class="n">QUEUE_NAME</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="n">deliverCallback</span><span class="p">,</span> <span class="n">consumerTag</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="p">});</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h3>运行效果<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p><strong>运行``Send.java``生产消息后</strong>，能看到RabbitMQ后台已经有1条消息：</p>
+<p><img alt="image13" src="../_images/image-20220326210013199.png" /></p>
+<p>和1个消息队列：</p>
+<p><img alt="image14" src="../_images/image-20220326210233345.png" /></p>
+<p>并且发送完成后就断开了连接。</p>
+<p><strong>运行``Recv.java``消费消息后</strong>，能看到队列中已经没有消息了：</p>
+<p><img alt="image15" src="../_images/image-20220326210451253.png" /></p>
+<p>而消费者仍然保持着连接，持续监控新消息。如果把消费者停掉，连接就会断开。</p>
+<p>从消息队列中能看到整个过程如下图所示：</p>
+<p><img alt="image16" src="../_images/image-20220326211204785.png" /></p>
+</div>
+</div>
+<div class="section" id="id6">
+<h2>任务分发<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>任务分发是把多个任务扔进队列，然后分发给多个worker来执行。之所以要用队列来实现，是因为任务处理需要一定时长，如果一直等待会导致阻塞，而异步把任务排到队列里，就能加快分发，在取出任务时，也能根据各个worker负载情况，均衡分配。尤其是在Web应用中，HTTP连接短暂就会断开，异步处理就特别适用。排队比蜂拥而至办事效率更高。</p>
+<p><img alt="image17" src="../_images/94b8550499b7cc8323bea5e6c2da53f75ca22bf0.png" /></p>
+<p>实现任务分发，新建<code class="docutils literal notranslate"><span class="pre">NewTask.java</span></code>发送消息：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="n">String</span><span class="p">.</span><span class="na">join</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
+
+<span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;hello&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">());</span>
+<span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Sent &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>用message来模拟任务。</p>
+<p>新建<code class="docutils literal notranslate"><span class="pre">Worker.java</span></code>接收消息：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">DeliverCallback</span> <span class="n">deliverCallback</span> <span class="o">=</span> <span class="p">(</span><span class="n">consumerTag</span><span class="p">,</span> <span class="n">delivery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{</span>
+  <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getBody</span><span class="p">(),</span> <span class="s">&quot;UTF-8&quot;</span><span class="p">);</span>
+
+  <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Received &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="n">doWork</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+    <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Done&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="kt">boolean</span> <span class="n">autoAck</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span> <span class="c1">// acknowledgment is covered below</span>
+<span class="n">channel</span><span class="p">.</span><span class="na">basicConsume</span><span class="p">(</span><span class="n">TASK_QUEUE_NAME</span><span class="p">,</span> <span class="n">autoAck</span><span class="p">,</span> <span class="n">deliverCallback</span><span class="p">,</span> <span class="n">consumerTag</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="p">});</span>
+</pre></div>
+</div>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">private</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">doWork</span><span class="p">(</span><span class="n">String</span> <span class="n">task</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">InterruptedException</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">char</span> <span class="n">ch</span><span class="p">:</span> <span class="n">task</span><span class="p">.</span><span class="na">toCharArray</span><span class="p">())</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ch</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span><span class="p">)</span> <span class="n">Thread</span><span class="p">.</span><span class="na">sleep</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">doWrok()</span></code>模拟任务处理，用<code class="docutils literal notranslate"><span class="pre">.</span></code>来表示时长，<code class="docutils literal notranslate"><span class="pre">hello...</span></code>就代表要处理3秒。</p>
+<p>然后在2个shell启动2个worker：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">## shell 1</span>
+java -cp <span class="nv">$CP</span> Worker
+<span class="c1">## =&gt; [*] Waiting for messages. To exit press CTRL+C</span>
+</pre></div>
+</div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">## shell 2</span>
+java -cp <span class="nv">$CP</span> Worker
+<span class="c1">## =&gt; [*] Waiting for messages. To exit press CTRL+C</span>
+</pre></div>
+</div>
+<p>发送5条任务：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">## shell 3</span>
+java -cp <span class="nv">$CP</span> NewTask First message.
+<span class="c1">## =&gt; [x] Sent &#39;First message.&#39;</span>
+java -cp <span class="nv">$CP</span> NewTask Second message..
+<span class="c1">## =&gt; [x] Sent &#39;Second message..&#39;</span>
+java -cp <span class="nv">$CP</span> NewTask Third message...
+<span class="c1">## =&gt; [x] Sent &#39;Third message...&#39;</span>
+java -cp <span class="nv">$CP</span> NewTask Fourth message....
+<span class="c1">## =&gt; [x] Sent &#39;Fourth message....&#39;</span>
+java -cp <span class="nv">$CP</span> NewTask Fifth message.....
+<span class="c1">## =&gt; [x] Sent &#39;Fifth message.....&#39;</span>
+</pre></div>
+</div>
+<p>worker的处理情况如下：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> Worker
+<span class="c1">## =&gt; [*] Waiting for messages. To exit press CTRL+C</span>
+<span class="c1">## =&gt; [x] Received &#39;First message.&#39;</span>
+<span class="c1">## =&gt; [x] Received &#39;Third message...&#39;</span>
+<span class="c1">## =&gt; [x] Received &#39;Fifth message.....&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> Worker
+<span class="c1">## =&gt; [*] Waiting for messages. To exit press CTRL+C</span>
+<span class="c1">## =&gt; [x] Received &#39;Second message..&#39;</span>
+<span class="c1">## =&gt; [x] Received &#39;Fourth message....&#39;</span>
+</pre></div>
+</div>
+<p>任务是<strong>循环调度</strong>的，worker1总是处理奇数序列的任务，worker2总是处理偶数序列的任务。</p>
+<div class="section" id="id7">
+<h3>消息确认<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>RabbitMQ支持消息确认，consumer在<strong>接收到消息并处理</strong>后，会回传一个ack给producer，告诉RabbitMQ这条消息已经接收成功了。它的好处是能防止worker挂掉而丢失消息，因为假如producer没有收到消息确认，它会保留这条消息，重新发送给其他worker。消息确认过程默认有30秒的超时时间，超过30秒没有收到消息确认，就会重试。</p>
+<p>在代码中有个默认设置：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kt">boolean</span> <span class="n">autoAck</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+<span class="n">channel</span><span class="p">.</span><span class="na">basicConsume</span><span class="p">(</span><span class="n">TASK_QUEUE_NAME</span><span class="p">,</span> <span class="n">autoAck</span><span class="p">,</span> <span class="n">deliverCallback</span><span class="p">,</span> <span class="n">consumerTag</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="p">});</span>
+</pre></div>
+</div>
+<p>autoAck表示自动确认，在消息发送出去以后，就自动确认了。这就起不到防止消息丢失的效果，所以通常会设置为：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kt">boolean</span> <span class="n">autoAck</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id8">
+<h3>消息持久化<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>RabbitMQ重启以后，所有的队列和消息都会丢失，消息持久化能保留这些数据，在重启后恢复所有的队列和消息。</p>
+<p>队列持久到用到了durable参数：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kt">boolean</span> <span class="n">durable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+<span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">(</span><span class="s">&quot;task_queue&quot;</span><span class="p">,</span> <span class="n">durable</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><strong>需要注意的是，修改队列的参数必须重新命名新的队列，因为RabbitMQ不支持对现有队列的参数进行修改。</strong></p>
+<p>消息持久化用到了MessageProperties：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.MessageProperties</span><span class="p">;</span>
+
+<span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;task_queue&quot;</span><span class="p">,</span>
+            <span class="n">MessageProperties</span><span class="p">.</span><span class="na">PERSISTENT_TEXT_PLAIN</span><span class="p">,</span>
+            <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">());</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id9">
+<h3>均衡调度<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>均衡调度是根据worker负载情况来合理分配任务。前面实现的任务分发是循环调度的，worker1总是处理奇数序列的任务，worker2总是处理偶数序列的任务。假如奇数序列的任务始终比偶数序列的任务繁忙，处理起来耗时长，那么就会导致worker1一直繁忙而worker2处于空闲。这显然不是很合理。</p>
+<p>这是因为RabbitMQ默认只是盲目的将第n个消息发给第n个consumer，而不会去管有多少个未确认的消息数量。</p>
+<p>RabbitMQ提供了prefetchCount参数来实现均衡调度：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">prefetchCount</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="n">channel</span><span class="p">.</span><span class="na">basicQos</span><span class="p">(</span><span class="n">prefetchCount</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><img alt="image18" src="../_images/2022-04-01-12-43-06-image.png" /></p>
+<p>通过设置prefetchCount为1，RabbitMQ一次只会给一个worker分发一条消息，假如某个worker比较繁忙，那么只会等它处理完成回传消息确认（Message
+acknowledgment）后，才会分发新消息给它。</p>
+</div>
+<div class="section" id="id10">
+<h3>完整代码<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">NewTask.java</span></code></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.MessageProperties</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">NewTask</span> <span class="p">{</span>
+
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">TASK_QUEUE_NAME</span> <span class="o">=</span> <span class="s">&quot;task_queue&quot;</span><span class="p">;</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+    <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+    <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+    <span class="k">try</span> <span class="p">(</span><span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+         <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">())</span> <span class="p">{</span>
+        <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">(</span><span class="n">TASK_QUEUE_NAME</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+
+        <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="n">String</span><span class="p">.</span><span class="na">join</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
+
+        <span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">TASK_QUEUE_NAME</span><span class="p">,</span>
+                <span class="n">MessageProperties</span><span class="p">.</span><span class="na">PERSISTENT_TEXT_PLAIN</span><span class="p">,</span>
+                <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">(</span><span class="s">&quot;UTF-8&quot;</span><span class="p">));</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Sent &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Worker.java</span></code></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.DeliverCallback</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Worker</span> <span class="p">{</span>
+
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">TASK_QUEUE_NAME</span> <span class="o">=</span> <span class="s">&quot;task_queue&quot;</span><span class="p">;</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+    <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+    <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+    <span class="kd">final</span> <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+    <span class="kd">final</span> <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">();</span>
+
+    <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">(</span><span class="n">TASK_QUEUE_NAME</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+    <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [*] Waiting for messages. To exit press CTRL+C&quot;</span><span class="p">);</span>
+
+    <span class="n">channel</span><span class="p">.</span><span class="na">basicQos</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+
+    <span class="n">DeliverCallback</span> <span class="n">deliverCallback</span> <span class="o">=</span> <span class="p">(</span><span class="n">consumerTag</span><span class="p">,</span> <span class="n">delivery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{</span>
+        <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getBody</span><span class="p">(),</span> <span class="s">&quot;UTF-8&quot;</span><span class="p">);</span>
+
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Received &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+        <span class="k">try</span> <span class="p">{</span>
+            <span class="n">doWork</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+        <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+            <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Done&quot;</span><span class="p">);</span>
+            <span class="n">channel</span><span class="p">.</span><span class="na">basicAck</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getEnvelope</span><span class="p">().</span><span class="na">getDeliveryTag</span><span class="p">(),</span> <span class="kc">false</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">};</span>
+    <span class="n">channel</span><span class="p">.</span><span class="na">basicConsume</span><span class="p">(</span><span class="n">TASK_QUEUE_NAME</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="n">deliverCallback</span><span class="p">,</span> <span class="n">consumerTag</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="p">});</span>
+  <span class="p">}</span>
+
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">doWork</span><span class="p">(</span><span class="n">String</span> <span class="n">task</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">char</span> <span class="n">ch</span> <span class="p">:</span> <span class="n">task</span><span class="p">.</span><span class="na">toCharArray</span><span class="p">())</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ch</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">try</span> <span class="p">{</span>
+                <span class="n">Thread</span><span class="p">.</span><span class="na">sleep</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+            <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">InterruptedException</span> <span class="n">_ignored</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">Thread</span><span class="p">.</span><span class="na">currentThread</span><span class="p">().</span><span class="na">interrupt</span><span class="p">();</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id11">
+<h2>发布订阅<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<p><strong>发布订阅</strong>是发送一条消息给多个consumer的一对多模式。不同于任务分发的一个消息只发送给一个worker的一对一模式。</p>
+<p>接下来将实现一个日志系统来说明发布订阅的一对多模式，它由2个程序组成，第一个程序负责提交日志消息，第二个程序负责接收消息并打印出来。第二个程序有2个实例，第1个实例接收消息存储到磁盘，同时第2个实例把日志打印到屏幕。</p>
+<div class="section" id="exchange">
+<h3>Exchange<a class="headerlink" href="#exchange" title="Permalink to this headline">¶</a></h3>
+<p>回顾几个概念：</p>
+<ul class="simple">
+<li><p>producer：生产者，发送消息。</p></li>
+<li><p>queue：队列，消息缓存。</p></li>
+<li><p>consumer：消费者，接收消息。</p></li>
+</ul>
+<p>实际上producer并不会直接给queue发送消息，它并不知道消息会发给哪个queue。在producer和queue中间，有一个叫做Exchange的东西：</p>
+<p><img alt="image19" src="../_images/exchanges.png" /></p>
+<p>producer只会把消息发送给Exchage，而Exchange的作用就是定义<strong>消息转发规则</strong>：</p>
+<ul class="simple">
+<li><p>消息发给一个队列？</p></li>
+<li><p>消息发给多个队列？</p></li>
+<li><p>消息应该被忽略掉？</p></li>
+<li><p>等等等</p></li>
+</ul>
+<p>Exchange有几种类型：<strong>direct, topic, headers 和fanout</strong>，这里讨论最后一个fanout，它会把所有消息广播给所有队列。</p>
+<p>创建命名为<code class="docutils literal notranslate"><span class="pre">logs</span></code>的Exchange：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">channel</span><span class="p">.</span><span class="na">exchangeDeclare</span><span class="p">(</span><span class="s">&quot;logs&quot;</span><span class="p">,</span> <span class="s">&quot;fanout&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>发送消息到Exchange：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span> <span class="s">&quot;logs&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">());</span>
+</pre></div>
+</div>
+<p>还记得之前的代码么：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;hello&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">());</span>
+</pre></div>
+</div>
+<p>第一个参数为空字符串，这并不是说没有Exchange，而是使用了RabbitMQ默认的Exchange。</p>
+<p><strong>有Exchange的消息队列，才是真正的消息队列。</strong></p>
+</div>
+<div class="section" id="id12">
+<h3>临时队列<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>临时队列主要用来临时传输消息。在将要实现的日志系统中，因为是广播所有消息，所以并不关心转发给哪个具体的队列，只要有个队列就行。并且每次连接到队列时，都希望队列里面是空的，没有老数据。在consumer断开连接后，队列也能自动删除。</p>
+<p>可以通过无参数的<code class="docutils literal notranslate"><span class="pre">queueDeclare()</span></code>来实现临时队列：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">String</span> <span class="n">queueName</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">().</span><span class="na">getQueue</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>这样能创建一个非持久化的、独占的、自动删除的队列。它的队列名是个随机名字，比如<code class="docutils literal notranslate"><span class="pre">amq.gen-JzTY20BRgKO-HjmUJj0wLg</span></code>。</p>
+</div>
+<div class="section" id="id13">
+<h3>绑定<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<p>Exchange需要跟队列绑定：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">channel</span><span class="p">.</span><span class="na">queueBind</span><span class="p">(</span><span class="n">queueName</span><span class="p">,</span> <span class="s">&quot;logs&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>绑定后Exchange才知道把消息发给哪些队列。</p>
+<p><img alt="image20" src="../_images/bd408b0b10b21c20ba3caf83bf1b8b7f619a281d.png" /></p>
+<p>可以使用命令查看RabbitMQ存在哪些绑定：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>rabbitmqctl list_bindings
+</pre></div>
+</div>
+</div>
+<div class="section" id="id14">
+<span id="id15"></span><h3>完整代码<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<p><img alt="image21" src="../_images/python-three-overall.png" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">EmitLog.java</span></code></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">EmitLog</span> <span class="p">{</span>
+
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">EXCHANGE_NAME</span> <span class="o">=</span> <span class="s">&quot;logs&quot;</span><span class="p">;</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+    <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+    <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+    <span class="k">try</span> <span class="p">(</span><span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+         <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">())</span> <span class="p">{</span>
+        <span class="n">channel</span><span class="p">.</span><span class="na">exchangeDeclare</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="s">&quot;fanout&quot;</span><span class="p">);</span>
+
+        <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="n">argv</span><span class="p">.</span><span class="na">length</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">?</span> <span class="s">&quot;info: Hello World!&quot;</span> <span class="p">:</span>
+                            <span class="n">String</span><span class="p">.</span><span class="na">join</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
+
+        <span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">(</span><span class="s">&quot;UTF-8&quot;</span><span class="p">));</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Sent &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>producer并不需要定义队列，它只把消息发给Exchange即可。</p>
+<p><code class="docutils literal notranslate"><span class="pre">ReceiveLogs.java</span></code></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.DeliverCallback</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ReceiveLogs</span> <span class="p">{</span>
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">EXCHANGE_NAME</span> <span class="o">=</span> <span class="s">&quot;logs&quot;</span><span class="p">;</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+    <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+    <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+    <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">();</span>
+
+    <span class="n">channel</span><span class="p">.</span><span class="na">exchangeDeclare</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="s">&quot;fanout&quot;</span><span class="p">);</span>
+    <span class="n">String</span> <span class="n">queueName</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">().</span><span class="na">getQueue</span><span class="p">();</span>
+    <span class="n">channel</span><span class="p">.</span><span class="na">queueBind</span><span class="p">(</span><span class="n">queueName</span><span class="p">,</span> <span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">);</span>
+
+    <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [*] Waiting for messages. To exit press CTRL+C&quot;</span><span class="p">);</span>
+
+    <span class="n">DeliverCallback</span> <span class="n">deliverCallback</span> <span class="o">=</span> <span class="p">(</span><span class="n">consumerTag</span><span class="p">,</span> <span class="n">delivery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{</span>
+        <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getBody</span><span class="p">(),</span> <span class="s">&quot;UTF-8&quot;</span><span class="p">);</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Received &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="p">};</span>
+    <span class="n">channel</span><span class="p">.</span><span class="na">basicConsume</span><span class="p">(</span><span class="n">queueName</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="n">deliverCallback</span><span class="p">,</span> <span class="n">consumerTag</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="p">});</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id16">
+<span id="id17"></span><h3>运行效果<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<p>配置环境变量：</p>
+<p>mac：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CP</span><span class="o">=</span>.:amqp-client-5.7.1.jar:slf4j-api-1.7.26.jar:slf4j-simple-1.7.26.jar
+</pre></div>
+</div>
+<p>windows：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">set</span> <span class="nv">CP</span><span class="o">=</span>.<span class="p">;</span>amqp-client-5.7.1.jar<span class="p">;</span>slf4j-api-1.7.26.jar<span class="p">;</span>slf4j-simple-1.7.26.jar
+</pre></div>
+</div>
+<p>mac用<code class="docutils literal notranslate"><span class="pre">$CP</span></code>，windows用<code class="docutils literal notranslate"><span class="pre">%CP</span></code>。</p>
+<p>编译：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>javac -cp <span class="nv">$CP</span> EmitLog.java ReceiveLogs.java
+</pre></div>
+</div>
+<p>保存日志到本地文件：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> ReceiveLogs &gt; logs_from_rabbit.log
+</pre></div>
+</div>
+<p>打印日志到屏幕：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> ReceiveLogs
+</pre></div>
+</div>
+<p>此时就建立了2个临时队列，通过命令可以查看Exchange和队列的绑定：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo rabbitmqctl list_bindings
+<span class="c1">## =&gt; Listing bindings ...</span>
+<span class="c1">## =&gt; logs    exchange        amq.gen-JzTY20BRgKO-HjmUJj0wLg  queue           []</span>
+<span class="c1">## =&gt; logs    exchange        amq.gen-vso0PVvyiRIL2WoV3i48Yg  queue           []</span>
+<span class="c1">## =&gt; ...done.</span>
+</pre></div>
+</div>
+<p>发送消息：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> EmitLog
+</pre></div>
+</div>
+<p>就能看到2个consumer在同时消费消息了，一个会保存日志到本地文件，一个会打印日志到屏幕。</p>
+</div>
+</div>
+<div class="section" id="id18">
+<h2>消息路由<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h2>
+<p>消息路由是指<strong>Exchange把某些消息转发到指定队列</strong>。已经实现的日志系统是把所有消息都转发给了所有队列，接下来将实现只把error日志保存到本地文件，把info、warning和error都打印到屏幕。</p>
+<div class="section" id="binding-key">
+<h3>binding key<a class="headerlink" href="#binding-key" title="Permalink to this headline">¶</a></h3>
+<p>在给Exchange和Queue绑定的时候，可以指定第三个参数：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">channel</span><span class="p">.</span><span class="na">queueBind</span><span class="p">(</span><span class="n">queueName</span><span class="p">,</span> <span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="s">&quot;black&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>这个参数叫做<strong>binding key</strong>。binding
+key的意义是根据Exchange来决定的，比如<code class="docutils literal notranslate"><span class="pre">fanout</span></code>类型的Exchange会忽略binding
+key而把所有消息转发给所有队列，而<code class="docutils literal notranslate"><span class="pre">direct</span></code>类型的Exchange会查找binding
+key匹配的<strong>routing
+key</strong>，然后把消息转发到匹配的队列中去。以下图示能说明这个匹配过程：</p>
+<p><img alt="image22" src="../_images/direct-exchange.png" /></p>
+<p>Exchange
+<code class="docutils literal notranslate"><span class="pre">X</span></code>的type是<code class="docutils literal notranslate"><span class="pre">direct</span></code>类型，它绑定了2个队列Q1和Q2。队列Q1有1个binding
+key <code class="docutils literal notranslate"><span class="pre">orange</span></code>，队列Q2有2个bingding key
+<code class="docutils literal notranslate"><span class="pre">black</span></code>和<code class="docutils literal notranslate"><span class="pre">green</span></code>。Exchange会把routing
+key为orange的消息转发给Q1，而把routing
+key为black或green的消息转发给Q2。<strong>其他消息则会被Exchange忽略。</strong></p>
+<p>1个Exchange能够<strong>使用相同的binding key跟多个队列</strong>进行绑定：</p>
+<p><img alt="image23" src="../_images/direct-exchange-multiple.png" /></p>
+<p>如图所示，Exchange会把带有routing
+key为<code class="docutils literal notranslate"><span class="pre">black</span></code>的消息同时转发给Q1和Q2。</p>
+</div>
+<div class="section" id="id19">
+<h3>代码实现<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<p>创建Exchange：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">channel</span><span class="p">.</span><span class="na">exchangeDeclare</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="s">&quot;direct&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>发送消息：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="n">severity</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">());</span>
+</pre></div>
+</div>
+<p>severity是<code class="docutils literal notranslate"><span class="pre">info</span></code>、<code class="docutils literal notranslate"><span class="pre">warning</span></code>、<code class="docutils literal notranslate"><span class="pre">error</span></code>三者其中之一。</p>
+<p>绑定Exchange和队列：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">String</span> <span class="n">queueName</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">().</span><span class="na">getQueue</span><span class="p">();</span>
+
+<span class="k">for</span><span class="p">(</span><span class="n">String</span> <span class="n">severity</span> <span class="p">:</span> <span class="n">argv</span><span class="p">){</span>
+  <span class="n">channel</span><span class="p">.</span><span class="na">queueBind</span><span class="p">(</span><span class="n">queueName</span><span class="p">,</span> <span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="n">severity</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><img alt="image24" src="../_images/python-four.png" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">EmitLogDirect.java</span></code>完整代码如下：</p>
+<p><a class="reference external" href="https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/EmitLogDirect.java">https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/EmitLogDirect.java</a></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">EmitLogDirect</span> <span class="p">{</span>
+
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">EXCHANGE_NAME</span> <span class="o">=</span> <span class="s">&quot;direct_logs&quot;</span><span class="p">;</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+    <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+    <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+    <span class="k">try</span> <span class="p">(</span><span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+         <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">())</span> <span class="p">{</span>
+        <span class="n">channel</span><span class="p">.</span><span class="na">exchangeDeclare</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="s">&quot;direct&quot;</span><span class="p">);</span>
+
+        <span class="n">String</span> <span class="n">severity</span> <span class="o">=</span> <span class="n">getSeverity</span><span class="p">(</span><span class="n">argv</span><span class="p">);</span>
+        <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="n">getMessage</span><span class="p">(</span><span class="n">argv</span><span class="p">);</span>
+
+        <span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="n">severity</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">(</span><span class="s">&quot;UTF-8&quot;</span><span class="p">));</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Sent &#39;&quot;</span> <span class="o">+</span> <span class="n">severity</span> <span class="o">+</span> <span class="s">&quot;&#39;:&#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="c1">//..</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ReceiveLogsDirect.java</span></code>完整代码如下：</p>
+<p><a class="reference external" href="https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/ReceiveLogsDirect.java">https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/ReceiveLogsDirect.java</a></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.*</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ReceiveLogsDirect</span> <span class="p">{</span>
+
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">EXCHANGE_NAME</span> <span class="o">=</span> <span class="s">&quot;direct_logs&quot;</span><span class="p">;</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+    <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+    <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+    <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">();</span>
+
+    <span class="n">channel</span><span class="p">.</span><span class="na">exchangeDeclare</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="s">&quot;direct&quot;</span><span class="p">);</span>
+    <span class="n">String</span> <span class="n">queueName</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">().</span><span class="na">getQueue</span><span class="p">();</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">argv</span><span class="p">.</span><span class="na">length</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">err</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Usage: ReceiveLogsDirect [info] [warning] [error]&quot;</span><span class="p">);</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">String</span> <span class="n">severity</span> <span class="p">:</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">channel</span><span class="p">.</span><span class="na">queueBind</span><span class="p">(</span><span class="n">queueName</span><span class="p">,</span> <span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="n">severity</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [*] Waiting for messages. To exit press CTRL+C&quot;</span><span class="p">);</span>
+
+    <span class="n">DeliverCallback</span> <span class="n">deliverCallback</span> <span class="o">=</span> <span class="p">(</span><span class="n">consumerTag</span><span class="p">,</span> <span class="n">delivery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{</span>
+        <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getBody</span><span class="p">(),</span> <span class="s">&quot;UTF-8&quot;</span><span class="p">);</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Received &#39;&quot;</span> <span class="o">+</span>
+            <span class="n">delivery</span><span class="p">.</span><span class="na">getEnvelope</span><span class="p">().</span><span class="na">getRoutingKey</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;&#39;:&#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="p">};</span>
+    <span class="n">channel</span><span class="p">.</span><span class="na">basicConsume</span><span class="p">(</span><span class="n">queueName</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="n">deliverCallback</span><span class="p">,</span> <span class="n">consumerTag</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="p">});</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id20">
+<span id="id21"></span><h3>运行效果<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<p>编译：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>javac -cp <span class="nv">$CP</span> ReceiveLogsDirect.java EmitLogDirect.java
+</pre></div>
+</div>
+<p>只把error日志保存到本地文件：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">java</span> <span class="o">-</span><span class="n">cp</span> <span class="n">$CP</span> <span class="n">ReceiveLogsDirect</span> <span class="n">error</span> <span class="o">&gt;</span> <span class="n">logs_from_rabbit</span><span class="p">.</span><span class="na">log</span>
+</pre></div>
+</div>
+<p>把info、warning、error日志都输出到屏幕：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> ReceiveLogsDirect info warning error
+<span class="c1">## =&gt; [*] Waiting for logs. To exit press CTRL+C</span>
+</pre></div>
+</div>
+<p>发送error消息：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> EmitLogDirect error <span class="s2">&quot;Run. Run. Or it will explode.&quot;</span>
+<span class="c1">## =&gt; [x] Sent &#39;error&#39;:&#39;Run. Run. Or it will explode.&#39;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="topic">
+<h2>Topic<a class="headerlink" href="#topic" title="Permalink to this headline">¶</a></h2>
+<p>topic是一种带有特殊含义的routing
+key。topic不是随意命名的，它由一个或多个单词构成，以<code class="docutils literal notranslate"><span class="pre">.</span></code>点号分隔，比如<code class="docutils literal notranslate"><span class="pre">stock.usd.nyse</span></code>、<code class="docutils literal notranslate"><span class="pre">nyse.vmw</span></code>、<code class="docutils literal notranslate"><span class="pre">quick.orange.rabbit</span></code>，且长度限制了255字节。在前面的日志系统中，已经实现了按照日志级别（info/warning/error）进行消息路由，但是比较单一。接下来将通过topic来实现既能按照日志级别，也能按照日志来源（auth/cron/kern）进行路由。</p>
+<div class="section" id="topic-exchange">
+<h3>Topic Exchange<a class="headerlink" href="#topic-exchange" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">topic</span></code>类型的Exchange就是用来支持Topic的。它跟<code class="docutils literal notranslate"><span class="pre">direct</span></code>类型的Exchange比较类似，只是对于routing
+key的命名有要求，并且支持两种特殊字符：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">*</span></code>代表1个单词。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#</span></code>代表0个或多个单词。</p></li>
+</ul>
+<p>通过以下图示可以直观看到<code class="docutils literal notranslate"><span class="pre">topic</span></code>类型的Exchange是如何路由的：</p>
+<p><img alt="image25" src="../_images/2022-04-02-12-58-14-image.png" /></p>
+<p>所有消息都是<code class="docutils literal notranslate"><span class="pre">&lt;speed&gt;.&lt;colour&gt;.&lt;species&gt;</span></code>格式的，分别代表速度、颜色、物种。队列Q1的binding
+key是<code class="docutils literal notranslate"><span class="pre">*.orange.*</span></code>，队列Q2的binding
+key是<code class="docutils literal notranslate"><span class="pre">*.*.rabbit</span></code>和<code class="docutils literal notranslate"><span class="pre">lazy.#</span></code>。</p>
+<ul class="simple">
+<li><p>带有<code class="docutils literal notranslate"><span class="pre">quick.orange.rabbit</span></code>和<code class="docutils literal notranslate"><span class="pre">lazy.orange.elephant</span></code>的routing
+key的消息会转发到Q1和Q2。</p></li>
+<li><p>带有<code class="docutils literal notranslate"><span class="pre">quick.orange.fox</span></code> routing key的消息只会转发到Q1。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lazy.brown.fox</span></code> 只会转发到Q2。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lazy.pink.rabbit</span></code>只会转发到Q2一次，虽然它同时命中了2个binding
+key，但还是只会转发1次。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quick.brown.fox</span></code>会被Exchange忽视，不转发给任何队列。</p></li>
+<li><p><strong>只传一个单词</strong><code class="docutils literal notranslate"><span class="pre">orange</span></code>或者四个单词<code class="docutils literal notranslate"><span class="pre">quick.orange.male.rabbit</span></code>，<strong>会被Exchange忽视</strong>。</p></li>
+<li><p>四个单词<code class="docutils literal notranslate"><span class="pre">lazy.orange.male.rabbit</span></code>，只转发给Q2。</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">topic</span></code>类型的Exchange是很灵活的，如果binding
+key设置为<code class="docutils literal notranslate"><span class="pre">#</span></code>，那么它就相当于<code class="docutils literal notranslate"><span class="pre">fanout</span></code>类型，转发所有消息。如果binding
+key里面不包含<code class="docutils literal notranslate"><span class="pre">*</span></code>或者<code class="docutils literal notranslate"><span class="pre">#</span></code>，那么它就相当于<code class="docutils literal notranslate"><span class="pre">direct</span></code>类型，转发指定消息。</p>
+</div>
+<div class="section" id="id22">
+<span id="id23"></span><h3>完整代码<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">EmitLogTopic.java</span></code></p>
+<p><a class="reference external" href="https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/EmitLogTopic.java">https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/EmitLogTopic.java</a></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">EmitLogTopic</span> <span class="p">{</span>
+
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">EXCHANGE_NAME</span> <span class="o">=</span> <span class="s">&quot;topic_logs&quot;</span><span class="p">;</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+    <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+    <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+    <span class="k">try</span> <span class="p">(</span><span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+         <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">())</span> <span class="p">{</span>
+
+        <span class="n">channel</span><span class="p">.</span><span class="na">exchangeDeclare</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="s">&quot;topic&quot;</span><span class="p">);</span>
+
+        <span class="n">String</span> <span class="n">routingKey</span> <span class="o">=</span> <span class="n">getRouting</span><span class="p">(</span><span class="n">argv</span><span class="p">);</span>
+        <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="n">getMessage</span><span class="p">(</span><span class="n">argv</span><span class="p">);</span>
+
+        <span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="n">routingKey</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">(</span><span class="s">&quot;UTF-8&quot;</span><span class="p">));</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Sent &#39;&quot;</span> <span class="o">+</span> <span class="n">routingKey</span> <span class="o">+</span> <span class="s">&quot;&#39;:&#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="c1">//..</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ReceiveLogsTopic.java</span></code></p>
+<p><a class="reference external" href="https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/ReceiveLogsTopic.java">https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/ReceiveLogsTopic.java</a></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.DeliverCallback</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ReceiveLogsTopic</span> <span class="p">{</span>
+
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">EXCHANGE_NAME</span> <span class="o">=</span> <span class="s">&quot;topic_logs&quot;</span><span class="p">;</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+    <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+    <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+    <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">();</span>
+
+    <span class="n">channel</span><span class="p">.</span><span class="na">exchangeDeclare</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="s">&quot;topic&quot;</span><span class="p">);</span>
+    <span class="n">String</span> <span class="n">queueName</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">().</span><span class="na">getQueue</span><span class="p">();</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">argv</span><span class="p">.</span><span class="na">length</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">err</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Usage: ReceiveLogsTopic [binding_key]...&quot;</span><span class="p">);</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">String</span> <span class="n">bindingKey</span> <span class="p">:</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">channel</span><span class="p">.</span><span class="na">queueBind</span><span class="p">(</span><span class="n">queueName</span><span class="p">,</span> <span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="n">bindingKey</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [*] Waiting for messages. To exit press CTRL+C&quot;</span><span class="p">);</span>
+
+    <span class="n">DeliverCallback</span> <span class="n">deliverCallback</span> <span class="o">=</span> <span class="p">(</span><span class="n">consumerTag</span><span class="p">,</span> <span class="n">delivery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{</span>
+        <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getBody</span><span class="p">(),</span> <span class="s">&quot;UTF-8&quot;</span><span class="p">);</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Received &#39;&quot;</span> <span class="o">+</span>
+            <span class="n">delivery</span><span class="p">.</span><span class="na">getEnvelope</span><span class="p">().</span><span class="na">getRoutingKey</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;&#39;:&#39;&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="p">};</span>
+    <span class="n">channel</span><span class="p">.</span><span class="na">basicConsume</span><span class="p">(</span><span class="n">queueName</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="n">deliverCallback</span><span class="p">,</span> <span class="n">consumerTag</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="p">});</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>topic的格式是<code class="docutils literal notranslate"><span class="pre">&lt;facility&gt;.&lt;severity&gt;</span></code>。</p>
+</div>
+<div class="section" id="id24">
+<span id="id25"></span><h3>运行效果<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
+<p>编译：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>javac -cp <span class="nv">$CP</span> ReceiveLogsTopic.java EmitLogTopic.java
+</pre></div>
+</div>
+<p>接收所有日志：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> ReceiveLogsTopic <span class="s2">&quot;#&quot;</span>
+</pre></div>
+</div>
+<p>只接收来源于kern的日志：</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">java</span> <span class="o">-</span><span class="n">cp</span> <span class="n">$CP</span> <span class="n">ReceiveLogsTopic</span> <span class="s">&quot;kern.*&quot;</span>
+</pre></div>
+</div>
+<p>只接收critical严重级别的日志：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> ReceiveLogsTopic <span class="s2">&quot;*.critical&quot;</span>
+</pre></div>
+</div>
+<p>也可以多重绑定：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> ReceiveLogsTopic <span class="s2">&quot;kern.*&quot;</span> <span class="s2">&quot;*.critical&quot;</span>
+</pre></div>
+</div>
+<p>发送日志消息：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> EmitLogTopic <span class="s2">&quot;kern.critical&quot;</span> <span class="s2">&quot;A critical kernel error&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="rpc">
+<h2>RPC<a class="headerlink" href="#rpc" title="Permalink to this headline">¶</a></h2>
+<p>RPC是Remote Procedure
+Call的缩写，远程过程调用，比如在远程机器中执行函数，并拿到返回结果。RabbitMQ能用来实现RPC服务。接下来就简单实现一个调用生成斐波那契数列的RPC服务。</p>
+<p>整体设计如图所示：</p>
+<p><img alt="image26" src="../_images/python-six.png" /></p>
+<p>Client发送RPC请求到rpc_queue里面，然后阻塞，等待返回。在请求中会指定一个回调队列的地址，通过reply_to来指定。Server从rpc_queue读取消息进行处理，根据reply_to把响应放到回调队列中。请求中还设置了一个correlation_id，Client在收到响应时，根据这个关联id来匹配，匹配上的消息才进行接收。</p>
+<blockquote>
+<div><p>correlation_id匹配不上的消息会忽略，为什么是忽略而不是抛出异常呢？因为RPC
+Server有可能发返回ack确认前就宕机，当它重启以后，会重新处理请求消息，从而导致消息重复处理。对于RPC来说最好是能够让重复场景是幂等的。</p>
+</div></blockquote>
+<div class="section" id="id26">
+<span id="id27"></span><h3>代码实现<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">RPCServer.java</span></code></p>
+<p><a class="reference external" href="https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/RPCServer.java">https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/RPCServer.java</a></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.*</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">RPCServer</span> <span class="p">{</span>
+
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">RPC_QUEUE_NAME</span> <span class="o">=</span> <span class="s">&quot;rpc_queue&quot;</span><span class="p">;</span>
+
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kt">int</span> <span class="nf">fib</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="k">return</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+        <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+        <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+
+        <span class="k">try</span> <span class="p">(</span><span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+             <span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">())</span> <span class="p">{</span>
+            <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">(</span><span class="n">RPC_QUEUE_NAME</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+            <span class="n">channel</span><span class="p">.</span><span class="na">queuePurge</span><span class="p">(</span><span class="n">RPC_QUEUE_NAME</span><span class="p">);</span>
+
+            <span class="c1">//设置n个Server进程</span>
+            <span class="n">channel</span><span class="p">.</span><span class="na">basicQos</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+
+            <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Awaiting RPC requests&quot;</span><span class="p">);</span>
+
+            <span class="n">Object</span> <span class="n">monitor</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Object</span><span class="p">();</span>
+            <span class="n">DeliverCallback</span> <span class="n">deliverCallback</span> <span class="o">=</span> <span class="p">(</span><span class="n">consumerTag</span><span class="p">,</span> <span class="n">delivery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{</span>
+                <span class="n">AMQP</span><span class="p">.</span><span class="na">BasicProperties</span> <span class="n">replyProps</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AMQP</span><span class="p">.</span><span class="na">BasicProperties</span>
+                        <span class="p">.</span><span class="na">Builder</span><span class="p">()</span>
+                        <span class="p">.</span><span class="na">correlationId</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getProperties</span><span class="p">().</span><span class="na">getCorrelationId</span><span class="p">())</span>
+                        <span class="p">.</span><span class="na">build</span><span class="p">();</span>
+
+                <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>
+
+                <span class="k">try</span> <span class="p">{</span>
+                    <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getBody</span><span class="p">(),</span> <span class="s">&quot;UTF-8&quot;</span><span class="p">);</span>
+                    <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">.</span><span class="na">parseInt</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+
+                    <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [.] fib(&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="p">);</span>
+                    <span class="n">response</span> <span class="o">+=</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span><span class="p">);</span>
+                <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">RuntimeException</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [.] &quot;</span> <span class="o">+</span> <span class="n">e</span><span class="p">.</span><span class="na">toString</span><span class="p">());</span>
+                <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+                    <span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">delivery</span><span class="p">.</span><span class="na">getProperties</span><span class="p">().</span><span class="na">getReplyTo</span><span class="p">(),</span> <span class="n">replyProps</span><span class="p">,</span> <span class="n">response</span><span class="p">.</span><span class="na">getBytes</span><span class="p">(</span><span class="s">&quot;UTF-8&quot;</span><span class="p">));</span>
+                    <span class="n">channel</span><span class="p">.</span><span class="na">basicAck</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getEnvelope</span><span class="p">().</span><span class="na">getDeliveryTag</span><span class="p">(),</span> <span class="kc">false</span><span class="p">);</span>
+                    <span class="c1">// RabbitMq consumer worker thread notifies the RPC server owner thread</span>
+                    <span class="kd">synchronized</span> <span class="p">(</span><span class="n">monitor</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="n">monitor</span><span class="p">.</span><span class="na">notify</span><span class="p">();</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">};</span>
+
+            <span class="n">channel</span><span class="p">.</span><span class="na">basicConsume</span><span class="p">(</span><span class="n">RPC_QUEUE_NAME</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="n">deliverCallback</span><span class="p">,</span> <span class="p">(</span><span class="n">consumerTag</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="p">}));</span>
+            <span class="c1">// Wait and be prepared to consume the message from RPC client.</span>
+            <span class="k">while</span> <span class="p">(</span><span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kd">synchronized</span> <span class="p">(</span><span class="n">monitor</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="k">try</span> <span class="p">{</span>
+                        <span class="n">monitor</span><span class="p">.</span><span class="na">wait</span><span class="p">();</span>
+                    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">RPCClient.java</span></code></p>
+<p><a class="reference external" href="https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/RPCClient.java">https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/java/RPCClient.java</a></p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">com.rabbitmq.client.AMQP</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Channel</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.Connection</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.rabbitmq.client.ConnectionFactory</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">java.util.UUID</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">java.util.concurrent.ArrayBlockingQueue</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">java.util.concurrent.BlockingQueue</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">java.util.concurrent.TimeoutException</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">RPCClient</span> <span class="kd">implements</span> <span class="n">AutoCloseable</span> <span class="p">{</span>
+
+    <span class="kd">private</span> <span class="n">Connection</span> <span class="n">connection</span><span class="p">;</span>
+    <span class="kd">private</span> <span class="n">Channel</span> <span class="n">channel</span><span class="p">;</span>
+    <span class="kd">private</span> <span class="n">String</span> <span class="n">requestQueueName</span> <span class="o">=</span> <span class="s">&quot;rpc_queue&quot;</span><span class="p">;</span>
+
+    <span class="kd">public</span> <span class="nf">RPCClient</span><span class="p">()</span> <span class="kd">throws</span> <span class="n">IOException</span><span class="p">,</span> <span class="n">TimeoutException</span> <span class="p">{</span>
+        <span class="n">ConnectionFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionFactory</span><span class="p">();</span>
+        <span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">);</span>
+
+        <span class="n">connection</span> <span class="o">=</span> <span class="n">factory</span><span class="p">.</span><span class="na">newConnection</span><span class="p">();</span>
+        <span class="n">channel</span> <span class="o">=</span> <span class="n">connection</span><span class="p">.</span><span class="na">createChannel</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">try</span> <span class="p">(</span><span class="n">RPCClient</span> <span class="n">fibonacciRpc</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RPCClient</span><span class="p">())</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">32</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">String</span> <span class="n">i_str</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">.</span><span class="na">toString</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+                <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [x] Requesting fib(&quot;</span> <span class="o">+</span> <span class="n">i_str</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="p">);</span>
+                <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">fibonacciRpc</span><span class="p">.</span><span class="na">call</span><span class="p">(</span><span class="n">i_str</span><span class="p">);</span>
+                <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot; [.] Got &#39;&quot;</span> <span class="o">+</span> <span class="n">response</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">IOException</span> <span class="o">|</span> <span class="n">TimeoutException</span> <span class="o">|</span> <span class="n">InterruptedException</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="n">String</span> <span class="nf">call</span><span class="p">(</span><span class="n">String</span> <span class="n">message</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">IOException</span><span class="p">,</span> <span class="n">InterruptedException</span> <span class="p">{</span>
+        <span class="kd">final</span> <span class="n">String</span> <span class="n">corrId</span> <span class="o">=</span> <span class="n">UUID</span><span class="p">.</span><span class="na">randomUUID</span><span class="p">().</span><span class="na">toString</span><span class="p">();</span>
+
+        <span class="n">String</span> <span class="n">replyQueueName</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="na">queueDeclare</span><span class="p">().</span><span class="na">getQueue</span><span class="p">();</span>
+        <span class="n">AMQP</span><span class="p">.</span><span class="na">BasicProperties</span> <span class="n">props</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AMQP</span><span class="p">.</span><span class="na">BasicProperties</span>
+                <span class="p">.</span><span class="na">Builder</span><span class="p">()</span>
+                <span class="p">.</span><span class="na">correlationId</span><span class="p">(</span><span class="n">corrId</span><span class="p">)</span>
+                <span class="p">.</span><span class="na">replyTo</span><span class="p">(</span><span class="n">replyQueueName</span><span class="p">)</span>
+                <span class="p">.</span><span class="na">build</span><span class="p">();</span>
+
+        <span class="n">channel</span><span class="p">.</span><span class="na">basicPublish</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">requestQueueName</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">message</span><span class="p">.</span><span class="na">getBytes</span><span class="p">(</span><span class="s">&quot;UTF-8&quot;</span><span class="p">));</span>
+
+        <span class="c1">//在响应到达前挂起main阻塞等待，1表示只等待1个响应</span>
+        <span class="kd">final</span> <span class="n">BlockingQueue</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayBlockingQueue</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+
+        <span class="n">String</span> <span class="n">ctag</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="na">basicConsume</span><span class="p">(</span><span class="n">replyQueueName</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="p">(</span><span class="n">consumerTag</span><span class="p">,</span> <span class="n">delivery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getProperties</span><span class="p">().</span><span class="na">getCorrelationId</span><span class="p">().</span><span class="na">equals</span><span class="p">(</span><span class="n">corrId</span><span class="p">))</span> <span class="p">{</span>
+                <span class="n">response</span><span class="p">.</span><span class="na">offer</span><span class="p">(</span><span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="n">delivery</span><span class="p">.</span><span class="na">getBody</span><span class="p">(),</span> <span class="s">&quot;UTF-8&quot;</span><span class="p">));</span>
+            <span class="p">}</span>
+        <span class="p">},</span> <span class="n">consumerTag</span> <span class="o">-&gt;</span> <span class="p">{</span>
+        <span class="p">});</span>
+
+        <span class="n">String</span> <span class="n">result</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="na">take</span><span class="p">();</span>
+        <span class="n">channel</span><span class="p">.</span><span class="na">basicCancel</span><span class="p">(</span><span class="n">ctag</span><span class="p">);</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">close</span><span class="p">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="p">{</span>
+        <span class="n">connection</span><span class="p">.</span><span class="na">close</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id28">
+<span id="id29"></span><h3>运行效果<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<p>编译：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>javac -cp <span class="nv">$CP</span> RPCClient.java RPCServer.java
+</pre></div>
+</div>
+<p>启动Server：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> RPCServer
+<span class="c1">## =&gt; [x] Awaiting RPC requests</span>
+</pre></div>
+</div>
+<p>运行Client：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>java -cp <span class="nv">$CP</span> RPCClient
+<span class="c1">## =&gt; [x] Requesting fib(30)</span>
+</pre></div>
+</div>
+<p>如果Server处理慢，那么可以再在控制台启动新的Server来消费。</p>
+<p><strong>注意，本文的示例都只是为了演示而编写的，不是真正意义上的实现。</strong></p>
+<p>对于可靠的消息确认，RabbitMQ提供了一个扩展，感兴趣的话可以阅读：</p>
+<p><a class="reference external" href="https://www.rabbitmq.com/tutorials/tutorial-seven-java.html">https://www.rabbitmq.com/tutorials/tutorial-seven-java.html</a></p>
+<p><img alt="image27" src="../_images/image-20220406215213650.png" /></p>
+<blockquote>
+<div><p>参考资料：</p>
+<p><a class="reference external" href="https://www.rabbitmq.com/getstarted.html">https://www.rabbitmq.com/getstarted.html</a></p>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="001001-%E4%B8%BA%E4%BB%80%E4%B9%88Kafka%E8%BF%99%E4%B9%88%E5%BF%AB.html" class="btn btn-neutral float-right" title="为什么Kafka这么快" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html" class="btn btn-neutral float-left" title="中间件" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

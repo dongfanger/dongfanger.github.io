@@ -1,0 +1,519 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【Locust】locustfile中的User类和HttpUser类 &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="【Locust】Locust性能测试工具核心技术@task和@events" href="007003-%E3%80%90Locust%E3%80%91Locust%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%40task%E5%92%8C%40events.html" />
+    <link rel="prev" title="【Locust】Python技术栈性能测试工具Locust入门" href="007001-%E3%80%90Locust%E3%80%91Python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7Locust%E5%85%A5%E9%97%A8.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/pytest.html">pytest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Flask.html">Flask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="000001-%E3%80%90JMeter%E3%80%91JMeter%E5%85%A8%E9%83%A8%E7%BB%84%E4%BB%B6%E6%A6%82%E8%A7%88.html">【JMeter】JMeter全部组件概览</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000002-%E3%80%90JMeter%E3%80%91JMeter%E6%98%AF%E5%A6%82%E4%BD%95%E8%BF%90%E8%A1%8C%E6%96%BD%E5%8E%8B%E7%9A%84.html">【JMeter】JMeter是如何运行施压的</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000003-%E3%80%90JMeter%E3%80%91JMeter%E8%8B%B1%E6%96%87%E7%89%88%E7%95%8C%E9%9D%A2%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter英文版界面介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000004-%E3%80%90JMeter%E3%80%91JMeter%E5%85%83%E4%BB%B6%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97.html">【JMeter】JMeter元件作用域实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000005-%E3%80%90JMeter%E3%80%91JMeter%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E9%85%8D%E7%BD%AE%E9%A1%B9%E8%A7%A3%E6%9E%90.html">【JMeter】JMeter测试计划配置项解析</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000006-%E3%80%90JMeter%E3%80%91JMeter100%E4%B8%AA%E7%BA%BF%E7%A8%8B%E7%AB%9F%E7%84%B6%E5%8F%AA%E6%A8%A1%E6%8B%9F%E5%87%BA1%E4%B8%AA%E5%B9%B6%E5%8F%91.html">【JMeter】JMeter100个线程竟然只模拟出1个并发</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000007-%E3%80%90JMeter%E3%80%91JMeter%E5%85%B3%E8%81%94%E9%99%8C%E7%94%9F%E5%8F%88%E7%86%9F%E6%82%89.html">【JMeter】JMeter关联陌生又熟悉</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000008-%E3%80%90JMeter%E3%80%91JMeter%E5%9B%9B%E7%A7%8D%E5%8F%82%E6%95%B0%E5%8C%96%E6%96%B9%E5%BC%8F.html">【JMeter】JMeter四种参数化方式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000009-%E3%80%90JMeter%E3%80%91JMeter36%E4%B8%AA%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0%E5%8F%8A11%E4%B8%AA%E6%96%B0%E5%A2%9E%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter36个内置函数及11个新增函数介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000010-%E3%80%90JMeter%E3%80%91JMeter%E9%80%BB%E8%BE%91%E6%8E%A7%E5%88%B6%E5%99%A8%E5%AE%8C%E6%95%B4%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter逻辑控制器完整介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000011-%E3%80%90JMeter%E3%80%91JMeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5.html">【JMeter】JMeter定时器设置延迟与同步</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000012-%E3%80%90JMeter%E3%80%91JMeter%E5%93%8D%E5%BA%94%E6%96%AD%E8%A8%80%E5%A4%9F%E7%94%A8%E4%BA%86.html">【JMeter】JMeter响应断言够用了</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000013-%E3%80%90JMeter%E3%80%91JMeter%E6%89%A9%E5%B1%95Java%E8%AF%B7%E6%B1%82.html">【JMeter】JMeter扩展Java请求</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001001-%E3%80%90nGrinder%E3%80%91%E4%BD%A0%E7%9A%84%E4%B8%8B%E4%B8%80%E4%B8%AA%E5%8E%8B%E6%B5%8B%E5%B7%A5%E5%85%B7%E5%8F%AF%E4%BB%A5%E6%98%AFnGrinder.html">【nGrinder】你的下一个压测工具可以是nGrinder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="002001-%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E6%8C%87%E6%A0%87TP99%EF%BC%8C%E6%AF%94%E5%B9%B3%E5%9D%87%E5%93%8D%E5%BA%94%E6%97%B6%E9%97%B4%E6%9B%B4%E9%9C%80%E8%A6%81%E5%85%B3%E6%B3%A8.html">性能测试指标TP99，比平均响应时间更需要关注</a></li>
+<li class="toctree-l2"><a class="reference internal" href="007001-%E3%80%90Locust%E3%80%91Python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7Locust%E5%85%A5%E9%97%A8.html">【Locust】Python技术栈性能测试工具Locust入门</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【Locust】locustfile中的User类和HttpUser类</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#locustfile">locustfile是什么？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user">User类</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#wait-time">wait_time属性</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#weight">weight属性</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#host">host属性</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#environment">environment属性</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#on-starton-stop">on_start和on_stop方法</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#httpuser">HttpUser类</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#client-httpsession">client属性/HttpSession</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1">断言响应结果</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#name">name参数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#http">HTTP代理</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">示例代码</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">小结</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="007003-%E3%80%90Locust%E3%80%91Locust%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%40task%E5%92%8C%40events.html">【Locust】Locust性能测试工具核心技术&#64;task和&#64;events</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a> &raquo;</li>
+        
+      <li>【Locust】locustfile中的User类和HttpUser类</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/性能测试/007002-【Locust】locustfile中的User类和HttpUser类.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="locustlocustfileuserhttpuser">
+<h1>【Locust】locustfile中的User类和HttpUser类<a class="headerlink" href="#locustlocustfileuserhttpuser" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang20.png" /></p>
+<div class="section" id="locustfile">
+<h2>locustfile是什么？<a class="headerlink" href="#locustfile" title="Permalink to this headline">¶</a></h2>
+<p>locustfile是Locust性能测试工具的用户脚本，描述了单个用户的行为。</p>
+<p>locustfile是个普通的Python模块，如果写作<code class="docutils literal notranslate"><span class="pre">locustfile.py</span></code>，那么路径切换到文件所在目录，直接执行命令就能运行：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ locust
+</pre></div>
+</div>
+<p>如果换个名字，那么只能通过<code class="docutils literal notranslate"><span class="pre">-f</span></code>参数指定文件名运行：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ locust -f locust_files/my_locust_file.py
+</pre></div>
+</div>
+<p>与一般Python模块不同的是：<strong>locustfile必须至少定义一个类，且继承自User类。</strong></p>
+</div>
+<div class="section" id="user">
+<h2>User类<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
+<p>User类表示性能测试的模拟用户，<strong>Locust会在运行时创建User类的实例</strong>。</p>
+<div class="section" id="wait-time">
+<h3>wait_time属性<a class="headerlink" href="#wait-time" title="Permalink to this headline">¶</a></h3>
+<p>设置等待时间，默认值不等待，立即执行。</p>
+<p><strong>Locust支持4种方式设置wait_time属性</strong>。</p>
+<blockquote>
+<div><p>为了便于理解实际意义，我把源码贴在了下面。</p>
+</div></blockquote>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">constant</span></code>函数，常量，任务执行完毕等待X秒开始下一任务。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">constant</span><span class="p">(</span><span class="n">wait_time</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a function that just returns the number specified by the wait_time argument</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        class MyUser(User):</span>
+<span class="sd">            wait_time = constant(3)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">instance</span><span class="p">:</span> <span class="n">wait_time</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">between</span></code>函数，区间随机值，任务执行完毕等待X-Y秒（中间随机取值）开始下一任务。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">between</span><span class="p">(</span><span class="n">min_wait</span><span class="p">,</span> <span class="n">max_wait</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a function that will return a random number between min_wait and max_wait.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        class MyUser(User):</span>
+<span class="sd">            # wait between 3.0 and 10.5 seconds after each task</span>
+<span class="sd">            wait_time = between(3.0, 10.5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">instance</span><span class="p">:</span> <span class="n">min_wait</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_wait</span> <span class="o">-</span> <span class="n">min_wait</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">constant_pacing</span></code>函数，自适应，若任务耗时超过该时间，则任务结束后立即执行下一任务；若任务耗时不超过该时间，则等待达到该时间后执行下一任务。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">constant_pacing</span><span class="p">(</span><span class="n">wait_time</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a function that will track the run time of the tasks, and for each time it&#39;s</span>
+<span class="sd">    called it will return a wait time that will try to make the total time between task</span>
+<span class="sd">    execution equal to the time specified by the wait_time argument.</span>
+
+<span class="sd">    In the following example the task will always be executed once every second, no matter</span>
+<span class="sd">    the task execution time::</span>
+
+<span class="sd">        class MyUser(User):</span>
+<span class="sd">            wait_time = constant_pacing(1)</span>
+<span class="sd">            @task</span>
+<span class="sd">            def my_task(self):</span>
+<span class="sd">                time.sleep(random.random())</span>
+
+<span class="sd">    If a task execution exceeds the specified wait_time, the wait will be 0 before starting</span>
+<span class="sd">    the next task.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">wait_time_func</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_cp_last_run&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cp_last_wait_time</span> <span class="o">=</span> <span class="n">wait_time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cp_last_run</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">wait_time</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">run_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cp_last_run</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cp_last_wait_time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cp_last_wait_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">wait_time</span> <span class="o">-</span> <span class="n">run_time</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cp_last_run</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cp_last_wait_time</span>
+
+    <span class="k">return</span> <span class="n">wait_time_func</span>
+</pre></div>
+</div>
+</li>
+<li><p>自定义<code class="docutils literal notranslate"><span class="pre">wait_time</span></code>方法，比如每次等待时间1秒2秒3秒递增：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyUser</span><span class="p">(</span><span class="n">User</span><span class="p">):</span>
+    <span class="n">last_wait_time</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">wait_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_wait_time</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_wait_time</span>
+
+    <span class="o">...</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="weight">
+<h3>weight属性<a class="headerlink" href="#weight" title="Permalink to this headline">¶</a></h3>
+<p>设置创建类实例的权重，默认每个类创建相同数量的实例。</p>
+<p><strong>locustfile中可以有多个继承了User类的类</strong>。</p>
+<blockquote>
+<div><p>命令行可以指定运行哪些类：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ locust -f locust_file.py WebUser MobileUser
+</pre></div>
+</div>
+</div></blockquote>
+<p>通过weight属性可以让类更大概率创建实例，比如：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">WebUser</span><span class="p">(</span><span class="n">User</span><span class="p">):</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="o">...</span>
+
+<span class="k">class</span> <span class="nc">MobileUser</span><span class="p">(</span><span class="n">User</span><span class="p">):</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>WebUser类比MobileUser类多三倍概率创建实例。</p>
+</div>
+<div class="section" id="host">
+<h3>host属性<a class="headerlink" href="#host" title="Permalink to this headline">¶</a></h3>
+<p>设置URL前缀。</p>
+<p><strong>一般是在Locust的Web
+UI或者命令行，通过``–host``指定URL前缀。</strong>如果没有通过<code class="docutils literal notranslate"><span class="pre">--host</span></code>指定，并且类中设置了host属性，那么类的host属性才会生效。</p>
+</div>
+<div class="section" id="environment">
+<h3>environment属性<a class="headerlink" href="#environment" title="Permalink to this headline">¶</a></h3>
+<p>对用户运行环境的引用。</p>
+<p>比如在task方法中通过environment属性终止运行：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>注意，单机会终止所有运行，分布式只会终止单个worker节点。</p>
+</div></blockquote>
+</div>
+<div class="section" id="on-starton-stop">
+<h3>on_start和on_stop方法<a class="headerlink" href="#on-starton-stop" title="Permalink to this headline">¶</a></h3>
+<p>测试前初始化和测试后清理。</p>
+</div>
+</div>
+<div class="section" id="httpuser">
+<h2>HttpUser类<a class="headerlink" href="#httpuser" title="Permalink to this headline">¶</a></h2>
+<p>开篇文章的示例脚本，没有继承User类，而是继承了它的子类HttpUser：</p>
+<p><img alt="image2" src="../_images/image-20210507203533924.png" /></p>
+<p>它比User类更常用，因为它<strong>添加了一个``client``属性，用来发送HTTP请求</strong>。</p>
+<div class="section" id="client-httpsession">
+<h3>client属性/HttpSession<a class="headerlink" href="#client-httpsession" title="Permalink to this headline">¶</a></h3>
+<p>HttpUser类的client属性是HttpSession类的一个实例：</p>
+<p><img alt="image3" src="../_images/image-20210510100543452.png" /></p>
+<p>HttpSession是<code class="docutils literal notranslate"><span class="pre">requests.Session</span></code>的子类，requests就是常用来做接口测试的那个requests库：</p>
+<p><img alt="image4" src="../_images/image-20210510161237184.png" /></p>
+<p><strong>HttpSession没有对``requests.Session``做什么改动</strong>，主要是传递请求结果给Locust，比如success/fail，response
+time，response length，name。</p>
+<p>示例：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/login&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;username&quot;</span><span class="p">:</span><span class="s2">&quot;testuser&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">:</span><span class="s2">&quot;secret&quot;</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Response status code:&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Response text:&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+<span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/my-profile&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>由于<code class="docutils literal notranslate"><span class="pre">requests.Session</span></code>会暂存cookie，所以示例中登录<code class="docutils literal notranslate"><span class="pre">/login</span></code>请求后可以继续请求<code class="docutils literal notranslate"><span class="pre">/my-profile</span></code>。</p>
+</div>
+<div class="section" id="id1">
+<h3>断言响应结果<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>可以使用with语句和catch_response参数对响应结果进行断言：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">catch_response</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s2">&quot;Success&quot;</span><span class="p">:</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">success</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span> <span class="o">!=</span> <span class="s2">&quot;Success&quot;</span><span class="p">:</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">failure</span><span class="p">(</span><span class="s2">&quot;Got wrong response&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">elapsed</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">failure</span><span class="p">(</span><span class="s2">&quot;Request took too long&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>或者直接抛出异常：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">locust.exception</span> <span class="kn">import</span> <span class="n">RescheduleTask</span>
+<span class="o">...</span>
+<span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/does_not_exist/&quot;</span><span class="p">,</span> <span class="n">catch_response</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">RescheduleTask</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="name">
+<h3>name参数<a class="headerlink" href="#name" title="Permalink to this headline">¶</a></h3>
+<p>name参数用于把不同api按同一分组进行统计，比如：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/blog?id=</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;/blog?id=[id]&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>会按<code class="docutils literal notranslate"><span class="pre">/blog/?id=[id]</span></code>统计1条数据，而不是分成10条数据。</p>
+</div>
+<div class="section" id="http">
+<h3>HTTP代理<a class="headerlink" href="#http" title="Permalink to this headline">¶</a></h3>
+<p>Locust默认设置了requests.Session的trust_env为False，不查找代理，以提高运行性能。如果需要可以设置<code class="docutils literal notranslate"><span class="pre">locust_instance.client.trust_env</span></code>为True。</p>
+</div>
+<div class="section" id="id2">
+<h3>示例代码<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>请求REST API并断言：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">JSONDecodeError</span>
+<span class="o">...</span>
+<span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;foo&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span> <span class="n">catch_response</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;greeting&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;hello&quot;</span><span class="p">:</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">failure</span><span class="p">(</span><span class="s2">&quot;Did not get expected value in greeting&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">JSONDecodeError</span><span class="p">:</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">failure</span><span class="p">(</span><span class="s2">&quot;Response could not be decoded as JSON&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">failure</span><span class="p">(</span><span class="s2">&quot;Response did not contain expected key &#39;greeting&#39;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>小结<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>locustfile是个普通Python模块，必须继承User类或其子类HttpUser等。本文对User类和HttpUser类的属性和方法进行了介绍，使用它们可以编写性能测试的用户脚本。locustfile还有另外一个重要组成元素，<code class="docutils literal notranslate"><span class="pre">&#64;task</span></code>。</p>
+<blockquote>
+<div><p>参考资料：</p>
+<p><a class="reference external" href="https://docs.locust.io/en/stable/writing-a-locustfile.html">https://docs.locust.io/en/stable/writing-a-locustfile.html</a></p>
+<p><a class="reference external" href="https://blog.csdn.net/Orangesir/article/details/114914969">https://blog.csdn.net/Orangesir/article/details/114914969</a></p>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="007003-%E3%80%90Locust%E3%80%91Locust%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%40task%E5%92%8C%40events.html" class="btn btn-neutral float-right" title="【Locust】Locust性能测试工具核心技术@task和@events" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="007001-%E3%80%90Locust%E3%80%91Python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7Locust%E5%85%A5%E9%97%A8.html" class="btn btn-neutral float-left" title="【Locust】Python技术栈性能测试工具Locust入门" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

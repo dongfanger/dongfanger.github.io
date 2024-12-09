@@ -1,0 +1,487 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【Locust】Locust性能测试工具核心技术@task和@events &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="移动端" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html" />
+    <link rel="prev" title="【Locust】locustfile中的User类和HttpUser类" href="007002-%E3%80%90Locust%E3%80%91locustfile%E4%B8%AD%E7%9A%84User%E7%B1%BB%E5%92%8CHttpUser%E7%B1%BB.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/pytest.html">pytest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Flask.html">Flask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="000001-%E3%80%90JMeter%E3%80%91JMeter%E5%85%A8%E9%83%A8%E7%BB%84%E4%BB%B6%E6%A6%82%E8%A7%88.html">【JMeter】JMeter全部组件概览</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000002-%E3%80%90JMeter%E3%80%91JMeter%E6%98%AF%E5%A6%82%E4%BD%95%E8%BF%90%E8%A1%8C%E6%96%BD%E5%8E%8B%E7%9A%84.html">【JMeter】JMeter是如何运行施压的</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000003-%E3%80%90JMeter%E3%80%91JMeter%E8%8B%B1%E6%96%87%E7%89%88%E7%95%8C%E9%9D%A2%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter英文版界面介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000004-%E3%80%90JMeter%E3%80%91JMeter%E5%85%83%E4%BB%B6%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97.html">【JMeter】JMeter元件作用域实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000005-%E3%80%90JMeter%E3%80%91JMeter%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E9%85%8D%E7%BD%AE%E9%A1%B9%E8%A7%A3%E6%9E%90.html">【JMeter】JMeter测试计划配置项解析</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000006-%E3%80%90JMeter%E3%80%91JMeter100%E4%B8%AA%E7%BA%BF%E7%A8%8B%E7%AB%9F%E7%84%B6%E5%8F%AA%E6%A8%A1%E6%8B%9F%E5%87%BA1%E4%B8%AA%E5%B9%B6%E5%8F%91.html">【JMeter】JMeter100个线程竟然只模拟出1个并发</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000007-%E3%80%90JMeter%E3%80%91JMeter%E5%85%B3%E8%81%94%E9%99%8C%E7%94%9F%E5%8F%88%E7%86%9F%E6%82%89.html">【JMeter】JMeter关联陌生又熟悉</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000008-%E3%80%90JMeter%E3%80%91JMeter%E5%9B%9B%E7%A7%8D%E5%8F%82%E6%95%B0%E5%8C%96%E6%96%B9%E5%BC%8F.html">【JMeter】JMeter四种参数化方式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000009-%E3%80%90JMeter%E3%80%91JMeter36%E4%B8%AA%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0%E5%8F%8A11%E4%B8%AA%E6%96%B0%E5%A2%9E%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter36个内置函数及11个新增函数介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000010-%E3%80%90JMeter%E3%80%91JMeter%E9%80%BB%E8%BE%91%E6%8E%A7%E5%88%B6%E5%99%A8%E5%AE%8C%E6%95%B4%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter逻辑控制器完整介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000011-%E3%80%90JMeter%E3%80%91JMeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5.html">【JMeter】JMeter定时器设置延迟与同步</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000012-%E3%80%90JMeter%E3%80%91JMeter%E5%93%8D%E5%BA%94%E6%96%AD%E8%A8%80%E5%A4%9F%E7%94%A8%E4%BA%86.html">【JMeter】JMeter响应断言够用了</a></li>
+<li class="toctree-l2"><a class="reference internal" href="000013-%E3%80%90JMeter%E3%80%91JMeter%E6%89%A9%E5%B1%95Java%E8%AF%B7%E6%B1%82.html">【JMeter】JMeter扩展Java请求</a></li>
+<li class="toctree-l2"><a class="reference internal" href="001001-%E3%80%90nGrinder%E3%80%91%E4%BD%A0%E7%9A%84%E4%B8%8B%E4%B8%80%E4%B8%AA%E5%8E%8B%E6%B5%8B%E5%B7%A5%E5%85%B7%E5%8F%AF%E4%BB%A5%E6%98%AFnGrinder.html">【nGrinder】你的下一个压测工具可以是nGrinder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="002001-%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E6%8C%87%E6%A0%87TP99%EF%BC%8C%E6%AF%94%E5%B9%B3%E5%9D%87%E5%93%8D%E5%BA%94%E6%97%B6%E9%97%B4%E6%9B%B4%E9%9C%80%E8%A6%81%E5%85%B3%E6%B3%A8.html">性能测试指标TP99，比平均响应时间更需要关注</a></li>
+<li class="toctree-l2"><a class="reference internal" href="007001-%E3%80%90Locust%E3%80%91Python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7Locust%E5%85%A5%E9%97%A8.html">【Locust】Python技术栈性能测试工具Locust入门</a></li>
+<li class="toctree-l2"><a class="reference internal" href="007002-%E3%80%90Locust%E3%80%91locustfile%E4%B8%AD%E7%9A%84User%E7%B1%BB%E5%92%8CHttpUser%E7%B1%BB.html">【Locust】locustfile中的User类和HttpUser类</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【Locust】Locust性能测试工具核心技术&#64;task和&#64;events</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tasks">Tasks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#task">&#64;task装饰器</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1">tasks属性</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tag">&#64;tag装饰器</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#events">Events</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#test-starttest-stop">test_start和test_stop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#init">init</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#locust">Locust项目结构</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fasthttpuser">FastHttpUser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">小结</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a> &raquo;</li>
+        
+      <li>【Locust】Locust性能测试工具核心技术&#64;task和&#64;events</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/性能测试/007003-【Locust】Locust性能测试工具核心技术@task和@events.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="locustlocust-task-events">
+<h1>【Locust】Locust性能测试工具核心技术&#64;task和&#64;events<a class="headerlink" href="#locustlocust-task-events" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang20.png" /></p>
+<p>Tasks和Events是Locust性能测试工具的核心技术，有了它们，Locust才能称得上是一个性能工具。</p>
+<div class="section" id="tasks">
+<h2>Tasks<a class="headerlink" href="#tasks" title="Permalink to this headline">¶</a></h2>
+<p>从上篇文章知道，locustfile里面必须要有一个类，继承User类，当性能测试开始后，会产生一个User类实例，这就是常说的<strong>模拟用户</strong>。这些用户会选择task执行，休眠一会，再选择新的task，不断迭代。</p>
+<p>task是Python中的<strong>可调用对象</strong>，它是一项任务，对于Web系统来说，可以是登录、查询、下订单、支付等等。</p>
+<div class="section" id="task">
+<h3>&#64;task装饰器<a class="headerlink" href="#task" title="Permalink to this headline">¶</a></h3>
+<p>&#64;task是定义task最简单直接的方式，比如：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">locust</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">constant</span>
+
+<span class="k">class</span> <span class="nc">MyUser</span><span class="p">(</span><span class="n">User</span><span class="p">):</span>
+    <span class="n">wait_time</span> <span class="o">=</span> <span class="n">constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@task</span>
+    <span class="k">def</span> <span class="nf">my_task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;User instance (</span><span class="si">%r</span><span class="s2">) executing my_task&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>&#64;task有一个可选参数，用来设置task的选择权重，比如：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">locust</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">between</span>
+
+<span class="k">class</span> <span class="nc">MyUser</span><span class="p">(</span><span class="n">User</span><span class="p">):</span>
+    <span class="n">wait_time</span> <span class="o">=</span> <span class="n">between</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+
+    <span class="nd">@task</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">task1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@task</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">task2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>task2比task1被选择的可能性大两倍。</p>
+</div>
+<div class="section" id="id1">
+<h3>tasks属性<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>除了&#64;task装饰器，还可以设置User类的tasks属性来定义任务，比如：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">locust</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">constant</span>
+
+<span class="k">def</span> <span class="nf">my_task</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">MyUser</span><span class="p">(</span><span class="n">User</span><span class="p">):</span>
+    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">my_task</span><span class="p">]</span>
+    <span class="n">wait_time</span> <span class="o">=</span> <span class="n">constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>注意，my_task()函数有一个参数，它是User类的实例。</p>
+<p>tasks可以是一个列表：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">my_task1</span><span class="p">,</span> <span class="n">my_task2</span><span class="p">,</span> <span class="n">my_task3</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Locust会使用Python中的random.choice()从里面随机选取。</p>
+<p>tasks也可以是一个字典：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">my_task</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="n">another_task</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>后面的int型键值代表的是被选择权重，这个字典等价于列表：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">my_task</span><span class="p">,</span> <span class="n">my_task</span><span class="p">,</span> <span class="n">my_task</span><span class="p">,</span> <span class="n">another_task</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="tag">
+<h3>&#64;tag装饰器<a class="headerlink" href="#tag" title="Permalink to this headline">¶</a></h3>
+<p>&#64;tag用来打标记，在运行时选择哪些task执行，哪些task不执行。比如：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyUser</span><span class="p">(</span><span class="n">User</span><span class="p">):</span>
+    <span class="n">wait_time</span> <span class="o">=</span> <span class="n">constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@tag</span><span class="p">(</span><span class="s1">&#39;tag1&#39;</span><span class="p">)</span>
+    <span class="nd">@task</span>
+    <span class="k">def</span> <span class="nf">task1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@tag</span><span class="p">(</span><span class="s1">&#39;tag1&#39;</span><span class="p">,</span> <span class="s1">&#39;tag2&#39;</span><span class="p">)</span>
+    <span class="nd">@task</span>
+    <span class="k">def</span> <span class="nf">task2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@tag</span><span class="p">(</span><span class="s1">&#39;tag3&#39;</span><span class="p">)</span>
+    <span class="nd">@task</span>
+    <span class="k">def</span> <span class="nf">task3</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@task</span>
+    <span class="k">def</span> <span class="nf">task4</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>如果使用<code class="docutils literal notranslate"><span class="pre">--tags</span> <span class="pre">tag1</span></code>，那么只有task1和task2会被选择。</p></li>
+<li><p>如果使用<code class="docutils literal notranslate"><span class="pre">--tags</span> <span class="pre">tag2</span> <span class="pre">tag3</span></code>，那么只有task2和task3会被选择。</p></li>
+<li><p>如果使用<code class="docutils literal notranslate"><span class="pre">--exclude-tags</span> <span class="pre">tag3</span></code>，那么只有task1、task2和task4会被选择。</p></li>
+</ul>
+<p>注意，exclude的优先级更高，如果某个tag既包括又排除，那么会被排除。</p>
+</div>
+</div>
+<div class="section" id="events">
+<h2>Events<a class="headerlink" href="#events" title="Permalink to this headline">¶</a></h2>
+<p>&#64;task定义了性能测试的执行动作，&#64;events作为补充，定义了测试开始前和测试结束后的处理。</p>
+<blockquote>
+<div><p>注意，每个模拟用户开始和结束的处理是使用的User类的on_start()和on_stop()方法。</p>
+</div></blockquote>
+<div class="section" id="test-starttest-stop">
+<h3>test_start和test_stop<a class="headerlink" href="#test-starttest-stop" title="Permalink to this headline">¶</a></h3>
+<p>测试开始前和测试结束后触发。示例：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">locust</span> <span class="kn">import</span> <span class="n">events</span>
+
+<span class="nd">@events</span><span class="o">.</span><span class="n">test_start</span><span class="o">.</span><span class="n">add_listener</span>
+<span class="k">def</span> <span class="nf">on_test_start</span><span class="p">(</span><span class="n">environment</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;A new test is starting&quot;</span><span class="p">)</span>
+
+<span class="nd">@events</span><span class="o">.</span><span class="n">test_stop</span><span class="o">.</span><span class="n">add_listener</span>
+<span class="k">def</span> <span class="nf">on_test_stop</span><span class="p">(</span><span class="n">environment</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;A new test is ending&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>分布式执行时，它们只会在master节点生效。</p>
+</div>
+<div class="section" id="init">
+<h3>init<a class="headerlink" href="#init" title="Permalink to this headline">¶</a></h3>
+<p>init和test_start不同，它会在每个Locust进程开始时触发，分布式执行时，每个节点（worker进程）都会生效。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">locust</span> <span class="kn">import</span> <span class="n">events</span>
+<span class="kn">from</span> <span class="nn">locust.runners</span> <span class="kn">import</span> <span class="n">MasterRunner</span>
+
+<span class="nd">@events</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">add_listener</span>
+<span class="k">def</span> <span class="nf">on_locust_init</span><span class="p">(</span><span class="n">environment</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">environment</span><span class="o">.</span><span class="n">runner</span><span class="p">,</span> <span class="n">MasterRunner</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;I&#39;m on master node&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;I&#39;m on a worker or standalone node&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>Events是一项hook技术，在学习Locust高级用法时再做进一步介绍。</p>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="locust">
+<h2>Locust项目结构<a class="headerlink" href="#locust" title="Permalink to this headline">¶</a></h2>
+<p>官方建议如下：</p>
+<p><code class="docutils literal notranslate"><span class="pre">common/</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">__init__.py</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">auth.py</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">config.py</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">locustfile.py</span></code>或者<code class="docutils literal notranslate"><span class="pre">locustfiles/</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">api.py</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">website.py</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code></p>
+</div>
+<div class="section" id="fasthttpuser">
+<h2>FastHttpUser<a class="headerlink" href="#fasthttpuser" title="Permalink to this headline">¶</a></h2>
+<p>从上篇文章可以知道，HttpUser类比User类更常用，它的client属性是HttpSession类（requests.Session子类）的一个实例，可以使用requests发HTTP请求：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## 使用HttpUser</span>
+<span class="kn">from</span> <span class="nn">locust</span> <span class="kn">import</span> <span class="n">HttpUser</span><span class="p">,</span><span class="n">task</span><span class="p">,</span><span class="n">constant</span>
+
+
+<span class="k">class</span> <span class="nc">MyUser</span><span class="p">(</span><span class="n">User</span><span class="p">):</span>
+    <span class="n">wait_time</span> <span class="o">=</span> <span class="n">constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@task</span>
+    <span class="k">def</span> <span class="nf">my_task1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://www.baidu.com/&quot;</span><span class="p">,</span> <span class="n">catch_response</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">res</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;成功&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;失败&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>但是requests性能是不太好的，如果要产生更高的压力，建议使用FastHttpUser，<strong>性能可以提升5到6倍</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">## 使用FastHttpUser</span>
+<span class="kn">from</span> <span class="nn">locust</span> <span class="kn">import</span> <span class="n">task</span><span class="p">,</span> <span class="n">constant</span>
+<span class="kn">from</span> <span class="nn">locust.contrib.fasthttp</span> <span class="kn">import</span> <span class="n">FastHttpUser</span>
+
+
+<span class="k">class</span> <span class="nc">MyUser</span><span class="p">(</span><span class="n">FastHttpUser</span><span class="p">):</span>
+    <span class="n">wait_time</span> <span class="o">=</span> <span class="n">constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@task</span>
+    <span class="k">def</span> <span class="nf">my_task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://www.baidu.com/&quot;</span><span class="p">,</span> <span class="n">catch_response</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;成功&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;失败&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>由于它们的API不一样，都有各自的适用场景，所以FastHttpUser不能完全替代HttpUser。</p>
+</div>
+<div class="section" id="id2">
+<h2>小结<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>本文严格来说是上篇文章《locustfile中的User类和HttpUser类》的下篇，介绍了核心技术Tasks和Events，并给出了官方推荐的项目结构，最后介绍了比HttpUser性能更好的FastHttpUser，如果想要更多的并发，可以考虑使用后者。经过这两篇文章的学习，已经可以开始动手实践使用Locust进行性能测试了。如果使用locust命令启动后，无法打开网页，可以试试加上参数：<code class="docutils literal notranslate"><span class="pre">locust</span> <span class="pre">--web-host=&quot;127.0.0.1&quot;</span></code>。</p>
+<blockquote>
+<div><p>参考资料：</p>
+<p><a class="reference external" href="https://zhuanlan.zhihu.com/p/118470760">https://zhuanlan.zhihu.com/p/118470760</a></p>
+<p><a class="reference external" href="https://docs.locust.io/en/stable/writing-a-locustfile.html#tasks">https://docs.locust.io/en/stable/writing-a-locustfile.html#tasks</a></p>
+<p><a class="reference external" href="https://www.axihe.com/tools/locust/increase-performance.html">https://www.axihe.com/tools/locust/increase-performance.html</a></p>
+<p><a class="reference external" href="https://blog.csdn.net/u012002125/article/details/113363768">https://blog.csdn.net/u012002125/article/details/113363768</a></p>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html" class="btn btn-neutral float-right" title="移动端" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="007002-%E3%80%90Locust%E3%80%91locustfile%E4%B8%AD%E7%9A%84User%E7%B1%BB%E5%92%8CHttpUser%E7%B1%BB.html" class="btn btn-neutral float-left" title="【Locust】locustfile中的User类和HttpUser类" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

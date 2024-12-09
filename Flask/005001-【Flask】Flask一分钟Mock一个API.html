@@ -1,0 +1,485 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【Flask】Flask一分钟Mock一个API &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="【Flask】Python微型Web框架Flask快速入门" href="005002-%E3%80%90Flask%E3%80%91Python%E5%BE%AE%E5%9E%8BWeb%E6%A1%86%E6%9E%B6Flask%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8.html" />
+    <link rel="prev" title="Flask" href="../chapters/Flask.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/pytest.html">pytest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/Flask.html">Flask</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【Flask】Flask一分钟Mock一个API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">建一个文件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">写一段代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">跑一条命令</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get">GET请求</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id4">不带参数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">带参数</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#post">POST请求</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id6">不带参数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#json">带Json参数</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#getpost">同时GET和POST</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">请求头</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">完整代码解析</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">小结</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="005002-%E3%80%90Flask%E3%80%91Python%E5%BE%AE%E5%9E%8BWeb%E6%A1%86%E6%9E%B6Flask%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8.html">【Flask】Python微型Web框架Flask快速入门</a></li>
+<li class="toctree-l2"><a class="reference internal" href="005003-%E3%80%90Flask%E3%80%91Flask%E5%AE%98%E6%96%B9%E6%8E%A8%E8%8D%90%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E7%AB%9F%E7%84%B6%E6%98%AF%E8%BF%99%E6%A0%B7.html">【Flask】Flask官方推荐项目结构竟然是这样</a></li>
+<li class="toctree-l2"><a class="reference internal" href="005004-%E3%80%90Flask%E3%80%91Flask%E5%90%AF%E5%8A%A8%E5%BA%94%E7%94%A8%E6%97%B6%E9%83%BD%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5.html">【Flask】Flask启动应用时都干了些啥</a></li>
+<li class="toctree-l2"><a class="reference internal" href="005005-%E3%80%90Flask%E3%80%91Flask%E4%BD%BF%E7%94%A8SQLite%E6%95%B0%E6%8D%AE%E5%BA%93.html">【Flask】Flask使用SQLite数据库</a></li>
+<li class="toctree-l2"><a class="reference internal" href="005006-%E3%80%90Flask%E3%80%91Flask%E7%9A%84Blueprints%E5%92%8CViews.html">【Flask】Flask的Blueprints和Views</a></li>
+<li class="toctree-l2"><a class="reference internal" href="005007-%E3%80%90Flask%E3%80%91Flask%E9%A1%B9%E7%9B%AE%E5%8F%91%E5%B8%83%E6%B5%81%E7%A8%8B.html">【Flask】Flask项目发布流程</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/Flask.html">Flask</a> &raquo;</li>
+        
+      <li>【Flask】Flask一分钟Mock一个API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/Flask/005001-【Flask】Flask一分钟Mock一个API.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="flaskflaskmockapi">
+<h1>【Flask】Flask一分钟Mock一个API<a class="headerlink" href="#flaskflaskmockapi" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang2.png" /></p>
+<p>如果安装了Python，并且安装了Flask：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install flask
+</pre></div>
+</div>
+<p>那么就可以在短短<strong>一分钟</strong>内Mock出来<strong>一个API</strong>，而且只需要用到<strong>一个文件</strong>。</p>
+<p>彻底告别在线Mock网站无法指定请求方法，Postman配置繁琐的问题。</p>
+<div class="section" id="id1">
+<h2>建一个文件<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>随便在哪创建一个py文件，比如app.py。</p>
+</div>
+<div class="section" id="id2">
+<h2>写一段代码<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello_world</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s2">&quot;Hello, World!&quot;</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>跑一条命令<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>在cmd或shell执行<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">app.py</span></code>，服务就起来了：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>D:<span class="se">\&gt;</span>python app.py
+ * Serving Flask app <span class="s2">&quot;app&quot;</span> <span class="o">(</span>lazy loading<span class="o">)</span>
+ * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+ * Running on http://127.0.0.1:5000/ <span class="o">(</span>Press CTRL+C to quit<span class="o">)</span>
+</pre></div>
+</div>
+<p>测试一下：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>D:<span class="se">\&gt;</span>curl http://127.0.0.1:5000/
+Hello, World!
+</pre></div>
+</div>
+</div>
+<div class="section" id="get">
+<h2>GET请求<a class="headerlink" href="#get" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id4">
+<h3>不带参数<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testGet&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_get</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s2">&quot;This is GET&quot;</span>
+</pre></div>
+</div>
+<p>测试：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>D:<span class="se">\&gt;</span>curl http://127.0.0.1:5000/testGet
+This is GET
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h3>带参数<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testGetParams&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_get_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span>
+</pre></div>
+</div>
+<p>测试：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>D:<span class="se">\&gt;</span>curl <span class="s2">&quot;http://127.0.0.1:5000/testGetParams?a=1&amp;b=2&quot;</span>
+<span class="o">{</span><span class="s2">&quot;a&quot;</span>:<span class="s2">&quot;1&quot;</span>,<span class="s2">&quot;b&quot;</span>:<span class="s2">&quot;2&quot;</span><span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="post">
+<h2>POST请求<a class="headerlink" href="#post" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id6">
+<span id="id7"></span><h3>不带参数<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testPost&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">my_post</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s2">&quot;This is POST&quot;</span>
+</pre></div>
+</div>
+<p>测试：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>D:<span class="se">\&gt;</span>curl -X POST <span class="s2">&quot;http://127.0.0.1:5000/testPost&quot;</span>
+This is POST
+</pre></div>
+</div>
+</div>
+<div class="section" id="json">
+<h3>带Json参数<a class="headerlink" href="#json" title="Permalink to this headline">¶</a></h3>
+<p>代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testPostJson&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">my_post_json</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">test.json</span></code>：</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;dongfanger&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;alias&quot;</span><span class="p">:</span> <span class="s2">&quot;redsun&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>测试：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>D:<span class="se">\&gt;</span>curl -H <span class="s2">&quot;Content-Type: application/json&quot;</span> -d <span class="s2">&quot;@test.json&quot;</span> <span class="s2">&quot;http://127.0.0.1:5000/testPostJson&quot;</span>
+<span class="o">{</span><span class="s1">&#39;name&#39;</span>: <span class="s1">&#39;dongfanger&#39;</span>, <span class="s1">&#39;alias&#39;</span>: <span class="s1">&#39;redsun&#39;</span><span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="getpost">
+<h2>同时GET和POST<a class="headerlink" href="#getpost" title="Permalink to this headline">¶</a></h2>
+<p>代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testGetPost&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">my_get_post</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;This is GET&quot;</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;This is POST&quot;</span>
+</pre></div>
+</div>
+<p>测试：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>D:<span class="se">\&gt;</span>curl http://127.0.0.1:5000/testGetPost
+This is GET
+D:<span class="se">\&gt;</span>curl http://127.0.0.1:5000/testGetPost -X POST
+This is POST
+</pre></div>
+</div>
+</div>
+<div class="section" id="id8">
+<h2>请求头<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testHeaders&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_headers</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>测试：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>D:<span class="se">\&gt;</span>curl http://127.0.0.1:5000/testHeaders
+Host: <span class="m">127</span>.0.0.1:5000
+User-Agent: curl/7.55.1
+Accept: */*
+</pre></div>
+</div>
+</div>
+<div class="section" id="id9">
+<h2>完整代码解析<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">request</span>
+
+<span class="c1">## Flask实例</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1">## @app.route添加路由</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testGet&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_get</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s2">&quot;This is GET&quot;</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testGetParams&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_get_params</span><span class="p">():</span>
+    <span class="c1"># flask.request里面封装了请求数据，可以看需要获取</span>
+    <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span>
+
+<span class="c1">## methods指定请求方法</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testPost&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">my_post</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s2">&quot;This is POST&quot;</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testPostJson&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">my_post_json</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span>
+
+<span class="c1">## 可以同时指定GET和POST</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testGetPost&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">my_get_post</span><span class="p">():</span>
+    <span class="c1"># 判断请求方法是GET或POST</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;This is GET&quot;</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;This is POST&quot;</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/testHeaders&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_headers</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id10">
+<h2>小结<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<p>本文介绍了如何使用Flask在一分钟内Mock一个API，只需要<strong>一个文件，一段代码，一条命令</strong>，即可完成。然后分别介绍了常用的GET请求和POST请求，以及带不带参数，获取请求头的用法。在测试时用到了curl命令，它的名字是Client
+URL的意思，在Mac和Windows都可以安装使用。</p>
+<blockquote>
+<div><p>参考资料：</p>
+<p><a class="reference external" href="https://flask.palletsprojects.com/en/2.0.x/quickstart/">https://flask.palletsprojects.com/en/2.0.x/quickstart/</a></p>
+<p><a class="reference external" href="http://www.ruanyifeng.com/blog/2019/09/curl-reference.html">http://www.ruanyifeng.com/blog/2019/09/curl-reference.html</a></p>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="005002-%E3%80%90Flask%E3%80%91Python%E5%BE%AE%E5%9E%8BWeb%E6%A1%86%E6%9E%B6Flask%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8.html" class="btn btn-neutral float-right" title="【Flask】Python微型Web框架Flask快速入门" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../chapters/Flask.html" class="btn btn-neutral float-left" title="Flask" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

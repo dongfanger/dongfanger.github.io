@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>【pytest】pytest用例查找原理 &mdash; 指数笔记 latest documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/js/readmore.js"></script>
+        <script src="../_static/js/baidutongji.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Django" href="../chapters/Django.html" />
+    <link rel="prev" title="【pytest】pytest断言技巧" href="003006-%E3%80%90pytest%E3%80%91pytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> 指数笔记
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">关于本书</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Java.html">Java</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.html">单元测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/JavaWeb%E5%BC%80%E5%8F%91.html">JavaWeb开发</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Spring%E6%8A%80%E6%9C%AF%E6%A0%88.html">Spring技术栈</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.html">设计模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95.html">白盒测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/TestNG.html">TestNG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AD%E9%97%B4%E4%BB%B6.html">中间件</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Python.html">Python</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../chapters/pytest.html">pytest</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="003001-%E3%80%90pytest%E3%80%91pytest%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8.html">【pytest】pytest快速入门</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003002-%E3%80%90pytest%E3%80%91pytest132%E4%B8%AA%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E7%94%A8%E6%B3%95.html">【pytest】pytest132个命令行参数用法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003003-%E3%80%90pytest%E3%80%91pytest%E7%B2%BE%E9%80%9Afixture.html">【pytest】pytest精通fixture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003004-%E3%80%90pytest%E3%80%91pytest%E5%86%85%E7%BD%AE%E5%92%8C%E8%87%AA%E5%AE%9A%E4%B9%89marker.html">【pytest】pytest内置和自定义marker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003005-%E3%80%90pytest%E3%80%91pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6.html">【pytest】pytest参数化进阶</a></li>
+<li class="toctree-l2"><a class="reference internal" href="003006-%E3%80%90pytest%E3%80%91pytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7.html">【pytest】pytest断言技巧</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">【pytest】pytest用例查找原理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">几个路径相关的概念</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pythonhome">PYTHONHOME</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pythonpath">PYTHONPATH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#basedir">basedir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sys-path">sys.path</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#current-working-directory">current working directory</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pytest">pytest查找原理</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id2">第一种情况</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">第二种情况</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Django.html">Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Flask.html">Flask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/FastAPI.html">FastAPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/HttpRunner.html">HttpRunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E5%B0%8F%E5%B7%A5%E5%85%B7.html">原创小工具</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6tep.html">原创接口测试框架tep</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E5%8E%9F%E5%88%9B%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0teprunner.html">原创接口测试平台teprunner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.html">测试报告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/Golang.html">Golang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%AE%97%E6%B3%95.html">算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%87%AA%E5%8A%A8%E5%8C%96.html">自动化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83.html">测试环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE.html">流量回放</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95.html">性能测试</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E7%A7%BB%E5%8A%A8%E7%AB%AF.html">移动端</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86.html">计算机知识</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html">读书笔记</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapters/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83.html">个人思考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../%E5%B0%8A%E4%BA%AB%E6%9C%8D%E5%8A%A1.html">尊享服务</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">指数笔记</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../chapters/pytest.html">pytest</a> &raquo;</li>
+        
+      <li>【pytest】pytest用例查找原理</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/pytest/003007-【pytest】pytest用例查找原理.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pytestpytest">
+<h1>【pytest】pytest用例查找原理<a class="headerlink" href="#pytestpytest" title="Permalink to this headline">¶</a></h1>
+<p><img alt="image1" src="../_images/wanggang10.png" /></p>
+<p>当执行pytest命令时，pytest会从project中查找test来执行。本文先从几个路径相关的概念讲起，这样便于理解pytest在遍历路径时的走向。</p>
+<div class="section" id="id1">
+<h2>几个路径相关的概念<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="pythonhome">
+<h3>PYTHONHOME<a class="headerlink" href="#pythonhome" title="Permalink to this headline">¶</a></h3>
+<p>定义了Python标准库的路径。</p>
+</div>
+<div class="section" id="pythonpath">
+<h3>PYTHONPATH<a class="headerlink" href="#pythonpath" title="Permalink to this headline">¶</a></h3>
+<p>定义了Python import模块搜索的路径。</p>
+</div>
+<div class="section" id="basedir">
+<h3>basedir<a class="headerlink" href="#basedir" title="Permalink to this headline">¶</a></h3>
+<p>①如果是module，目录中不包括<code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>，basedir的值等于a</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span>
+<span class="o">|--</span><span class="n">b_test</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>②如果是package，目录中包括<code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>，basedir的值等于y</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span>
+<span class="o">|--</span><span class="n">a</span>
+<span class="o">|</span>  <span class="o">|--</span><span class="n">b_test</span><span class="o">.</span><span class="n">py</span>
+<span class="o">|</span>  <span class="o">|--</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>  <span class="o">//</span> <span class="n">表明a是package</span>
+</pre></div>
+</div>
+<p>③如果是package的package，目录中都包括<code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>，basedir的值等于x</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span>
+<span class="o">|--</span><span class="n">y</span>
+<span class="o">|</span>  <span class="o">|--</span><span class="n">a</span>
+<span class="o">|</span>  <span class="o">|--</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>  <span class="o">//</span> <span class="n">表明y是package</span>
+<span class="o">|</span>  <span class="o">|</span>  <span class="o">|--</span><span class="n">b_test</span><span class="o">.</span><span class="n">py</span>
+<span class="o">|</span>  <span class="o">|</span>  <span class="o">|--</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>  <span class="o">//</span> <span class="n">表明a是package</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sys-path">
+<h3>sys.path<a class="headerlink" href="#sys-path" title="Permalink to this headline">¶</a></h3>
+<p>模块搜索路径集，包括以上3个目录。它决定了import能否找到模块。</p>
+</div>
+<div class="section" id="current-working-directory">
+<h3>current working directory<a class="headerlink" href="#current-working-directory" title="Permalink to this headline">¶</a></h3>
+<p>当前工作目录，缩写cwd，等于执行<code class="docutils literal notranslate"><span class="pre">pytest</span></code>命令的目录。</p>
+<p>如果用<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pytest</span></code>，以模块的方式来执行，会把cwd也加入sys.path中。</p>
+<p>例如，在a目录下执行pytest，cwd是a，basedir是y，sys.path中只包含y。如果执行python
+-m pytest，sys.path中既包含y也包含a</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span>
+<span class="o">|--</span><span class="n">a</span>
+<span class="o">|</span>  <span class="o">|--</span><span class="n">b_test</span><span class="o">.</span><span class="n">py</span>
+<span class="o">|</span>  <span class="o">|--</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>  <span class="o">//</span> <span class="n">表明a是package</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="pytest">
+<h2>pytest查找原理<a class="headerlink" href="#pytest" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id2">
+<h3>第一种情况<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>pytest命令是可以加参数的，如果加了文件夹/文件参数，那么就只在参数指定的文件夹/文件中查找，可以指定多个。例如</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest a_dir b_dir c_test.py d_test.py
+</pre></div>
+</div>
+<p>特殊的，如果a_dir中包含了c_test.py，那么会收集成2次，pytest也会执行2次。</p>
+<p>也可以使用::来指定函数/类/方法，例如</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="n">test_mod</span><span class="o">.</span><span class="n">py</span><span class="p">::</span><span class="n">test_func</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="n">test_mod</span><span class="o">.</span><span class="n">py</span><span class="p">::</span><span class="n">TestClass</span><span class="p">::</span><span class="n">test_method</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h3>第二种情况<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>pytest不带参数。</p>
+<ul class="simple">
+<li><p>从“当前工作目录”开始找，递归查找子目录。匹配 test_*.py 或 *_test.py
+的文件。</p></li>
+<li><p>找到这些模块（Python中1个.py文件就是1个模块）以后，进一步根据上节所述找basedir。</p></li>
+<li><p>调用<code class="docutils literal notranslate"><span class="pre">sys.path.insert(0,</span> <span class="pre">basedir)</span></code>，把basedir加入sys.path中。这些模块就可以被pytest
+import了。</p></li>
+<li><p>import之后，查找test开头的函数或方法。如果是类中的方法，类必须以Test开头，并且没有__init__方法。</p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../chapters/Django.html" class="btn btn-neutral float-right" title="Django" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="003006-%E3%80%90pytest%E3%80%91pytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7.html" class="btn btn-neutral float-left" title="【pytest】pytest断言技巧" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 指数笔记
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
