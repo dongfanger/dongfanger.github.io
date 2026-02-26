@@ -108,10 +108,11 @@
 <li class="toctree-l2"><a class="reference internal" href="009001-%E3%80%90%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE%E3%80%91%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AD%A6mitmproxy%E6%8A%93%E5%8C%85%E5%B7%A5%E5%85%B7.html">【录制回放】从零开始学mitmproxy抓包工具</a></li>
 <li class="toctree-l2"><a class="reference internal" href="009002-%E3%80%90%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE%E3%80%91Postman%E7%AB%9F%E7%84%B6%E8%BF%98%E8%83%BD%E5%BD%95%E5%88%B6%E6%B5%81%E9%87%8F.html">【录制回放】Postman竟然还能录制流量</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">【录制回放】基于HAR包的流量录制回放</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id1">基于HAR包的流量录制回放</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id2">什么是HAR包？</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id3">流量录制</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id4">回放对比</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">什么是HAR包？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">流量录制</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">回放对比</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id4">使用介绍</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">原理解析</a></li>
 </ul>
 </li>
 </ul>
@@ -205,27 +206,24 @@
 <h1>【录制回放】基于HAR包的流量录制回放<a class="headerlink" href="#har" title="Permalink to this headline">¶</a></h1>
 <p><img alt="image1" src="../_images/wanggang22.png" /></p>
 <div class="section" id="id1">
-<h2>基于HAR包的流量录制回放<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p><img alt="image2" src="../_images/wanggang22.png" /></p>
-<div class="section" id="id2">
-<h3>什么是HAR包？<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h2>什么是HAR包？<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">HAR（HTTP</span> <span class="pre">Archive</span> <span class="pre">format）</span></code>，是一种<code class="docutils literal notranslate"><span class="pre">JSON</span></code>格式的存档格式文件，通用扩展名为
 <code class="docutils literal notranslate"><span class="pre">.har</span></code>。</p>
-<p><img alt="image3" src="../_images/image-20231118072422249.png" /></p>
+<p><img alt="image2" src="../_images/image-20231118072422249.png" /></p>
 <p>HAR包是JSON格式的，打开后，重点关注<code class="docutils literal notranslate"><span class="pre">entries</span></code>里面的<code class="docutils literal notranslate"><span class="pre">request</span></code>和<code class="docutils literal notranslate"><span class="pre">response</span></code>，包含了请求和响应信息。</p>
 </div>
-<div class="section" id="id3">
-<h3>流量录制<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h2>流量录制<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>怎么获取HAR包呢？可以网上搜索方法，浏览器F12、抓包工具（Charles、Proxyman等）都可以将HTTP请求导出为HAR包。</p>
 <p>生产级别的流量录制很复杂，想要了解的话可以参考阿里开源项目：<a class="reference external" href="https://github.com/alibaba/jvm-sandbox-repeater">https://github.com/alibaba/jvm-sandbox-repeater</a></p>
 </div>
-<div class="section" id="id4">
-<h3>回放对比<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h2>回放对比<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>本文重点介绍在导出HAR包后，怎么通过Python来实现回放对比。</p>
-<div class="section" id="id5">
-<h4>使用介绍<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id4">
+<h3>使用介绍<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>一、将HAR包转换为pytest用例</p>
-<p><img alt="image4" src="../_images/image-20231118073111084.png" /></p>
+<p><img alt="image3" src="../_images/image-20231118073111084.png" /></p>
 <p>har_file为har包路径，profile配置开启回放，调用Har.har2case()方法将HAR包转换为pytest用例。</p>
 <p>转换后会生成：</p>
 <ul class="simple">
@@ -270,14 +268,14 @@
 </pre></div>
 </div>
 <p>执行时会记录实际请求响应，存入sqlite数据库，标记为actual。</p>
-<p><img alt="image5" src="../_images/image-20231118073817685.png" /></p>
+<p><img alt="image4" src="../_images/image-20231118073817685.png" /></p>
 <p>同时进行JSON字段对比和文本对比，分别生成<code class="docutils literal notranslate"><span class="pre">字段对比.txt</span></code>和<code class="docutils literal notranslate"><span class="pre">文本对比.html</span></code>。</p>
-<p><img alt="image6" src="../_images/image-20231118073934453.png" /></p>
-<p><img alt="image7" src="../_images/image-20231118073950886.png" /></p>
-<p><img alt="image8" src="../_images/image-20231118074013907.png" /></p>
+<p><img alt="image5" src="../_images/image-20231118073934453.png" /></p>
+<p><img alt="image6" src="../_images/image-20231118073950886.png" /></p>
+<p><img alt="image7" src="../_images/image-20231118074013907.png" /></p>
 </div>
-<div class="section" id="id6">
-<h4>原理解析<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id5">
+<h3>原理解析<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>源码：<a class="reference external" href="https://github.com/dongfanger/tep.git">https://github.com/dongfanger/tep.git</a></p>
 <p>一、转换</p>
 <p>通过haralyzer库解析HAR包，获取到request和response，再拼装成pytest用例。</p>
@@ -385,7 +383,7 @@
 </div>
 <p>三、记录</p>
 <p>通过profile开关控制是否开启回放，对比开启前后用例差异：</p>
-<p><img alt="image9" src="../_images/image-20231118074838167.png" /></p>
+<p><img alt="image8" src="../_images/image-20231118074838167.png" /></p>
 <p>开启回放，是在每个步骤后置中，添加了Sqlite记录响应text，并在最后执行Diff。</p>
 <p>记录实现文件：tep/libraries/Sqlite.py</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@staticmethod</span>
@@ -445,7 +443,6 @@
 </pre></div>
 </div>
 <p>流量录制回放已经成为一种重要的测试手段，既可以快速生成自动化用例，也可以回放对比开发和线上差异，学习起来吧。</p>
-</div>
 </div>
 </div>
 </div>
