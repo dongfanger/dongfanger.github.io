@@ -1,0 +1,823 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>【pytest】pytest断言技巧 &mdash; DevGang latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+      <script src="../../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/js/readmore.js?v=44958e13"></script>
+      <script src="../../_static/js/baidutongji.js?v=45b7b6b1"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="【pytest】pytest用例查找原理" href="003007-%E3%80%90pytest%E3%80%91pytest%E7%94%A8%E4%BE%8B%E6%9F%A5%E6%89%BE%E5%8E%9F%E7%90%86.html" />
+    <link rel="prev" title="【pytest】pytest参数化进阶" href="003005-%E3%80%90pytest%E3%80%91pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            DevGang
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">公告</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../chapters/Python%E7%94%9F%E6%80%81.html">Python生态</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../Python/_index.html">Python</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="_index.html">pytest</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="003001-%E3%80%90pytest%E3%80%91pytest%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8.html">【pytest】pytest快速入门</a></li>
+<li class="toctree-l3"><a class="reference internal" href="003002-%E3%80%90pytest%E3%80%91pytest132%E4%B8%AA%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E7%94%A8%E6%B3%95.html">【pytest】pytest132个命令行参数用法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="003003-%E3%80%90pytest%E3%80%91pytest%E7%B2%BE%E9%80%9Afixture.html">【pytest】pytest精通fixture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="003004-%E3%80%90pytest%E3%80%91pytest%E5%86%85%E7%BD%AE%E5%92%8C%E8%87%AA%E5%AE%9A%E4%B9%89marker.html">【pytest】pytest内置和自定义marker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="003005-%E3%80%90pytest%E3%80%91pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6.html">【pytest】pytest参数化进阶</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">【pytest】pytest断言技巧</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#assert">assert基础</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pytest-raises">pytest.raises</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#failure">44个failure例子</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="003007-%E3%80%90pytest%E3%80%91pytest%E7%94%A8%E4%BE%8B%E6%9F%A5%E6%89%BE%E5%8E%9F%E7%90%86.html">【pytest】pytest用例查找原理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../Django/_index.html">Django</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Flask/_index.html">Flask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../FastAPI/_index.html">FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HttpRunner/_index.html">HttpRunner</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/Java%E7%94%9F%E6%80%81.html">Java生态</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98.html">测试专题</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE.html">原创项目</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80.html">计算机基础</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83.html">读书与思考</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DevGang</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../chapters/Python%E7%94%9F%E6%80%81.html">Python生态</a></li>
+          <li class="breadcrumb-item"><a href="_index.html">pytest</a></li>
+      <li class="breadcrumb-item active">【pytest】pytest断言技巧</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/Python生态/pytest/003006-【pytest】pytest断言技巧.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pytestpytest">
+<h1>【pytest】pytest断言技巧<a class="headerlink" href="#pytestpytest" title="Link to this heading">¶</a></h1>
+<p><img alt="image1" src="../../_images/wanggang.png" /></p>
+<p>pytest的断言把Python语言简洁的优点发挥的淋漓尽致，因为它用的就是Python的标准断言<strong>assert</strong>。</p>
+<section id="assert">
+<h2>assert基础<a class="headerlink" href="#assert" title="Link to this heading">¶</a></h2>
+<p>assert用法</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">assert_stmt</span> <span class="p">:</span><span class="o">:=</span>  <span class="s2">"assert"</span> <span class="n">expression1</span> <span class="p">[</span><span class="s2">","</span> <span class="n">expression2</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>“assert” expression1，expression1和 if 的条件语句是一模一样的，if
+能写什么这里就能写什么。</p>
+<p>[“,” expression2]，是可选的，不写错误信息也可以。</p>
+<p>assert断言等价于</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">expression1</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">expression2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>示例，只考了59分，满分100分，不及格</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test</span><span class="p">():</span>
+    <span class="k">assert</span> <span class="mi">59</span> <span class="o">==</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"不及格"</span>
+</pre></div>
+</div>
+<p>结果，<code class="docutils literal notranslate"><span class="pre">&gt;</span></code>指出了断言失败的代码行，<code class="docutils literal notranslate"><span class="pre">E</span></code>指出了具体的错误</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">a</span><span class="o">.</span><span class="n">py</span><span class="p">::</span><span class="n">test</span> <span class="n">FAILED</span>                                                        <span class="p">[</span><span class="mi">100</span><span class="o">%</span><span class="p">]</span>
+<span class="ne">AssertionError</span><span class="p">:</span> <span class="n">不及格</span>
+<span class="mi">59</span> <span class="o">!=</span> <span class="mi">100</span>
+
+<span class="n">Expected</span> <span class="p">:</span><span class="mi">100</span>
+<span class="n">Actual</span>   <span class="p">:</span><span class="mi">59</span>
+<span class="o">&lt;</span><span class="n">Click</span> <span class="n">to</span> <span class="n">see</span> <span class="n">difference</span><span class="o">&gt;</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test</span><span class="p">():</span>
+<span class="o">&gt;</span>       <span class="k">assert</span> <span class="mi">59</span> <span class="o">==</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"不及格"</span>
+<span class="n">E</span>       <span class="ne">AssertionError</span><span class="p">:</span> <span class="n">不及格</span>
+<span class="n">E</span>       <span class="k">assert</span> <span class="mi">59</span> <span class="o">==</span> <span class="mi">100</span>
+
+<span class="n">a</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">2</span><span class="p">:</span> <span class="ne">AssertionError</span>
+
+
+<span class="o">==================================</span> <span class="n">FAILURES</span> <span class="o">===================================</span>
+<span class="n">____________________________________</span> <span class="n">test</span> <span class="n">_____________________________________</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test</span><span class="p">():</span>
+<span class="o">&gt;</span>       <span class="k">assert</span> <span class="mi">59</span> <span class="o">==</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"不及格"</span>
+<span class="n">E</span>       <span class="ne">AssertionError</span><span class="p">:</span> <span class="n">不及格</span>
+<span class="n">E</span>       <span class="k">assert</span> <span class="mi">59</span> <span class="o">==</span> <span class="mi">100</span>
+
+<span class="n">a</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">2</span><span class="p">:</span> <span class="ne">AssertionError</span>
+<span class="o">===========================</span> <span class="n">short</span> <span class="n">test</span> <span class="n">summary</span> <span class="n">info</span> <span class="o">===========================</span>
+<span class="n">FAILED</span> <span class="n">a</span><span class="o">.</span><span class="n">py</span><span class="p">::</span><span class="n">test</span> <span class="o">-</span> <span class="ne">AssertionError</span><span class="p">:</span> <span class="n">不及格</span>
+<span class="o">==============================</span> <span class="mi">1</span> <span class="n">failed</span> <span class="ow">in</span> <span class="mf">0.30</span><span class="n">s</span> <span class="o">==============================</span>
+</pre></div>
+</div>
+<p>把这个例子稍微抽象一下，<strong>assert 实际 ==
+预期，错误信息。</strong>记住把<strong>预期放在右边</strong>。</p>
+</section>
+<section id="pytest-raises">
+<h2>pytest.raises<a class="headerlink" href="#pytest-raises" title="Link to this heading">¶</a></h2>
+<p>pytest.raises用于断言异常。</p>
+<p>示例，断言会抛出ZeroDivisionError，<strong>如果抛出了测试结果是pass，如果没抛出，测试结果是failed</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_zero_division</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ZeroDivisionError</span><span class="p">):</span>
+        <span class="mi">1</span> <span class="o">/</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>同时可以断言异常信息。示例，定义f()，递归循环抛异常，assert断言这个异常信息包括“maximum
+recursion”</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_recursion_depth</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">excinfo</span><span class="p">:</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">():</span>
+            <span class="n">f</span><span class="p">()</span>
+
+        <span class="n">f</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="s2">"maximum recursion"</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">excinfo</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>可以添加match参数来用正则过滤异常信息。示例，匹配包括123的异常</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">myfunc</span><span class="p">():</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Exception 123 raised"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_match</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="sa">r</span><span class="s2">".* 123 .*"</span><span class="p">):</span>
+        <span class="n">myfunc</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>如果是对整个test异常断言，也可以加marker xfail</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">xfail</span><span class="p">(</span><span class="n">raises</span><span class="o">=</span><span class="ne">IndexError</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="failure">
+<h2>44个failure例子<a class="headerlink" href="#failure" title="Link to this heading">¶</a></h2>
+<p>每个test用大横线做了分隔</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>assertion<span class="w"> </span>$<span class="w"> </span>pytest<span class="w"> </span>failure_demo.py
+<span class="o">===========================</span><span class="w"> </span><span class="nb">test</span><span class="w"> </span>session<span class="w"> </span><span class="nv">starts</span><span class="w"> </span><span class="o">============================</span>
+platform<span class="w"> </span>linux<span class="w"> </span>--<span class="w"> </span>Python<span class="w"> </span><span class="m">3</span>.x.y,<span class="w"> </span>pytest-6.x.y,<span class="w"> </span>py-1.x.y,<span class="w"> </span>pluggy-0.x.y
+cachedir:<span class="w"> </span><span class="nv">$PYTHON_PREFIX</span>/.pytest_cache
+rootdir:<span class="w"> </span><span class="nv">$REGENDOC_TMPDIR</span>/assertion
+collected<span class="w"> </span><span class="m">44</span><span class="w"> </span>items
+failure_demo.py<span class="w"> </span>FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF<span class="w"> </span><span class="o">[</span><span class="m">100</span>%<span class="o">]</span>
+
+
+<span class="o">=================================</span><span class="w"> </span><span class="nv">FAILURES</span><span class="w"> </span><span class="o">=================================</span>
+___________________________<span class="w"> </span>test_generative<span class="o">[</span><span class="m">3</span>-6<span class="o">]</span><span class="w"> </span>___________________________
+<span class="nv">param1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span>,<span class="w"> </span><span class="nv">param2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">6</span>
+<span class="w">    </span>@pytest.mark.parametrize<span class="o">(</span><span class="s2">"param1, param2"</span>,<span class="w"> </span><span class="o">[(</span><span class="m">3</span>,<span class="w"> </span><span class="m">6</span><span class="o">)])</span>
+<span class="w">    </span>def<span class="w"> </span>test_generative<span class="o">(</span>param1,<span class="w"> </span>param2<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span>param1<span class="w"> </span>*<span class="w"> </span><span class="m">2</span><span class="w"> </span>&lt;<span class="w"> </span>param2
+E<span class="w">       </span>assert<span class="w"> </span><span class="o">(</span><span class="m">3</span><span class="w"> </span>*<span class="w"> </span><span class="m">2</span><span class="o">)</span><span class="w"> </span>&lt;<span class="w"> </span><span class="m">6</span>
+failure_demo.py:19:<span class="w"> </span>AssertionError
+
+
+_________________________<span class="w"> </span>TestFailing.test_simple<span class="w"> </span>__________________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestFailing<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_simple<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span>def<span class="w"> </span>f<span class="o">()</span>:
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="m">42</span>
+<span class="w">        </span>def<span class="w"> </span>g<span class="o">()</span>:
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="m">43</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span>f<span class="o">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>g<span class="o">()</span>
+E<span class="w">       </span>assert<span class="w"> </span><span class="nv">42</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">43</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">42</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;<span class="k">function</span><span class="w"> </span>TestFailing.test_simple.&lt;locals&gt;.f<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="o">()</span>
+E<span class="w">        </span>+<span class="w"> </span>and<span class="w"> </span><span class="nv">43</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;<span class="k">function</span><span class="w"> </span>TestFailing.test_simple.&lt;locals&gt;.g<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="o">()</span>
+failure_demo.py:30:<span class="w"> </span>AssertionError
+
+
+____________________<span class="w"> </span>TestFailing.test_simple_multiline<span class="w"> </span>_____________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestFailing<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_simple_multiline<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>otherfunc_multi<span class="o">(</span><span class="m">42</span>,<span class="w"> </span><span class="m">6</span><span class="w"> </span>*<span class="w"> </span><span class="m">9</span><span class="o">)</span>
+failure_demo.py:33:
+_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_
+<span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">42</span>,<span class="w"> </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">54</span>
+<span class="w">    </span>def<span class="w"> </span>otherfunc_multi<span class="o">(</span>a,<span class="w"> </span>b<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>b
+E<span class="w">       </span>assert<span class="w"> </span><span class="nv">42</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">54</span>
+failure_demo.py:14:<span class="w"> </span>AssertionError
+
+
+___________________________<span class="w"> </span>TestFailing.test_not<span class="w"> </span>___________________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestFailing<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_not<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span>def<span class="w"> </span>f<span class="o">()</span>:
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="m">42</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span>not<span class="w"> </span>f<span class="o">()</span>
+E<span class="w">       </span>assert<span class="w"> </span>not<span class="w"> </span><span class="m">42</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">42</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;<span class="k">function</span><span class="w"> </span>TestFailing.test_not.&lt;locals&gt;.f<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="o">()</span>
+failure_demo.py:39:<span class="w"> </span>AssertionError
+
+
+_________________<span class="w"> </span>TestSpecialisedExplanations.test_eq_text<span class="w"> </span>_________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_text<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="s2">"spam"</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">"eggs"</span>
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="s1">'spam'</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'eggs'</span>
+E<span class="w">         </span>-<span class="w"> </span>eggs
+E<span class="w">         </span>+<span class="w"> </span>spam
+failure_demo.py:44:<span class="w"> </span>AssertionError
+
+
+_____________<span class="w"> </span>TestSpecialisedExplanations.test_eq_similar_text<span class="w"> </span>_____________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_similar_text<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="s2">"foo 1 bar"</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">"foo 2 bar"</span>
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="s1">'foo 1 bar'</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'foo 2 bar'</span>
+E<span class="w">         </span>-<span class="w"> </span>foo<span class="w"> </span><span class="m">2</span><span class="w"> </span>bar
+E<span class="w">         </span>?<span class="w"> </span>^
+E<span class="w">         </span>+<span class="w"> </span>foo<span class="w"> </span><span class="m">1</span><span class="w"> </span>bar
+E<span class="w">         </span>?<span class="w"> </span>^
+failure_demo.py:47:<span class="w"> </span>AssertionError
+
+
+____________<span class="w"> </span>TestSpecialisedExplanations.test_eq_multiline_text<span class="w"> </span>____________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_multiline_text<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="s2">"foo\nspam\nbar"</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">"foo\neggs\nbar"</span>
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="s1">'foo\nspam\nbar'</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'foo\neggs\nbar'</span>
+E<span class="w">         </span>foo
+E<span class="w">         </span>-<span class="w"> </span>eggs
+E<span class="w">         </span>+<span class="w"> </span>spam
+E<span class="w">         </span>bar
+failure_demo.py:50:<span class="w"> </span>AssertionError
+
+
+______________<span class="w"> </span>TestSpecialisedExplanations.test_eq_long_text<span class="w"> </span>_______________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_long_text<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"1"</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"a"</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"2"</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span>
+<span class="w">        </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"1"</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"b"</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"2"</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>b
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="s1">'111111111111...2222222222222'</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'111111111111...2222222222222'</span>
+E<span class="w">         </span>Skipping<span class="w"> </span><span class="m">90</span><span class="w"> </span>identical<span class="w"> </span>leading<span class="w"> </span>characters<span class="w"> </span><span class="k">in</span><span class="w"> </span>diff,<span class="w"> </span>use<span class="w"> </span>-v<span class="w"> </span>to<span class="w"> </span>show
+E<span class="w">         </span>Skipping<span class="w"> </span><span class="m">91</span><span class="w"> </span>identical<span class="w"> </span>trailing<span class="w"> </span>characters<span class="w"> </span><span class="k">in</span><span class="w"> </span>diff,<span class="w"> </span>use<span class="w"> </span>-v<span class="w"> </span>to<span class="w"> </span>show
+E<span class="w">         </span>-<span class="w"> </span>1111111111b222222222
+E<span class="w">         </span>?<span class="w"> </span>^
+E<span class="w">         </span>+<span class="w"> </span>1111111111a222222222
+E<span class="w">         </span>?<span class="w"> </span>^
+failure_demo.py:55:<span class="w"> </span>AssertionError
+
+
+_________<span class="w"> </span>TestSpecialisedExplanations.test_eq_long_text_multiline<span class="w"> </span>__________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_long_text_multiline<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"1\n"</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"a"</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"2\n"</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span>
+<span class="w">        </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"1\n"</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"b"</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"2\n"</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>b
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="s1">'1\n1\n1\n1\n...n2\n2\n2\n2\n'</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'1\n1\n1\n1\n...n2\n2\n2\n2\n'</span>
+E<span class="w">         </span>Skipping<span class="w"> </span><span class="m">190</span><span class="w"> </span>identical<span class="w"> </span>leading<span class="w"> </span>characters<span class="w"> </span><span class="k">in</span><span class="w"> </span>diff,<span class="w"> </span>use<span class="w"> </span>-v<span class="w"> </span>to<span class="w"> </span>show
+E<span class="w">         </span>Skipping<span class="w"> </span><span class="m">191</span><span class="w"> </span>identical<span class="w"> </span>trailing<span class="w"> </span>characters<span class="w"> </span><span class="k">in</span><span class="w"> </span>diff,<span class="w"> </span>use<span class="w"> </span>-v<span class="w"> </span>to<span class="w"> </span>show
+E<span class="w">           </span><span class="m">1</span>
+E<span class="w">           </span><span class="m">1</span>
+E<span class="w">           </span><span class="m">1</span>
+E<span class="w">           </span><span class="m">1</span>
+E<span class="w">           </span><span class="m">1</span>...
+E
+E<span class="w">         </span>...Full<span class="w"> </span>output<span class="w"> </span>truncated<span class="w"> </span><span class="o">(</span><span class="m">7</span><span class="w"> </span>lines<span class="w"> </span>hidden<span class="o">)</span>,<span class="w"> </span>use<span class="w"> </span><span class="s1">'-vv'</span><span class="w"> </span>to<span class="w"> </span>show
+failure_demo.py:60:<span class="w"> </span>AssertionError
+
+
+_________________<span class="w"> </span>TestSpecialisedExplanations.test_eq_list<span class="w"> </span>_________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_list<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="o">[</span><span class="m">0</span>,<span class="w"> </span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span><span class="o">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">[</span><span class="m">0</span>,<span class="w"> </span><span class="m">1</span>,<span class="w"> </span><span class="m">3</span><span class="o">]</span>
+E<span class="w">       </span>assert<span class="w"> </span><span class="o">[</span><span class="m">0</span>,<span class="w"> </span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span><span class="o">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">[</span><span class="m">0</span>,<span class="w"> </span><span class="m">1</span>,<span class="w"> </span><span class="m">3</span><span class="o">]</span>
+E<span class="w">         </span>At<span class="w"> </span>index<span class="w"> </span><span class="m">2</span><span class="w"> </span>diff:<span class="w"> </span><span class="m">2</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="m">3</span>
+E<span class="w">         </span>Use<span class="w"> </span>-v<span class="w"> </span>to<span class="w"> </span>get<span class="w"> </span>the<span class="w"> </span>full<span class="w"> </span>diff
+failure_demo.py:63:<span class="w"> </span>AssertionError
+
+
+______________<span class="w"> </span>TestSpecialisedExplanations.test_eq_list_long<span class="w"> </span>_______________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+def<span class="w"> </span>test_eq_list_long<span class="o">(</span>self<span class="o">)</span>:
+<span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span><span class="w"> </span>+<span class="w"> </span><span class="o">[</span><span class="m">1</span><span class="o">]</span><span class="w"> </span>+<span class="w"> </span><span class="o">[</span><span class="m">3</span><span class="o">]</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span>
+<span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span><span class="w"> </span>+<span class="w"> </span><span class="o">[</span><span class="m">2</span><span class="o">]</span><span class="w"> </span>+<span class="w"> </span><span class="o">[</span><span class="m">3</span><span class="o">]</span><span class="w"> </span>*<span class="w"> </span><span class="m">100</span>
+&gt;<span class="w"> </span>assert<span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>b
+E<span class="w"> </span>assert<span class="w"> </span><span class="o">[</span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span>...<span class="o">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">[</span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span>...<span class="o">]</span>
+E<span class="w"> </span>At<span class="w"> </span>index<span class="w"> </span><span class="m">100</span><span class="w"> </span>diff:<span class="w"> </span><span class="m">1</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="m">2</span>
+E<span class="w"> </span>Use<span class="w"> </span>-v<span class="w"> </span>to<span class="w"> </span>get<span class="w"> </span>the<span class="w"> </span>full<span class="w"> </span>diff
+failure_demo.py:68:<span class="w"> </span>AssertionError
+
+
+_________________<span class="w"> </span>TestSpecialisedExplanations.test_eq_dict<span class="w"> </span>_________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_dict<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="o">{</span><span class="s2">"a"</span>:<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="s2">"b"</span>:<span class="w"> </span><span class="m">1</span>,<span class="w"> </span><span class="s2">"c"</span>:<span class="w"> </span><span class="m">0</span><span class="o">}</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">{</span><span class="s2">"a"</span>:<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="s2">"b"</span>:<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="s2">"d"</span>:<span class="w"> </span><span class="m">0</span><span class="o">}</span>
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="o">{</span><span class="s1">'a'</span>:<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="s1">'b'</span>:<span class="w"> </span><span class="m">1</span>,<span class="w"> </span><span class="s1">'c'</span>:<span class="w"> </span><span class="m">0</span><span class="o">}</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">{</span><span class="s1">'a'</span>:<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="s1">'b'</span>:<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="s1">'d'</span>:<span class="w"> </span><span class="m">0</span><span class="o">}</span>
+E<span class="w">         </span>Omitting<span class="w"> </span><span class="m">1</span><span class="w"> </span>identical<span class="w"> </span>items,<span class="w"> </span>use<span class="w"> </span>-vv<span class="w"> </span>to<span class="w"> </span>show
+E<span class="w">         </span>Differing<span class="w"> </span>items:
+E<span class="w">         </span><span class="o">{</span><span class="s1">'b'</span>:<span class="w"> </span><span class="m">1</span><span class="o">}</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="o">{</span><span class="s1">'b'</span>:<span class="w"> </span><span class="m">2</span><span class="o">}</span>
+E<span class="w">         </span>Left<span class="w"> </span>contains<span class="w"> </span><span class="m">1</span><span class="w"> </span>more<span class="w"> </span>item:
+E<span class="w">         </span><span class="o">{</span><span class="s1">'c'</span>:<span class="w"> </span><span class="m">0</span><span class="o">}</span>
+E<span class="w">         </span>Right<span class="w"> </span>contains<span class="w"> </span><span class="m">1</span><span class="w"> </span>more<span class="w"> </span>item:
+E<span class="w">         </span><span class="o">{</span><span class="s1">'d'</span>:<span class="w"> </span><span class="m">0</span><span class="o">}</span>...
+E
+E<span class="w">         </span>...Full<span class="w"> </span>output<span class="w"> </span>truncated<span class="w"> </span><span class="o">(</span><span class="m">2</span><span class="w"> </span>lines<span class="w"> </span>hidden<span class="o">)</span>,<span class="w"> </span>use<span class="w"> </span><span class="s1">'-vv'</span><span class="w"> </span>to<span class="w"> </span>show
+failure_demo.py:71:<span class="w"> </span>AssertionError
+
+
+_________________<span class="w"> </span>TestSpecialisedExplanations.test_eq_set<span class="w"> </span>__________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_set<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="o">{</span><span class="m">0</span>,<span class="w"> </span><span class="m">10</span>,<span class="w"> </span><span class="m">11</span>,<span class="w"> </span><span class="m">12</span><span class="o">}</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">{</span><span class="m">0</span>,<span class="w"> </span><span class="m">20</span>,<span class="w"> </span><span class="m">21</span><span class="o">}</span>
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="o">{</span><span class="m">0</span>,<span class="w"> </span><span class="m">10</span>,<span class="w"> </span><span class="m">11</span>,<span class="w"> </span><span class="m">12</span><span class="o">}</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">{</span><span class="m">0</span>,<span class="w"> </span><span class="m">20</span>,<span class="w"> </span><span class="m">21</span><span class="o">}</span>
+E<span class="w">         </span>Extra<span class="w"> </span>items<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>left<span class="w"> </span>set:
+E<span class="w">         </span><span class="m">10</span>
+E<span class="w">         </span><span class="m">11</span>
+E<span class="w">         </span><span class="m">12</span>
+E<span class="w">         </span>Extra<span class="w"> </span>items<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>right<span class="w"> </span>set:
+E<span class="w">         </span><span class="m">20</span>
+E<span class="w">         </span><span class="m">21</span>...
+E
+E<span class="w">         </span>...Full<span class="w"> </span>output<span class="w"> </span>truncated<span class="w"> </span><span class="o">(</span><span class="m">2</span><span class="w"> </span>lines<span class="w"> </span>hidden<span class="o">)</span>,<span class="w"> </span>use<span class="w"> </span><span class="s1">'-vv'</span><span class="w"> </span>to<span class="w"> </span>show
+failure_demo.py:74:<span class="w"> </span>AssertionError
+
+
+_____________<span class="w"> </span>TestSpecialisedExplanations.test_eq_longer_list<span class="w"> </span>______________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_longer_list<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="o">[</span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span><span class="o">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">[</span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="m">3</span><span class="o">]</span>
+E<span class="w">       </span>assert<span class="w"> </span><span class="o">[</span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span><span class="o">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">[</span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="m">3</span><span class="o">]</span>
+E<span class="w">         </span>Right<span class="w"> </span>contains<span class="w"> </span>one<span class="w"> </span>more<span class="w"> </span>item:<span class="w"> </span><span class="m">3</span>
+E<span class="w">         </span>Use<span class="w"> </span>-v<span class="w"> </span>to<span class="w"> </span>get<span class="w"> </span>the<span class="w"> </span>full<span class="w"> </span>diff
+failure_demo.py:77:<span class="w"> </span>AssertionError
+
+
+_________________<span class="w"> </span>TestSpecialisedExplanations.test_in_list<span class="w"> </span>_________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_in_list<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">[</span><span class="m">0</span>,<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="m">3</span>,<span class="w"> </span><span class="m">4</span>,<span class="w"> </span><span class="m">5</span><span class="o">]</span>
+E<span class="w">       </span>assert<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">[</span><span class="m">0</span>,<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="m">3</span>,<span class="w"> </span><span class="m">4</span>,<span class="w"> </span><span class="m">5</span><span class="o">]</span>
+failure_demo.py:80:<span class="w"> </span>AssertionError
+
+
+__________<span class="w"> </span>TestSpecialisedExplanations.test_not_in_text_multiline<span class="w"> </span>__________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_not_in_text_multiline<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"some multiline\ntext\nwhich\nincludes foo\nand a\ntail"</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="s2">"foo"</span><span class="w"> </span>not<span class="w"> </span><span class="k">in</span><span class="w"> </span>text
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="s1">'foo'</span><span class="w"> </span>not<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s1">'some multil...nand a\ntail'</span>
+E<span class="w">         </span><span class="s1">'foo'</span><span class="w"> </span>is<span class="w"> </span>contained<span class="w"> </span>here:
+E<span class="w">           </span>some<span class="w"> </span>multiline
+E<span class="w">           </span>text
+E<span class="w">           </span>which
+E<span class="w">           </span>includes<span class="w"> </span>foo
+E<span class="w">         </span>?<span class="w">          </span>+++
+E<span class="w">           </span>and<span class="w"> </span>a...
+E
+E<span class="w">         </span>...Full<span class="w"> </span>output<span class="w"> </span>truncated<span class="w"> </span><span class="o">(</span><span class="m">2</span><span class="w"> </span>lines<span class="w"> </span>hidden<span class="o">)</span>,<span class="w"> </span>use<span class="w"> </span><span class="s1">'-vv'</span><span class="w"> </span>to<span class="w"> </span>show
+failure_demo.py:84:<span class="w"> </span>AssertionError
+
+
+___________<span class="w"> </span>TestSpecialisedExplanations.test_not_in_text_single<span class="w"> </span>____________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_not_in_text_single<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"single foo line"</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="s2">"foo"</span><span class="w"> </span>not<span class="w"> </span><span class="k">in</span><span class="w"> </span>text
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="s1">'foo'</span><span class="w"> </span>not<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s1">'single foo line'</span>
+E<span class="w">         </span><span class="s1">'foo'</span><span class="w"> </span>is<span class="w"> </span>contained<span class="w"> </span>here:
+E<span class="w">           </span>single<span class="w"> </span>foo<span class="w"> </span>line
+E<span class="w">         </span>?<span class="w">        </span>+++
+failure_demo.py:88:<span class="w"> </span>AssertionError
+
+
+_________<span class="w"> </span>TestSpecialisedExplanations.test_not_in_text_single_long<span class="w"> </span>_________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_not_in_text_single_long<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"head "</span><span class="w"> </span>*<span class="w"> </span><span class="m">50</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"foo "</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"tail "</span><span class="w"> </span>*<span class="w"> </span><span class="m">20</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="s2">"foo"</span><span class="w"> </span>not<span class="w"> </span><span class="k">in</span><span class="w"> </span>text
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="s1">'foo'</span><span class="w"> </span>not<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s1">'head head h...l tail tail '</span>
+E<span class="w">         </span><span class="s1">'foo'</span><span class="w"> </span>is<span class="w"> </span>contained<span class="w"> </span>here:
+E<span class="w">           </span>head<span class="w"> </span>head<span class="w"> </span>foo<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail
+E<span class="w">         </span>?<span class="w">         </span>+++
+failure_demo.py:92:<span class="w"> </span>AssertionError
+
+
+______<span class="w"> </span>TestSpecialisedExplanations.test_not_in_text_single_long_term<span class="w"> </span>_______
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_not_in_text_single_long_term<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"head "</span><span class="w"> </span>*<span class="w"> </span><span class="m">50</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"f"</span><span class="w"> </span>*<span class="w"> </span><span class="m">70</span><span class="w"> </span>+<span class="w"> </span><span class="s2">"tail "</span><span class="w"> </span>*<span class="w"> </span><span class="m">20</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="s2">"f"</span><span class="w"> </span>*<span class="w"> </span><span class="m">70</span><span class="w"> </span>not<span class="w"> </span><span class="k">in</span><span class="w"> </span>text
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="s1">'fffffffffff...ffffffffffff'</span><span class="w"> </span>not<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s1">'head head h...ltail tail '</span>
+E<span class="w">         </span><span class="s1">'ffffffffffffffffff...fffffffffffffffffff'</span><span class="w"> </span>is<span class="w"> </span>contained<span class="w"> </span>here:
+E<span class="w">           </span>head<span class="w"> </span>head<span class="w"> </span>fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffftail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail<span class="w"> </span>tail
+E<span class="w">         </span>?<span class="w">         </span>++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+failure_demo.py:96:<span class="w"> </span>AssertionError
+
+
+______________<span class="w"> </span>TestSpecialisedExplanations.test_eq_dataclass<span class="w"> </span>_______________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_dataclass<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span>from<span class="w"> </span>dataclasses<span class="w"> </span>import<span class="w"> </span>dataclass
+<span class="w">        </span>@dataclass
+<span class="w">        </span>class<span class="w"> </span>Foo:
+<span class="w">            </span>a:<span class="w"> </span>int
+<span class="w">            </span>b:<span class="w"> </span>str
+<span class="w">        </span><span class="nv">left</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>Foo<span class="o">(</span><span class="m">1</span>,<span class="w"> </span><span class="s2">"b"</span><span class="o">)</span>
+<span class="w">        </span><span class="nv">right</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>Foo<span class="o">(</span><span class="m">1</span>,<span class="w"> </span><span class="s2">"c"</span><span class="o">)</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="nv">left</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>right
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span>TestSpecialis...oo<span class="o">(</span><span class="nv">a</span><span class="o">=</span><span class="m">1</span>,<span class="w"> </span><span class="nv">b</span><span class="o">=</span><span class="s1">'b'</span><span class="o">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>TestSpecialis...oo<span class="o">(</span><span class="nv">a</span><span class="o">=</span><span class="m">1</span>,<span class="w"> </span><span class="nv">b</span><span class="o">=</span><span class="s1">'c'</span><span class="o">)</span>
+E
+E<span class="w">       </span>Omitting<span class="w"> </span><span class="m">1</span><span class="w"> </span>identical<span class="w"> </span>items,<span class="w"> </span>use<span class="w"> </span>-vv<span class="w"> </span>to<span class="w"> </span>show
+E<span class="w">       </span>Differing<span class="w"> </span>attributes:
+E<span class="w">       </span><span class="o">[</span><span class="s1">'b'</span><span class="o">]</span>
+E
+E<span class="w">       </span>Drill<span class="w"> </span>down<span class="w"> </span>into<span class="w"> </span>differing<span class="w"> </span>attribute<span class="w"> </span>b:
+E<span class="w">         </span>b:<span class="w"> </span><span class="s1">'b'</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s1">'c'</span>...
+E
+E<span class="w">       </span>...Full<span class="w"> </span>output<span class="w"> </span>truncated<span class="w"> </span><span class="o">(</span><span class="m">3</span><span class="w"> </span>lines<span class="w"> </span>hidden<span class="o">)</span>,<span class="w"> </span>use<span class="w"> </span><span class="s1">'-vv'</span><span class="w"> </span>to<span class="w"> </span>show
+failure_demo.py:108:<span class="w"> </span>AssertionError
+
+
+________________<span class="w"> </span>TestSpecialisedExplanations.test_eq_attrs<span class="w"> </span>_________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestSpecialisedExplanations<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_eq_attrs<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span>import<span class="w"> </span>attr
+<span class="w">        </span>@attr.s
+<span class="w">        </span>class<span class="w"> </span>Foo:
+<span class="w">            </span><span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>attr.ib<span class="o">()</span>
+<span class="w">            </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>attr.ib<span class="o">()</span>
+<span class="w">        </span><span class="nv">left</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>Foo<span class="o">(</span><span class="m">1</span>,<span class="w"> </span><span class="s2">"b"</span><span class="o">)</span>
+<span class="w">        </span><span class="nv">right</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>Foo<span class="o">(</span><span class="m">1</span>,<span class="w"> </span><span class="s2">"c"</span><span class="o">)</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="nv">left</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>right
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span>Foo<span class="o">(</span><span class="nv">a</span><span class="o">=</span><span class="m">1</span>,<span class="w"> </span><span class="nv">b</span><span class="o">=</span><span class="s1">'b'</span><span class="o">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>Foo<span class="o">(</span><span class="nv">a</span><span class="o">=</span><span class="m">1</span>,<span class="w"> </span><span class="nv">b</span><span class="o">=</span><span class="s1">'c'</span><span class="o">)</span>
+E
+E<span class="w">         </span>Omitting<span class="w"> </span><span class="m">1</span><span class="w"> </span>identical<span class="w"> </span>items,<span class="w"> </span>use<span class="w"> </span>-vv<span class="w"> </span>to<span class="w"> </span>show
+E<span class="w">         </span>Differing<span class="w"> </span>attributes:
+E<span class="w">         </span><span class="o">[</span><span class="s1">'b'</span><span class="o">]</span>
+E
+E<span class="w">         </span>Drill<span class="w"> </span>down<span class="w"> </span>into<span class="w"> </span>differing<span class="w"> </span>attribute<span class="w"> </span>b:
+E<span class="w">           </span>b:<span class="w"> </span><span class="s1">'b'</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s1">'c'</span>...
+E
+E<span class="w">         </span>...Full<span class="w"> </span>output<span class="w"> </span>truncated<span class="w"> </span><span class="o">(</span><span class="m">3</span><span class="w"> </span>lines<span class="w"> </span>hidden<span class="o">)</span>,<span class="w"> </span>use<span class="w"> </span><span class="s1">'-vv'</span><span class="w"> </span>to<span class="w"> </span>show
+failure_demo.py:120:<span class="w"> </span>AssertionError
+
+
+______________________________<span class="w"> </span>test_attribute<span class="w"> </span>______________________________
+<span class="w">    </span>def<span class="w"> </span>test_attribute<span class="o">()</span>:
+<span class="w">        </span>class<span class="w"> </span>Foo:
+<span class="w">            </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+<span class="w">        </span><span class="nv">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>Foo<span class="o">()</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span>i.b<span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2</span>
+E<span class="w">       </span>assert<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.test_attribute.&lt;locals&gt;.Foo<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;.b
+failure_demo.py:128:<span class="w"> </span>AssertionError
+
+
+_________________________<span class="w"> </span>test_attribute_instance<span class="w"> </span>__________________________
+<span class="w">    </span>def<span class="w"> </span>test_attribute_instance<span class="o">()</span>:
+<span class="w">        </span>class<span class="w"> </span>Foo:
+<span class="w">            </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span>Foo<span class="o">()</span>.b<span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2</span>
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.test_attribute_instance.&lt;locals&gt;.Foo<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;.b
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span>&lt;failure_demo.test_attribute_instance.&lt;locals&gt;.Foo<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;class<span class="w"> </span><span class="s1">'failure_demo.test_attribute_instance.&lt;locals&gt;.Foo'</span>&gt;<span class="o">()</span>
+failure_demo.py:135:<span class="w"> </span>AssertionError
+
+
+__________________________<span class="w"> </span>test_attribute_failure<span class="w"> </span>__________________________
+<span class="w">    </span>def<span class="w"> </span>test_attribute_failure<span class="o">()</span>:
+<span class="w">        </span>class<span class="w"> </span>Foo:
+<span class="w">            </span>def<span class="w"> </span>_get_b<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">                </span>raise<span class="w"> </span>Exception<span class="o">(</span><span class="s2">"Failed to get attrib"</span><span class="o">)</span>
+<span class="w">            </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>property<span class="o">(</span>_get_b<span class="o">)</span>
+<span class="w">        </span><span class="nv">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>Foo<span class="o">()</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span>i.b<span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2</span>
+failure_demo.py:146:
+_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.test_attribute_failure.&lt;locals&gt;.Foo<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>_get_b<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">   </span>raise<span class="w"> </span>Exception<span class="o">(</span><span class="s2">"Failed to get attrib"</span><span class="o">)</span>
+E<span class="w">   </span>Exception:<span class="w"> </span>Failed<span class="w"> </span>to<span class="w"> </span>get<span class="w"> </span>attrib
+failure_demo.py:141:<span class="w"> </span>Exception
+
+
+_________________________<span class="w"> </span>test_attribute_multiple<span class="w"> </span>__________________________
+def<span class="w"> </span>test_attribute_multiple<span class="o">()</span>:
+<span class="w">    </span>class<span class="w"> </span>Foo:
+<span class="w">        </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+<span class="w">    </span>class<span class="w"> </span>Bar:
+<span class="w">        </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span>
+&gt;<span class="w">   </span>assert<span class="w"> </span>Foo<span class="o">()</span>.b<span class="w"> </span><span class="o">==</span><span class="w"> </span>Bar<span class="o">()</span>.b
+E<span class="w">   </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2</span>
+E<span class="w">    </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.test_attribute_multiple.&lt;locals&gt;.Foo<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;.b
+E<span class="w">    </span>+<span class="w"> </span>where<span class="w"> </span>&lt;failure_demo.test_attribute_multiple.&lt;locals&gt;.Foo<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;class<span class="w"> </span><span class="s1">'failure_demo.test_attribute_multiple.&lt;locals&gt;.Foo'</span>&gt;<span class="o">()</span>
+E<span class="w">    </span>+<span class="w"> </span>and<span class="w"> </span><span class="nv">2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.test_attribute_multiple.&lt;locals&gt;.Bar<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;.b
+E<span class="w">    </span>+<span class="w"> </span>where<span class="w"> </span>&lt;failure_demo.test_attribute_multiple.&lt;locals&gt;.Bar<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;class<span class="w"> </span><span class="s1">'failure_demo.test_attribute_multiple.&lt;locals&gt;.Bar'</span>&gt;<span class="o">()</span>
+failure_demo.py:156:<span class="w"> </span>AssertionError
+
+
+__________________________<span class="w"> </span>TestRaises.test_raises<span class="w"> </span>__________________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestRaises<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_raises<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"qwe"</span>
+&gt;<span class="w">       </span>raises<span class="o">(</span>TypeError,<span class="w"> </span>int,<span class="w"> </span>s<span class="o">)</span>
+E<span class="w">       </span>ValueError:<span class="w"> </span>invalid<span class="w"> </span>literal<span class="w"> </span><span class="k">for</span><span class="w"> </span>int<span class="o">()</span><span class="w"> </span>with<span class="w"> </span>base<span class="w"> </span><span class="m">10</span>:<span class="w"> </span><span class="s1">'qwe'</span>
+failure_demo.py:166:<span class="w"> </span>ValueError
+
+
+______________________<span class="w"> </span>TestRaises.test_raises_doesnt<span class="w"> </span>_______________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestRaises<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_raises_doesnt<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>raises<span class="o">(</span>OSError,<span class="w"> </span>int,<span class="w"> </span><span class="s2">"3"</span><span class="o">)</span>
+E<span class="w">       </span>Failed:<span class="w"> </span>DID<span class="w"> </span>NOT<span class="w"> </span>RAISE<span class="w"> </span>&lt;class<span class="w"> </span><span class="s1">'OSError'</span>&gt;
+failure_demo.py:169:<span class="w"> </span>Failed
+
+
+__________________________<span class="w"> </span>TestRaises.test_raise<span class="w"> </span>___________________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestRaises<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_raise<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>raise<span class="w"> </span>ValueError<span class="o">(</span><span class="s2">"demo error"</span><span class="o">)</span>
+E<span class="w">       </span>ValueError:<span class="w"> </span>demo<span class="w"> </span>error
+failure_demo.py:172:<span class="w"> </span>ValueError
+
+
+________________________<span class="w"> </span>TestRaises.test_tupleerror<span class="w"> </span>________________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestRaises<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_tupleerror<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>a,<span class="w"> </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="m">1</span><span class="o">]</span><span class="w"> </span><span class="c1"># NOQA</span>
+E<span class="w">       </span>ValueError:<span class="w"> </span>not<span class="w"> </span>enough<span class="w"> </span>values<span class="w"> </span>to<span class="w"> </span>unpack<span class="w"> </span><span class="o">(</span>expected<span class="w"> </span><span class="m">2</span>,<span class="w"> </span>got<span class="w"> </span><span class="m">1</span><span class="o">)</span>
+failure_demo.py:175:<span class="w"> </span>ValueError
+
+
+______<span class="w"> </span>TestRaises.test_reinterpret_fails_with_print_for_the_fun_of_it<span class="w"> </span>______
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestRaises<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_reinterpret_fails_with_print_for_the_fun_of_it<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">items</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="m">3</span><span class="o">]</span>
+<span class="w">        </span>print<span class="o">(</span><span class="s2">"items is {!r}"</span>.format<span class="o">(</span>items<span class="o">))</span>
+&gt;<span class="w">       </span>a,<span class="w"> </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>items.pop<span class="o">()</span>
+E<span class="w">       </span>TypeError:<span class="w"> </span>cannot<span class="w"> </span>unpack<span class="w"> </span>non-iterable<span class="w"> </span>int<span class="w"> </span>object
+failure_demo.py:180:<span class="w"> </span>TypeError
+---------------------------<span class="w"> </span>Captured<span class="w"> </span>stdout<span class="w"> </span>call<span class="w"> </span>---------------------------
+items<span class="w"> </span>is<span class="w"> </span><span class="o">[</span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="m">3</span><span class="o">]</span>
+
+
+________________________<span class="w"> </span>TestRaises.test_some_error<span class="w"> </span>________________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestRaises<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_some_error<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span><span class="k">if</span><span class="w"> </span>namenotexi:<span class="w"> </span><span class="c1"># NOQA</span>
+E<span class="w">       </span>NameError:<span class="w"> </span>name<span class="w"> </span><span class="s1">'namenotexi'</span><span class="w"> </span>is<span class="w"> </span>not<span class="w"> </span>defined
+failure_demo.py:183:<span class="w"> </span>NameError
+
+
+____________________<span class="w"> </span>test_dynamic_compile_shows_nicely<span class="w"> </span>_____________________
+<span class="w">    </span>def<span class="w"> </span>test_dynamic_compile_shows_nicely<span class="o">()</span>:
+<span class="w">        </span>import<span class="w"> </span>importlib.util
+<span class="w">        </span>import<span class="w"> </span>sys
+<span class="w">        </span><span class="nv">src</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"def foo():\n assert 1 == 0\n"</span>
+<span class="w">        </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"abc-123"</span>
+<span class="w">        </span><span class="nv">spec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>importlib.util.spec_from_loader<span class="o">(</span>name,<span class="w"> </span><span class="nv">loader</span><span class="o">=</span>None<span class="o">)</span>
+<span class="w">        </span><span class="nv">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>importlib.util.module_from_spec<span class="o">(</span>spec<span class="o">)</span>
+<span class="w">        </span><span class="nv">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>compile<span class="o">(</span>src,<span class="w"> </span>name,<span class="w"> </span><span class="s2">"exec"</span><span class="o">)</span>
+<span class="w">        </span>exec<span class="o">(</span>code,<span class="w"> </span>module.__dict__<span class="o">)</span>
+<span class="w">        </span>sys.modules<span class="o">[</span>name<span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>module
+&gt;<span class="w">       </span>module.foo<span class="o">()</span>
+failure_demo.py:202:
+_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_
+&gt;<span class="w">   </span>???
+E<span class="w">   </span>AssertionError
+abc-123:2:<span class="w"> </span>AssertionError
+
+
+____________________<span class="w"> </span>TestMoreErrors.test_complex_error<span class="w"> </span>_____________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestMoreErrors<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_complex_error<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span>def<span class="w"> </span>f<span class="o">()</span>:
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="m">44</span>
+<span class="w">        </span>def<span class="w"> </span>g<span class="o">()</span>:
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="m">43</span>
+&gt;<span class="w">       </span>somefunc<span class="o">(</span>f<span class="o">()</span>,<span class="w"> </span>g<span class="o">())</span>
+failure_demo.py:213:
+_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_
+failure_demo.py:10:<span class="w"> </span><span class="k">in</span><span class="w"> </span>somefunc
+<span class="w">    </span>otherfunc<span class="o">(</span>x,<span class="w"> </span>y<span class="o">)</span>
+_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_<span class="w"> </span>_
+<span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">44</span>,<span class="w"> </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">43</span>
+<span class="w">    </span>def<span class="w"> </span>otherfunc<span class="o">(</span>a,<span class="w"> </span>b<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>b
+E<span class="w">       </span>assert<span class="w"> </span><span class="nv">44</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">43</span>
+failure_demo.py:6:<span class="w"> </span>AssertionError
+
+
+___________________<span class="w"> </span>TestMoreErrors.test_z1_unpack_error<span class="w"> </span>____________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestMoreErrors<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_z1_unpack_error<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">items</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[]</span>
+&gt;<span class="w">       </span>a,<span class="w"> </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>items
+E<span class="w">       </span>ValueError:<span class="w"> </span>not<span class="w"> </span>enough<span class="w"> </span>values<span class="w"> </span>to<span class="w"> </span>unpack<span class="w"> </span><span class="o">(</span>expected<span class="w"> </span><span class="m">2</span>,<span class="w"> </span>got<span class="w"> </span><span class="m">0</span><span class="o">)</span>
+failure_demo.py:217:<span class="w"> </span>ValueError
+
+
+____________________<span class="w"> </span>TestMoreErrors.test_z2_type_error<span class="w"> </span>_____________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestMoreErrors<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_z2_type_error<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">items</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span>
+&gt;<span class="w">       </span>a,<span class="w"> </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>items
+E<span class="w">       </span>TypeError:<span class="w"> </span>cannot<span class="w"> </span>unpack<span class="w"> </span>non-iterable<span class="w"> </span>int<span class="w"> </span>object
+failure_demo.py:221:<span class="w"> </span>TypeError
+
+
+______________________<span class="w"> </span>TestMoreErrors.test_startswith<span class="w"> </span>______________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestMoreErrors<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_startswith<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"123"</span>
+<span class="w">        </span><span class="nv">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"456"</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span>s.startswith<span class="o">(</span>g<span class="o">)</span>
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span>False
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">False</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;built-in<span class="w"> </span>method<span class="w"> </span>startswith<span class="w"> </span>of<span class="w"> </span>str<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="o">(</span><span class="s1">'456'</span><span class="o">)</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span>&lt;built-in<span class="w"> </span>method<span class="w"> </span>startswith<span class="w"> </span>of<span class="w"> </span>str<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'123'</span>.startswith
+failure_demo.py:226:<span class="w"> </span>AssertionError
+
+
+__________________<span class="w"> </span>TestMoreErrors.test_startswith_nested<span class="w"> </span>___________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestMoreErrors<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_startswith_nested<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span>def<span class="w"> </span>f<span class="o">()</span>:
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="s2">"123"</span>
+<span class="w">        </span>def<span class="w"> </span>g<span class="o">()</span>:
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="s2">"456"</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span>f<span class="o">()</span>.startswith<span class="o">(</span>g<span class="o">())</span>
+E<span class="w">       </span>AssertionError:<span class="w"> </span>assert<span class="w"> </span>False
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">False</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;built-in<span class="w"> </span>method<span class="w"> </span>startswith<span class="w"> </span>of<span class="w"> </span>str<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="o">(</span><span class="s1">'456'</span><span class="o">)</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span>&lt;built-in<span class="w"> </span>method<span class="w"> </span>startswith<span class="w"> </span>of<span class="w"> </span>str<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'123'</span>.startswith
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="s1">'123'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;<span class="k">function</span><span class="w"> </span>TestMoreErrors.test_startswith_nested.&lt;locals&gt;.f<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="o">()</span>
+E<span class="w">        </span>+<span class="w"> </span>and<span class="w"> </span><span class="s1">'456'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;<span class="k">function</span><span class="w"> </span>TestMoreErrors.test_startswith_nested.&lt;locals&gt;.g<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;<span class="o">()</span>
+failure_demo.py:235:<span class="w"> </span>AssertionError
+
+
+_____________________<span class="w"> </span>TestMoreErrors.test_global_func<span class="w"> </span>______________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestMoreErrors<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_global_func<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span>isinstance<span class="o">(</span>globf<span class="o">(</span><span class="m">42</span><span class="o">)</span>,<span class="w"> </span>float<span class="o">)</span>
+E<span class="w">       </span>assert<span class="w"> </span>False
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">False</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>isinstance<span class="o">(</span><span class="m">43</span>,<span class="w"> </span>float<span class="o">)</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">43</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>globf<span class="o">(</span><span class="m">42</span><span class="o">)</span>
+failure_demo.py:238:<span class="w"> </span>AssertionError
+
+
+_______________________<span class="w"> </span>TestMoreErrors.test_instance<span class="w"> </span>_______________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestMoreErrors<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_instance<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span>self.x<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">6</span><span class="w"> </span>*<span class="w"> </span><span class="m">7</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span>self.x<span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="m">42</span>
+E<span class="w">       </span>assert<span class="w"> </span><span class="m">42</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="m">42</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">42</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestMoreErrors<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;.x
+failure_demo.py:242:<span class="w"> </span>AssertionError
+
+
+_______________________<span class="w"> </span>TestMoreErrors.test_compare<span class="w"> </span>________________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestMoreErrors<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_compare<span class="o">(</span>self<span class="o">)</span>:
+&gt;<span class="w">       </span>assert<span class="w"> </span>globf<span class="o">(</span><span class="m">10</span><span class="o">)</span><span class="w"> </span>&lt;<span class="w"> </span><span class="m">5</span>
+E<span class="w">       </span>assert<span class="w"> </span><span class="m">11</span><span class="w"> </span>&lt;<span class="w"> </span><span class="m">5</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">11</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>globf<span class="o">(</span><span class="m">10</span><span class="o">)</span>
+failure_demo.py:245:<span class="w"> </span>AssertionError
+
+
+_____________________<span class="w"> </span>TestMoreErrors.test_try_finally<span class="w"> </span>______________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestMoreErrors<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_try_finally<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span><span class="nv">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+<span class="w">        </span>try:
+&gt;<span class="w">           </span>assert<span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span>
+E<span class="w">           </span>assert<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span>
+failure_demo.py:250:<span class="w"> </span>AssertionError
+
+
+___________________<span class="w"> </span>TestCustomAssertMsg.test_single_line<span class="w"> </span>___________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestCustomAssertMsg<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_single_line<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span>class<span class="w"> </span>A:
+<span class="w">            </span><span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+<span class="w">        </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span>A.a<span class="w"> </span><span class="o">==</span><span class="w"> </span>b,<span class="w"> </span><span class="s2">"A.a appears not to be b"</span>
+E<span class="w">       </span>AssertionError:<span class="w"> </span>A.a<span class="w"> </span>appears<span class="w"> </span>not<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>b
+E<span class="w">       </span>assert<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;class<span class="w"> </span><span class="s1">'failure_demo.TestCustomAssertMsg.test_single_line.&lt;locals&gt;.A'</span>&gt;.a
+failure_demo.py:261:<span class="w"> </span>AssertionError
+
+
+____________________<span class="w"> </span>TestCustomAssertMsg.test_multiline<span class="w"> </span>____________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestCustomAssertMsg<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_multiline<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span>class<span class="w"> </span>A:
+<span class="w">            </span><span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+<span class="w">        </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span><span class="o">(</span>
+<span class="w">            </span>A.a<span class="w"> </span><span class="o">==</span><span class="w"> </span>b
+<span class="w">        </span><span class="o">)</span>,<span class="w"> </span><span class="s2">"A.a appears not to be b\nor does not appear to be b\none of those"</span>
+E<span class="w">       </span>AssertionError:<span class="w"> </span>A.a<span class="w"> </span>appears<span class="w"> </span>not<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>b
+E<span class="w">         </span>or<span class="w"> </span>does<span class="w"> </span>not<span class="w"> </span>appear<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>b
+E<span class="w">         </span>one<span class="w"> </span>of<span class="w"> </span>those
+E<span class="w">       </span>assert<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2</span>
+E<span class="w">         </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;class<span class="w"> </span><span class="s1">'failure_demo.TestCustomAssertMsg.test_multiline.&lt;locals&gt;.A'</span>&gt;.a
+failure_demo.py:268:<span class="w"> </span>AssertionError
+
+
+___________________<span class="w"> </span>TestCustomAssertMsg.test_custom_repr<span class="w"> </span>___________________
+<span class="nv">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;failure_demo.TestCustomAssertMsg<span class="w"> </span>object<span class="w"> </span>at<span class="w"> </span>0xdeadbeef&gt;
+<span class="w">    </span>def<span class="w"> </span>test_custom_repr<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">        </span>class<span class="w"> </span>JSON:
+<span class="w">            </span><span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+<span class="w">            </span>def<span class="w"> </span>__repr__<span class="o">(</span>self<span class="o">)</span>:
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="s2">"This is JSON\n{\n 'foo': 'bar'\n}"</span>
+<span class="w">        </span><span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>JSON<span class="o">()</span>
+<span class="w">        </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span>
+&gt;<span class="w">       </span>assert<span class="w"> </span>a.a<span class="w"> </span><span class="o">==</span><span class="w"> </span>b,<span class="w"> </span>a
+E<span class="w">       </span>AssertionError:<span class="w"> </span>This<span class="w"> </span>is<span class="w"> </span>JSON
+E<span class="w">         </span><span class="o">{</span>
+E<span class="w">           </span><span class="s1">'foo'</span>:<span class="w"> </span><span class="s1">'bar'</span>
+E<span class="w">         </span><span class="o">}</span>
+E<span class="w">       </span>assert<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2</span>
+E<span class="w">        </span>+<span class="w"> </span>where<span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>This<span class="w"> </span>is<span class="w"> </span>JSON<span class="se">\n</span><span class="o">{</span><span class="se">\n</span><span class="w"> </span><span class="s1">'foo'</span>:<span class="w"> </span><span class="s1">'bar'</span><span class="se">\n</span><span class="o">}</span>.a
+failure_demo.py:281:<span class="w"> </span><span class="nv">AssertionError</span>
+
+
+<span class="o">============================</span><span class="w"> </span><span class="m">44</span><span class="w"> </span>failed<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">0</span>.12s<span class="w"> </span><span class="o">============================</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="003005-%E3%80%90pytest%E3%80%91pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6.html" class="btn btn-neutral float-left" title="【pytest】pytest参数化进阶" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="003007-%E3%80%90pytest%E3%80%91pytest%E7%94%A8%E4%BE%8B%E6%9F%A5%E6%89%BE%E5%8E%9F%E7%90%86.html" class="btn btn-neutral float-right" title="【pytest】pytest用例查找原理" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright DevGang.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

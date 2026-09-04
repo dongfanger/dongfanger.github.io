@@ -1,0 +1,254 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>【Flask】Flask使用SQLite数据库 &mdash; DevGang latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+      <script src="../../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/js/readmore.js?v=44958e13"></script>
+      <script src="../../_static/js/baidutongji.js?v=45b7b6b1"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="【Flask】Flask的Blueprints和Views" href="005006-%E3%80%90Flask%E3%80%91Flask%E7%9A%84Blueprints%E5%92%8CViews.html" />
+    <link rel="prev" title="【Flask】Flask启动应用时都干了些啥" href="005004-%E3%80%90Flask%E3%80%91Flask%E5%90%AF%E5%8A%A8%E5%BA%94%E7%94%A8%E6%97%B6%E9%83%BD%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            DevGang
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">公告</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../chapters/Python%E7%94%9F%E6%80%81.html">Python生态</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../Python/_index.html">Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytest/_index.html">pytest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Django/_index.html">Django</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="_index.html">Flask</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="005001-%E3%80%90Flask%E3%80%91Flask%E4%B8%80%E5%88%86%E9%92%9FMock%E4%B8%80%E4%B8%AAAPI.html">【Flask】Flask一分钟Mock一个API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="005002-%E3%80%90Flask%E3%80%91Python%E5%BE%AE%E5%9E%8BWeb%E6%A1%86%E6%9E%B6Flask%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8.html">【Flask】Python微型Web框架Flask快速入门</a></li>
+<li class="toctree-l3"><a class="reference internal" href="005003-%E3%80%90Flask%E3%80%91Flask%E5%AE%98%E6%96%B9%E6%8E%A8%E8%8D%90%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E7%AB%9F%E7%84%B6%E6%98%AF%E8%BF%99%E6%A0%B7.html">【Flask】Flask官方推荐项目结构竟然是这样</a></li>
+<li class="toctree-l3"><a class="reference internal" href="005004-%E3%80%90Flask%E3%80%91Flask%E5%90%AF%E5%8A%A8%E5%BA%94%E7%94%A8%E6%97%B6%E9%83%BD%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5.html">【Flask】Flask启动应用时都干了些啥</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">【Flask】Flask使用SQLite数据库</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">连接数据库</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">创建表</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">注册到应用</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">执行命令</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="005006-%E3%80%90Flask%E3%80%91Flask%E7%9A%84Blueprints%E5%92%8CViews.html">【Flask】Flask的Blueprints和Views</a></li>
+<li class="toctree-l3"><a class="reference internal" href="005007-%E3%80%90Flask%E3%80%91Flask%E9%A1%B9%E7%9B%AE%E5%8F%91%E5%B8%83%E6%B5%81%E7%A8%8B.html">【Flask】Flask项目发布流程</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../FastAPI/_index.html">FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HttpRunner/_index.html">HttpRunner</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/Java%E7%94%9F%E6%80%81.html">Java生态</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98.html">测试专题</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE.html">原创项目</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80.html">计算机基础</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83.html">读书与思考</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DevGang</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../chapters/Python%E7%94%9F%E6%80%81.html">Python生态</a></li>
+          <li class="breadcrumb-item"><a href="_index.html">Flask</a></li>
+      <li class="breadcrumb-item active">【Flask】Flask使用SQLite数据库</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/Python生态/Flask/005005-【Flask】Flask使用SQLite数据库.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="flaskflasksqlite">
+<h1>【Flask】Flask使用SQLite数据库<a class="headerlink" href="#flaskflasksqlite" title="Link to this heading">¶</a></h1>
+<p><img alt="image1" src="../../_images/wanggang.png" /></p>
+<p>SQLite是一个小型的轻量数据库，特别适合个人学习使用。因为SQLite不需要额外的数据库服务器，同时它也是内嵌在Python中的。缺点就是如果有大量的写请求过来，它是串行处理的，速度很慢。</p>
+<section id="id1">
+<h2>连接数据库<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<p>新建<code class="docutils literal notranslate"><span class="pre">flaskr/db.py</span></code>文件：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">current_app</span><span class="p">,</span> <span class="n">g</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask.cli</span><span class="w"> </span><span class="kn">import</span> <span class="n">with_appcontext</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_db</span><span class="p">():</span>
+    <span class="k">if</span> <span class="s1">'db'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">g</span><span class="p">:</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'DATABASE'</span><span class="p">],</span>
+            <span class="n">detect_types</span><span class="o">=</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">PARSE_DECLTYPES</span>
+        <span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+
+    <span class="k">return</span> <span class="n">g</span><span class="o">.</span><span class="n">db</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">close_db</span><span class="p">(</span><span class="n">e</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'db'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">g</span></code>是flask给每个请求创建的独立的对象，用来存储全局数据。通过<code class="docutils literal notranslate"><span class="pre">g</span></code>实现了同一个请求多次调用<code class="docutils literal notranslate"><span class="pre">get_db</span></code>时，不会创建新连接而是会复用已建立的连接。</p>
+<p><code class="docutils literal notranslate"><span class="pre">get_db</span></code>会在flask应用创建后，处理数据库连接时被调用。</p>
+<p><code class="docutils literal notranslate"><span class="pre">sqlite3.connect()</span></code>用来建立数据库连接，它指定了配置文件的Key
+<code class="docutils literal notranslate"><span class="pre">DATABASE</span></code>。</p>
+<p><code class="docutils literal notranslate"><span class="pre">sqlite3.Row</span></code>让数据库以字典的形式返回行，这样就能通过列名进行取值。</p>
+<p><code class="docutils literal notranslate"><span class="pre">close_db</span></code>关闭数据库连接，它先检查<code class="docutils literal notranslate"><span class="pre">g.db</span></code>有没有设置，如果设置了就关闭db。</p>
+</section>
+<section id="id2">
+<h2>创建表<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p>新建<code class="docutils literal notranslate"><span class="pre">flaskr/schema.sql</span></code>文件：</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">DROP</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="k">user</span><span class="p">;</span>
+<span class="k">DROP</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">post</span><span class="p">;</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">user</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">  </span><span class="n">username</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">  </span><span class="n">password</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">post</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">  </span><span class="n">author_id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">  </span><span class="n">created</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">  </span><span class="n">title</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">  </span><span class="n">body</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">  </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">author_id</span><span class="p">)</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="k">user</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>在<code class="docutils literal notranslate"><span class="pre">flaskr/db.py</span></code>文件中添加以下代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">init_db</span><span class="p">():</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="n">current_app</span><span class="o">.</span><span class="n">open_resource</span><span class="p">(</span><span class="s1">'schema.sql'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">'utf8'</span><span class="p">))</span>
+
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">'init-db'</span><span class="p">)</span>
+<span class="nd">@with_appcontext</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_db_command</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Clear the existing data and create new tables."""</span>
+    <span class="n">init_db</span><span class="p">()</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s1">'Initialized the database.'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">open_resource()</span></code>打开刚才创建的数据库脚本文件。</p>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;click.command()</span></code>定义了命令行命令<code class="docutils literal notranslate"><span class="pre">init-db</span></code>。</p>
+</section>
+<section id="id3">
+<h2>注册到应用<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">close_db</span></code>和<code class="docutils literal notranslate"><span class="pre">init_db_command</span></code>函数Flask不会自动触发，需要手动注册到应用上。</p>
+<p>编辑<code class="docutils literal notranslate"><span class="pre">flaskr/db.py</span></code>文件：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">init_app</span><span class="p">(</span><span class="n">app</span><span class="p">):</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">teardown_appcontext</span><span class="p">(</span><span class="n">close_db</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="n">init_db_command</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">app.teardown_appcontext</span></code>指定响应结束后清理时的函数。</p>
+<p><code class="docutils literal notranslate"><span class="pre">app.cli.add_command</span></code>定义了可以被<code class="docutils literal notranslate"><span class="pre">flask</span></code>命令使用的命令。</p>
+<p>再把<code class="docutils literal notranslate"><span class="pre">init_app</span></code>手动添加到创建应用函数中，编辑<code class="docutils literal notranslate"><span class="pre">flaskr/__init__.py</span></code>文件：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">create_app</span><span class="p">():</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="o">...</span>
+    <span class="c1"># existing code omitted</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">db</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">init_app</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">app</span>
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h2>执行命令<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<p>至此，准备工作已就绪，打开命令行执行：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ flask init-db
+Initialized the database.
+</pre></div>
+</div>
+<p>在项目目录下，就会生成一个<code class="docutils literal notranslate"><span class="pre">flaskr.sqlite</span></code>，这就是SQLite数据库。</p>
+<blockquote>
+<div><p>参考资料：</p>
+<p><a class="reference external" href="https://flask.palletsprojects.com/en/2.0.x/tutorial/database/">https://flask.palletsprojects.com/en/2.0.x/tutorial/database/</a></p>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="005004-%E3%80%90Flask%E3%80%91Flask%E5%90%AF%E5%8A%A8%E5%BA%94%E7%94%A8%E6%97%B6%E9%83%BD%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5.html" class="btn btn-neutral float-left" title="【Flask】Flask启动应用时都干了些啥" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="005006-%E3%80%90Flask%E3%80%91Flask%E7%9A%84Blueprints%E5%92%8CViews.html" class="btn btn-neutral float-right" title="【Flask】Flask的Blueprints和Views" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright DevGang.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

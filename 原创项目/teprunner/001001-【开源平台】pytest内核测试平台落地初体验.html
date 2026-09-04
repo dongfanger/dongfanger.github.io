@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>【开源平台】pytest内核测试平台落地初体验 &mdash; DevGang latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+      <script src="../../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/js/readmore.js?v=44958e13"></script>
+      <script src="../../_static/js/baidutongji.js?v=45b7b6b1"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="【开源平台】学习版pytest内核测试平台开发万字长文入门篇" href="001002-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91%E5%AD%A6%E4%B9%A0%E7%89%88pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E4%B8%87%E5%AD%97%E9%95%BF%E6%96%87%E5%85%A5%E9%97%A8%E7%AF%87.html" />
+    <link rel="prev" title="teprunner" href="_index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            DevGang
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">公告</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/Python%E7%94%9F%E6%80%81.html">Python生态</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/Java%E7%94%9F%E6%80%81.html">Java生态</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98.html">测试专题</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../chapters/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE.html">原创项目</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../tep/_index.html">tep</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="_index.html">teprunner</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">【开源平台】pytest内核测试平台落地初体验</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">使用篇</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id6">原理篇</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9">小结</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="001002-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91%E5%AD%A6%E4%B9%A0%E7%89%88pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E4%B8%87%E5%AD%97%E9%95%BF%E6%96%87%E5%85%A5%E9%97%A8%E7%AF%87.html">【开源平台】学习版pytest内核测试平台开发万字长文入门篇</a></li>
+<li class="toctree-l3"><a class="reference internal" href="001003-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E9%83%A8%E7%BD%B2%E5%88%B0Linux%E7%B3%BB%E7%BB%9FDocker.html">【开源平台】teprunner测试平台部署到Linux系统Docker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="001004-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E5%89%8D%E7%BD%AE%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91.html">【开源平台】teprunner测试平台用例前置模块开发</a></li>
+<li class="toctree-l3"><a class="reference internal" href="001005-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E7%94%A8%E4%BE%8B%E7%AE%A1%E7%90%86%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5.html">【开源平台】teprunner测试平台开发用例管理不只有增删改查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="001006-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0Django%E5%BC%95%E5%85%A5pytest%E5%AE%8C%E6%95%B4%E6%BA%90%E7%A0%81.html">【开源平台】teprunner测试平台Django引入pytest完整源码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="001007-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E6%89%B9%E9%87%8F%E8%BF%90%E8%A1%8C%E7%94%A8%E4%BE%8B.html">【开源平台】teprunner测试平台测试计划批量运行用例</a></li>
+<li class="toctree-l3"><a class="reference internal" href="001008-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E7%BC%96%E5%86%99%E7%AD%89%E4%BD%93%E9%AA%8C%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8D%87%E7%BA%A7.html">【开源平台】teprunner测试平台用例编写等体验响应式升级</a></li>
+<li class="toctree-l3"><a class="reference internal" href="001009-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%BF%99%E6%AC%A1%E7%BB%88%E4%BA%8E%E7%A8%B3%E4%BA%86.html">【开源平台】teprunner测试平台定时任务这次终于稳了</a></li>
+<li class="toctree-l3"><a class="reference internal" href="001010-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E9%87%8D%E7%A3%85%E6%9B%B4%E6%96%B0Git%E6%89%93%E9%80%9APyCharm%E4%B8%8E%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0.html">【开源平台】teprunner重磅更新Git打通PyCharm与测试平台</a></li>
+<li class="toctree-l3"><a class="reference internal" href="001011-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%85%A5%E9%97%A8%E7%BA%A7%E9%83%A8%E7%BD%B2%E6%89%8B%E5%86%8C%E5%8F%91%E5%B8%83%E5%95%A6.html">【开源平台】teprunner测试平台入门级部署手册发布啦</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../pytestx/_index.html">pytestx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../EasyPytest/_index.html">EasyPytest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../%E5%B0%8F%E5%B7%A5%E5%85%B7/_index.html">小工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../japi/_index.html">japi</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80.html">计算机基础</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83.html">读书与思考</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DevGang</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../chapters/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE.html">原创项目</a></li>
+          <li class="breadcrumb-item"><a href="_index.html">teprunner</a></li>
+      <li class="breadcrumb-item active">【开源平台】pytest内核测试平台落地初体验</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/原创项目/teprunner/001001-【开源平台】pytest内核测试平台落地初体验.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pytest">
+<h1>【开源平台】pytest内核测试平台落地初体验<a class="headerlink" href="#pytest" title="Link to this heading">¶</a></h1>
+<p><img alt="image1" src="../../_images/wanggang.png" /></p>
+<p>测试平台，有人说它鸡肋，有人说它有用，有人说它轮子，众说纷纭，不如从自身出发，考虑是否要做测试平台：</p>
+<ul class="simple">
+<li><p>第1阶段，用Python+requests写接口自动化。</p></li>
+<li><p>第2阶段，选择unitttest或pytest，更熟悉pytest选了pytest。</p></li>
+<li><p>第3阶段，快速搭建pytest项目脚手架，封装tep测试工具。</p></li>
+<li><p>第4阶段，通过Git管理测试脚本，多分支合并代码。</p></li>
+<li><p>第5阶段，去除本地环境同步麻烦，方便团队共享脚本。</p></li>
+</ul>
+<p>需要有个测试平台。</p>
+<section id="id1">
+<h2>使用篇<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<section id="id2">
+<h3><strong>环境变量</strong><a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<p>环境变量是字符串键值对，全局作用域。比如不同环境不同域名：</p>
+<p><img alt="image2" src="../../_images/image-20210202173631827.png" /></p>
+<blockquote>
+<div><p>使用：<code class="docutils literal notranslate"><span class="pre">env_vars.name</span></code>。</p>
+</div></blockquote>
+</section>
+<section id="fixtures">
+<h3><strong>fixtures</strong><a class="headerlink" href="#fixtures" title="Link to this heading">¶</a></h3>
+<p>fixtures即pytest的fixture，可以添加自定义函数，供测试用例使用。比如封装登录接口返回token：</p>
+<p><img alt="image3" src="../../_images/image-20210202173946476.png" /></p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">tep.fixture</span></code>提供了<code class="docutils literal notranslate"><span class="pre">url</span></code>
+fixture，自动拼接环境变量<code class="docutils literal notranslate"><span class="pre">env_vars.domain</span> <span class="pre">+</span> <span class="pre">uri</span></code>。</p>
+</div></blockquote>
+</section>
+<section id="id3">
+<h3><strong>测试用例</strong><a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<p>在前端网页写代码，1条用例对应1个pytest的<code class="docutils literal notranslate"><span class="pre">test_name.py</span></code>文件。比如调用<code class="docutils literal notranslate"><span class="pre">login</span></code>
+fixture登录：</p>
+<p><img alt="image4" src="../../_images/image-20210202174933569.png" /></p>
+</section>
+<section id="id4">
+<h3><strong>本地编写</strong><a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<p>PyCharm写代码体验更好，正确姿势是从平台下载包含环境变量和fixtures等项目结构代码，本地编写用例，调试，跑通后，粘贴到平台上共享和维护：</p>
+<p><img alt="image5" src="../../_images/image-20210202175106680.png" /></p>
+<blockquote>
+<div><p>本地和平台环境一致，省去前期搭建，关注<code class="docutils literal notranslate"><span class="pre">tests</span></code>用例。</p>
+</div></blockquote>
+</section>
+<section id="id5">
+<h3>扩展能力<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<p>用例是Python代码，理论上所有Python能写出来的，平台都能支持，比如HTTP、WebSocket、Protobuf等协议。</p>
+</section>
+</section>
+<section id="id6">
+<h2>原理篇<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h2>
+<section id="id7">
+<h3>pytest内核<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<p><img alt="image6" src="../../_images/image-20210202203247257.png" /></p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">vue2-ace-editor</span></code>作为前端代码编辑组件。</p></li>
+<li><p>前端把代码通过HTTP请求传给后端。</p></li>
+<li><p>后端把代码存入MySQL数据库。</p></li>
+<li><p>运行用例，从数据库取出代码，生成pytest文件。</p></li>
+<li><p>Shell命令调用<code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">-s</span> <span class="pre">test_name.py</span></code>，执行测试。</p></li>
+<li><p>后端把运行结果日志返给前端展示。</p></li>
+</ol>
+<p>之所以要折腾数据库，是因为每次部署后docker容器里面的文件会被清掉，只能动态生成。</p>
+</section>
+<section id="tep">
+<h3>tep脚手架<a class="headerlink" href="#tep" title="Link to this heading">¶</a></h3>
+<p>测试平台功能是从tep项目脚手架中抽取出来的：</p>
+<p><img alt="image7" src="../../_images/image-20210202181109149.png" /></p>
+<ul class="simple">
+<li><p>把<code class="docutils literal notranslate"><span class="pre">fixture_env_vars.py</span></code>做成了<code class="docutils literal notranslate"><span class="pre">环境变量</span></code>功能。</p></li>
+<li><p>把<code class="docutils literal notranslate"><span class="pre">fixture_login.py</span></code>等做成了<code class="docutils literal notranslate"><span class="pre">fixtures</span></code>功能。</p></li>
+<li><p>把<code class="docutils literal notranslate"><span class="pre">tests</span></code>做成了<code class="docutils literal notranslate"><span class="pre">测试用例</span></code>功能。</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>运行用例<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<p>整体流程如下：</p>
+<p><img alt="image8" src="../../_images/image-20210202210501071.png" /></p>
+<p><strong>tep startproject project_name</strong></p>
+<p>运行用例时，判断项目目录是否存在，如果不存在就调用<code class="docutils literal notranslate"><span class="pre">tep</span> <span class="pre">startproject</span> <span class="pre">project_name</span></code>创建项目脚手架。</p>
+<p><strong>更新conf.yaml中env</strong></p>
+<p>把前端传的当前运行环境更新到<code class="docutils literal notranslate"><span class="pre">conf.yaml</span></code>文件中：</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qa</span>
+</pre></div>
+</div>
+<p><strong>动态生成或更新fixture_env_vars.py文件</strong></p>
+<p>根据<code class="docutils literal notranslate"><span class="pre">环境变量</span></code>功能模块的数据，动态生成<code class="docutils literal notranslate"><span class="pre">fixture_env_vars.py</span></code>文件：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1">## encoding=utf-8</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tep.dao</span><span class="w"> </span><span class="kn">import</span> <span class="n">mysql_engine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tep.fixture</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">"session"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">env_vars</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Clazz</span><span class="p">(</span><span class="n">TepVars</span><span class="p">):</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">"env"</span><span class="p">]</span>
+
+<span class="w">        </span><span class="sd">"""Variables define start"""</span>
+        <span class="c1"># Environment and variables</span>
+        <span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"qa"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"domain"</span><span class="p">:</span> <span class="s2">"https://qa.com"</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"release"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"domain"</span><span class="p">:</span> <span class="s2">"https://release.com"</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="c1"># Add your environment and variables</span>
+        <span class="p">}</span>
+        <span class="c1"># Define properties for auto display</span>
+        <span class="n">domain</span> <span class="o">=</span> <span class="n">mapping</span><span class="p">[</span><span class="n">env</span><span class="p">][</span><span class="s2">"domain"</span><span class="p">]</span>
+<span class="w">        </span><span class="sd">"""Variables define end"""</span>
+
+    <span class="k">return</span> <span class="n">Clazz</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>动态生成或更新fixtures目录下所有文件</strong></p>
+<p>根据<code class="docutils literal notranslate"><span class="pre">fixtures</span></code>功能模块的数据，动态生成<code class="docutils literal notranslate"><span class="pre">fixture_login.py</span></code>等所有文件：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tep.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">request</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tep.fixture</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_jwt_headers</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"Content-Type"</span><span class="p">:</span> <span class="s2">"application/json"</span><span class="p">,</span> <span class="s2">"authorization"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Bearer </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">"</span><span class="p">}</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">"session"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">login</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="c1"># Code your login</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Administrator login"</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">request</span><span class="p">(</span>
+        <span class="s2">"post"</span><span class="p">,</span>
+        <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">(</span><span class="s2">"/api/users/login"</span><span class="p">),</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"Content-Type"</span><span class="p">:</span> <span class="s2">"application/json"</span><span class="p">},</span>
+        <span class="n">json</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
+            <span class="s2">"password"</span><span class="p">:</span> <span class="s2">"123456"</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">400</span>
+    <span class="n">response_token</span> <span class="o">=</span> <span class="n">jmespath</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">"token"</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">Clazz</span><span class="p">:</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">response_token</span>
+        <span class="n">jwt_headers</span> <span class="o">=</span> <span class="n">_jwt_headers</span><span class="p">(</span><span class="n">response_token</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Clazz</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>conftest.py会自动查找后<code class="docutils literal notranslate"><span class="pre">import</span></code>，tests用例直接使用。</p>
+</div></blockquote>
+<p><strong>动态生成或更新tests某个test_文件</strong></p>
+<p>从数据库拿到用例代码，动态生成<code class="docutils literal notranslate"><span class="pre">test_</span></code>文件。</p>
+<p><strong>Shell执行pytest命令</strong></p>
+<p>从上一步拿到<code class="docutils literal notranslate"><span class="pre">case_path</span></code>，调用<code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">-s</span> <span class="pre">case_path</span></code>执行测试。</p>
+<blockquote>
+<div><p>计划后续添加suite和marker两种批量执行用例方式。</p>
+</div></blockquote>
+</section>
+</section>
+<section id="id9">
+<h2>小结<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h2>
+<p>本文介绍了我第一次做的测试平台的使用和原理，技术栈为Vue+Django+Django
+REST
+Framework+JWT+MySQL+pytest+Git+BitBucket+Drone+Nginx+Docker+K8S，已在公司落地，还未大规模产出，由于服务端有较多磁盘IO读写，大量使用后不知道性能如何，目前来看问题不大，需要持续观察和优化。测试平台底层是<code class="docutils literal notranslate"><span class="pre">pytest</span></code>，用到了<code class="docutils literal notranslate"><span class="pre">tep</span></code>，那就叫<code class="docutils literal notranslate"><span class="pre">teprunner</span></code>。</p>
+<blockquote>
+<div><p>参考资料：</p>
+<p><a class="reference external" href="https://github.com/dongfanger/tep">https://github.com/dongfanger/tep</a></p>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="_index.html" class="btn btn-neutral float-left" title="teprunner" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="001002-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91%E5%AD%A6%E4%B9%A0%E7%89%88pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E4%B8%87%E5%AD%97%E9%95%BF%E6%96%87%E5%85%A5%E9%97%A8%E7%AF%87.html" class="btn btn-neutral float-right" title="【开源平台】学习版pytest内核测试平台开发万字长文入门篇" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright DevGang.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

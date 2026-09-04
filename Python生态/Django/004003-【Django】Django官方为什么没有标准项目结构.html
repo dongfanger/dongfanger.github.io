@@ -1,0 +1,376 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>【Django】Django官方为什么没有标准项目结构 &mdash; DevGang latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+      <script src="../../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/js/readmore.js?v=44958e13"></script>
+      <script src="../../_static/js/baidutongji.js?v=45b7b6b1"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="【Django】Django认证系统并不鸡肋反而很重要" href="004004-%E3%80%90Django%E3%80%91Django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E5%B9%B6%E4%B8%8D%E9%B8%A1%E8%82%8B%E5%8F%8D%E8%80%8C%E5%BE%88%E9%87%8D%E8%A6%81.html" />
+    <link rel="prev" title="【Django】Django搭建示例项目实战与避坑细节" href="004002-%E3%80%90Django%E3%80%91Django%E6%90%AD%E5%BB%BA%E7%A4%BA%E4%BE%8B%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%E4%B8%8E%E9%81%BF%E5%9D%91%E7%BB%86%E8%8A%82.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            DevGang
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../%E5%85%B3%E4%BA%8E%E6%9C%AC%E4%B9%A6.html">公告</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../chapters/Python%E7%94%9F%E6%80%81.html">Python生态</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../Python/_index.html">Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytest/_index.html">pytest</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="_index.html">Django</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="004001-%E3%80%90Django%E3%80%91Django%E5%8C%86%E5%8C%86%E4%B8%80%E7%9C%BC%E5%8D%B4%E8%A7%A3%E7%AD%94%E4%BA%86%E5%A4%9A%E5%B9%B4%E7%96%91%E6%83%91.html">【Django】Django匆匆一眼却解答了多年疑惑</a></li>
+<li class="toctree-l3"><a class="reference internal" href="004002-%E3%80%90Django%E3%80%91Django%E6%90%AD%E5%BB%BA%E7%A4%BA%E4%BE%8B%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%E4%B8%8E%E9%81%BF%E5%9D%91%E7%BB%86%E8%8A%82.html">【Django】Django搭建示例项目实战与避坑细节</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">【Django】Django官方为什么没有标准项目结构</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#project">project</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app">app</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1">工程化项目参考</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">小结</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="004004-%E3%80%90Django%E3%80%91Django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E5%B9%B6%E4%B8%8D%E9%B8%A1%E8%82%8B%E5%8F%8D%E8%80%8C%E5%BE%88%E9%87%8D%E8%A6%81.html">【Django】Django认证系统并不鸡肋反而很重要</a></li>
+<li class="toctree-l3"><a class="reference internal" href="004005-%E3%80%90Django%E3%80%91%E8%87%AA%E5%AE%9A%E4%B9%89Django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88.html">【Django】自定义Django认证系统的技术方案</a></li>
+<li class="toctree-l3"><a class="reference internal" href="004006-%E3%80%90Django%E3%80%91%E5%BF%AB%E7%94%A8DjangoRESTframework%E5%86%99%E5%86%99API%E5%90%A7.html">【Django】快用DjangoRESTframework写写API吧</a></li>
+<li class="toctree-l3"><a class="reference internal" href="004007-%E3%80%90Django%E3%80%91%E6%8F%AD%E5%BC%80DRF%E5%BA%8F%E5%88%97%E5%8C%96%E6%8A%80%E6%9C%AF%E7%9A%84%E7%A5%9E%E7%A7%98%E9%9D%A2%E7%BA%B1.html">【Django】揭开DRF序列化技术的神秘面纱</a></li>
+<li class="toctree-l3"><a class="reference internal" href="004008-%E3%80%90Django%E3%80%91DRF%E5%AF%B9Django%E8%AF%B7%E6%B1%82%E5%93%8D%E5%BA%94%E5%81%9A%E4%BA%86%E6%8A%80%E6%9C%AF%E5%8D%87%E7%BA%A7.html">【Django】DRF对Django请求响应做了技术升级</a></li>
+<li class="toctree-l3"><a class="reference internal" href="004009-%E3%80%90Django%E3%80%91DRF%E7%B1%BB%E8%A7%86%E5%9B%BE%E8%AE%A9%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81DRY%E8%B5%B7%E6%9D%A5.html">【Django】DRF类视图让你的代码DRY起来</a></li>
+<li class="toctree-l3"><a class="reference internal" href="004010-%E3%80%90Django%E3%80%91DRF%E6%AF%94Django%E7%9A%84%E8%AE%A4%E8%AF%81%E5%92%8C%E6%9D%83%E9%99%90%E9%AB%98%E5%9C%A8%E5%93%AA%E9%87%8C.html">【Django】DRF比Django的认证和权限高在哪里</a></li>
+<li class="toctree-l3"><a class="reference internal" href="004011-%E3%80%90Django%E3%80%91DRF%E4%BD%BF%E7%94%A8%E8%B6%85%E9%93%BE%E6%8E%A5API%E5%AE%9E%E7%8E%B0%E7%9C%9F%E6%AD%A3RESTful.html">【Django】DRF使用超链接API实现真正RESTful</a></li>
+<li class="toctree-l3"><a class="reference internal" href="004012-%E3%80%90Django%E3%80%91DRF%E7%BB%88%E6%9E%81%E5%B0%81%E8%A3%85ViewSet%E5%92%8CRouter%E9%99%84%E6%95%99%E7%A8%8BPDF%E6%BA%90%E7%A0%81.html">【Django】DRF终极封装ViewSet和Router附教程PDF源码</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../Flask/_index.html">Flask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../FastAPI/_index.html">FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HttpRunner/_index.html">HttpRunner</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/Java%E7%94%9F%E6%80%81.html">Java生态</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98.html">测试专题</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE.html">原创项目</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80.html">计算机基础</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapters/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83.html">读书与思考</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DevGang</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../chapters/Python%E7%94%9F%E6%80%81.html">Python生态</a></li>
+          <li class="breadcrumb-item"><a href="_index.html">Django</a></li>
+      <li class="breadcrumb-item active">【Django】Django官方为什么没有标准项目结构</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/Python生态/Django/004003-【Django】Django官方为什么没有标准项目结构.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="djangodjango">
+<h1>【Django】Django官方为什么没有标准项目结构<a class="headerlink" href="#djangodjango" title="Link to this heading">¶</a></h1>
+<p><img alt="image1" src="../../_images/wanggang.png" /></p>
+<p>Django官方并没有提供标准的项目结构，于是网上众说纷纭，百花齐放，一千个读者有一千个哈姆雷特。那我们该怎么设计项目结构呢？在回答这个问题之前，先了解一下Django原生的目录和文件都是干嘛的。</p>
+<section id="project">
+<h2>project<a class="headerlink" href="#project" title="Link to this heading">¶</a></h2>
+<p>在使用<code class="docutils literal notranslate"><span class="pre">django-admin</span> <span class="pre">startproject</span></code>命令后就会创建这样的目录文件，如下：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mysite</span><span class="o">/</span>
+    <span class="n">manage</span><span class="o">.</span><span class="n">py</span>
+    <span class="n">mysite</span><span class="o">/</span>
+        <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">py</span>
+        <span class="n">urls</span><span class="o">.</span><span class="n">py</span>
+        <span class="n">asgi</span><span class="o">.</span><span class="n">py</span>
+        <span class="n">wsgi</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<section id="mysite">
+<h3>根目录mysite/<a class="headerlink" href="#mysite" title="Link to this heading">¶</a></h3>
+<p>根目录的mysite/，仅仅是个目录而已，Django不会拿它做什么，它的名字可以随意修改。</p>
+<p><strong>带短横线的根目录</strong></p>
+<p>分享一个踩坑经验，有时候我们想把项目名命名为带短横线的，如
+hello-world，通过命令直接创建会报错：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>...<span class="se">\&gt;</span><span class="w"> </span>django-admin<span class="w"> </span>startproject<span class="w"> </span>hello-world
+CommandError:<span class="w"> </span><span class="s1">'hello-world'</span><span class="w"> </span>is<span class="w"> </span>not<span class="w"> </span>a<span class="w"> </span>valid<span class="w"> </span>project<span class="w"> </span>name.<span class="w"> </span>Please<span class="w"> </span>make<span class="w"> </span>sure<span class="w"> </span>the<span class="w"> </span>name<span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span>valid<span class="w"> </span>identifier.
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">startproject</span></code>不支持直接创建带短横线的项目名。</p>
+<p><strong>方法1 加参数</strong></p>
+<p>其实！它是支持的，只是我们漏了一个参数。<code class="docutils literal notranslate"><span class="pre">startproject</span></code>的完整格式为<code class="docutils literal notranslate"><span class="pre">django-admin</span> <span class="pre">startproject</span> <span class="pre">name</span> <span class="pre">[directory]</span></code>，可以在后面追加一个目录参数：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>...<span class="se">\&gt;</span><span class="w"> </span>django-admin<span class="w"> </span>startproject<span class="w"> </span>helloworld<span class="w"> </span>hello-world
+</pre></div>
+</div>
+<p>就可以了。根目录是<code class="docutils literal notranslate"><span class="pre">hello-world</span></code>，里面的project是<code class="docutils literal notranslate"><span class="pre">helloworld</span></code>。</p>
+<p><strong>方法2 改名字</strong></p>
+<p>先用helloworld创建，然后再修改，可以①在资源管理器中直接修改文件夹，②也可以在
+PyCharm 中修改：</p>
+<p><img alt="image2" src="../../_images/image-20201201171202770.png" /></p>
+<p>选择Rename directory：</p>
+<p><img alt="image3" src="../../_images/image-20201201171237922.png" /></p>
+<p>注意去掉勾选Search，不修改其他位置：</p>
+<p><img alt="image4" src="../../_images/image-20201201171335733.png" /></p>
+<p>只修改这个根目录的名字即可。</p>
+</section>
+<section id="manage-py">
+<h3>manage.py<a class="headerlink" href="#manage-py" title="Link to this heading">¶</a></h3>
+<p>Django的命令行工具，使用频繁，格式为：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>&lt;command&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+</pre></div>
+</div>
+</section>
+<section id="mysite-py">
+<h3>内部mysite.py/<a class="headerlink" href="#mysite-py" title="Link to this heading">¶</a></h3>
+<p>Django项目实际使用到的Python包，存放项目配置、URL路由等。</p>
+</section>
+<section id="mysite-init-py">
+<h3>mysite/__init__.py<a class="headerlink" href="#mysite-init-py" title="Link to this heading">¶</a></h3>
+<p>表明这个目录是Python包。</p>
+</section>
+<section id="mysite-settings-py">
+<h3>mysite/settings.py<a class="headerlink" href="#mysite-settings-py" title="Link to this heading">¶</a></h3>
+<p>Django项目配置。</p>
+</section>
+<section id="mysite-urls-py">
+<h3>mysite/urls.py<a class="headerlink" href="#mysite-urls-py" title="Link to this heading">¶</a></h3>
+<p>URL路由。</p>
+</section>
+<section id="mysite-asgi-py">
+<h3>mysite/asgi.py<a class="headerlink" href="#mysite-asgi-py" title="Link to this heading">¶</a></h3>
+<p>兼容ASGI Web服务器的入口。</p>
+</section>
+<section id="mysite-wsgi-py">
+<h3>mysite/wsgi.py<a class="headerlink" href="#mysite-wsgi-py" title="Link to this heading">¶</a></h3>
+<p>兼容WSGI Web服务器的入口。</p>
+<blockquote>
+<div><p>ASGI和WSGI，都是一种Python的Web服务网关接口协议，是在CGI通用网关接口，Common
+Gateway Interface）的标准上构建的。</p>
+</div></blockquote>
+</section>
+</section>
+<section id="app">
+<h2>app<a class="headerlink" href="#app" title="Link to this heading">¶</a></h2>
+<p>app是Django项目的应用，一个project可以包含多个app。在使用<code class="docutils literal notranslate"><span class="pre">django-admin</span> <span class="pre">startapp</span></code>命令后就会创建这样的目录文件，如下：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">polls</span><span class="o">/</span>
+    <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">py</span>
+    <span class="n">apps</span><span class="o">.</span><span class="n">py</span>
+    <span class="n">migrations</span><span class="o">/</span>
+        <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>
+    <span class="n">models</span><span class="o">.</span><span class="n">py</span>
+    <span class="n">tests</span><span class="o">.</span><span class="n">py</span>
+    <span class="n">views</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<section id="polls">
+<h3>polls/<a class="headerlink" href="#polls" title="Link to this heading">¶</a></h3>
+<p>app的Python包，可以放在任意路径。修改存放路径，相关配置中的路径也需要修改。</p>
+</section>
+<section id="admin-py">
+<h3>admin.py<a class="headerlink" href="#admin-py" title="Link to this heading">¶</a></h3>
+<p>存放Django自带后台管理的models。</p>
+</section>
+<section id="apps-py">
+<h3>apps.py<a class="headerlink" href="#apps-py" title="Link to this heading">¶</a></h3>
+<p>app配置信息，例如：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.apps</span><span class="w"> </span><span class="kn">import</span> <span class="n">AppConfig</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PollsConfig</span><span class="p">(</span><span class="n">AppConfig</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">'polls'</span>
+</pre></div>
+</div>
+<p>存放路径不同，name的值也不同。</p>
+</section>
+<section id="migrations">
+<h3>migrations/<a class="headerlink" href="#migrations" title="Link to this heading">¶</a></h3>
+<p>Django数据迁移生成的迁移记录文件。</p>
+</section>
+<section id="models-py">
+<h3>models.py<a class="headerlink" href="#models-py" title="Link to this heading">¶</a></h3>
+<p>存放app的models。</p>
+</section>
+<section id="tests-py">
+<h3>tests.py<a class="headerlink" href="#tests-py" title="Link to this heading">¶</a></h3>
+<p>单元测试。</p>
+</section>
+<section id="views-py">
+<h3>views.py<a class="headerlink" href="#views-py" title="Link to this heading">¶</a></h3>
+<p>视图函数（类）。</p>
+</section>
+<section id="urls-py">
+<h3>urls.py<a class="headerlink" href="#urls-py" title="Link to this heading">¶</a></h3>
+<p>app的路由配置，需要手动添加，可通过<code class="docutils literal notranslate"><span class="pre">include()</span></code>函数导入到<code class="docutils literal notranslate"><span class="pre">mysite/urls.py</span></code>中，例如：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib</span><span class="w"> </span><span class="kn">import</span> <span class="n">admin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">include</span><span class="p">,</span> <span class="n">path</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">'admin/'</span><span class="p">,</span> <span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">urls</span><span class="p">),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">'polls/'</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s1">'polls.urls'</span><span class="p">)),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>polls/urls.py：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">views</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">''</span><span class="p">,</span> <span class="n">views</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>访问<code class="docutils literal notranslate"><span class="pre">xxx/polls/</span></code>就会路由到<code class="docutils literal notranslate"><span class="pre">views.index</span></code>。</p>
+</section>
+</section>
+<section id="id1">
+<h2>工程化项目参考<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<p>虽说是百家争鸣，但也有公认的工程化实践。我找了GitHub上star最多的叫做Django
+Edge的project skeleton，它的设计如下：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Top-directory
+├── docs
+├── logs
+├── README.md
+├── requirements
+│   ├── base.txt
+│   ├── development.txt
+│   └── production.txt
+├── requirements.txt
+└── src
+    ├── Your project name
+    │   ├── __init__.py
+    │   ├── logger.py
+    │   ├── settings
+    │   │   ├── base.py
+    │   │   ├── development.py
+    │   │   ├── local.sample.env
+    │   │   └── production.py
+    │   ├── urls.py
+    │   ├── views.py
+    │   └── wsgi.py
+    ├── accounts
+    │   ├── admin.py
+    │   ├── forms.py
+    │   ├── migrations
+    │   ├── models.py
+    │   ├── templates
+    │   ├── tests.py
+    │   ├── urls.py
+    │   └── views.py
+    ├── manage.py
+    ├── media
+    ├── profiles
+    │   ├── admin.py
+    │   ├── apps.py
+    │   ├── forms.py
+    │   ├── migrations
+    │   ├── models.py
+    │   ├── signals.py
+    │   ├── templates
+    │   ├── tests.py
+    │   ├── urls.py
+    │   └── views.py
+    ├── static
+    │   ├── bootstrap
+    │   │   ├── css
+    │   │   ├── fonts
+    │   │   └── js
+    │   └── site
+    │       ├── css
+    │       ├── ico
+    │       ├── img
+    │       └── js
+    └── templates
+</pre></div>
+</div>
+<p>非常的像那么回事。我又搜了其他实践的文章，找到了这张图：</p>
+<p><img alt="image5" src="../../_images/image-20201201164301038.png" /></p>
+<p>国内的文章也有提到类似这2种项目结构的设计，特点是①app放置在单独目录统一管理，②requirements和settings按环境做拆分，等等等。我说说我的观点，一开始没有必要就按照这种标准的工程化实践来写项目，我更倾向于先凭自己的能力写一版，再不断重构和优化的方式。业务不同，能力不同，经验不同，写出来的代码自然也不同。不过在碰到问题时，可以参考借鉴，很可能别人已经提供了解决方案。</p>
+<blockquote>
+<div><p>我看了一些Django开源项目代码，很少见到真像这么设计项目结构的，所以不必过分在意。</p>
+</div></blockquote>
+</section>
+<section id="id2">
+<h2>小结<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p>本文介绍了Django
+startproject和startapp命令产生的目录文件的结构和作用。然后给出了工程化项目参考。项目结构没有标准，只有适用于当前的最佳实践，可能这就是官方没有给出标准项目结构的原因吧。</p>
+<blockquote>
+<div><p>参考资料：</p>
+<p><a class="reference external" href="https://docs.djangoproject.com/en/3.1/intro/tutorial01/">https://docs.djangoproject.com/en/3.1/intro/tutorial01/</a></p>
+<p><a class="reference external" href="https://django-edge.readthedocs.io/en/latest/Architecture/">https://django-edge.readthedocs.io/en/latest/Architecture/</a></p>
+<p><a class="reference external" href="https://studygyaan.com/django/best-practice-to-structure-django-project-directories-and-files">https://studygyaan.com/django/best-practice-to-structure-django-project-directories-and-files</a></p>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="004002-%E3%80%90Django%E3%80%91Django%E6%90%AD%E5%BB%BA%E7%A4%BA%E4%BE%8B%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%E4%B8%8E%E9%81%BF%E5%9D%91%E7%BB%86%E8%8A%82.html" class="btn btn-neutral float-left" title="【Django】Django搭建示例项目实战与避坑细节" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="004004-%E3%80%90Django%E3%80%91Django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E5%B9%B6%E4%B8%8D%E9%B8%A1%E8%82%8B%E5%8F%8D%E8%80%8C%E5%BE%88%E9%87%8D%E8%A6%81.html" class="btn btn-neutral float-right" title="【Django】Django认证系统并不鸡肋反而很重要" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright DevGang.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
