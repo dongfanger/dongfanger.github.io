@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>【开源平台】学习版pytest内核测试平台开发万字长文入门篇 - 测试开发刚哥</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../_static/css/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\u3010\u5f00\u6e90\u5e73\u53f0\u3011\u5b66\u4e60\u7248pytest\u5185\u6838\u6d4b\u8bd5\u5e73\u53f0\u5f00\u53d1\u4e07\u5b57\u957f\u6587\u5165\u95e8\u7bc7";
+        var mkdocs_page_input_path = "\u539f\u521b\u9879\u76ee/teprunner/000002-\u3010\u5f00\u6e90\u5e73\u53f0\u3011\u5b66\u4e60\u7248pytest\u5185\u6838\u6d4b\u8bd5\u5e73\u53f0\u5f00\u53d1\u4e07\u5b57\u957f\u6587\u5165\u95e8\u7bc7.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../index.html" class="icon icon-home"> 测试开发刚哥
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../index.html">简介</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">AI技术</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >AI应用</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../AI%E6%8A%80%E6%9C%AF/AI%E5%BA%94%E7%94%A8/000001%E3%80%90AI%E5%BA%94%E7%94%A8%E3%80%91%E5%8E%9F%E5%88%9B%E7%94%B5%E5%AD%90%E4%B9%A6%E5%85%A8%E6%96%B0%E9%87%8D%E7%A3%85%E5%8D%87%E7%BA%A7.html">【AI应用】原创电子书全新重磅升级</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Python生态</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Python</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000001-%E3%80%90Python%E3%80%91%E5%A6%82%E4%BD%95%E8%AE%A9%E6%96%87%E7%A7%91%E7%94%9F5%E5%88%86%E9%92%9F%E5%86%99%E4%B8%8APython.html">【Python】如何让文科生5分钟写上Python</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000002-%E3%80%90Python%E3%80%91%E7%9C%9F%E9%A6%99%EF%BC%8C%E7%90%86%E8%A7%A3%E8%AE%B0%E5%BF%86%E6%B3%95%E5%AD%A6%E4%B9%A0Python%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95.html">【Python】真香，理解记忆法学习Python基础语法</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000003-%E3%80%90Python%E3%80%91%E7%94%A8PyCharm%E6%89%93%E4%B8%AA%E4%B8%93%E4%B8%9A%E7%9A%84%E6%8B%9B%E5%91%BC.html">【Python】用PyCharm打个专业的招呼</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000004-%E3%80%90Python%E3%80%91Python%E8%BF%90%E7%AE%97%E7%AC%A6%E5%8F%AF%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%8A%A0%E5%87%8F%E4%B9%98%E9%99%A4.html">【Python】Python运算符可不只有加减乘除</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000005-%E3%80%90Python%E3%80%91%E4%BD%A0%E7%9F%A5%E9%81%93Python%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%98%AF%E5%93%AA6%E4%B8%AA%E4%B9%88.html">【Python】你知道Python基本数据类型是哪6个么</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000006-%E3%80%90Python%E3%80%91%E6%9D%A1%E4%BB%B6%E5%BE%AA%E7%8E%AF%E8%AF%AD%E5%8F%A5%E7%BB%84%E6%88%90%E4%BA%86Python%E4%BB%A3%E7%A0%81%E7%9A%84%E9%AA%A8%E6%9E%B6.html">【Python】条件循环语句组成了Python代码的骨架</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000007-%E3%80%90Python%E3%80%91%E4%BB%8E%E5%87%BD%E6%95%B0%E5%88%B0%E5%8C%85%E7%9A%84Python%E4%BB%A3%E7%A0%81%E5%B1%82%E6%AC%A1.html">【Python】从函数到包的Python代码层次</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000008-%E3%80%90Python%E3%80%91%E9%AD%94%E6%B3%95%E6%96%B9%E6%B3%95%E6%8E%A8%E5%BC%80Python%E8%BF%9B%E9%98%B6%E5%AD%A6%E4%B9%A0%E5%A4%A7%E9%97%A8.html">【Python】魔法方法推开Python进阶学习大门</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000009-%E3%80%90Python%E3%80%91Python%E9%AA%9A%E6%93%8D%E4%BD%9C%E4%BB%8E%E5%88%97%E8%A1%A8%E6%8E%A8%E5%AF%BC%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%BC%80%E5%A7%8B.html">【Python】Python骚操作从列表推导和生成器表达式开始</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000010-%E3%80%90Python%E3%80%91Python%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B%E4%B8%8EPython%E5%AF%B9%E8%B1%A1%E6%A8%A1%E5%9E%8B.html">【Python】Python数据模型与Python对象模型</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000011-%E3%80%90Python%E3%80%91Python%E5%85%83%E7%BB%84%E6%8B%86%E5%8C%85%E6%8D%A1%E5%88%B08%E5%80%8D%E9%95%9C%E5%BF%AB%E5%87%86%E7%8B%A0.html">【Python】Python元组拆包捡到8倍镜快准狠</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000012-%E3%80%90Python%E3%80%91%E8%83%BD%E5%8F%96%E5%80%BC%E4%BA%A6%E8%83%BD%E8%B5%8B%E5%80%BC%E7%9A%84Python%E5%88%87%E7%89%87.html">【Python】能取值亦能赋值的Python切片</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000013-%E3%80%90Python%E3%80%91%E5%BA%8F%E5%88%97%E8%B5%8B%E5%80%BC%E5%BC%95%E5%8F%91%E7%9A%84Python%E5%88%97%E8%A1%A8%E9%99%B7%E8%BF%9B.html">【Python】序列赋值引发的Python列表陷进</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000014-%E3%80%90Python%E3%80%91%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90Python%E5%AD%97%E5%85%B8%E5%92%8C%E9%9B%86%E5%90%88%EF%BC%88%E4%B8%8A%EF%BC%89.html">【Python】深度剖析Python字典和集合（上）</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000015-%E3%80%90Python%E3%80%91%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90Python%E5%AD%97%E5%85%B8%E5%92%8C%E9%9B%86%E5%90%88%EF%BC%88%E4%B8%8B%EF%BC%89.html">【Python】深度剖析Python字典和集合（下）</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000016-%E3%80%90Python%E3%80%91%E5%8E%9F%E6%9D%A5Python%E5%87%BD%E6%95%B0%E5%8F%AA%E6%98%AF%E4%B8%AA%E5%AF%B9%E8%B1%A1.html">【Python】原来Python函数只是个对象</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000017-%E3%80%90Python%E3%80%91Python%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0%E5%92%8C%E6%B3%A8%E8%A7%A3%E6%98%AF%E4%BB%80%E4%B9%88.html">【Python】Python函数参数和注解是什么</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000018-%E3%80%90Python%E3%80%91Python%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9F%A5%E5%A4%9A%E5%B0%91.html">【Python】Python设计模式知多少</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000019-%E3%80%90Python%E3%80%91Python%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86.html">【Python】Python函数装饰器基础知识</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000020-%E3%80%90Python%E3%80%91%E5%85%B3%E4%BA%8EPython%E9%97%AD%E5%8C%85%E7%9A%84%E4%B8%80%E5%88%87.html">【Python】关于Python闭包的一切</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000021-%E3%80%90Python%E3%80%91Python%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95.html">【Python】Python函数装饰器高级用法</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000022-%E3%80%90Python%E3%80%91Python%E5%AD%97%E7%AC%A6%E4%B8%8E%E5%AD%97%E8%8A%82%E6%96%B0%E7%BC%96.html">【Python】Python字符与字节新编</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000023-%E3%80%90Python%E3%80%91Python%E7%BC%96%E8%A7%A3%E7%A0%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%96%87%E6%9C%AC%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86.html">【Python】Python编解码问题与文本文件处理</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000024-%E3%80%90Python%E3%80%91Python%E5%8F%98%E9%87%8F%E5%B0%8F%E7%A7%98%E5%AF%86.html">【Python】Python变量小秘密</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000025-%E3%80%90Python%E3%80%91Python%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%9A%84%E7%B1%BB%EF%BC%88%E4%B8%8A%EF%BC%89.html">【Python】Python如何设计面向对象的类（上）</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000026-%E3%80%90Python%E3%80%91Python%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%9A%84%E7%B1%BB%EF%BC%88%E4%B8%8B%EF%BC%89.html">【Python】Python如何设计面向对象的类（下）</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000027-%E3%80%90Python%E3%80%91Python%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E5%8D%8F%E8%AE%AE%E5%92%8C%E6%8A%BD%E8%B1%A1%E5%9F%BA%E7%B1%BB.html">【Python】Python中的接口协议和抽象基类</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000028-%E3%80%90Python%E3%80%91Python%E6%8A%BD%E8%B1%A1%E5%9F%BA%E7%B1%BB%E7%9A%84%E5%AE%9A%E4%B9%89%E4%B8%8E%E4%BD%BF%E7%94%A8.html">【Python】Python抽象基类的定义与使用</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000029-%E3%80%90Python%E3%80%91Python%E5%8F%AF%E8%BF%AD%E4%BB%A3%E7%9A%84%E5%AF%B9%E8%B1%A1%E4%B8%8E%E8%BF%AD%E4%BB%A3%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94.html">【Python】Python可迭代的对象与迭代器的对比</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000030-%E3%80%90Python%E3%80%91%E9%95%BF%E7%AF%87%E5%A4%A7%E8%AE%BAPython%E7%94%9F%E6%88%90%E5%99%A8.html">【Python】长篇大论Python生成器</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000031-%E3%80%90Python%E3%80%91Python%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86%E5%99%A8.html">【Python】Python上下文管理器</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000032-%E3%80%90Python%E3%80%91Python%E5%8D%8F%E7%A8%8B%E7%9F%A5%E5%A4%9A%E5%B0%91.html">【Python】Python协程知多少</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000033-%E3%80%90Python%E3%80%91Python%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%BF%9B%E9%98%B6.html">【Python】Python并发编程从入门到进阶</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000034-%E3%80%90Python3.13%E3%80%91%E8%B7%9F%E7%9D%80%E5%AE%98%E7%BD%91%E5%AD%A6%E4%B9%A0Python%E7%B3%BB%E5%88%97.html">【Python3.13】跟着官网学习Python系列</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000035-%E3%80%90Python3.13%E3%80%91%E5%AE%98%E7%BD%91%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%8E%A7%E5%88%B6%E6%B5%81.html">【Python3.13】官网学习之控制流</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Python/000036-%E3%80%90%E5%BA%93%E3%80%91%E6%AF%94pip%E5%BF%AB100%E5%80%8D%E7%9A%84Python%E5%8C%85%E5%AE%89%E8%A3%85%E5%B7%A5%E5%85%B7.html">【库】比pip快100倍的Python包安装工具</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >pytest</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/pytest/000001-%E3%80%90pytest%E3%80%91pytest%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8.html">【pytest】pytest快速入门</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/pytest/000002-%E3%80%90pytest%E3%80%91pytest132%E4%B8%AA%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E7%94%A8%E6%B3%95.html">【pytest】pytest132个命令行参数用法</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/pytest/000003-%E3%80%90pytest%E3%80%91pytest%E7%B2%BE%E9%80%9Afixture.html">【pytest】pytest精通fixture</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/pytest/000004-%E3%80%90pytest%E3%80%91pytest%E5%86%85%E7%BD%AE%E5%92%8C%E8%87%AA%E5%AE%9A%E4%B9%89marker.html">【pytest】pytest内置和自定义marker</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/pytest/000005-%E3%80%90pytest%E3%80%91pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6.html">【pytest】pytest参数化进阶</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/pytest/000006-%E3%80%90pytest%E3%80%91pytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7.html">【pytest】pytest断言技巧</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/pytest/000007-%E3%80%90pytest%E3%80%91pytest%E7%94%A8%E4%BE%8B%E6%9F%A5%E6%89%BE%E5%8E%9F%E7%90%86.html">【pytest】pytest用例查找原理</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Playwright</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Playwright/000001-%E3%80%90Playwright%E3%80%91%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D.html">【Playwright】录制脚本与元素定位</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Playwright/000002-%E3%80%90Playwright%E3%80%91%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9A%84%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6.html">【Playwright】端到端自动化的开源框架</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Django</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000001-%E3%80%90Django%E3%80%91Django%E5%8C%86%E5%8C%86%E4%B8%80%E7%9C%BC%E5%8D%B4%E8%A7%A3%E7%AD%94%E4%BA%86%E5%A4%9A%E5%B9%B4%E7%96%91%E6%83%91.html">【Django】Django匆匆一眼却解答了多年疑惑</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000002-%E3%80%90Django%E3%80%91Django%E6%90%AD%E5%BB%BA%E7%A4%BA%E4%BE%8B%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%E4%B8%8E%E9%81%BF%E5%9D%91%E7%BB%86%E8%8A%82.html">【Django】Django搭建示例项目实战与避坑细节</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000003-%E3%80%90Django%E3%80%91Django%E5%AE%98%E6%96%B9%E4%B8%BA%E4%BB%80%E4%B9%88%E6%B2%A1%E6%9C%89%E6%A0%87%E5%87%86%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84.html">【Django】Django官方为什么没有标准项目结构</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000004-%E3%80%90Django%E3%80%91Django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E5%B9%B6%E4%B8%8D%E9%B8%A1%E8%82%8B%E5%8F%8D%E8%80%8C%E5%BE%88%E9%87%8D%E8%A6%81.html">【Django】Django认证系统并不鸡肋反而很重要</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000005-%E3%80%90Django%E3%80%91%E8%87%AA%E5%AE%9A%E4%B9%89Django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88.html">【Django】自定义Django认证系统的技术方案</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000006-%E3%80%90Django%E3%80%91%E5%BF%AB%E7%94%A8DjangoRESTframework%E5%86%99%E5%86%99API%E5%90%A7.html">【Django】快用DjangoRESTframework写写API吧</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000007-%E3%80%90Django%E3%80%91%E6%8F%AD%E5%BC%80DRF%E5%BA%8F%E5%88%97%E5%8C%96%E6%8A%80%E6%9C%AF%E7%9A%84%E7%A5%9E%E7%A7%98%E9%9D%A2%E7%BA%B1.html">【Django】揭开DRF序列化技术的神秘面纱</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000008-%E3%80%90Django%E3%80%91DRF%E5%AF%B9Django%E8%AF%B7%E6%B1%82%E5%93%8D%E5%BA%94%E5%81%9A%E4%BA%86%E6%8A%80%E6%9C%AF%E5%8D%87%E7%BA%A7.html">【Django】DRF对Django请求响应做了技术升级</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000009-%E3%80%90Django%E3%80%91DRF%E7%B1%BB%E8%A7%86%E5%9B%BE%E8%AE%A9%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81DRY%E8%B5%B7%E6%9D%A5.html">【Django】DRF类视图让你的代码DRY起来</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000010-%E3%80%90Django%E3%80%91DRF%E6%AF%94Django%E7%9A%84%E8%AE%A4%E8%AF%81%E5%92%8C%E6%9D%83%E9%99%90%E9%AB%98%E5%9C%A8%E5%93%AA%E9%87%8C.html">【Django】DRF比Django的认证和权限高在哪里</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000011-%E3%80%90Django%E3%80%91DRF%E4%BD%BF%E7%94%A8%E8%B6%85%E9%93%BE%E6%8E%A5API%E5%AE%9E%E7%8E%B0%E7%9C%9F%E6%AD%A3RESTful.html">【Django】DRF使用超链接API实现真正RESTful</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Django/000012-%E3%80%90Django%E3%80%91DRF%E7%BB%88%E6%9E%81%E5%B0%81%E8%A3%85ViewSet%E5%92%8CRouter%E9%99%84%E6%95%99%E7%A8%8BPDF%E6%BA%90%E7%A0%81.html">【Django】DRF终极封装ViewSet和Router附教程PDF源码</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Flask</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Flask/000001-%E3%80%90Flask%E3%80%91Flask%E4%B8%80%E5%88%86%E9%92%9FMock%E4%B8%80%E4%B8%AAAPI.html">【Flask】Flask一分钟Mock一个API</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Flask/000002-%E3%80%90Flask%E3%80%91Python%E5%BE%AE%E5%9E%8BWeb%E6%A1%86%E6%9E%B6Flask%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8.html">【Flask】Python微型Web框架Flask快速入门</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Flask/000003-%E3%80%90Flask%E3%80%91Flask%E5%AE%98%E6%96%B9%E6%8E%A8%E8%8D%90%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E7%AB%9F%E7%84%B6%E6%98%AF%E8%BF%99%E6%A0%B7.html">【Flask】Flask官方推荐项目结构竟然是这样</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Flask/000004-%E3%80%90Flask%E3%80%91Flask%E5%90%AF%E5%8A%A8%E5%BA%94%E7%94%A8%E6%97%B6%E9%83%BD%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5.html">【Flask】Flask启动应用时都干了些啥</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Flask/000005-%E3%80%90Flask%E3%80%91Flask%E4%BD%BF%E7%94%A8SQLite%E6%95%B0%E6%8D%AE%E5%BA%93.html">【Flask】Flask使用SQLite数据库</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Flask/000006-%E3%80%90Flask%E3%80%91Flask%E7%9A%84Blueprints%E5%92%8CViews.html">【Flask】Flask的Blueprints和Views</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/Flask/000007-%E3%80%90Flask%E3%80%91Flask%E9%A1%B9%E7%9B%AE%E5%8F%91%E5%B8%83%E6%B5%81%E7%A8%8B.html">【Flask】Flask项目发布流程</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >FastAPI</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/FastAPI/000001-%E3%80%90FastAPI%E3%80%91FastAPI%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B%E5%A4%AA%E6%A3%92%E4%BA%86%EF%BC%88%E4%B8%8A%EF%BC%89.html">【FastAPI】FastAPI官方教程太棒了（上）</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/FastAPI/000002-%E3%80%90FastAPI%E3%80%91FastAPI%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B%E5%A4%AA%E6%A3%92%E4%BA%86%EF%BC%88%E4%B8%8B%EF%BC%89.html">【FastAPI】FastAPI官方教程太棒了（下）</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/FastAPI/000003-%E3%80%90FastAPI%E3%80%91%E5%85%B3%E4%BA%8EFastAPI%E5%BC%82%E6%AD%A5%E5%B9%B6%E5%8F%91%E7%9A%84%E6%8A%80%E6%9C%AF%E8%83%8C%E6%99%AF%E5%92%8C%E7%BB%86%E8%8A%82.html">【FastAPI】关于FastAPI异步并发的技术背景和细节</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/FastAPI/000004-%E3%80%90FastAPI%E3%80%91FastAPI%E4%BD%BF%E7%94%A8typing%E7%B1%BB%E5%9E%8B%E6%8F%90%E7%A4%BA.html">【FastAPI】FastAPI使用typing类型提示</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >HttpRunner</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/HttpRunner/000001-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90__init__%E6%96%87%E4%BB%B6%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5.html">【HttpRunner】HttpRunner3源码剖析__init__文件干了些啥</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/HttpRunner/000002-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E7%9A%84HTTP%E8%AF%B7%E6%B1%82%E6%98%AF%E6%80%8E%E4%B9%88%E5%8F%91%E5%87%BA%E5%8E%BB%E7%9A%84.html">【HttpRunner】HttpRunner3的HTTP请求是怎么发出去的</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/HttpRunner/000003-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E7%9A%84%E7%94%A8%E4%BE%8B%E6%98%AF%E6%80%8E%E4%B9%88%E8%BF%90%E8%A1%8C%E8%B5%B7%E6%9D%A5%E7%9A%84.html">【HttpRunner】HttpRunner3的用例是怎么运行起来的</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/HttpRunner/000004-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E7%9A%84%E5%8F%98%E9%87%8F%E6%98%AF%E5%A6%82%E4%BD%95%E4%BC%A0%E9%80%92%E7%9A%84.html">【HttpRunner】HttpRunner3的变量是如何传递的</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/HttpRunner/000005-%E3%80%90HttpRunner%E3%80%91HttpRunner3%E7%9A%84%24%E7%AC%A6%E5%8F%B7%E6%98%AF%E5%A6%82%E4%BD%95%E8%A7%A3%E6%9E%90%E7%9A%84.html">【HttpRunner】HttpRunner3的$符号是如何解析的</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >IDE</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Python%E7%94%9F%E6%80%81/IDE/000001-%E4%BF%9D%E5%A7%86%E7%BA%A7VSCode%E5%85%A5%E9%97%A8%E6%8C%87%E5%8D%97%EF%BC%8CPython%E5%85%9A%E7%9B%B4%E6%8E%A5%E6%8A%84%E4%BD%9C%E4%B8%9A.html">保姆级VSCode入门指南，Python党直接抄作业</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Java生态</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Java</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000001-%E3%80%90%E5%85%A5%E9%97%A8%E3%80%91%E6%B5%8B%E8%AF%95%E4%BA%BA%E5%91%98%E5%AD%A6Java%E5%85%A5%E9%97%A8%E6%8C%87%E5%8D%97.html">【入门】测试人员学Java入门指南</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000002-%E3%80%90%E8%BF%9B%E9%98%B6%E3%80%91Java%E9%AB%98%E7%BA%A7%E7%BC%96%E7%A8%8B%E7%B2%BE%E5%8D%8E%E7%AC%94%E8%AE%B0.html">【进阶】Java高级编程精华笔记</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000003-%E3%80%90%E8%BF%9B%E9%98%B6%E3%80%91%E5%88%B7%E5%AE%8C3%E4%B8%AAJava%E6%95%99%E7%A8%8B%E5%90%8E%E4%B8%8D%E5%86%8D%E7%8A%B9%E8%B1%AB.html">【进阶】刷完3个Java教程后不再犹豫</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000004-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B01%E7%BC%96%E5%86%99%E8%BF%90%E8%A1%8CJava%E7%A8%8B%E5%BA%8F.html">【官方】Java官方笔记1编写运行Java程序</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000005-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5.html">【官方】Java官方笔记2面向对象编程基本概念</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000006-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B03Java%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80.html">【官方】Java官方笔记3Java语言基础</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000007-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B04%E7%B1%BB%E5%92%8C%E5%AF%B9%E8%B1%A1.html">【官方】Java官方笔记4类和对象</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000008-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B05%E6%95%B0%E5%AD%97%E5%92%8C%E5%AD%97%E7%AC%A6%E4%B8%B2.html">【官方】Java官方笔记5数字和字符串</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000009-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B06%E7%BB%A7%E6%89%BF.html">【官方】Java官方笔记6继承</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000010-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B07%E6%8E%A5%E5%8F%A3.html">【官方】Java官方笔记7接口</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000011-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B08%E6%B3%9B%E5%9E%8B.html">【官方】Java官方笔记8泛型</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000012-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B09Lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F.html">【官方】Java官方笔记9Lambda表达式</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000013-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B010%E6%B3%A8%E8%A7%A3.html">【官方】Java官方笔记10注解</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000014-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B011%E5%8C%85.html">【官方】Java官方笔记11包</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000015-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B012%E5%BC%82%E5%B8%B8.html">【官方】Java官方笔记12异常</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000016-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B013%E9%9B%86%E5%90%88.html">【官方】Java官方笔记13集合</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000017-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91Java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B014%E6%B5%81.html">【官方】Java官方笔记14流</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000018-%E3%80%90%E5%AE%98%E6%96%B9%E3%80%91%E4%BA%8C%E5%88%B7Java%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B.html">【官方】二刷Java官方教程</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000019-%E3%80%90%E5%BA%93%E3%80%91fastjson%E7%9F%A5%E5%A4%9A%E5%B0%91.html">【库】fastjson知多少</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000020-Allure%2BMaven%2BJUnit5%E9%85%8D%E7%BD%AE%E5%AE%9E%E8%B7%B5.html">Allure+Maven+JUnit5配置实践</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Java/000021-%E3%80%90TestNG%E3%80%91%E5%8D%95%E7%AF%87%E9%95%BF%E6%96%87TestNG%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A.html">【TestNG】单篇长文TestNG从入门到精通</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >JavaWeb开发</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000001-JavaWeb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%807%E4%B8%AAWeb%E6%9C%AF%E8%AF%AD%E8%A7%A3%E6%9E%90.html">JavaWeb开发基础7个Web术语解析</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000002-JavaWeb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80Servlet%E7%AE%80%E4%BB%8B.html">JavaWeb开发基础Servlet简介</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000003-JavaWeb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80ServletAPI.html">JavaWeb开发基础ServletAPI</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000004-JavaWeb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80Servlet%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.html">JavaWeb开发基础Servlet生命周期与工作原理</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000005-JavaWeb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80Servlet%E8%AF%B7%E6%B1%82%E5%88%86%E5%8F%91%E4%B8%8E%E9%87%8D%E5%AE%9A%E5%90%91.html">JavaWeb开发基础Servlet请求分发与重定向</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000006-JavaWeb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80ServletConfig%E4%B8%8EServletContext.html">JavaWeb开发基础ServletConfig与ServletContext</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000007-JavaWeb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80ServletSession.html">JavaWeb开发基础ServletSession</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000008-JavaWeb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80Servlet%E4%BA%8B%E4%BB%B6%E5%92%8C%E7%9B%91%E5%90%AC%E5%99%A8.html">JavaWeb开发基础Servlet事件和监听器</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000009-JavaWeb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80ServletFilter.html">JavaWeb开发基础ServletFilter</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000010-JavaWeb%E5%BC%80%E5%8F%91%E8%BF%9B%E9%98%B6SpringMVC%E7%AE%80%E4%BB%8B.html">JavaWeb开发进阶SpringMVC简介</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/JavaWeb%E5%BC%80%E5%8F%91/000011-JavaWeb%E5%BC%80%E5%8F%91%E8%BF%9B%E9%98%B6SpringMVC%E7%9A%84DispatcherServlet.html">JavaWeb开发进阶SpringMVC的DispatcherServlet</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Spring技术栈</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000001-%E3%80%90Spring%E3%80%91SpringBoot%E7%AE%80%E4%BB%8B%E4%B8%8E%E5%AE%89%E8%A3%85.html">【Spring】SpringBoot简介与安装</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000002-%E3%80%90Spring%E3%80%91%E5%BC%80%E5%8F%91%E4%BD%A0%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AASpringBoot%E5%BA%94%E7%94%A8.html">【Spring】开发你的第一个SpringBoot应用</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000003-%E3%80%90Spring%E3%80%91%E5%85%B3%E4%BA%8ESpringBoot%E5%BC%80%E5%8F%91%E7%9A%84%E6%9B%B4%E5%A4%9A%E7%BB%86%E8%8A%82.html">【Spring】关于SpringBoot开发的更多细节</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000004-%E3%80%90Spring%E3%80%91SpringBoot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B01%E5%85%A5%E9%97%A8.html">【Spring】SpringBoot官方笔记1入门</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000005-%E3%80%90Spring%E3%80%91SpringBoot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E4%BD%BF%E7%94%A8.html">【Spring】SpringBoot官方笔记2使用</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000006-%E3%80%90Spring%E3%80%91SpringBoot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B03%E6%A0%B8%E5%BF%83.html">【Spring】SpringBoot官方笔记3核心</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000007-%E3%80%90Spring%E3%80%91SpringBoot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B04Web.html">【Spring】SpringBoot官方笔记4Web</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000008-%E3%80%90Spring%E3%80%91SpringBoot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B05Data.html">【Spring】SpringBoot官方笔记5Data</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000009-%E3%80%90Spring%E3%80%91SpringBoot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B06%E6%B6%88%E6%81%AF.html">【Spring】SpringBoot官方笔记6消息</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000010-%E3%80%90Spring%E3%80%91SpringBoot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B07IO.html">【Spring】SpringBoot官方笔记7IO</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000011-%E3%80%90Spring%E3%80%91SpringBoot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B08%E5%85%B6%E4%BB%96.html">【Spring】SpringBoot官方笔记8其他</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000012-%E3%80%90Spring%E3%80%91%E5%AF%B9IoC%E5%AE%B9%E5%99%A8%E5%92%8CBean%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.html">【Spring】对IoC容器和Bean的学习笔记</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000013-%E3%80%90Maven%E3%80%91%E8%B7%9F%E7%9D%80%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3%E5%AD%A6Maven%E6%9E%84%E5%BB%BA%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.html">【Maven】跟着官方文档学Maven构建生命周期</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Spring%E6%8A%80%E6%9C%AF%E6%A0%88/000014-%E3%80%90Mybatis%E3%80%91Java%E6%8C%81%E4%B9%85%E5%B1%82%E6%A1%86%E6%9E%B6Mybatis%E5%85%A5%E9%97%A8.html">【Mybatis】Java持久层框架Mybatis入门</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Golang</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Golang/000001-%E3%80%90Golang%E3%80%91%E6%80%8E%E4%B9%88%E5%86%99Go%E4%BB%A3%E7%A0%81.html">【Golang】怎么写Go代码</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Golang/000002-%E3%80%90Golang%E3%80%91%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AE%80%E5%8D%95%E6%96%97%E5%9C%B0%E4%B8%BB.html">【Golang】多线程简单斗地主</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Java%E7%94%9F%E6%80%81/Golang/000003-%E3%80%90Golang%E3%80%91Dockerfile%E6%96%87%E4%BB%B6%E4%B8%87%E5%AD%97%E5%85%A8%E9%9D%A2%E8%A7%A3%E6%9E%90.html">【Golang】Dockerfile文件万字全面解析</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">测试专题</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >AI测试</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000001-AI%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91%E6%96%B0%E5%A7%BF%E5%8A%BFMCP%20Python%20SDK.html">AI测试工具开发新姿势MCP Python SDK</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000002-ClaudeCode%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E5%B8%AE%E4%BD%A0%E6%8F%90%E6%95%88.html">ClaudeCode使用技巧帮你提效</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000003-%E6%88%913%E4%B8%AA%E6%9C%88%E6%B2%A1%E6%89%8B%E5%86%99%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E4%BA%86.html">我3个月没手写测试用例了</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000004-%E3%80%90AI%E7%99%BD%E7%9A%AE%E4%B9%A6%E3%80%91AI%E5%8E%9F%E7%94%9F%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E6%9E%B6%E6%9E%84.html">【AI白皮书】AI原生应用及其架构</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000005-%E3%80%90AI%E7%99%BD%E7%9A%AE%E4%B9%A6%E3%80%91AI%E5%8E%9F%E7%94%9F%E5%BA%94%E7%94%A8%E7%9A%84%E5%85%B3%E9%94%AE%E8%A6%81%E7%B4%A0.html">【AI白皮书】AI原生应用的关键要素</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000006-%E3%80%90AI%E7%99%BD%E7%9A%AE%E4%B9%A6%E3%80%91AI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6.html">【AI白皮书】AI应用开发框架</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000007-%E3%80%90AI%E7%99%BD%E7%9A%AE%E4%B9%A6%E3%80%91%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B.html">【AI白皮书】上下文工程</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000008-%E3%80%90AI%E7%99%BD%E7%9A%AE%E4%B9%A6%E3%80%91AI%E5%B7%A5%E5%85%B7.html">【AI白皮书】AI工具</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000009-%E3%80%90AI%E7%99%BD%E7%9A%AE%E4%B9%A6%E3%80%91AI%E7%BD%91%E5%85%B3.html">【AI白皮书】AI网关</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000010-%E3%80%90AI%E7%99%BD%E7%9A%AE%E4%B9%A6%E3%80%91AI%E5%BA%94%E7%94%A8%E8%BF%90%E8%A1%8C%E6%97%B6.html">【AI白皮书】AI应用运行时</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000011-%E3%80%90AI%E7%99%BD%E7%9A%AE%E4%B9%A6%E3%80%91AI%E5%8F%AF%E8%A7%82%E6%B5%8B.html">【AI白皮书】AI可观测</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000012-%E3%80%90AI%E7%99%BD%E7%9A%AE%E4%B9%A6%E3%80%91AI%E8%AF%84%E4%BC%B0.html">【AI白皮书】AI评估</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/AI%E6%B5%8B%E8%AF%95/000013-%E3%80%90AI%E7%99%BD%E7%9A%AE%E4%B9%A6%E3%80%91AI%E5%AE%89%E5%85%A8.html">【AI白皮书】AI安全</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >自动化</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000001-%E4%B8%AD%E5%8F%B0RPC%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E6%80%8E%E4%B9%88%E5%81%9A.html">中台RPC接口自动化怎么做</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000002-%E7%90%86%E6%83%B3%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A1%B9%E7%9B%AE.html">理想中的接口自动化项目</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000003-%E3%80%90UI%E8%87%AA%E5%8A%A8%E5%8C%96%E3%80%91webdriver%E4%BD%BF%E7%94%A8%E5%B7%B2%E6%89%93%E5%BC%80%E8%BF%87%E7%9A%84chrome.html">【UI自动化】webdriver使用已打开过的chrome</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000004-%E3%80%90UI%E8%87%AA%E5%8A%A8%E5%8C%96%E3%80%91send_keys%E6%8A%A5%E9%94%99element_not_interactable.html">【UI自动化】send_keys报错element_not_interactable</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000005-%E3%80%90Playwright%E3%80%91%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9A%84%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6.html">【Playwright】端到端自动化的开源框架</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000006-%E8%80%81%E6%9D%BF%E7%BB%99%E6%88%91%E5%AE%89%E6%8E%92%E4%BA%86%E4%B8%AA%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83%E6%B2%BB%E7%90%86%E7%9A%84%E6%B4%BB.html">老板给我安排了个测试环境治理的活</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000007-Allure%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A%E5%AE%8C%E6%95%B4%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.html">Allure测试报告完整学习笔记</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >单元测试</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000001-%E3%80%90JUnit%E3%80%91Java%E6%96%B0%E4%B8%80%E4%BB%A3%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6JUnit5%E9%80%9F%E8%A7%88.html">【JUnit】Java新一代单元测试框架JUnit5速览</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000002-%E3%80%90JUnit%E3%80%91JUnit5%E6%B3%A8%E8%A7%A3%E5%AD%A6%E4%B9%A0%E6%8C%87%E5%BC%95.html">【JUnit】JUnit5注解学习指引</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000003-%E3%80%90JUnit%E3%80%91JUnit5%E7%BC%96%E5%86%99%E5%9F%BA%E6%9C%AC%E6%B5%8B%E8%AF%95.html">【JUnit】JUnit5编写基本测试</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000004-%E3%80%90JUnit%E3%80%91JUnit5%E7%9A%84Tag%E3%80%81Filter%E3%80%81Order%E3%80%81Lifecycle.html">【JUnit】JUnit5的Tag、Filter、Order、Lifecycle</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000005-%E3%80%90JUnit%E3%80%91JUnit5%E7%9A%84%E6%9D%A1%E4%BB%B6%E6%B5%8B%E8%AF%95%E3%80%81%E5%B5%8C%E5%A5%97%E6%B5%8B%E8%AF%95%E3%80%81%E9%87%8D%E5%A4%8D%E6%B5%8B%E8%AF%95.html">【JUnit】JUnit5的条件测试、嵌套测试、重复测试</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000006-%E3%80%90JUnit%E3%80%91JUnit5%E5%8F%82%E6%95%B0%E5%8C%96%E6%B5%8B%E8%AF%95%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F.html">【JUnit】JUnit5参数化测试的几种方式</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000007-%E3%80%90JUnit%E3%80%91JUnit5%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E4%B8%8E%E6%B5%8B%E8%AF%95%E6%8E%A5%E5%8F%A3.html">【JUnit】JUnit5依赖注入与测试接口</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000008-%E3%80%90Mockito%E3%80%91Java%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95Mock%E6%A1%86%E6%9E%B6Mockito%E5%85%A5%E9%97%A8%E4%BB%8B%E7%BB%8D.html">【Mockito】Java单元测试Mock框架Mockito入门介绍</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >白盒测试</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000001-CodeReview%E6%8A%80%E5%B7%A7%E5%92%8C%E8%A7%84%E8%8C%83.html">CodeReview技巧和规范</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000002-%E4%BB%A3%E7%A0%81%E8%AF%84%E5%AE%A1%EF%BC%8C%E6%8F%AD%E7%A4%BA%E9%BB%91%E7%9B%92%E8%83%8C%E5%90%8E%E7%9A%84%E7%9C%9F%E7%9B%B8.html">代码评审，揭示黑盒背后的真相</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000003-%E3%80%90JaCoCo%E3%80%91%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87%E4%BB%8E0%E5%88%B0100%E7%9A%84%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5.html">【JaCoCo】代码覆盖率从0到100的入门实践</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000004-%E3%80%90JaCoCo%E3%80%91SpringBoot%E6%8E%A5%E5%85%A5JaCoCo%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B.html">【JaCoCo】SpringBoot接入JaCoCo实践教程</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000005-%E3%80%90JaCoCo%E3%80%91JaCoCo%E5%A2%9E%E9%87%8F%E8%A6%86%E7%9B%96%E7%8E%87%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86.html">【JaCoCo】JaCoCo增量覆盖率的基本实现原理</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >性能测试</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000001-%E3%80%90JMeter%E3%80%91JMeter%E5%85%A8%E9%83%A8%E7%BB%84%E4%BB%B6%E6%A6%82%E8%A7%88.html">【JMeter】JMeter全部组件概览</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000002-%E3%80%90JMeter%E3%80%91JMeter%E6%98%AF%E5%A6%82%E4%BD%95%E8%BF%90%E8%A1%8C%E6%96%BD%E5%8E%8B%E7%9A%84.html">【JMeter】JMeter是如何运行施压的</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000003-%E3%80%90JMeter%E3%80%91JMeter%E8%8B%B1%E6%96%87%E7%89%88%E7%95%8C%E9%9D%A2%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter英文版界面介绍</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000004-%E3%80%90JMeter%E3%80%91JMeter%E5%85%83%E4%BB%B6%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97.html">【JMeter】JMeter元件作用域实践指南</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000005-%E3%80%90JMeter%E3%80%91JMeter%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E9%85%8D%E7%BD%AE%E9%A1%B9%E8%A7%A3%E6%9E%90.html">【JMeter】JMeter测试计划配置项解析</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000006-%E3%80%90JMeter%E3%80%91JMeter100%E4%B8%AA%E7%BA%BF%E7%A8%8B%E7%AB%9F%E7%84%B6%E5%8F%AA%E6%A8%A1%E6%8B%9F%E5%87%BA1%E4%B8%AA%E5%B9%B6%E5%8F%91.html">【JMeter】JMeter100个线程竟然只模拟出1个并发</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000007-%E3%80%90JMeter%E3%80%91JMeter%E5%85%B3%E8%81%94%E9%99%8C%E7%94%9F%E5%8F%88%E7%86%9F%E6%82%89.html">【JMeter】JMeter关联陌生又熟悉</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000008-%E3%80%90JMeter%E3%80%91JMeter%E5%9B%9B%E7%A7%8D%E5%8F%82%E6%95%B0%E5%8C%96%E6%96%B9%E5%BC%8F.html">【JMeter】JMeter四种参数化方式</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000009-%E3%80%90JMeter%E3%80%91JMeter36%E4%B8%AA%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0%E5%8F%8A11%E4%B8%AA%E6%96%B0%E5%A2%9E%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter36个内置函数及11个新增函数介绍</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000010-%E3%80%90JMeter%E3%80%91JMeter%E9%80%BB%E8%BE%91%E6%8E%A7%E5%88%B6%E5%99%A8%E5%AE%8C%E6%95%B4%E4%BB%8B%E7%BB%8D.html">【JMeter】JMeter逻辑控制器完整介绍</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000011-%E3%80%90JMeter%E3%80%91JMeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5.html">【JMeter】JMeter定时器设置延迟与同步</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000012-%E3%80%90JMeter%E3%80%91JMeter%E5%93%8D%E5%BA%94%E6%96%AD%E8%A8%80%E5%A4%9F%E7%94%A8%E4%BA%86.html">【JMeter】JMeter响应断言够用了</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000013-%E3%80%90JMeter%E3%80%91JMeter%E6%89%A9%E5%B1%95Java%E8%AF%B7%E6%B1%82.html">【JMeter】JMeter扩展Java请求</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000014-%E3%80%90nGrinder%E3%80%91%E4%BD%A0%E7%9A%84%E4%B8%8B%E4%B8%80%E4%B8%AA%E5%8E%8B%E6%B5%8B%E5%B7%A5%E5%85%B7%E5%8F%AF%E4%BB%A5%E6%98%AFnGrinder.html">【nGrinder】你的下一个压测工具可以是nGrinder</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000015-%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E6%8C%87%E6%A0%87TP99%EF%BC%8C%E6%AF%94%E5%B9%B3%E5%9D%87%E5%93%8D%E5%BA%94%E6%97%B6%E9%97%B4%E6%9B%B4%E9%9C%80%E8%A6%81%E5%85%B3%E6%B3%A8.html">性能测试指标TP99，比平均响应时间更需要关注</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000016-%E3%80%90Locust%E3%80%91Python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7Locust%E5%85%A5%E9%97%A8.html">【Locust】Python技术栈性能测试工具Locust入门</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000017-%E3%80%90Locust%E3%80%91locustfile%E4%B8%AD%E7%9A%84User%E7%B1%BB%E5%92%8CHttpUser%E7%B1%BB.html">【Locust】locustfile中的User类和HttpUser类</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000018-%E3%80%90Locust%E3%80%91Locust%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%40task%E5%92%8C%40events.html">【Locust】Locust性能测试工具核心技术@task和@events</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >流量回放</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE/000001-%E3%80%90%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE%E3%80%91%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AD%A6mitmproxy%E6%8A%93%E5%8C%85%E5%B7%A5%E5%85%B7.html">【录制回放】从零开始学mitmproxy抓包工具</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE/000002-%E3%80%90%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE%E3%80%91Postman%E7%AB%9F%E7%84%B6%E8%BF%98%E8%83%BD%E5%BD%95%E5%88%B6%E6%B5%81%E9%87%8F.html">【录制回放】Postman竟然还能录制流量</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE/000003-%E3%80%90%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE%E3%80%91%E5%9F%BA%E4%BA%8EHAR%E5%8C%85%E7%9A%84%E6%B5%81%E9%87%8F%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE.html">【录制回放】基于HAR包的流量录制回放</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >移动端</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%A7%BB%E5%8A%A8%E7%AB%AF/000001-java%2Bappium%2B%E5%AE%89%E5%8D%93%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%AE%9E%E7%8E%B0app%E8%87%AA%E5%8A%A8%E5%8C%96Demo.html">java+appium+安卓模拟器实现app自动化Demo</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%A7%BB%E5%8A%A8%E7%AB%AF/000002-Android%E6%B5%8B%E8%AF%95%E4%B8%89%E4%BB%B6%E5%A5%97%EF%BC%9A%E4%BC%A0%E6%96%87%E4%BB%B6%E3%80%81%E6%8A%93%E5%8C%85%E3%80%81%E7%9C%8B%E6%97%A5%E5%BF%97.html">Android测试三件套：传文件、抓包、看日志</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >后端测试</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000001-%E4%B8%80%E4%B8%AA%E8%AF%B7%E6%B1%82%E7%9A%84%E4%B8%80%E7%94%9F.html">一个请求的一生</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000002-%E6%8E%A5%E5%8F%A3%E8%AE%BE%E8%AE%A1%E7%9A%84%E5%8F%AF%E6%B5%8B%E8%AF%95%E6%80%A7.html">接口设计的可测试性</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000003-%E5%B9%82%E7%AD%89%E6%B5%8B%E8%AF%95.html">幂等测试</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000004-%E6%8A%8ARPC%E5%8C%85%E8%BF%9B%E4%BA%8B%E5%8A%A1%E7%9A%84%E6%9A%97%E5%9D%91.html">把RPC包进事务的暗坑</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">原创项目</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >tep</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000001-tep%E9%A6%96%E6%AC%A1%E5%BC%80%E6%BA%90V0.2.3%E4%BB%8B%E7%BB%8D.html">tep首次开源V0.2.3介绍</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000002-tep%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C%E5%B8%AE%E4%BD%A0%E4%BB%8Eunittest%E8%BF%87%E6%B8%A1%E5%88%B0pytest.html">tep用户手册帮你从unittest过渡到pytest</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000003-%E3%80%90%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E3%80%91%E6%A1%86%E6%9E%B6V2.0.0%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97.html">【开源框架】框架V2.0.0开发指南</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000004-%E5%A6%82%E4%BD%95%E7%94%A8tep%E5%AE%8C%E6%88%90%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96.html">如何用tep完成增删改查接口自动化</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000005-tep0.6.0%E6%9B%B4%E6%96%B0%E8%81%8A%E8%81%8Apytest%E5%8F%98%E9%87%8F%E6%8E%A5%E5%8F%A3%E7%94%A8%E4%BE%8B3%E4%B8%AA%E7%BA%A7%E5%88%AB%E5%A4%8D%E7%94%A8.html">tep0.6.0更新聊聊pytest变量接口用例3个级别复用</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000006-tep%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E3%80%81fixtures%E3%80%81%E7%94%A8%E4%BE%8B%E4%B8%89%E8%80%85%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB.html">tep环境变量、fixtures、用例三者之间的关系</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000007-%E5%8E%9F%E5%88%9Bpytest%E8%BE%85%E5%8A%A9%E5%B7%A5%E5%85%B7tep0.9.1%E7%89%88%E6%9C%AC%E6%81%A2%E5%A4%8D%E9%A1%B9%E7%9B%AE%E5%88%9D%E5%A7%8B%E5%8C%96%E6%96%87%E4%BB%B6.html">原创pytest辅助工具tep0.9.1版本恢复项目初始化文件</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000008-tep%E9%9B%86%E6%88%90HttpRunner%E4%B8%8EFlask%E5%AE%9E%E7%8E%B0%E5%BC%80%E7%AE%B1%E5%8D%B3%E7%94%A8.html">tep集成HttpRunner与Flask实现开箱即用</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000009-tep%E6%94%AF%E6%8C%81MVC%E6%9E%B6%E6%9E%84%E5%AE%9E%E7%8E%B0%E7%94%A8%E4%BE%8B%E6%95%B0%E6%8D%AE%E5%88%86%E7%A6%BB.html">tep支持MVC架构实现用例数据分离</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000010-tep0.9.5%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95request.html">tep0.9.5支持自定义扩展request</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000011-tep%E9%9B%86%E6%88%90mitmproxy%E5%BD%95%E5%88%B6%E6%B5%81%E9%87%8F%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%94%A8%E4%BE%8B.html">tep集成mitmproxy录制流量自动生成用例</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000012-%E6%B0%91%E9%97%B4%E6%B5%81%E8%BD%AC%E7%9A%84pytest%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1.html">民间流转的pytest项目结构设计</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000013-%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A1%B9%E7%9B%AE%E8%90%BD%E5%9C%B0%E4%B9%8BHTTPBin%E7%BD%91%E7%AB%99.html">接口自动化项目落地之HTTPBin网站</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000014-tep%E6%97%B6%E9%9A%948%E4%B8%AA%E6%9C%88%E8%BF%8E%E6%9D%A5%E9%87%8D%E5%A4%A7%E5%85%A8%E6%96%B0%E5%8D%87%E7%BA%A7.html">tep时隔8个月迎来重大全新升级</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000015-tep%E6%94%AF%E6%8C%81pytest-xdist%E5%88%86%E5%B8%83%E5%BC%8F%E6%89%A7%E8%A1%8C%E7%94%A8%E4%BE%8B%E5%8F%8A%E5%90%88%E5%B9%B6Allure%E6%8A%A5%E5%91%8A.html">tep支持pytest-xdist分布式执行用例及合并Allure报告</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000016-%E5%BD%93Pytest%E9%81%87%E4%B8%8AMVC%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E5%B0%B1%E8%AF%A5%E8%BF%99%E4%B9%88%E5%86%99.html">当Pytest遇上MVC分层设计自动化用例就该这么写</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000017-tep1.0.0%E6%95%99%E7%A8%8B.html">tep1.0.0教程</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000018-%E5%B9%B4%E5%BA%A6%E5%A4%A7%E7%89%88%E6%9C%AC%EF%BC%8Ctep3%E5%9B%9E%E5%BD%92%E7%BA%AF%E7%B2%B9Python%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6.html">年度大版本，tep3回归纯粹Python接口测试框架</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tep/000019-Python%E5%A4%84%E7%90%86%E6%8E%A5%E5%8F%A3%E6%95%B0%E6%8D%AE%EF%BC%8C%E8%BF%99%E4%B8%AA%E5%87%BD%E6%95%B0%E5%A4%AA%E9%A6%99%E4%BA%86.html">Python处理接口数据，这个函数太香了</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >teprunner</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="000001-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E8%90%BD%E5%9C%B0%E5%88%9D%E4%BD%93%E9%AA%8C.html">【开源平台】pytest内核测试平台落地初体验</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">【开源平台】学习版pytest内核测试平台开发万字长文入门篇</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#_1">前言</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#_2">功能展示</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#_3">登录</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#_4">接口自动化</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#_5">小工具</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#_6">后台管理</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#_7">本文开发内容</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#_8">技术栈</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#vue">创建Vue项目</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#vue_1">编写Vue代码</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#django">创建Django项目</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#django_1">编写Django代码</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#_9">前后端联调</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#postmanmock-server">Postman搭建Mock Server</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#_10">小结</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="000003-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E9%83%A8%E7%BD%B2%E5%88%B0Linux%E7%B3%BB%E7%BB%9FDocker.html">【开源平台】teprunner测试平台部署到Linux系统Docker</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="000004-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E5%89%8D%E7%BD%AE%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91.html">【开源平台】teprunner测试平台用例前置模块开发</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="000005-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E7%94%A8%E4%BE%8B%E7%AE%A1%E7%90%86%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5.html">【开源平台】teprunner测试平台开发用例管理不只有增删改查</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="000006-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0Django%E5%BC%95%E5%85%A5pytest%E5%AE%8C%E6%95%B4%E6%BA%90%E7%A0%81.html">【开源平台】teprunner测试平台Django引入pytest完整源码</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="000007-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E6%89%B9%E9%87%8F%E8%BF%90%E8%A1%8C%E7%94%A8%E4%BE%8B.html">【开源平台】teprunner测试平台测试计划批量运行用例</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="000008-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E7%BC%96%E5%86%99%E7%AD%89%E4%BD%93%E9%AA%8C%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8D%87%E7%BA%A7.html">【开源平台】teprunner测试平台用例编写等体验响应式升级</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="000009-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%BF%99%E6%AC%A1%E7%BB%88%E4%BA%8E%E7%A8%B3%E4%BA%86.html">【开源平台】teprunner测试平台定时任务这次终于稳了</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="000010-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E9%87%8D%E7%A3%85%E6%9B%B4%E6%96%B0Git%E6%89%93%E9%80%9APyCharm%E4%B8%8E%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0.html">【开源平台】teprunner重磅更新Git打通PyCharm与测试平台</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="000011-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%85%A5%E9%97%A8%E7%BA%A7%E9%83%A8%E7%BD%B2%E6%89%8B%E5%86%8C%E5%8F%91%E5%B8%83%E5%95%A6.html">【开源平台】teprunner测试平台入门级部署手册发布啦</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >pytestx</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../pytestx/000001-%E8%81%9A%E7%84%A6%E4%BA%8E%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6%E7%9A%84%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0pytestx.html">聚焦于任务调度的测试平台pytestx</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../pytestx/000002-pytestx%E9%87%8D%E6%96%B0%E5%AE%9A%E4%B9%89%E6%8E%A5%E5%8F%A3%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1.html">pytestx重新定义接口框架设计</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../pytestx/000003-pytestx%E5%AE%B9%E5%99%A8%E5%8C%96%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E.html">pytestx容器化执行引擎</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >EasyPytest</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../EasyPytest/000001-EasyPytest%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97%E4%B9%8B%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1.html">EasyPytest测试平台开发日志之系统设计</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >小工具</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../%E5%B0%8F%E5%B7%A5%E5%85%B7/000001-JSON%E8%BD%ACSQL%E5%B0%8F%E5%B7%A5%E5%85%B7%E6%BA%90%E7%A0%81%E5%88%86%E4%BA%AB.html">JSON转SQL小工具源码分享</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../%E5%B0%8F%E5%B7%A5%E5%85%B7/000002-%E3%80%90%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E3%80%91%E5%8A%9F%E8%83%BD%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%AE%97%E6%B3%95Pairwise%E5%B7%A5%E5%85%B7.html">【测试工具】功能测试用例自动生成算法Pairwise工具</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../%E5%B0%8F%E5%B7%A5%E5%85%B7/000003-%E3%80%90%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E3%80%91%E4%B8%80%E6%AC%A1%E5%85%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%AF%94%E5%B7%A5%E5%85%B7%E5%8F%91%E7%8E%B0%E9%97%AE%E9%A2%98%E7%9A%84%E8%BF%87%E7%A8%8B%E4%B8%8E%E6%80%9D%E8%80%83.html">【测试工具】一次全量数据对比工具发现问题的过程与思考</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >japi</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../japi/000001-japi%E9%A1%B9%E7%9B%AE%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90%E9%98%B6%E6%AE%B5.html">japi项目需求分析阶段</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../japi/000002-%E5%9D%9A%E6%8C%81%E5%BC%80%E5%8F%91%E5%8E%9F%E5%88%9B%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0.html">坚持开发原创测试平台</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../japi/000003-%E5%BC%80%E6%BA%90%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%9C%9F%E5%BE%85%E4%BD%A0%E7%9A%84%E5%8A%A0%E5%85%A5.html">开源测试平台开发期待你的加入</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">计算机基础</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >算法</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/000001-%E5%88%B7%E4%BA%8680%E9%81%93%E7%AE%97%E6%B3%95%E9%A2%98%E4%BB%A5%E5%90%8E.html">刷了80道算法题以后</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/000002-80%E9%81%93%E9%AB%98%E9%A2%91%E7%AE%97%E6%B3%95%E9%A2%98Java%E7%89%88.html">80道高频算法题Java版</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/000003-%E3%80%90%E7%AE%97%E6%B3%95%E3%80%9180%E9%81%93%E9%AB%98%E9%A2%91%E7%AE%97%E6%B3%95%E9%A2%98Python%E7%89%88.html">【算法】80道高频算法题Python版</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >中间件</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E4%B8%AD%E9%97%B4%E4%BB%B6/000001-RabbitMQ%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8BJava%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.html">RabbitMQ消息队列官方教程Java学习笔记</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E4%B8%AD%E9%97%B4%E4%BB%B6/000002-%E4%B8%BA%E4%BB%80%E4%B9%88Kafka%E8%BF%99%E4%B9%88%E5%BF%AB.html">为什么Kafka这么快</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >计算机知识</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000001-5%E5%88%86%E9%92%9F%E8%BD%BB%E6%9D%BE%E5%AD%A6%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F.html">5分钟轻松学正则表达式</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000002-%E4%B8%80%E6%96%87%E6%90%9E%E6%87%82Cookie%2CSession%2CToken%2CJWT.html">一文搞懂Cookie,Session,Token,JWT</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000003-Git%E6%AF%94%E8%BE%83%E5%88%86%E6%94%AF%E5%B7%AE%E5%BC%82%E7%9A%843%E4%B8%AA%E5%91%BD%E4%BB%A4.html">Git比较分支差异的3个命令</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000004-OkHttp%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.html">OkHttp学习笔记</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000005-%E5%AD%97%E7%AC%A6%E9%9B%86%E5%85%B6%E5%AE%9E%E5%BE%88%E7%AE%80%E5%8D%95.html">字符集其实很简单</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000006-%E6%8E%A8%E8%8D%905%E4%B8%AA%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%EF%BC%8C152k%E5%8A%A0%E6%98%9F.html">推荐5个开源项目，152k加星</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >设计模式</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/000001-%E4%BB%A3%E7%A0%81%E5%8F%98%E5%BD%A2%E8%AE%B0%E4%B9%8B%E6%A8%A1%E6%9D%BF%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F.html">代码变形记之模板方法模式</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >计算机历史</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8E%86%E5%8F%B2/000001-%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8E%86%E5%8F%B2%E4%BA%BA%E7%89%A9%E4%B9%8B%E5%86%AF%C2%B7%E8%AF%BA%E4%BE%9D%E6%9B%BC.html">计算机历史人物之冯·诺依曼</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">读书与思考</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >个人思考</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000001-%E4%BA%8B%E4%BB%B6%E6%97%B6%E9%97%B4%E6%97%A5%E5%BF%97%EF%BC%8C%E7%B2%BE%E5%87%86%E5%B7%A5%E4%BD%9C%E4%B9%8B%E9%81%93.html">事件时间日志，精准工作之道</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000002-%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E6%A1%86%E6%9E%B6%E9%80%89%E5%9E%8B.html">接口自动化框架选型</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000003-%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1%E6%BC%AB%E8%B0%88V1.0.html">接口自动化框架设计漫谈V1.0</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000004-%E5%B7%A5%E4%BD%9C%E4%BB%A5%E5%90%8E%EF%BC%8C%E6%8D%A2%E7%A7%8D%E6%96%B9%E5%BC%8F%E5%AD%A6%E4%B9%A0.html">工作以后，换种方式学习</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000005-%E8%A7%A3%E5%86%B3%E2%80%9C%E6%B5%8B%E8%AF%95%E6%B5%81%E7%A8%8B%E2%80%9D%E9%97%AE%E9%A2%98%E7%9A%84%E5%BA%95%E5%B1%82%E9%80%BB%E8%BE%91.html">解决“测试流程”问题的底层逻辑</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000006-%E6%B5%8B%E8%AF%95%E5%B7%A5%E7%A8%8B%E5%B8%88%E7%9A%84%E6%88%90%E9%95%BF%EF%BC%8C%E4%BD%93%E7%8E%B0%E5%9C%A82%E4%B8%AA%E5%9C%B0%E6%96%B9.html">测试工程师的成长，体现在2个地方</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000007-%E6%B5%8B%E8%AF%95%E7%9A%84%E9%81%93%E4%B8%8E%E6%9C%AF.html">测试的道与术</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000008-%E5%A6%82%E4%BD%95%E6%9E%84%E5%BB%BA%E2%80%9C%E6%B5%8B%E8%AF%95%E5%BC%80%E5%8F%91%E4%BD%93%E7%B3%BB%E2%80%9D.html">如何构建“测试开发体系”</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000009-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98%EF%BC%8C%E6%98%AF%E4%B8%AA%E4%BC%AA%E5%91%BD%E9%A2%98.html">自动化用例依赖问题，是个伪命题</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000010-%E6%B5%8B%E8%AF%95%E6%B5%81%E7%A8%8B%EF%BC%8C%E5%88%AB%E5%86%8D%E5%B1%82%E5%B1%82%E5%8A%A0%E7%A0%81%E4%BA%86.html">测试流程，别再层层加码了</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000011-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%97%B6%E4%BB%A3%EF%BC%8C%E6%B5%8B%E8%AF%95%E5%B7%A5%E4%BD%9C%E4%BC%9A%E6%9C%89%E4%BB%80%E4%B9%88%E5%8F%98%E5%8C%96.html">大模型时代，测试工作会有什么变化</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000012-%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E8%B4%A8%E9%87%8F%E7%9A%84%E6%80%9D%E8%80%83V1.0.html">关于版本质量的思考V1.0</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000013-%E6%8A%80%E6%9C%AF%E5%9E%8B%E6%B5%8B%E8%AF%95%E7%9A%84%E4%BC%98%E5%8A%BF.html">技术型测试的优势</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000014-%E6%8C%81%E7%BB%AD%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%8A%A8%E5%8A%9B.html">持续学习的动力</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000015-%E7%9F%A5%E8%AF%86%E5%8D%A1%E7%89%87%EF%BC%8C%E5%9C%A8%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0%E4%B8%AD%E7%9A%84%E8%BF%90%E7%94%A8.html">知识卡片，在技术学习中的运用</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000016-%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E8%B4%A8%E9%87%8F%E7%9A%84%E6%80%9D%E8%80%83V2.0.html">关于版本质量的思考V2.0</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000017-AI%E6%97%B6%E4%BB%A3%E5%A6%82%E4%BD%95%E8%87%AA%E6%88%91%E6%8F%90%E5%8D%87.html">AI时代如何自我提升</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000018-%E6%80%8E%E4%B9%88%E7%BB%99%E5%88%AB%E4%BA%BA%E8%AE%B2%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84.html">怎么给别人讲系统架构</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000019-%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%EF%BC%8C%E7%94%A8%E4%BE%8B%E7%8B%AC%E7%AB%8B%E8%BF%98%E6%98%AF%E7%94%A8%E4%BE%8B%E5%A4%8D%E7%94%A8.html">接口自动化，用例独立还是用例复用</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000020-%E8%80%81%E7%94%9F%E5%B8%B8%E8%B0%88%E6%B5%8B%E8%AF%95%E5%BC%80%E5%8F%91%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80.html">老生常谈测试开发如何选择编程语言</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000021-%E5%9D%9A%E6%8C%81%E8%87%AA%E5%B7%B1%E5%86%99%E6%96%87%E7%AB%A0%E7%9A%84%E6%84%8F%E4%B9%89.html">坚持自己写文章的意义</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000022-%E5%B7%A5%E4%BD%9C%E6%B1%87%E6%8A%A5%E6%B5%81%E6%B0%B4%E8%B4%A6%20vs%20%E9%97%AE%E9%A2%98%E9%A9%B1%E5%8A%A8%E7%9A%84%E6%80%9D%E6%83%B3%E8%A1%A8%E8%BE%BE.html">工作汇报流水账 vs 问题驱动的思想表达</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >个人杂谈</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%9D%82%E8%B0%88/000001-%E4%BB%8E300%E5%88%B019999%EF%BC%8C%E6%88%91%E4%B9%B0%E6%89%8B%E6%9C%BA%E7%9A%84%E5%8D%81%E5%85%AD%E5%B9%B4.html">从300到19999，我买手机的十六年</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">测试开发刚哥</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html" class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">原创项目</li>
+          <li class="breadcrumb-item">teprunner</li>
+      <li class="breadcrumb-item active">【开源平台】学习版pytest内核测试平台开发万字长文入门篇</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="pytest">【开源平台】学习版pytest内核测试平台开发万字长文入门篇</h1>
+<blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h2 id="_1">前言</h2>
+<p>2021年，测试平台如雨后春笋般冒了出来，我就是其中一员，写了一款pytest内核测试平台，在公司落地。分享出来后，有同学觉得挺不错，希望能开源，本着“公司代码不要传到网上去，以免引起不必要麻烦”的原则，只能在家从头写一个，边重新梳理代码边温习巩固知识点，以学习交流为目的，定义为“学习版”。</p>
+<h2 id="_2">功能展示</h2>
+<h3 id="_3">登录</h3>
+<p><img alt="" src="assets/a3424569c09d42aca658cf3b885278e3.png" /></p>
+<h3 id="_4">接口自动化</h3>
+<p>接口自动化--Dashboard：</p>
+<p><img alt="" src="assets/41db611e68aa42019522249b82b90997.png" /></p>
+<p>接口自动化--环境变量：</p>
+<p><img alt="" src="assets/896567b6022149c896fe3ee25a085775.png" /></p>
+<p>接口自动化--fixtures：</p>
+<p><img alt="" src="assets/e78af47ce1b246888d8efec56167a2d2.png" /></p>
+<p>接口自动化--用例管理：</p>
+<p><img alt="" src="assets/562b086acf334c8c9d716b09f40ee67e.png" /></p>
+<p>接口自动化--用例管理--编辑用例：</p>
+<p><img alt="" src="assets/d9ff4d3f91374aadb002a9feac0acab9.png" /></p>
+<p>接口自动化--测试计划：</p>
+<p><img alt="" src="assets/bac839ba20b642c484b6c61c8487711b.png" /></p>
+<p>接口自动化--语法说明：</p>
+<p><img alt="" src="assets/e6f5f342fe4c4ca7a94aa1425116e772.png" /></p>
+<h3 id="_5">小工具</h3>
+<p>小工具--共享脚本：</p>
+<p><img alt="" src="assets/8d2d8773432847dabd769a1e23358c85.png" /></p>
+<p>小工具--HTTP状态查询：</p>
+<p><img alt="" src="assets/6abb077760834ea3b36d856bcc0dd4f8.png" /></p>
+<h3 id="_6">后台管理</h3>
+<p>后台管理--用户管理</p>
+<p><img alt="" src="assets/82bdce6ce2b14a3694103b41159881df.png" /></p>
+<p>后台管理--项目管理</p>
+<p><img alt="" src="assets/dcf99d0331e34d3ab08a233d42735b7d.png" /></p>
+<h2 id="_7">本文开发内容</h2>
+<ul>
+<li>登录，登出</li>
+<li>首页，修改密码，个人信息</li>
+<li>后台管理，用户管理</li>
+<li>JWT认证</li>
+</ul>
+<p>本文先打个基础，既是测试平台基本结构，也可以作为CMS基础框架，定制开发各种小型项目。</p>
+<h2 id="_8">技术栈</h2>
+<ul>
+<li>Node.js 12.16.3</li>
+<li>Vue 4.5.11</li>
+<li>Python 3.8</li>
+<li>Django 3.1.3</li>
+<li>Django REST framework 3.12.2</li>
+<li>SQLite 3</li>
+</ul>
+<p>IDE编辑器推荐PyCharm旗舰版，既能写Django也能写Vue项目。数据库使用Django自带SQLite ，省去安装MySQL和Navicat/Workbench麻烦，轻量级开发。SQLiteStudio为SQLite数据库可视化工具，只需要下载即可，无需安装，解压就用：：</p>
+<p>https://sqlitestudio.pl/</p>
+<p><img alt="" src="assets/cf7f04cd903646ae90dadc0ab66233b0.png" /></p>
+<p>由于会用到<code>models.JSONField</code>，SQLite默认不兼容，所以需要下载<code>sqlite3.dll</code>文件替换下：</p>
+<p>https://www.sqlite.org/download.html</p>
+<p>根据Python版本选择，比如我的windows安装的Python38-32，下载了<code>sqlite-dll-win32-x86-3340100.zip</code>这个软件包，解压后将<code>D:\Program Files (x86)\Python38-32\DLLs\sqlite3.dll</code>替换。</p>
+<h2 id="vue">创建Vue项目</h2>
+<p>设置<code>npm</code>淘宝镜像：</p>
+<pre class="codehilite"><code class="language-shell">npm config set registry https://registry.npm.taobao.org
+</code></pre>
+
+<p>安装<code>Vue CLI</code>：</p>
+<pre class="codehilite"><code class="language-shell">npm install -g @vue/cli
+</code></pre>
+
+<p>创建<code>teprunner-frontend</code>项目：</p>
+<pre class="codehilite"><code class="language-shell">vue create teprunner-frontend
+</code></pre>
+
+<blockquote>
+<p>项目名字请随意。</p>
+</blockquote>
+<p>默认选项点击回车进行创建：</p>
+<p><img alt="" src="assets/d26527cfb2414a728e63ca55f6884c71.png" /></p>
+<h2 id="vue_1">编写Vue代码</h2>
+<p>添加静态资源：</p>
+<p><img alt="" src="assets/e4dfe3dba4dc4ef183202500d1fcc085.png" /></p>
+<p>包括css样式、字体样式、图标、logo。</p>
+<blockquote>
+<p>推荐一个图标下载网站：https://www.easyicon.net/。</p>
+</blockquote>
+<p>编辑<code>package.json</code>，安装项目所需依赖：</p>
+<p><img alt="" src="assets/9bc7111112ab4150bac2dc159c7cce7c.png" /></p>
+<p><code>axios</code>用于异步请求，发送<code>http</code>给后端。<code>element-ui</code>为饿了么开源前端框架，简化了从头写html麻烦，高度复用，统一风格。<code>vue-router</code>提供了路由跳转，在上个时代，路由是在后端来控制的，把页面渲染后返回给前端直接展示，前后端分离后，后端只负责返回数据，把控制权交给前端。</p>
+<p><code>devDependencies</code>是写代码用到的依赖，这里把<code>eslint</code>和<code>prettier</code>标出来了，它们是用来做代码静态检查的，配置后能给与代码规范提示，帮你写出更漂亮的代码，同样是在<code>package.json</code>文件编辑：</p>
+<p><img alt="" src="assets/ab775c66ec0b4954b3d54cc39ceb857f.png" /></p>
+<p>接着执行<code>npm install</code>进行安装。有可能会出现下图提示：</p>
+<p><img alt="" src="assets/80d6ee8d1e3c4d5cba07f3f156dd380e.png" /></p>
+<p>执行<code>npm audit fix</code>就修复好了：</p>
+<p><img alt="" src="assets/b493cddf58e440928d969b4d606bb6fc.png" /></p>
+<p>新建<code>vue.config.js</code>文件，添加Vue项目配置：</p>
+<p><img alt="" src="assets/79964204a85d47b4acbdfd476aa9fb7d.png" /></p>
+<p><code>args[0].title</code>给网页设置了浏览器title。<code>proxy</code>指定了后端接口根路径为<code>/api</code>，后端服务器访问地址为<code>http://127.0.0.1:8000/</code>，这是Django启动后默认本地域名和端口。<code>element-ui</code>默认页面是会出现滚动条的，在登录页会显得很丑，需要在<code>public/index.html</code>加上样式：</p>
+<p><img alt="" src="assets/639523a7c4ca4839aa267330b5c57405.png" /></p>
+<p>Vue程序执行入口是<code>main.js</code>，把需要初始化加载的代码写在这里：</p>
+<p><img alt="" src="assets/489ff1fcdffb4f3689bd8690db60033d.png" /></p>
+<p>app会挂载到<code>index.html</code>文件中<code>div</code>：</p>
+<p><img alt="" src="assets/2b5df5d54c0644a98fd2979287e28c52.png" /></p>
+<p>这是整个Vue项目唯一的<code>html</code>文件，其他组件都是挂载到这个<code>div</code>下面的。其中有个<code>App.vue</code>：</p>
+<p><img alt="" src="assets/6410e3c03a734f2f8634c66e634681d3.png" /></p>
+<p>它叫做根组件，<code>router-view</code>是一块区域，用来展示路由匹配到的组件，也就是说所有路由匹配到的组件都会通过<code>App.vue</code>根组件来展示。路由配置在<code>router/index.js</code>文件中编辑：</p>
+<p><img alt="" src="assets/b9737a6eda2f442a8d013d10344efa2c.png" /></p>
+<p>第一层路由是<code>/login</code>登录和<code>/</code>首页，首页只有菜单，没有具体内容，显示没有意义，所以重定向到了后台管理的用户管理。第二层路由是具体的功能模块，作为子路由放在首页路由下，比如后台管理。后台管理的子模块用户管理也放到了后台管理的子路由，根据<code>url</code>访问路径定义父子路由关系。</p>
+<p>为了在未登录的情况下，不允许访问首页，需要再加上访问拦截：</p>
+<p><img alt="" src="assets/158989a89d3e4918b391c0ae56fcb23c.png" /></p>
+<p>同时添加了<code>meta.requireAuth</code>，用来设置哪些路由需要拦截，这里把首页设置为<code>True</code>：</p>
+<p><img alt="" src="assets/69a38caff4064bfab30f25d772a82224.png" /></p>
+<p>登录就不需要了。路由配置完成了，接着编写页面代码，Vue项目的页面只有<code>index.html</code>一个<code>html</code>文件，其他页面都是放在<code>views</code>文件夹下，新建一个<code>views/login/index.vue</code>文件：</p>
+<p><img alt="" src="assets/7c8b0980cc4440ce9e302513865ba5bc.png" /></p>
+<p>使用<code>el-form</code>标签添加用户名、密码、忘记密码和登录按钮。<code>:model</code>给表单绑定了数据对象，分别填充到<code>form.username</code>、<code>form.password</code>、<code>form.rememberMe</code>：</p>
+<p><img alt="" src="assets/784ae734ee134f73acde66580cbcdeba.png" /></p>
+<p><code>:rules</code>定义了表单规则，比如是否必填：</p>
+<p><img alt="" src="assets/adb21e49bdb641fb81a287e8af3ed56a.png" /></p>
+<blockquote>
+<p>登录没有做用户名和密码校验，新增用户时才会做校验。</p>
+</blockquote>
+<p>在创建登录界面时，从<code>localStorage</code>中移除<code>userInfo</code>和<code>token</code>，登录信息保留7天：</p>
+<p><img alt="" src="assets/70db11b989d34db086b8935769e4169d.png" /></p>
+<p>点击登录按钮会调用<code>login</code>方法，发起登录请求：</p>
+<p><img alt="" src="assets/70e2ac6d8acc4eb591973f7bfdffd68f.png" /></p>
+<p>新建<code>views/home/index.vue</code>，编写首页代码：</p>
+<p><img alt="" src="assets/9b0f40f7470548f69b1897050beedfee.png" /></p>
+<p><code>&lt;router-link&gt;</code>提供了链接跳转，左上角logo跳转到首页，顶部导航栏根据后端返回的<code>authList</code>权限菜单进行显示，因为后台管理只有管理员才能访问。接着编写右上角区域代码：</p>
+<p><img alt="" src="assets/14eb4d35f77a49a58aa5776a6daf5ab1.png" /></p>
+<p>包括修改密码、个人信息和退出登录，为了简单一点，没有弄头像了。修改密码使用<code>el-dialog</code>做了个弹出框：</p>
+<p><img alt="" src="assets/b63efb9212f94ba2b784caf332a8e2b8.png" /></p>
+<p>包括当前密码、新密码、确认新密码。并添加了校验规则：</p>
+<p><img alt="" src="assets/518cf706fe394141a8d74933164e878d.png" /></p>
+<p>修改密码会调用<code>/users/passwords/set</code>接口：</p>
+<p><img alt="" src="assets/ec226c556bc14e5b8e381f61e80abd4c.png" /></p>
+<p>同时初始化菜单权限，从后端获取<code>authList</code>，并判断是否有权限，没有权限的话跳转到登录页面：</p>
+<p><img alt="" src="assets/ddf077c71b294aff8abc19eed614c697.png" /></p>
+<p>首页除了左上角logo，顶部导航栏，右上角个人信息，还有一个重要的版块就是左侧菜单。由于有了顶部导航栏，左侧菜单如果也放到首页来写，由于层级关系会让代码显得很臃肿，所以菜单是放到每个子模块来做的。每个子模块有左侧菜单，也会存在很多重复容易的代码，为了复用，就抽成组件，放到<code>components</code>文件夹下：</p>
+<p><img alt="" src="assets/25d70c35ee774615ac86d30d1b2cb33b.png" /></p>
+<p>用到了<code>el-menu</code>标签：</p>
+<p><img alt="" src="assets/9952a2d8614247f696596e1b43e6ea1c.png" /></p>
+<p><code>slot</code>是个插槽，相当于挖个坑在这，用的时候填一下坑，类似于模板。然后用<code>el-breadcrumb</code>做了个面包屑，点击可跳转到相应路由。接着就把左侧菜单应用到后台管理模块上，新建<code>views/console/index.vue</code>：</p>
+<p><img alt="" src="assets/c1a7d35f886c4b25a9415cd210853287.png" /></p>
+<p>左侧菜单搞定了，右侧内容也是类似的，查询、表格、分页、增删改查，也需要抽成组件：</p>
+<p><img alt="" src="assets/4e920d2b8cd94498989a35fe932ff380.png" /></p>
+<p><img alt="" src="assets/f90ecf8a01184f52bb16d3ef06b65942.png" /></p>
+<p>再新建<code>views/console/userManagement.vue</code>，编写用户管理代码：</p>
+<p><img alt="" src="assets/3a1895199bb44115ba8fe4d81789ffa8.png" /></p>
+<p>用到了<code>el-form</code>和<code>el-table</code>标签。表格数据通过<code>:data</code>绑定到了<code>tableData</code>对象，调用后端接口后，从响应中拿数据填充：</p>
+<p><img alt="" src="assets/756ea7d6e5b54c88b0801d262fe1cf6b.png" /></p>
+<p>新增用户弹窗的入口也是放在这个文件中的：</p>
+<p><img alt="" src="assets/67c59a1a271648748fd7aca68a669b99.png" /></p>
+<p><code>dialogFormVisible</code>默认为<code>False</code>不可见，点击新增按钮后，会设置为<code>True</code>。新建<code>views/console/addUser.vue</code>文件编写用户弹窗的代码：</p>
+<p><img alt="" src="assets/f248431de5ec4c54a2accd95cc4961d0.png" /></p>
+<p>用户管理<code>userManagement.vue</code>和新增用户<code>addUser.vue</code>这两个组件叫做父子组件，父组件如果想传值给子组件，需要通过<code>props</code>来实现：</p>
+<p><img alt="" src="assets/fff384358f8042459c9ac5f221c52101.png" /></p>
+<p><code>watch</code>能监视传值的状态，及时渲染。</p>
+<blockquote>
+<p><code>watch</code>不是必须的，等到做编辑用例和用例运行结果的时候，会更加体会到它的作用。</p>
+</blockquote>
+<p>新增用户时，会对用户名和密码做校验：</p>
+<p><img alt="" src="assets/d408db3d08a842b28561eacaaadbd793.png" /></p>
+<p><code>nameValidator</code>和<code>pwdValidator</code>是公共方法，定义在<code>utils/const.js</code>文件中：</p>
+<p><img alt="" src="assets/a1bc8af81ca948a1a568e628c2777e48.png" /></p>
+<p><code>utils</code>文件夹下还有个<code>commonMethods.js</code>文件，定义了一些公共<code>js</code>方法：</p>
+<p><img alt="" src="assets/7fc8953995c349888491a81877af50ac.png" /></p>
+<p>本次前端代码基本编写完成了：</p>
+<p><img alt="" src="assets/3a3c880be4b2419eb28e6c6ff242bc38.png" /></p>
+<p>最后还有个<code>axios.js</code>，它定义了异步请求实例：</p>
+<p><img alt="" src="assets/d6a85c626c2a48ceb179fec966722b32.png" /></p>
+<p>添加了一个请求拦截器：</p>
+<p><img alt="" src="assets/fdf82ed329c8484a8666b21399fae8bc.png" /></p>
+<p>校验<code>header</code>需要包括<code>jwt</code>请求头：<code>Authorization: Bearer</code>。还添加了一个响应拦截器：</p>
+<p><img alt="" src="assets/2c3ec84b0f95484c955cae610284c587.png" /></p>
+<p>对错误信息进行捕获并弹框提示。</p>
+<h2 id="django">创建Django项目</h2>
+<p>安装Django：</p>
+<pre class="codehilite"><code class="language-shell">pip install --default-timeout=6000 -i https://pypi.tuna.tsinghua.edu.cn/simple django
+</code></pre>
+
+<p>创建<code>teprunner-backend</code>项目：</p>
+<pre class="codehilite"><code class="language-shell">django-admin startproject teprunnerbackend
+</code></pre>
+
+<blockquote>
+<p>项目名字请随意。</p>
+</blockquote>
+<p>注意这条命令的项目名字不能带短横线<code>-</code>，如果想用短横线，可以先去掉短横线执行命令，再手动改回来，外层这个名字对项目没有任何影响：</p>
+<p><img alt="" src="assets/95a52b1cc8be4bff8118c5c4e1d769f8.png" /></p>
+<h2 id="django_1">编写Django代码</h2>
+<p>安装依赖包：</p>
+<pre class="codehilite"><code class="language-shell">pip install --default-timeout=6000 -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
+</code></pre>
+
+<p><img alt="" src="assets/47f159c2cfb54be1a90058ab74bce1f9.png" /></p>
+<p>创建<code>user</code>应用:</p>
+<pre class="codehilite"><code class="language-shell">django-admin startapp user
+</code></pre>
+
+<p><img alt="" src="assets/086d2d794dad44f68481f369267304c7.png" /></p>
+<p>配置<code>teprunnerbackend/settings.py</code>:</p>
+<p><img alt="" src="assets/b2a871da3806440c8075d13e25c1aebe.png" /></p>
+<p><code>django-cors-headers</code>为Django提供了跨域访问的解决方案，需要配置<code>ALLOWED_HOSTS</code>为<code>*</code>，允许所有域访问，并注册<code>INSTALLED_APPS</code>和<code>MIDDLEWARE</code>。<code>user</code>应用也需要在<code>INSTALLED_APPS</code>注册后才会生效。继续改配置，把时区改为<code>Asia/Shanghai</code>：</p>
+<p><img alt="" src="assets/6a08315fc57b4c60bad5601675df8a40.png" /></p>
+<p>继续：</p>
+<p><img alt="" src="assets/b312d99908d54bd4a7b12b29a25a0106.png" /></p>
+<p>Django自带了一个权限管理系统，为了简单一点，直接复用。不过需要对<code>user</code>表进行自定义改造，所以通过配置里面的<code>AUTH_USER_MODEL</code>指定为刚刚创建的<code>user</code>应用的<code>User</code>。<code>REST_FRAMEWORK</code>是Django RESTful framework的配置项，同样要进行自定义改造，所以这里通过配置<code>DEFAULT_AUTHENTICATION_CLASSES</code>指定认证鉴权类为<code>CustomJSONWebTokenAuthentication</code>，通过<code>EXCEPTION_HANDLER</code>指定异常处理函数为<code>custom_exception_handler</code>，通过<code>DEFAULT_PAGINATION_CLASS</code>指定分页类为<code>CustomPagination</code>。<code>JWT_AUTH</code>是<code>jwt</code>的配置项，定义了过期时间为30天，允许刷新，刷新间隔，响应处理，<code>header</code>前缀。最后补充了<code>django-cors-headers</code>的3个配置。</p>
+<p>接着配置<code>teprunnerbackend/urls.py</code>：</p>
+<p><img alt="" src="assets/fb18bd06e2d749b8b36db20e0505bd87.png" /></p>
+<p>把<code>user</code>的<code>url</code>都添加到<code>api/users/</code>下面。新建<code>user/urls.py</code>文件：</p>
+<p><img alt="" src="assets/d3ddb05751174d9eb4e5b1746ac04223.png" /></p>
+<p>分别添加登录、用户增删改查、重置密码、角色列表、修改密码几个路径。Django的视图有两个类型：类视图和函数视图。<code>path()</code>只接受可调用对象，所以类视图需要使用<code>as_view()</code>进行转化，比如<code>views.UserLogin.as_view()</code>。函数视图直接写上函数名就可以了，比如<code>views.update_password</code>。</p>
+<p>打开<code>user/models.py</code>文件，添加数据模型：</p>
+<p><img alt="" src="assets/c9e008e5388047c1b7e0344ca125d677.png" /></p>
+<p><code>model</code>建立了代码和数据库的映射，这称为<code>orm</code>，对象关系映射。基础表定义了共有的<code>created_at</code>和<code>updated_at</code>字段。<code>auto_now_add</code>表示记录新增时间，<code>auto_now</code>表示记录更新时间，都是自动进行，无需手动写代码来处理。用户表继承了Django自带的<code>AbstractUser</code>，<code>REQUIRED_FIELDS</code>规定了哪些字段必填，<code>username</code>和<code>password</code>是隐式规定了必填的，不需要设置，默认<code>email</code>也是必填，这里把它去掉。</p>
+<blockquote>
+<p>Django默认表名会加上<code>django_</code>前缀，使用<code>Meta.db_table</code>来定义没有前缀的表名。</p>
+</blockquote>
+<p><code>model</code>写完了，执行以下命令同步到数据库中，创建表结构：</p>
+<pre class="codehilite"><code class="language-shell">python manage.py makemigrations
+python manage.py migrate
+</code></pre>
+
+<p>打开<code>SQLiteStudio</code>，选择根目录的<code>db.sqlite3</code>文件：</p>
+<p><img alt="" src="assets/1def757a1af94cfa8ea1657912c7a171.png" /></p>
+<p>看到表结构已经创建好了：</p>
+<p><img alt="" src="assets/1cc1994c73904a24bd31da5c4ed6958c.png" /></p>
+<p><code>Role</code>有个<code>models.JSONField</code>字段，为<code>菜单权限JSON</code>，使用Django的<code>fixtures</code>给项目添加初始化数据：</p>
+<p><img alt="" src="assets/a18ffdbd4d404a41bdd857eadb73e61a.png" /></p>
+<p><code>fixtures</code>名字是固定的，就像pytest的<code>conftest.py</code>一样，只认这个名字。<code>user.json</code>存放数据：</p>
+<p><img alt="" src="assets/cbac8f2065214c5797ec3d61dde11e84.png" /></p>
+<p>包括管理员用户、角色权限、管理员角色对照关系。其中角色权限数据共3条：</p>
+<p><img alt="" src="assets/c6f69208e4824d9dac2c662ca9864c54.png" /></p>
+<p><code>auth</code>里面定义了菜单，对应首页的顶部导航栏的栏目，比如本文只添加了后台管理。<code>access</code>表示角色是否有权限访问，只有管理员的这条数据，<code>access</code>为<code>true</code>。通过以下命令把这些数据写入数据库中：</p>
+<pre class="codehilite"><code class="language-shell">python manage.py loaddata user
+</code></pre>
+
+<blockquote>
+<p>Django会在<code>user.fixtures</code>目录下自动找名字为<code>user</code>的<code>.json</code>、<code>.xml</code>或<code>.yaml</code>文件进行加载。</p>
+</blockquote>
+<p>接着新建一个<code>user/serializers.py</code>文件写序列化的代码。Django序列化是指，把数据库的数据转化为<code>json</code>返回给前端，反序列化是指把前端传过来的<code>json</code>写入数据库。先写登录的序列化器：</p>
+<p><img alt="" src="assets/13f33376c6b1490699f7254f1e49e298.png" /></p>
+<p>继承自<code>serializers.ModelSerializer</code>，一般需要在<code>Meta</code>定义两个属性，<code>model</code>指定相应的模型，<code>fields</code>指定所需要的的字段，这些字段就是<code>json</code>的<code>key</code>。图中的<code>roleName</code>不属于<code>User</code>表的字段，所以通过定义为<code>serializers.SerializerMethodField()</code>，再定义<code>get_roleName()</code>方法来取。<code>serializer</code>写好后，写视图，编辑<code>user/views.py</code>：</p>
+<p><img alt="" src="assets/d6a1d870cece40f7a1383741711eee9f.png" /></p>
+<p>由于是<code>jwt</code>认证，所以这里继承了<code>JSONWebTokenAPIView</code>，提取请求参数，<code>check_password()</code>简单校验了下请求的密码和数据库的密码<code>hash</code>值是否相等，后面的代码是<code>JSONWebTokenAPIView.post</code>方法现成的，重写了一遍。<code>ErrInvalidPassword</code>等是在<code>user/errors.py</code>定义的错误响应：</p>
+<p><img alt="" src="assets/799caec744844ddd933960e52ba2757b.png" /></p>
+<blockquote>
+<p>这样可读性会更高。响应状态码也建议这么写<code>status=status.HTTP_500_INTERNAL_SERVER_ERROR</code>，<code>from rest_framework import status</code>已经定义好了所有状态码的常量。</p>
+</blockquote>
+<p>新建<code>user/utils.py</code>文件，编写<code>jwt_response_payload_handler</code>来定义登录接口的响应结构：</p>
+<p><img alt="" src="assets/f7675cd9b0db42a3825cb4da975eb950.png" /></p>
+<p>返回<code>token</code>、<code>user</code>、<code>auth</code>三个字段。<code>custom_exception_handler</code>规范了一下异常响应信息。这2个方法都是在<code>settings.py</code>中的<code>REST_FRAMEWORK</code>配置过的，还有一项配置是分页，新建<code>user/pagination.py</code>文件：</p>
+<p><img alt="" src="assets/80cc5649b089440ea55b5c17e7b6b13f.png" /></p>
+<p>继承了<code>PageNumberPagination</code>，指定了查询参数名<code>page</code>、<code>perPage</code>，自定义了响应字段名<code>currentPage</code>、<code>items</code>、<code>totalNum</code>、<code>totalPage</code>，并添加了2个字段<code>hasNext</code>和<code>hasPrev</code>。</p>
+<p>最后还有一个配置项，自定义认证鉴权，新增<code>user/authentications.py</code>：</p>
+<p><img alt="" src="assets/f3d8e477815a46ac8b78b0e39733924b.png" /></p>
+<p>继承了<code>BaseJSONWebTokenAuthentication</code>。通过<code>get_authorization_header</code>提取请求头中的<code>Authorization</code>字段，没有就提示“缺失JWT请求头”。后面的代码是父类现成的。</p>
+<p>至此，整个后端基本代码都写完了，<code>jwt</code>认证也做好了：</p>
+<p><img alt="" src="assets/5b60e7051e0443fab5e39710be8a149c.png" /></p>
+<p>后面的代码就集中在<code>serializers.py</code>和<code>views.py</code>两个文件，序列化器提供数据库表字段和响应<code>json</code>的序列化和反序列化，视图使用序列化器，编写业务处理代码。按照这个思路，编写用户的增删改查功能，先在<code>serializers.py</code>文件中写2个序列化器<code>UserCreateSerializer</code>和<code>UserPagingSerializer</code>：</p>
+<p><img alt="" src="assets/620607309756418e9dd8963394b883d7.png" /></p>
+<p>由于新增用户和用户列表展示的字段不一样，所以给同一个<code>User</code>模型创建了2个序列化器。图中标红了代码是把<code>int</code>的<code>id</code>值转化为了<code>str</code>类型，方便前端处理。<code>is_staff</code>表示是否为管理员，这个名字是Django定的。再写<code>views.py</code>：</p>
+<p><img alt="" src="assets/d7773c5b45214a7ba44081f91dadb4cb.png" /></p>
+<p><code>GenericViewSet</code>是Django REST framework提供了超级封装的类视图，一般不需要重写，给<code>queryset</code>和<code>serializer_class</code>赋值就可以了。不过因为有些自定义规则，所以本项目进行了复写。<code>permission_classes</code>指定了接口访问权限，<code>IsAdminUser</code>表示必须管理员才能访问，也是Django定义好的，和前面的<code>is_staff</code>相对应：</p>
+<p><img alt="" src="assets/04cc81884a0c461b9b7c0961b7d8667f.png" /></p>
+<p>类似的，我在<code>user/permissions.py</code>新建了个<code>IsTester</code>，用来控制某些功能只能测试使用：</p>
+<p><img alt="" src="assets/855667bbc91a411cb7bc828d2dceb446.png" /></p>
+<blockquote>
+<p>本文还用不到这个。</p>
+</blockquote>
+<p>重写查询用户列表<code>list</code>方法：</p>
+<p><img alt="" src="assets/42ac863407224be3bd7ed63424780bf4.png" /></p>
+<p>增加<code>username</code>和<code>nickname</code>的模糊查询。</p>
+<p>重写新增用户<code>create</code>方法：</p>
+<p><img alt="" src="assets/088d3142184940009c5a27f665abb500.png" /></p>
+<p>首先写<code>user</code>表，根据角色名是否包含管理员，判断是否写<code>is_staff</code>字段，接着用入库后产生的<code>user_id</code>写<code>user_role</code>表。注意最后一行的<code>status</code>，新增的话，状态码返回<code>201</code>。</p>
+<p>重写修改用户的<code>put</code>方法：</p>
+<p><img alt="" src="assets/20a7c98d658b48939d56d2de06f5c607.png" /></p>
+<p>和新增用户的区别在于，更新<code>user_role</code>表数据时，需要根据老角色和新角色，比较差异后，添加新增的，删除废旧的。</p>
+<p>重写删除用户的<code>delete</code>方法：</p>
+<p><img alt="" src="assets/e32f996263da441e8af15cb96d2e09c5.png" /></p>
+<p>同时删除<code>user</code>表和<code>user_role</code>表。注意最后一行的<code>status</code>，删除的话，状态码返回<code>204</code>。</p>
+<p>另外还自定义了<code>user_detail</code>方法，返回单个用户信息：</p>
+<p><img alt="" src="assets/0fe7282c19b1446aa09448e481fc57df.png" /></p>
+<p><code>GenericViewSet</code>的这些请求方法在<code>user/urls.py</code>文件中配置映射关系：</p>
+<p><img alt="" src="assets/dd068ad5cc4944f4a1f263d331f30f40.png" /></p>
+<p><code>&lt;int:pk&gt;</code>定义了<code>url</code>中的整形参数，<code>pk</code>为变量名，通过<code>kwargs["pk"]</code>来取。</p>
+<p>在新增用户的时候，需要从角色列表中选择角色，需要后端提供这样的接口，使用<code>ListAPIView</code>：</p>
+<p><img alt="" src="assets/dbc6fe27289b423caca13d27d9dc2f22.png" /></p>
+<p>4行代码搞定一个接口，这就是Django的好处，除了<code>ListAPIView</code>，还有<code>CreateAPIView</code>、<code>RetrieveAPIView</code>、<code>ListCreateAPIView</code>等，按需取用。</p>
+<p>密码重置接口用<code>APIView</code>来实现：</p>
+<p><img alt="" src="assets/7969bebe52294d95a48a4b02d1111af2.png" /></p>
+<p>定义了<code>put</code>方法，从请求<code>url</code>中获取参数值<code>user_id</code>，查询<code>user</code>对象后，调用预置的<code>set_password</code>方法，把密码重置为<code>qa123456</code>。记得调用<code>user.save()</code>把数据更新到数据库。</p>
+<p>除了类视图，Django也提供了函数视图，并且Django REST framework提供了函数视图的方法装饰器，可以像<code>flask</code>框架一样，感受写纯后端接口的体验，按这个方法来写修改密码接口：</p>
+<p><img alt="" src="assets/2a164493bac445e5b82956179cdb31f5.png" /></p>
+<p><code>@api_view(['PUT'])</code>是Django REST framework提供的方法装饰器。修改密码时，会对<code>jwt</code>进行解码，获取到<code>user_id</code>，然后检查老密码是否和数据库中的密码<code>hash</code>值一致。</p>
+<h2 id="_9">前后端联调</h2>
+<p>根据以上思路把前后端的代码写完以后，就可以把项目跑起来看看效果了。先启动Django项目：</p>
+<pre class="codehilite"><code class="language-shell">python manage.py runserver
+</code></pre>
+
+<p>接着启动Vue项目：</p>
+<pre class="codehilite"><code class="language-shell">npm run serve
+</code></pre>
+
+<p>访问：</p>
+<p>http://localhost:8080/</p>
+<p>就能看到登录页面了，默认超管用户名为<code>admin</code>，密码为<code>qa123456</code>，登录成功后可以尝试走一遍功能检查下：</p>
+<ol>
+<li>点击左上角logo，不会出现跳转到空白页。</li>
+<li>点击右上角信息，弹出下拉菜单，分别有修改密码、个人信息、退出登录。</li>
+<li>点击退出，返回登录页，重新登录。</li>
+<li>查询右上角个人信息，包括用户名、昵称、角色。</li>
+<li>通过右上角下拉菜单修改密码，和老密码不匹配会提示修改失败，填写正确信息会修改成功，自动跳转到登录页面重新登录。输入老密码登录失败，输入新密码登录成功。</li>
+<li>新增用户，保持默认密码，新增成功后，用<code>qa123456</code>登录成功。</li>
+<li>新增用户，选择自定义密码，新增成功后，用<code>qa123456</code>登录失败，用自定义密码登录成功。</li>
+<li>新增用户，分别创建管理员、开发、测试3个角色用户。</li>
+<li>使用新用户登录，管理员用户能登录成功，开发和测试由于没有后台管理权限，点击登录接口后会提示“无菜单权限”。</li>
+<li>修改用户，修改用户名、密码，修改测试角色用户为管理员角色，重新登录，能看到用户名、密码已更新为修改后的用户名、密码，并且管理员角色生效，能登进去看到后台管理功能。</li>
+<li>输入用户名或昵称，点击搜索按钮，测试模糊查询功能正常，重置后清空搜索框，自动查询一次列表。</li>
+<li>点击删除按钮，提示是否确认删除，确认后删除成功，检查数据库<code>user_role</code>表数据也被清理干净。</li>
+<li>切换分页，刷新列表，选择不同分页条数，正常计算显示相应的分页总数。</li>
+<li>找到自定义密码的用户，点击重置密码，重置成功后，重新登录，使用自定义密码登录失败，使用默认密码<code>qa123456</code>登录成功。</li>
+<li>点击左侧菜单旁边的面包屑按钮，能收起和展开左侧菜单。</li>
+</ol>
+<blockquote>
+<p>由于时间关系，目前还没有做角色管理功能，角色通过后端Django的<code>fixtures/user.json</code>进行数据初始化。</p>
+</blockquote>
+<h2 id="postmanmock-server">Postman搭建Mock Server</h2>
+<p>在写前端代码过程中，后端还没有写好，可以找一个服务模拟后端，提供响应数据进行前端调试，这项技术叫做Mock，这个服务称为Mock Server。Mock Server可以使用JavaScript的<code>mock.js</code>来搭建，也可以使用Python的<code>FastAPI</code>，不嫌麻烦用<code>Spring Boot</code>或者<code>Nginx</code>做一个也可以。不过为了方便起见，选择上手就能用的可以省不少心。一些网站会提供在线Mock服务，在网站上填写<code>url</code>和<code>response body</code>，有个缺点是我找了一圈都没有发现能设置响应状态码的，比如在调试<code>axios.js</code>的响应拦截器时，就需要根据<code>404</code>、<code>500</code>来进行调试，看效果。寻寻觅觅，发现平时都在用的Postman，直接可以做Mock Server。首先登陆Postman，只有登陆后才能使用这个功能：</p>
+<p><img alt="" src="assets/45cf67a749a54559816a5cb3874c8278.png" /></p>
+<p>可以选择用Google账号登陆，也可以注册一个。点击左上角<code>+ New</code>：</p>
+<p><img alt="" src="assets/66495b2e216a4ff2a87916bba6734ea8.png" /></p>
+<p>选择<code>Mock Server</code>。依次填写请求方法、请求路径、响应状态码、响应体：</p>
+<p><img alt="" src="assets/d3eab18c2aec4aa6814a569f246406fe.png" /></p>
+<p>点击表格右上角的三个点还能添加请求体和接口描述：</p>
+<p><img alt="" src="assets/3a7ad059eaab4d3b94b1655e0cdbfd3b.png" /></p>
+<p>接着点击下一步：</p>
+<p><img alt="" src="assets/07ee6563022644078741105b09c36ce3.png" /></p>
+<p>填写Mock Server的名字为<code>hello</code>，其他选项默认，点击<code>Create Mock Server</code>进行创建：</p>
+<p><img alt="" src="assets/cb729e084e8b436eaff77e239fcda109.png" /></p>
+<p>关闭后，Mock Server就建好了：</p>
+<p><img alt="" src="assets/f5b348c59f65420eb2fa0519f3467977.png" /></p>
+<p>接着从左侧<code>Collections</code>中找到这个接口，点击打开：</p>
+<p><img alt="" src="assets/c8e224a30dc0401c8dc8e813aadca397.png" /></p>
+<p>此时还不能发送请求，需要在右上角选择环境<code>hello</code>：</p>
+<p><img alt="" src="assets/d63486b9c5a846c788cddd9d72cce4ec.png" /></p>
+<p>发送请求成功：</p>
+<p><img alt="" src="assets/42327d4cf7b64083ae00d0ddfbd749c0.png" /></p>
+<p>其中<code>url</code>是隐藏了的，点击右上角环境旁边的眼睛图标查看：</p>
+<p><img alt="" src="assets/92438859ed724d16888a8c1a690df061.png" /></p>
+<p>修改已创建接口mock数据的入口在<code>Examples</code>：</p>
+<p><img alt="" src="assets/ce7c4473536b4b81bc960ba901f6a5ce.png" /></p>
+<p>点击<code>Default</code>：</p>
+<p><img alt="" src="assets/df12f794031b4a1ab49487d779ee4830.png" /></p>
+<p>提供了新增时更直观的操作界面，比如我把响应状态码改成了<code>404</code>，响应体改成了<code>{"msg": "hello not found"}</code>，点击右上角<code>Save Example</code>保存后，再次请求：</p>
+<p><img alt="" src="assets/b6d3b24be8ff4318b2342048b2155d30.png" /></p>
+<p>实际mock的状态码和响应体也更新了。</p>
+<h2 id="_10">小结</h2>
+<p>本文是学习版pytest内核测试平台开发的入门篇，内容比较充实，全文字数上万，一共截了103张图，借助<code>FastStone Capture</code>这个小工具，还算轻松，希望能让读者更直观的看到平台功能和代码逻辑。“编写Vue代码”和“编写Django代码”2个小节的内容是一气呵成写完的，没有做修改，怕改了之后反而影响行文思路，不够畅快。前端项目参考了一些开源项目如<code>Tcloud</code>、<code>FasterRunner</code>等，把代码看懂后，自己重新组织了代码和规范，在调试过程中，也学会了写Vue，做学习版<code>teprunner</code>时就从头写了一遍。后端代码完全是我自己写的，先学了一遍Django和Django REST framework官方教程，其中《Django认证系统并不鸡肋反而很重要》这篇文章在腾讯云+社区2020年度征文活动中，被评选为了最受喜爱作者奖，如果对Django认证系统不是很清楚的话，可以看看。最后，个人水平有限，有错误或不足之处，还请见谅。虽然测试平台不一定能完全落地，但是做一遍开发对能力的提升是极大的。<code>teprunner</code>并不算优秀平台，和真正企业级项目比起来，就是个小玩具。如果能博君一乐，也算是体现价值了。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>源码前端 https://github.com/dongfanger/teprunner-frontend</p>
+<p>源码后端 https://github.com/dongfanger/teprunner-backend</p>
+<p>个人博客 https://dongfanger.gitee.io/blog/</p>
+</blockquote>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="000001-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E8%90%BD%E5%9C%B0%E5%88%9D%E4%BD%93%E9%AA%8C.html" class="btn btn-neutral float-left" title="【开源平台】pytest内核测试平台落地初体验"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="000003-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E9%83%A8%E7%BD%B2%E5%88%B0Linux%E7%B3%BB%E7%BB%9FDocker.html" class="btn btn-neutral float-right" title="【开源平台】teprunner测试平台部署到Linux系统Docker">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="000001-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E8%90%BD%E5%9C%B0%E5%88%9D%E4%BD%93%E9%AA%8C.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="000003-%E3%80%90%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E3%80%91teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E9%83%A8%E7%BD%B2%E5%88%B0Linux%E7%B3%BB%E7%BB%9FDocker.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../_static/js/readmore.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
