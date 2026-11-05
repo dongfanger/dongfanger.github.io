@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JMeter定时器设置延迟与同步 | 测试开发刚哥</title>
+<meta name="keywords" content="性能测试, JMeter">
+<meta name="description" content="JMeter定时器一般用来设置延迟与同步。它的作用域和优先级如下：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000011-jmeterjmeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000011-jmeterjmeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000011-jmeterjmeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JMeter定时器设置延迟与同步">
+  <meta property="og:description" content="JMeter定时器一般用来设置延迟与同步。它的作用域和优先级如下：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-11T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-11T00:00:00+00:00">
+    <meta property="article:tag" content="性能测试">
+    <meta property="article:tag" content="JMeter">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JMeter定时器设置延迟与同步">
+  <meta name="twitter:description" content="JMeter定时器一般用来设置延迟与同步。它的作用域和优先级如下：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JMeter定时器设置延迟与同步",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000011-jmeterjmeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JMeter定时器设置延迟与同步",
+  "name": "JMeter定时器设置延迟与同步",
+  "description": "JMeter定时器一般用来设置延迟与同步。它的作用域和优先级如下：",
+  "keywords": [
+    "性能测试", "JMeter"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nJMeter定时器一般用来设置延迟与同步。它的作用域和优先级如下：\n定时器的优先级高于Sampler。 在同一作用域（比如控制器下）有多个定时器存在，每个定时器都会执行。 在某一Sampler节点下的定时器，只对这个Sampler有效。 JMeter一共有9种定时器：\nConstant Timer 固定值，多用来模拟思考时间。\nUniform Random Timer 随机时间，分布会更均匀。\nRandom Delay Maximum：随机延迟时间。\nConstant Delay Offset：固定延迟时间。\n示例：\n会让线程延迟在2.0到2.1秒之间。\nPrecise Throughput Timer 用的比较少，比Constant Throughput Timer更复杂更高级的用来控制吞吐量的一个定时器。\nConstant Throughput Timer 控制吞吐量，尽量保持Sampler产生的吞吐量（RPS）在一个固定的范围内。\nTarget throughput：目标吞吐量。JMeter会根据吞吐量、并发线程数来计算迭代的时间间隔，如果吞吐量大过设定值，就增加；反之减少。\nCalculate Throughput based on：\nthis thread only：仅针对当前线程，每个线程互不干扰，分开计算需要延迟多少时间。\nall active threads：把所有线程的吞吐量合在一起作为因子计算。\nall active threads in current thread group：针对当前线程组中的所有线程。\nall active threads (shared)：在所有线程中，随便获取一个线程上次运行的实际来进行计算，结果随机不一定准确，只能努力控制吞吐量在某一个范围。\nall active threads in current thread group (shared)：在上面意思一样，范围是当前线程组。\nGaussian Random Timer 生成一个呈高斯分布的时间间隔，可以用来离散请求。\nDeviation：一个浮动范围的偏差值。\nConstant Delay Offset：固定延迟时间。\nJSR223 Timer 跟BeanShell类似，可以运行JavaScript等其他语言。\nJDK集成了JS的运行引擎，可以运行JavaScript脚本，JSR223是一个标准，为脚本引擎提供了统一的接口、统一的访问模式。\nPoisson Random Timer 随机时间，呈泊松分布。\nLambda：泊松分布的期望和方差。\nConstant Delay Offset：固定延迟时间。\nSynchronizing Timer 同步定时器，用来模拟多用户并发同一时刻发起请求。\nNumber of Simulated Users to Group by：等待x个用户（线程）集合后开始释放（发起请求）。\n默认为0，等同于设置为线程租中的线程数量。\nTimeout in milliseconds：等待时长，如果等待这么长时间，还没有达到上个选项设置的数量，那么不再等待，立即释放已到达的线程。\n默认为0，等待线程数达到上个选项设置的数量才释放。\nBeanShell Timer Reset Interpreter：是否每次迭代重置解释器，默认False。官方建议在长时间运行的脚本中才设置为True。\nParameters：入参，可以是单个变量，也可以是数组。\nFile Name：从脚本文件中读取BeanShell脚本。\nScript：\nctx：通过JmeterContent实例获取运行时信息，如log.error(ctx.getThreadNum().toString());。\nvars：访问或设置变量，如vars.get(\"name\")，vars.put(\"name\", \"dongfanger\")。\nprops：访问JMeter属性（%JMETER_HOME%/bin/jmeter.properties），如props.get(\"log_level.jmeter\")，props.put(\"log_level.jmeter\", \"ERROR\")。\nlog：在代码中调用log类来写日志，如log.error(\"loadtest\");。\nprev：可以访问前面Sampler的结果。\n示例：\n小结 本文首先介绍了JMeter定时器的作用域和优先级，然后分别介绍了各式各样的定时器，既能设置延迟，也能同步集合，可以固定可以随机，配置与编程并存，五花八门。\n参考资料：\n《全栈性能测试修炼宝典JMeter实战》\nhttps://blog.csdn.net/hwhua1986/article/details/78214923\n",
+  "wordCount" : "118",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-11T00:00:00Z",
+  "dateModified": "2026-01-11T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000011-jmeterjmeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      JMeter定时器设置延迟与同步
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-11T00:00:00+00:00'>2026-01-11</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>118 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/'>#性能测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jmeter/'>#JMeter</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>JMeter定时器一般用来设置延迟与同步。它的作用域和优先级如下：</p>
+<ul>
+<li>定时器的优先级高于Sampler。</li>
+<li>在同一作用域（比如控制器下）有多个定时器存在，每个定时器都会执行。</li>
+<li>在某一Sampler节点下的定时器，只对这个Sampler有效。</li>
+</ul>
+<p>JMeter一共有9种定时器：</p>
+<p><img loading="lazy" src="../assets/9201ac5264a54cda99b08adab77772fb.png"></p>
+<h1 id="constant-timer">Constant Timer<a hidden class="anchor" aria-hidden="true" href="#constant-timer">#</a></h1>
+<p><img loading="lazy" src="../assets/c0b3838524074a81a1f36ba67e2961ec.png"></p>
+<p>固定值，多用来模拟思考时间。</p>
+<h1 id="uniform-random-timer">Uniform Random Timer<a hidden class="anchor" aria-hidden="true" href="#uniform-random-timer">#</a></h1>
+<p><img loading="lazy" src="../assets/9ee22d6cf9364510970fc2415f0541e0.png"></p>
+<p>随机时间，分布会更均匀。</p>
+<p>Random Delay Maximum：随机延迟时间。</p>
+<p>Constant Delay Offset：固定延迟时间。</p>
+<p>示例：</p>
+<p><img loading="lazy" src="../assets/7c263af9dd424fc5945f9ec1b1157c00.png"></p>
+<p>会让线程延迟在2.0到2.1秒之间。</p>
+<h1 id="precise-throughput-timer">Precise Throughput Timer<a hidden class="anchor" aria-hidden="true" href="#precise-throughput-timer">#</a></h1>
+<p><img loading="lazy" src="../assets/dbbfb11e4e424f05ae21450ccc2dc96c.png"></p>
+<p>用的比较少，比Constant Throughput Timer更复杂更高级的用来控制吞吐量的一个定时器。</p>
+<h1 id="constant-throughput-timer">Constant Throughput Timer<a hidden class="anchor" aria-hidden="true" href="#constant-throughput-timer">#</a></h1>
+<p><img loading="lazy" src="../assets/b201d393d7be4059be70889ec4541206.png"></p>
+<p>控制吞吐量，尽量保持Sampler产生的吞吐量（RPS）在一个固定的范围内。</p>
+<p>Target throughput：目标吞吐量。JMeter会根据吞吐量、并发线程数来计算迭代的时间间隔，如果吞吐量大过设定值，就增加；反之减少。</p>
+<p>Calculate Throughput based on：</p>
+<p>this thread only：仅针对当前线程，每个线程互不干扰，分开计算需要延迟多少时间。</p>
+<p>all active threads：把所有线程的吞吐量合在一起作为因子计算。</p>
+<p>all active threads in current thread group：针对当前线程组中的所有线程。</p>
+<p>all active threads (shared)：在所有线程中，随便获取一个线程上次运行的实际来进行计算，结果随机不一定准确，只能努力控制吞吐量在某一个范围。</p>
+<p>all active threads in current thread group (shared)：在上面意思一样，范围是当前线程组。</p>
+<h1 id="gaussian-random-timer">Gaussian Random Timer<a hidden class="anchor" aria-hidden="true" href="#gaussian-random-timer">#</a></h1>
+<p><img loading="lazy" src="../assets/4c5ffb1a8ddd43fa9eb5cc54a37de077.png"></p>
+<p>生成一个呈高斯分布的时间间隔，可以用来离散请求。</p>
+<p>Deviation：一个浮动范围的偏差值。</p>
+<p>Constant Delay Offset：固定延迟时间。</p>
+<h1 id="jsr223-timer">JSR223 Timer<a hidden class="anchor" aria-hidden="true" href="#jsr223-timer">#</a></h1>
+<p><img loading="lazy" src="../assets/319466843cfc4cd2bcd2260e0e84026c.png"></p>
+<p>跟BeanShell类似，可以运行JavaScript等其他语言。</p>
+<blockquote>
+<p>JDK集成了JS的运行引擎，可以运行JavaScript脚本，JSR223是一个标准，为脚本引擎提供了统一的接口、统一的访问模式。</p>
+</blockquote>
+<h1 id="poisson-random-timer">Poisson Random Timer<a hidden class="anchor" aria-hidden="true" href="#poisson-random-timer">#</a></h1>
+<p><img loading="lazy" src="../assets/e8373a75488b4976b7b94a9058b60648.png"></p>
+<p>随机时间，呈泊松分布。</p>
+<p>Lambda：泊松分布的期望和方差。</p>
+<p>Constant Delay Offset：固定延迟时间。</p>
+<h1 id="synchronizing-timer">Synchronizing Timer<a hidden class="anchor" aria-hidden="true" href="#synchronizing-timer">#</a></h1>
+<p><img loading="lazy" src="../assets/bc6afa5f459e4852bcbc0767ab1061d8.png"></p>
+<p>同步定时器，用来模拟多用户并发同一时刻发起请求。</p>
+<p>Number of Simulated Users to Group by：等待x个用户（线程）集合后开始释放（发起请求）。</p>
+<blockquote>
+<p>默认为0，等同于设置为线程租中的线程数量。</p>
+</blockquote>
+<p>Timeout in milliseconds：等待时长，如果等待这么长时间，还没有达到上个选项设置的数量，那么不再等待，立即释放已到达的线程。</p>
+<blockquote>
+<p>默认为0，等待线程数达到上个选项设置的数量才释放。</p>
+</blockquote>
+<h1 id="beanshell-timer">BeanShell Timer<a hidden class="anchor" aria-hidden="true" href="#beanshell-timer">#</a></h1>
+<p><img loading="lazy" src="../assets/4ce36042a8814dd18ebe3b76dd7c0d61.png"></p>
+<p>Reset Interpreter：是否每次迭代重置解释器，默认False。官方建议在长时间运行的脚本中才设置为True。</p>
+<p>Parameters：入参，可以是单个变量，也可以是数组。</p>
+<p>File Name：从脚本文件中读取BeanShell脚本。</p>
+<p>Script：</p>
+<p>ctx：通过JmeterContent实例获取运行时信息，如<code>log.error(ctx.getThreadNum().toString());</code>。</p>
+<p>vars：访问或设置变量，如<code>vars.get(&quot;name&quot;)</code>，<code>vars.put(&quot;name&quot;, &quot;dongfanger&quot;)</code>。</p>
+<p>props：访问JMeter属性（<code>%JMETER_HOME%/bin/jmeter.properties</code>），如<code>props.get(&quot;log_level.jmeter&quot;)</code>，<code>props.put(&quot;log_level.jmeter&quot;, &quot;ERROR&quot;)</code>。</p>
+<p>log：在代码中调用log类来写日志，如<code>log.error(&quot;loadtest&quot;);</code>。</p>
+<p>prev：可以访问前面Sampler的结果。</p>
+<p>示例：</p>
+<p><img loading="lazy" src="../assets/e9f853288a154f3fbefaf64aa8a712d6.png"></p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文首先介绍了JMeter定时器的作用域和优先级，然后分别介绍了各式各样的定时器，既能设置延迟，也能同步集合，可以固定可以随机，配置与编程并存，五花八门。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>《全栈性能测试修炼宝典JMeter实战》</p>
+<p><a href="https://blog.csdn.net/hwhua1986/article/details/78214923">https://blog.csdn.net/hwhua1986/article/details/78214923</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/">性能测试</a></li>
+      <li><a href="https://dongfanger.github.io/tags/jmeter/">JMeter</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000011-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B08%E6%B3%9B%E5%9E%8B/">
+    <span class="title">« 上一页</span>
+    <span>Java官方笔记8泛型</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000011-pythonpython%E5%85%83%E7%BB%84%E6%8B%86%E5%8C%85%E6%8D%A1%E5%88%B08%E5%80%8D%E9%95%9C%E5%BF%AB%E5%87%86%E7%8B%A0/">
+    <span class="title">下一页 »</span>
+    <span>Python元组拆包捡到8倍镜快准狠</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#constant-timer">Constant Timer</a></li>
+    <li><a href="#uniform-random-timer">Uniform Random Timer</a></li>
+    <li><a href="#precise-throughput-timer">Precise Throughput Timer</a></li>
+    <li><a href="#constant-throughput-timer">Constant Throughput Timer</a></li>
+    <li><a href="#gaussian-random-timer">Gaussian Random Timer</a></li>
+    <li><a href="#jsr223-timer">JSR223 Timer</a></li>
+    <li><a href="#poisson-random-timer">Poisson Random Timer</a></li>
+    <li><a href="#synchronizing-timer">Synchronizing Timer</a></li>
+    <li><a href="#beanshell-timer">BeanShell Timer</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

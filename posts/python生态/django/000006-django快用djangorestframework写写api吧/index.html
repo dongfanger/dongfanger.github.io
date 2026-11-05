@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>快用DjangoRESTframework写写API吧 | 测试开发刚哥</title>
+<meta name="keywords" content="Django">
+<meta name="description" content="Django默认是前后端绑定的，提供了Template和Form，现在流行前后端分离项目，Python大佬坐不住了，于是便有了Django REST framework：https://github.com/tomchristie">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000006-django%E5%BF%AB%E7%94%A8djangorestframework%E5%86%99%E5%86%99api%E5%90%A7/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000006-django%E5%BF%AB%E7%94%A8djangorestframework%E5%86%99%E5%86%99api%E5%90%A7/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000006-django%E5%BF%AB%E7%94%A8djangorestframework%E5%86%99%E5%86%99api%E5%90%A7/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="快用DjangoRESTframework写写API吧">
+  <meta property="og:description" content="Django默认是前后端绑定的，提供了Template和Form，现在流行前后端分离项目，Python大佬坐不住了，于是便有了Django REST framework：https://github.com/tomchristie">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:tag" content="Django">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="快用DjangoRESTframework写写API吧">
+  <meta name="twitter:description" content="Django默认是前后端绑定的，提供了Template和Form，现在流行前后端分离项目，Python大佬坐不住了，于是便有了Django REST framework：https://github.com/tomchristie">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "快用DjangoRESTframework写写API吧",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000006-django%E5%BF%AB%E7%94%A8djangorestframework%E5%86%99%E5%86%99api%E5%90%A7/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "快用DjangoRESTframework写写API吧",
+  "name": "快用DjangoRESTframework写写API吧",
+  "description": "Django默认是前后端绑定的，提供了Template和Form，现在流行前后端分离项目，Python大佬坐不住了，于是便有了Django REST framework：https://github.com/tomchristie",
+  "keywords": [
+    "Django"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nDjango默认是前后端绑定的，提供了Template和Form，现在流行前后端分离项目，Python大佬坐不住了，于是便有了Django REST framework：https://github.com/tomchristie\n官网：https://www.django-rest-framework.org/\nDjango REST framework（简称DRF）是个Python技术栈的后端框架，用来构建RESTful API。\nRESTful API REST，是指REpresentational State Transfer，有个精辟的解释什么是RESTful：\n看URL就知道要什么 看Method就知道干什么 看Status Code就知道结果如何 良好的RESTful API设计的基本原则是：\n返回JSON 严禁乱用状态码 处理好分页 返回具体的实体数据而不是返回通用的JSON数据 请求对象有默认值 创建项目 接下来我们使用DRF创建一个简单的API，允许管理员查看和编辑用户和组。\n先创建名为tutorial的project和名为quickstart的app：\n# 创建项目目录 mkdir tutorial cd tutorial # 创建Python虚拟环境 python -m venv env # 激活虚拟环境 env\\Scripts\\activate.bat # Mac中使用`source env/bin/activate` # 在虚拟环境中安装Django和Django REST framework pip install django pip install djangorestframework # 创建project，注意最后有个“.”，表示在当前目录创建 django-admin startproject tutorial . cd tutorial # 创建app django-admin startapp quickstart cd .. 创建好的目录结构如下：\n$ pwd /tutorial $ find . . ./manage.py ./tutorial ./tutorial/__init__.py ./tutorial/quickstart ./tutorial/quickstart/__init__.py ./tutorial/quickstart/admin.py ./tutorial/quickstart/apps.py ./tutorial/quickstart/migrations ./tutorial/quickstart/migrations/__init__.py ./tutorial/quickstart/models.py ./tutorial/quickstart/tests.py ./tutorial/quickstart/views.py ./tutorial/settings.py ./tutorial/urls.py ./tutorial/wsgi.py 一般不会把app放到project里面，这里是为了避免命名冲突。\n接着同步数据库：\npython manage.py migrate 然后创建一个超级管理员，密码password123：\npython manage.py createsuperuser --email admin@example.com --username admin Serializers 序列化是指把数据库模型转换为JSON。新建模块tutorial/quickstart/serializers.py：\nfrom django.contrib.auth.models import User, Group from rest_framework import serializers class UserSerializer(serializers.HyperlinkedModelSerializer): class Meta: model = User fields = ['url', 'username', 'email', 'groups'] class GroupSerializer(serializers.HyperlinkedModelSerializer): class Meta: model = Group fields = ['url', 'name'] Views 视图用来接受Web请求并且返回Web响应。打开tutorial/quickstart/views.py，添加代码：\nfrom django.contrib.auth.models import User, Group from rest_framework import viewsets from rest_framework import permissions from tutorial.quickstart.serializers import UserSerializer, GroupSerializer class UserViewSet(viewsets.ModelViewSet): \"\"\" API endpoint that allows users to be viewed or edited. \"\"\" queryset = User.objects.all().order_by('-date_joined') serializer_class = UserSerializer permission_classes = [permissions.IsAuthenticated] class GroupViewSet(viewsets.ModelViewSet): \"\"\" API endpoint that allows groups to be viewed or edited. \"\"\" queryset = Group.objects.all() serializer_class = GroupSerializer permission_classes = [permissions.IsAuthenticated] URLs 配置路由，打开tutorial/urls.py，添加代码：\nfrom django.urls import include, path from rest_framework import routers from tutorial.quickstart import views router = routers.DefaultRouter() router.register(r'users', views.UserViewSet) router.register(r'groups', views.GroupViewSet) # Wire up our API using automatic URL routing. # Additionally, we include login URLs for the browsable API. urlpatterns = [ path('', include(router.urls)), path('api-auth/', include('rest_framework.urls', namespace='rest_framework')) ] 因为这里用的不是view而是viewsets，所以可以自动生成API的URLconf，只需要注册class即可。\n也可以不用viewsets，用view，再自定义API URL。\nPagination 分页用来控制每页返回多少数据，在tutorial/settings.py中添加：\nREST_FRAMEWORK = { 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', 'PAGE_SIZE': 10 } Settings 在tutorial/settings.py中，把'rest_framework'添加到INSTALLED_APPS：\nINSTALLED_APPS = [ ... 'rest_framework', ] 测试API 启动项目：\npython manage.py runserver 访问http://127.0.0.1:8000/users/，点击右上角用超管登录，即可看到：\n小结 本文是Django REST framework系列的开篇，内容参考的是官网的Tutorial。学了Django再看DRF，思路清晰多了，虽然我代码能力不强，但总是在追求规范和标准，难道是因为做测试的职业病么？\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/quickstart/\nhttp://www.ruanyifeng.com/blog/2014/05/restful_api.html\n",
+  "wordCount" : "293",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-06T00:00:00Z",
+  "dateModified": "2026-01-06T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000006-django%E5%BF%AB%E7%94%A8djangorestframework%E5%86%99%E5%86%99api%E5%90%A7/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      快用DjangoRESTframework写写API吧
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-06T00:00:00+00:00'>2026-01-06</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>293 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/django/'>#Django</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>Django默认是前后端绑定的，提供了Template和Form，现在流行前后端分离项目，Python大佬坐不住了，于是便有了Django REST framework：https://github.com/tomchristie</p>
+<p><img loading="lazy" src="../assets/047a92282a2245989d6d750b109260ee.png"></p>
+<p>官网：https://www.django-rest-framework.org/</p>
+<p><img loading="lazy" src="../assets/6b2686e1ac8a471786e4c869c700eddb.png"></p>
+<p>Django REST framework（简称DRF）是个Python技术栈的后端框架，用来构建RESTful API。</p>
+<h1 id="restful-api">RESTful API<a hidden class="anchor" aria-hidden="true" href="#restful-api">#</a></h1>
+<p>REST，是指REpresentational State Transfer，有个精辟的解释什么是RESTful：</p>
+<ul>
+<li>看URL就知道要什么</li>
+<li>看Method就知道干什么</li>
+<li>看Status Code就知道结果如何</li>
+</ul>
+<p>良好的RESTful API设计的基本原则是：</p>
+<ul>
+<li>返回JSON</li>
+<li>严禁乱用状态码</li>
+<li>处理好分页</li>
+<li>返回具体的实体数据而不是返回通用的JSON数据</li>
+<li>请求对象有默认值</li>
+</ul>
+<h1 id="创建项目">创建项目<a hidden class="anchor" aria-hidden="true" href="#创建项目">#</a></h1>
+<p>接下来我们使用DRF创建一个简单的API，允许管理员查看和编辑用户和组。</p>
+<p>先创建名为<code>tutorial</code>的project和名为<code>quickstart</code>的app：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#57606a"># 创建项目目录</span>
+</span></span><span style="display:flex;"><span>mkdir tutorial
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">cd</span> tutorial
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 创建Python虚拟环境</span>
+</span></span><span style="display:flex;"><span>python -m venv env
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 激活虚拟环境</span>
+</span></span><span style="display:flex;"><span>env<span style="color:#0a3069">\S</span>cripts<span style="color:#0a3069">\a</span>ctivate.bat  
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># Mac中使用`source env/bin/activate`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 在虚拟环境中安装Django和Django REST framework</span>
+</span></span><span style="display:flex;"><span>pip install django
+</span></span><span style="display:flex;"><span>pip install djangorestframework
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 创建project，注意最后有个“.”，表示在当前目录创建</span>
+</span></span><span style="display:flex;"><span>django-admin startproject tutorial .
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">cd</span> tutorial
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 创建app</span>
+</span></span><span style="display:flex;"><span>django-admin startapp quickstart
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">cd</span> ..
+</span></span></code></pre></div><p>创建好的目录结构如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ <span style="color:#6639ba">pwd</span>
+</span></span><span style="display:flex;"><span>&lt;some path&gt;/tutorial
+</span></span><span style="display:flex;"><span>$ find .
+</span></span><span style="display:flex;"><span>.
+</span></span><span style="display:flex;"><span>./manage.py
+</span></span><span style="display:flex;"><span>./tutorial
+</span></span><span style="display:flex;"><span>./tutorial/__init__.py
+</span></span><span style="display:flex;"><span>./tutorial/quickstart
+</span></span><span style="display:flex;"><span>./tutorial/quickstart/__init__.py
+</span></span><span style="display:flex;"><span>./tutorial/quickstart/admin.py
+</span></span><span style="display:flex;"><span>./tutorial/quickstart/apps.py
+</span></span><span style="display:flex;"><span>./tutorial/quickstart/migrations
+</span></span><span style="display:flex;"><span>./tutorial/quickstart/migrations/__init__.py
+</span></span><span style="display:flex;"><span>./tutorial/quickstart/models.py
+</span></span><span style="display:flex;"><span>./tutorial/quickstart/tests.py
+</span></span><span style="display:flex;"><span>./tutorial/quickstart/views.py
+</span></span><span style="display:flex;"><span>./tutorial/settings.py
+</span></span><span style="display:flex;"><span>./tutorial/urls.py
+</span></span><span style="display:flex;"><span>./tutorial/wsgi.py
+</span></span></code></pre></div><blockquote>
+<p>一般不会把app放到project里面，这里是为了避免命名冲突。</p>
+</blockquote>
+<p>接着同步数据库：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>python manage.py migrate
+</span></span></code></pre></div><p>然后创建一个超级管理员，密码<code>password123</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>python manage.py createsuperuser --email admin@example.com --username admin
+</span></span></code></pre></div><h1 id="serializers">Serializers<a hidden class="anchor" aria-hidden="true" href="#serializers">#</a></h1>
+<p>序列化是指把数据库模型转换为JSON。新建模块<code>tutorial/quickstart/serializers.py</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> User<span style="color:#1f2328">,</span> Group
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework</span> <span style="color:#cf222e">import</span> serializers
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">UserSerializer</span><span style="color:#1f2328">(</span>serializers<span style="color:#0550ae">.</span>HyperlinkedModelSerializer<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">class</span> <span style="color:#1f2328">Meta</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        model <span style="color:#0550ae">=</span> User
+</span></span><span style="display:flex;"><span>        fields <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;url&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;username&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;email&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;groups&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">GroupSerializer</span><span style="color:#1f2328">(</span>serializers<span style="color:#0550ae">.</span>HyperlinkedModelSerializer<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">class</span> <span style="color:#1f2328">Meta</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        model <span style="color:#0550ae">=</span> Group
+</span></span><span style="display:flex;"><span>        fields <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;url&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;name&#39;</span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><h1 id="views">Views<a hidden class="anchor" aria-hidden="true" href="#views">#</a></h1>
+<p>视图用来接受Web请求并且返回Web响应。打开<code>tutorial/quickstart/views.py</code>，添加代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> User<span style="color:#1f2328">,</span> Group
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework</span> <span style="color:#cf222e">import</span> viewsets
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework</span> <span style="color:#cf222e">import</span> permissions
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tutorial.quickstart.serializers</span> <span style="color:#cf222e">import</span> UserSerializer<span style="color:#1f2328">,</span> GroupSerializer
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">UserViewSet</span><span style="color:#1f2328">(</span>viewsets<span style="color:#0550ae">.</span>ModelViewSet<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    API endpoint that allows users to be viewed or edited.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    queryset <span style="color:#0550ae">=</span> User<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>all<span style="color:#1f2328">()</span><span style="color:#0550ae">.</span>order_by<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;-date_joined&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    serializer_class <span style="color:#0550ae">=</span> UserSerializer
+</span></span><span style="display:flex;"><span>    permission_classes <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>permissions<span style="color:#0550ae">.</span>IsAuthenticated<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">GroupViewSet</span><span style="color:#1f2328">(</span>viewsets<span style="color:#0550ae">.</span>ModelViewSet<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    API endpoint that allows groups to be viewed or edited.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    queryset <span style="color:#0550ae">=</span> Group<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>all<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    serializer_class <span style="color:#0550ae">=</span> GroupSerializer
+</span></span><span style="display:flex;"><span>    permission_classes <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>permissions<span style="color:#0550ae">.</span>IsAuthenticated<span style="color:#1f2328">]</span>
+</span></span></code></pre></div><h1 id="urls">URLs<a hidden class="anchor" aria-hidden="true" href="#urls">#</a></h1>
+<p>配置路由，打开<code>tutorial/urls.py</code>，添加代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.urls</span> <span style="color:#cf222e">import</span> include<span style="color:#1f2328">,</span> path
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework</span> <span style="color:#cf222e">import</span> routers
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tutorial.quickstart</span> <span style="color:#cf222e">import</span> views
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>router <span style="color:#0550ae">=</span> routers<span style="color:#0550ae">.</span>DefaultRouter<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>router<span style="color:#0550ae">.</span>register<span style="color:#1f2328">(</span><span style="color:#0a3069">r</span><span style="color:#0a3069">&#39;users&#39;</span><span style="color:#1f2328">,</span> views<span style="color:#0550ae">.</span>UserViewSet<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>router<span style="color:#0550ae">.</span>register<span style="color:#1f2328">(</span><span style="color:#0a3069">r</span><span style="color:#0a3069">&#39;groups&#39;</span><span style="color:#1f2328">,</span> views<span style="color:#0550ae">.</span>GroupViewSet<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># Wire up our API using automatic URL routing.</span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># Additionally, we include login URLs for the browsable API.</span>
+</span></span><span style="display:flex;"><span>urlpatterns <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;&#39;</span><span style="color:#1f2328">,</span> include<span style="color:#1f2328">(</span>router<span style="color:#0550ae">.</span>urls<span style="color:#1f2328">)),</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;api-auth/&#39;</span><span style="color:#1f2328">,</span> include<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;rest_framework.urls&#39;</span><span style="color:#1f2328">,</span> namespace<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;rest_framework&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>因为这里用的不是view而是viewsets，所以可以自动生成API的URLconf，只需要注册class即可。</p>
+<blockquote>
+<p>也可以不用viewsets，用view，再自定义API URL。</p>
+</blockquote>
+<h1 id="pagination">Pagination<a hidden class="anchor" aria-hidden="true" href="#pagination">#</a></h1>
+<p>分页用来控制每页返回多少数据，在<code>tutorial/settings.py</code>中添加：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>REST_FRAMEWORK <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;DEFAULT_PAGINATION_CLASS&#39;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#39;rest_framework.pagination.PageNumberPagination&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;PAGE_SIZE&#39;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">10</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></div><h1 id="settings">Settings<a hidden class="anchor" aria-hidden="true" href="#settings">#</a></h1>
+<p>在<code>tutorial/settings.py</code>中，把<code>'rest_framework'</code>添加到<code>INSTALLED_APPS</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>INSTALLED_APPS <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;rest_framework&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><h1 id="测试api">测试API<a hidden class="anchor" aria-hidden="true" href="#测试api">#</a></h1>
+<p>启动项目：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>python manage.py runserver
+</span></span></code></pre></div><p>访问<code>http://127.0.0.1:8000/users/</code>，点击右上角用超管登录，即可看到：</p>
+<p><img loading="lazy" src="../assets/4c47abb1e9f8475f921bc2ac0a30e19d.png"></p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文是Django REST framework系列的开篇，内容参考的是官网的Tutorial。学了Django再看DRF，思路清晰多了，虽然我代码能力不强，但总是在追求规范和标准，难道是因为做测试的职业病么？</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.django-rest-framework.org/tutorial/quickstart/">https://www.django-rest-framework.org/tutorial/quickstart/</a></p>
+<p><a href="http://www.ruanyifeng.com/blog/2014/05/restful_api.html">http://www.ruanyifeng.com/blog/2014/05/restful_api.html</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/django/">Django</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000006-%E6%B5%8B%E8%AF%95%E5%B7%A5%E7%A8%8B%E5%B8%88%E7%9A%84%E6%88%90%E9%95%BF%E4%BD%93%E7%8E%B0%E5%9C%A82%E4%B8%AA%E5%9C%B0%E6%96%B9/">
+    <span class="title">« 上一页</span>
+    <span>测试工程师的成长，体现在2个地方</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000006-%E8%80%81%E6%9D%BF%E7%BB%99%E6%88%91%E5%AE%89%E6%8E%92%E4%BA%86%E4%B8%AA%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83%E6%B2%BB%E7%90%86%E7%9A%84%E6%B4%BB/">
+    <span class="title">下一页 »</span>
+    <span>老板给我安排了个测试环境治理的活</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#restful-api">RESTful API</a></li>
+    <li><a href="#创建项目">创建项目</a></li>
+    <li><a href="#serializers">Serializers</a></li>
+    <li><a href="#views">Views</a></li>
+    <li><a href="#urls">URLs</a></li>
+    <li><a href="#pagination">Pagination</a></li>
+    <li><a href="#settings">Settings</a></li>
+    <li><a href="#测试api">测试API</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

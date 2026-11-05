@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>teprunner测试平台定时任务这次终于稳了 | 测试开发刚哥</title>
+<meta name="keywords" content="teprunner, 开源平台">
+<meta name="description" content="teprunner测试平台已经有一个多月没有更新了，主要原因是定时任务不够稳定，经过反复试错，找到了解决办法，这次终于稳定了。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/teprunner/000009-%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%BF%99%E6%AC%A1%E7%BB%88%E4%BA%8E%E7%A8%B3%E4%BA%86/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/teprunner/000009-%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%BF%99%E6%AC%A1%E7%BB%88%E4%BA%8E%E7%A8%B3%E4%BA%86/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/teprunner/000009-%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%BF%99%E6%AC%A1%E7%BB%88%E4%BA%8E%E7%A8%B3%E4%BA%86/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="teprunner测试平台定时任务这次终于稳了">
+  <meta property="og:description" content="teprunner测试平台已经有一个多月没有更新了，主要原因是定时任务不够稳定，经过反复试错，找到了解决办法，这次终于稳定了。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-09T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-09T00:00:00+00:00">
+    <meta property="article:tag" content="Teprunner">
+    <meta property="article:tag" content="开源平台">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="teprunner测试平台定时任务这次终于稳了">
+  <meta name="twitter:description" content="teprunner测试平台已经有一个多月没有更新了，主要原因是定时任务不够稳定，经过反复试错，找到了解决办法，这次终于稳定了。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "teprunner测试平台定时任务这次终于稳了",
+      "item": "https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/teprunner/000009-%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%BF%99%E6%AC%A1%E7%BB%88%E4%BA%8E%E7%A8%B3%E4%BA%86/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "teprunner测试平台定时任务这次终于稳了",
+  "name": "teprunner测试平台定时任务这次终于稳了",
+  "description": "teprunner测试平台已经有一个多月没有更新了，主要原因是定时任务不够稳定，经过反复试错，找到了解决办法，这次终于稳定了。",
+  "keywords": [
+    "teprunner", "开源平台"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nteprunner测试平台已经有一个多月没有更新了，主要原因是定时任务不够稳定，经过反复试错，找到了解决办法，这次终于稳定了。\n本文开发内容 作为测试平台而言，定时任务算是必备要素了，只有跑起来的自动化，才能算是真正的自动化。本文将给测试计划添加定时任务功能，具体如下：\n前端添加测试计划的定时任务开关 采用crontab表达式设置计划时间 后端集成django-apschedule，在数据库中记录任务明细和执行详情。 定时清理执行记录。 前端效果图：\n前端开发内容 编辑src/views/teprunner/plan/PlanEditor.vue文件：\n运行环境用el-select实现了下拉框，用el-switch实现了开关按钮。\nel-pophover实现了帮助描述，可以参考编写crontab表达式。\n在data中添加了表单项taskRunEnv、taskStatus、taskCrontab，必填规则，以及其他变量。\n页面创建时读取localStorage中的计划信息。\n并获取运行环境下拉框选项。\n开关按钮的文字是根taskStatus进行设置的。\n在保存时，给请求添加上新的这3个参数。\n后端开发内容 第一步是安装django-apscheduler，要么直接安装：\npip install django-apscheduler 要么更新项目代码后通过requirements.txt安装：\npip install -r requirements.txt 然后编辑teprunnerbackend/settings.py文件：\n在INSTALLED_APPS中添加django_apscheduler。\n接着迁移数据库，创建两张任务表，一张任务明细表，一张任务执行情况表：\npython manage.py migrate 编辑teprunner/models.py文件：\n给Plan模型添加3个字段。\n编辑teprunner/serializers.py文件：\n同样的，给PlanSerializer添加3个字段。\n新建teprunner/views/task.py文件：\n创建BackgroundScheduler的对象实例，Background指的是在后台运行。并添加DjangoJobStore，把任务通过Django保存到数据库中。\n添加一个定时删除执行记录的任务，max_age是最大保存时间，这里设置为7天。scheduler.add_job()用来添加定时任务，trigger是触发器，也就是计划时间，这里设置为每周一0点。id是任务的标识符。max_instances指同时最多只有一个实例。replace_existing设置为True，每次都更新已存在的任务，防止重启服务导致scheduler.add_job()报错。\n启动任务。\n编辑teprunner/views/run.py文件：\n为了手动执行测试计划和定时任务执行测试计划共用，这里把执行代码抽取了部分作为run_plan_engine()函数。\n编辑teprunner/views/plan.py文件：\n重写create方法，先根据测试计划的名字判断是否已存在，如果存在就直接返回500。接着判断开关如果开启，那么就通过scheduler.add_job()添加任务。跟刚才添加任务的有点区别是，通过args参数指定了func函数的参数。最后把任务添加日志写到响应中返回。\n重写update方法，先判断测试计划是否已经存在，判断规则是根据名字去查找已存在记录，如果找到同名计划，且id不是自己，那么就认为已存在同名计划，直接返回500。\n然后判断如果开关打开，就新增任务；如果开关关闭，就删除任务，删除任务使用scheduler.remove_job()。\n最后重写destroy方法，在删除测试计划时，一并删除定时任务。\n猴子补丁解决pymysql连接问题 为什么定时任务会不稳定？因为我用的pymysql库，它不会进行数据库连接断开后重试。Django和MySQL建立建立后，何时断开连接通过CONNECT_MAX_AGE来设置，默认是0，表示使用完马上断开连接。Django只会对Web请求采取这个策略，使用signals.request_started.connect(close_old_connections)和signals.request_finished.connect(close_old_connections)来关闭旧连接。**但定时任务不是Web请求，而是直接连接数据库，Django并不会去主动断开这个连接。**而MySQL默认8小时会把连接断掉，于是当Django拿着已经被MySQL断开的连接对象去请求MySQL，就报错了。\n当我在本地安装了MySQL后，重启MySQL就能复现这个问题。\n解决办法一是把旧连接复活，进行断线重连，但是会导致连接占用可能越来越多，耗费资源。解决办法二是像Django处理Web请求一样，每次用完就断开，下次使用再重新连接，占用资源少。\n猴子补丁是指不修改第三方库的基础上，对库的功能进行扩展。我给django-apscheduler写了个猴子补丁，实现第二个解决办法，用完就断开连接：\n并且通过issue方式，告诉了它的作者：\n这开启了我在GitHub上英文交流技术的大门。\n比如我又给loguru提了个bug，此时已经和loguru的作者英文交流了5个回合。\n小结 本文给测试计划添加了定时任务功能，为teprunner测试平台补上了一块重要拼图。从此它不但能批量执行用例了，还能按照计划时间，定时执行，实现了真正的自动化。\n",
+  "wordCount" : "59",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-09T00:00:00Z",
+  "dateModified": "2026-01-09T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/teprunner/000009-%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%BF%99%E6%AC%A1%E7%BB%88%E4%BA%8E%E7%A8%B3%E4%BA%86/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      teprunner测试平台定时任务这次终于稳了
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>59 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/'>原创项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/teprunner/'>#Teprunner</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0/'>#开源平台</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>teprunner测试平台已经有一个多月没有更新了，主要原因是定时任务不够稳定，经过反复试错，找到了解决办法，这次终于稳定了。</p>
+<h1 id="本文开发内容">本文开发内容<a hidden class="anchor" aria-hidden="true" href="#本文开发内容">#</a></h1>
+<p>作为测试平台而言，定时任务算是必备要素了，只有跑起来的自动化，才能算是真正的自动化。本文将给测试计划添加定时任务功能，具体如下：</p>
+<ul>
+<li>前端添加测试计划的定时任务开关</li>
+<li>采用crontab表达式设置计划时间</li>
+<li>后端集成django-apschedule，在数据库中记录任务明细和执行详情。</li>
+<li>定时清理执行记录。</li>
+</ul>
+<p>前端效果图：</p>
+<p><img loading="lazy" src="../assets/bf333a460a7e4764b1760d85632efb7e.png"></p>
+<h1 id="前端开发内容">前端开发内容<a hidden class="anchor" aria-hidden="true" href="#前端开发内容">#</a></h1>
+<p>编辑src/views/teprunner/plan/PlanEditor.vue文件：</p>
+<p><img loading="lazy" src="../assets/2ea359eba6624e8e9faba4d33ae9ebbb.png"></p>
+<p>运行环境用<code>el-select</code>实现了下拉框，用<code>el-switch</code>实现了开关按钮。</p>
+<p><img loading="lazy" src="../assets/7851ed78e45248858030043d398a0138.png"></p>
+<p><code>el-pophover</code>实现了帮助描述，可以参考编写crontab表达式。</p>
+<p><img loading="lazy" src="../assets/9733d5605146468bbcbd655374a7ee01.png"></p>
+<p>在data中添加了表单项taskRunEnv、taskStatus、taskCrontab，必填规则，以及其他变量。</p>
+<p><img loading="lazy" src="../assets/a70729087f334be0a7bb752531c8993f.png"></p>
+<p>页面创建时读取localStorage中的计划信息。</p>
+<p><img loading="lazy" src="../assets/15e1c0b5f65d460c9542df1d658bfe7b.png"></p>
+<p>并获取运行环境下拉框选项。</p>
+<p><img loading="lazy" src="../assets/d2106f2736d24a908a593175b52fd3b0.png"></p>
+<p>开关按钮的文字是根taskStatus进行设置的。</p>
+<p><img loading="lazy" src="../assets/8195ef7ec07449adb00133bc2ff15234.png"></p>
+<p>在保存时，给请求添加上新的这3个参数。</p>
+<h1 id="后端开发内容">后端开发内容<a hidden class="anchor" aria-hidden="true" href="#后端开发内容">#</a></h1>
+<p>第一步是安装django-apscheduler，要么直接安装：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>pip install django<span style="color:#0550ae">-</span>apscheduler
+</span></span></code></pre></div><p>要么更新项目代码后通过requirements.txt安装：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>pip install <span style="color:#0550ae">-</span>r requirements<span style="color:#0550ae">.</span>txt
+</span></span></code></pre></div><p>然后编辑teprunnerbackend/settings.py文件：</p>
+<p><img loading="lazy" src="../assets/140f18133cdb4208b568719d666ce1ba.png"></p>
+<p>在INSTALLED_APPS中添加django_apscheduler。</p>
+<p><strong>接着迁移数据库，创建两张任务表，一张任务明细表，一张任务执行情况表</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>python manage<span style="color:#0550ae">.</span>py migrate
+</span></span></code></pre></div><p><img loading="lazy" src="../assets/a54ec99a7c424a1a8fefef82de8c2611.png"></p>
+<p>编辑teprunner/models.py文件：</p>
+<p><img loading="lazy" src="../assets/a425e3288ec3438e9cb19bc33ad92ae9.png"></p>
+<p>给Plan模型添加3个字段。</p>
+<p>编辑teprunner/serializers.py文件：</p>
+<p><img loading="lazy" src="../assets/665c2d2e08e94c9cba49981b5b874083.png"></p>
+<p>同样的，给PlanSerializer添加3个字段。</p>
+<p>新建teprunner/views/task.py文件：</p>
+<p><img loading="lazy" src="../assets/a86b0dbcba0d4b46bf803f38d04ce150.png"></p>
+<p>创建BackgroundScheduler的对象实例，Background指的是在后台运行。并添加DjangoJobStore，把任务通过Django保存到数据库中。</p>
+<p><img loading="lazy" src="../assets/bb783116dd9244a9ad2e251b3d7107d1.png"></p>
+<p>添加一个定时删除执行记录的任务，max_age是最大保存时间，这里设置为7天。scheduler.add_job()用来添加定时任务，trigger是触发器，也就是计划时间，这里设置为每周一0点。id是任务的标识符。max_instances指同时最多只有一个实例。replace_existing设置为True，每次都更新已存在的任务，防止重启服务导致scheduler.add_job()报错。</p>
+<p><img loading="lazy" src="../assets/a0249a6eaeed47b2aff0a4a714cd2f11.png"></p>
+<p>启动任务。</p>
+<p>编辑teprunner/views/run.py文件：</p>
+<p><img loading="lazy" src="../assets/57da33189cd5492e86c95051521501e3.png"></p>
+<p>为了手动执行测试计划和定时任务执行测试计划共用，这里把执行代码抽取了部分作为run_plan_engine()函数。</p>
+<p>编辑teprunner/views/plan.py文件：</p>
+<p><img loading="lazy" src="../assets/57799a90c86d4162acc422548fdcbf82.png"></p>
+<p>重写create方法，先根据测试计划的名字判断是否已存在，如果存在就直接返回500。接着判断开关如果开启，那么就通过scheduler.add_job()添加任务。跟刚才添加任务的有点区别是，通过args参数指定了func函数的参数。最后把任务添加日志写到响应中返回。</p>
+<p><img loading="lazy" src="../assets/1d2b2eec61bc493094892c1506500c01.png"></p>
+<p>重写update方法，先判断测试计划是否已经存在，判断规则是根据名字去查找已存在记录，如果找到同名计划，且id不是自己，那么就认为已存在同名计划，直接返回500。</p>
+<p><img loading="lazy" src="../assets/13b53fa1528c4227bde6d21823de8e4b.png"></p>
+<p>然后判断如果开关打开，就新增任务；如果开关关闭，就删除任务，删除任务使用scheduler.remove_job()。</p>
+<p><img loading="lazy" src="../assets/ca947b7c14fe4d5fb94a000f71cec6fd.png"></p>
+<p>最后重写destroy方法，在删除测试计划时，一并删除定时任务。</p>
+<h1 id="猴子补丁解决pymysql连接问题">猴子补丁解决pymysql连接问题<a hidden class="anchor" aria-hidden="true" href="#猴子补丁解决pymysql连接问题">#</a></h1>
+<p>为什么定时任务会不稳定？因为我用的pymysql库，它不会进行数据库连接断开后重试。Django和MySQL建立建立后，何时断开连接通过CONNECT_MAX_AGE来设置，默认是0，表示使用完马上断开连接。Django只会对Web请求采取这个策略，使用signals.request_started.connect(close_old_connections)和signals.request_finished.connect(close_old_connections)来关闭旧连接。**但定时任务不是Web请求，而是直接连接数据库，Django并不会去主动断开这个连接。**而MySQL默认8小时会把连接断掉，于是当Django拿着已经被MySQL断开的连接对象去请求MySQL，就报错了。</p>
+<blockquote>
+<p>当我在本地安装了MySQL后，重启MySQL就能复现这个问题。</p>
+</blockquote>
+<p>解决办法一是把旧连接复活，进行断线重连，但是会导致连接占用可能越来越多，耗费资源。解决办法二是像Django处理Web请求一样，每次用完就断开，下次使用再重新连接，占用资源少。</p>
+<p>猴子补丁是指不修改第三方库的基础上，对库的功能进行扩展。我给django-apscheduler写了个猴子补丁，实现第二个解决办法，用完就断开连接：</p>
+<p><img loading="lazy" src="../assets/68343c5a557a409689978987c66dbc18.png"></p>
+<p>并且通过issue方式，告诉了它的作者：</p>
+<p><img loading="lazy" src="../assets/44737d078fc84fd191a1de0757a20589.png"></p>
+<p>这开启了我在GitHub上英文交流技术的大门。</p>
+<blockquote>
+<p>比如我又给loguru提了个bug，此时已经和loguru的作者英文交流了5个回合。</p>
+</blockquote>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文给测试计划添加了定时任务功能，为teprunner测试平台补上了一块重要拼图。从此它不但能批量执行用例了，还能按照计划时间，定时执行，实现了真正的自动化。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/teprunner/">Teprunner</a></li>
+      <li><a href="https://dongfanger.github.io/tags/%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0/">开源平台</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000009-springspringboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B06%E6%B6%88%E6%81%AF/">
+    <span class="title">« 上一页</span>
+    <span>SpringBoot官方笔记6消息</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000009-tep%E6%94%AF%E6%8C%81mvc%E6%9E%B6%E6%9E%84%E5%AE%9E%E7%8E%B0%E7%94%A8%E4%BE%8B%E6%95%B0%E6%8D%AE%E5%88%86%E7%A6%BB/">
+    <span class="title">下一页 »</span>
+    <span>tep支持MVC架构实现用例数据分离</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#本文开发内容">本文开发内容</a></li>
+    <li><a href="#前端开发内容">前端开发内容</a></li>
+    <li><a href="#后端开发内容">后端开发内容</a></li>
+    <li><a href="#猴子补丁解决pymysql连接问题">猴子补丁解决pymysql连接问题</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

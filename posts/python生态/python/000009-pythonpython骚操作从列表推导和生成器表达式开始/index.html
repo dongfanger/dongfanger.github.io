@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Python骚操作从列表推导和生成器表达式开始 | 测试开发刚哥</title>
+<meta name="keywords" content="Python">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+序列
+序列是指一组数据，按存放类型分为容器序列与扁平序列，按能否被修改分为不可变序列与可变序列。
+容器序列与扁平序列
+容器序列存放的是对象的引用，包括list、tuple、collections.deque。
+扁平序列存放的是对象的值，包括str、bytes、bytearray、memoryview和array.array。
+
+扁平序列的值是字符、字节和数值这种基础类型。
+
+不可变序列与可变序列
+不可变序列，包括tuple、str、bytes。
+可变序列，包括list、bytearray、array.array、collection.deque、memoryview。
+下图左边是父类，右边是子类，可以看出可变序列是从不可变序列继承来的，扩展了可变方法：
+
+列表推导
+Python语言魅力在于简洁，这能从最常见的创建列表体现出来，比如我们想把字符串&quot;abc&quot;转换成新列表[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]，常规写法：
+symbols = &#34;abc&#34;
+codes = []
+for symbol in symbols:
+    codes.append(symbol)
+print(codes)  # [&#34;a&#34;, &#34;b&#34;, &#34;c&#34;]
+用到了for循环和列表append方法。实际上可以不用append方法，直接：
+symbols = &#34;abc&#34;
+codes = [symbol for symbol in symbols]
+这叫做列表推导，是更加Pythonic的写法。
+无论是编写效率还是可阅读性，列表推导都更胜一筹，可以说是构建列表的快捷方式。但是不能滥用，通用原则是，如果列表推导的代码超过了两行，就要考虑用append了。这不是规定，完全可以凭借自我喜好来选择。
+笛卡尔积是指多个序列中元素所有组合，我们用列表推导来实现笛卡尔积：
+colors = [&#34;black&#34;, &#34;white&#34;]
+sizes = [&#34;S&#34;, &#34;M&#34;, &#34;L&#34;]
+tshirts = [(color, size) for color in colors for size in sizes]
+一行代码搞定！Life is short，use Python，list comprehension is wonderful，amazing。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000009-pythonpython%E9%AA%9A%E6%93%8D%E4%BD%9C%E4%BB%8E%E5%88%97%E8%A1%A8%E6%8E%A8%E5%AF%BC%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%BC%80%E5%A7%8B/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000009-pythonpython%E9%AA%9A%E6%93%8D%E4%BD%9C%E4%BB%8E%E5%88%97%E8%A1%A8%E6%8E%A8%E5%AF%BC%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%BC%80%E5%A7%8B/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000009-pythonpython%E9%AA%9A%E6%93%8D%E4%BD%9C%E4%BB%8E%E5%88%97%E8%A1%A8%E6%8E%A8%E5%AF%BC%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%BC%80%E5%A7%8B/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Python骚操作从列表推导和生成器表达式开始">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+序列 序列是指一组数据，按存放类型分为容器序列与扁平序列，按能否被修改分为不可变序列与可变序列。
+容器序列与扁平序列
+容器序列存放的是对象的引用，包括list、tuple、collections.deque。
+扁平序列存放的是对象的值，包括str、bytes、bytearray、memoryview和array.array。
+扁平序列的值是字符、字节和数值这种基础类型。
+不可变序列与可变序列
+不可变序列，包括tuple、str、bytes。
+可变序列，包括list、bytearray、array.array、collection.deque、memoryview。
+下图左边是父类，右边是子类，可以看出可变序列是从不可变序列继承来的，扩展了可变方法：
+列表推导 Python语言魅力在于简洁，这能从最常见的创建列表体现出来，比如我们想把字符串&#34;abc&#34;转换成新列表[&#34;a&#34;, &#34;b&#34;, &#34;c&#34;]，常规写法：
+symbols = &#34;abc&#34; codes = [] for symbol in symbols: codes.append(symbol) print(codes) # [&#34;a&#34;, &#34;b&#34;, &#34;c&#34;] 用到了for循环和列表append方法。实际上可以不用append方法，直接：
+symbols = &#34;abc&#34; codes = [symbol for symbol in symbols] 这叫做列表推导，是更加Pythonic的写法。
+无论是编写效率还是可阅读性，列表推导都更胜一筹，可以说是构建列表的快捷方式。但是不能滥用，通用原则是，如果列表推导的代码超过了两行，就要考虑用append了。这不是规定，完全可以凭借自我喜好来选择。
+笛卡尔积是指多个序列中元素所有组合，我们用列表推导来实现笛卡尔积：
+colors = [&#34;black&#34;, &#34;white&#34;] sizes = [&#34;S&#34;, &#34;M&#34;, &#34;L&#34;] tshirts = [(color, size) for color in colors for size in sizes] 一行代码搞定！Life is short，use Python，list comprehension is wonderful，amazing。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-09T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-09T00:00:00+00:00">
+    <meta property="article:tag" content="Python">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Python骚操作从列表推导和生成器表达式开始">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+序列 序列是指一组数据，按存放类型分为容器序列与扁平序列，按能否被修改分为不可变序列与可变序列。
+容器序列与扁平序列
+容器序列存放的是对象的引用，包括list、tuple、collections.deque。
+扁平序列存放的是对象的值，包括str、bytes、bytearray、memoryview和array.array。
+扁平序列的值是字符、字节和数值这种基础类型。
+不可变序列与可变序列
+不可变序列，包括tuple、str、bytes。
+可变序列，包括list、bytearray、array.array、collection.deque、memoryview。
+下图左边是父类，右边是子类，可以看出可变序列是从不可变序列继承来的，扩展了可变方法：
+列表推导 Python语言魅力在于简洁，这能从最常见的创建列表体现出来，比如我们想把字符串&#34;abc&#34;转换成新列表[&#34;a&#34;, &#34;b&#34;, &#34;c&#34;]，常规写法：
+symbols = &#34;abc&#34; codes = [] for symbol in symbols: codes.append(symbol) print(codes) # [&#34;a&#34;, &#34;b&#34;, &#34;c&#34;] 用到了for循环和列表append方法。实际上可以不用append方法，直接：
+symbols = &#34;abc&#34; codes = [symbol for symbol in symbols] 这叫做列表推导，是更加Pythonic的写法。
+无论是编写效率还是可阅读性，列表推导都更胜一筹，可以说是构建列表的快捷方式。但是不能滥用，通用原则是，如果列表推导的代码超过了两行，就要考虑用append了。这不是规定，完全可以凭借自我喜好来选择。
+笛卡尔积是指多个序列中元素所有组合，我们用列表推导来实现笛卡尔积：
+colors = [&#34;black&#34;, &#34;white&#34;] sizes = [&#34;S&#34;, &#34;M&#34;, &#34;L&#34;] tshirts = [(color, size) for color in colors for size in sizes] 一行代码搞定！Life is short，use Python，list comprehension is wonderful，amazing。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Python骚操作从列表推导和生成器表达式开始",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000009-pythonpython%E9%AA%9A%E6%93%8D%E4%BD%9C%E4%BB%8E%E5%88%97%E8%A1%A8%E6%8E%A8%E5%AF%BC%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%BC%80%E5%A7%8B/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python骚操作从列表推导和生成器表达式开始",
+  "name": "Python骚操作从列表推导和生成器表达式开始",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n序列 序列是指一组数据，按存放类型分为容器序列与扁平序列，按能否被修改分为不可变序列与可变序列。\n容器序列与扁平序列\n容器序列存放的是对象的引用，包括list、tuple、collections.deque。\n扁平序列存放的是对象的值，包括str、bytes、bytearray、memoryview和array.array。\n扁平序列的值是字符、字节和数值这种基础类型。\n不可变序列与可变序列\n不可变序列，包括tuple、str、bytes。\n可变序列，包括list、bytearray、array.array、collection.deque、memoryview。\n下图左边是父类，右边是子类，可以看出可变序列是从不可变序列继承来的，扩展了可变方法：\n列表推导 Python语言魅力在于简洁，这能从最常见的创建列表体现出来，比如我们想把字符串\u0026quot;abc\u0026quot;转换成新列表[\u0026quot;a\u0026quot;, \u0026quot;b\u0026quot;, \u0026quot;c\u0026quot;]，常规写法：\nsymbols = \u0026#34;abc\u0026#34; codes = [] for symbol in symbols: codes.append(symbol) print(codes) # [\u0026#34;a\u0026#34;, \u0026#34;b\u0026#34;, \u0026#34;c\u0026#34;] 用到了for循环和列表append方法。实际上可以不用append方法，直接：\nsymbols = \u0026#34;abc\u0026#34; codes = [symbol for symbol in symbols] 这叫做列表推导，是更加Pythonic的写法。\n无论是编写效率还是可阅读性，列表推导都更胜一筹，可以说是构建列表的快捷方式。但是不能滥用，通用原则是，如果列表推导的代码超过了两行，就要考虑用append了。这不是规定，完全可以凭借自我喜好来选择。\n笛卡尔积是指多个序列中元素所有组合，我们用列表推导来实现笛卡尔积：\ncolors = [\u0026#34;black\u0026#34;, \u0026#34;white\u0026#34;] sizes = [\u0026#34;S\u0026#34;, \u0026#34;M\u0026#34;, \u0026#34;L\u0026#34;] tshirts = [(color, size) for color in colors for size in sizes] 一行代码搞定！Life is short，use Python，list comprehension is wonderful，amazing。\n",
+  "keywords": [
+    "Python"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n序列 序列是指一组数据，按存放类型分为容器序列与扁平序列，按能否被修改分为不可变序列与可变序列。\n容器序列与扁平序列\n容器序列存放的是对象的引用，包括list、tuple、collections.deque。\n扁平序列存放的是对象的值，包括str、bytes、bytearray、memoryview和array.array。\n扁平序列的值是字符、字节和数值这种基础类型。\n不可变序列与可变序列\n不可变序列，包括tuple、str、bytes。\n可变序列，包括list、bytearray、array.array、collection.deque、memoryview。\n下图左边是父类，右边是子类，可以看出可变序列是从不可变序列继承来的，扩展了可变方法：\n列表推导 Python语言魅力在于简洁，这能从最常见的创建列表体现出来，比如我们想把字符串\"abc\"转换成新列表[\"a\", \"b\", \"c\"]，常规写法：\nsymbols = \"abc\" codes = [] for symbol in symbols: codes.append(symbol) print(codes) # [\"a\", \"b\", \"c\"] 用到了for循环和列表append方法。实际上可以不用append方法，直接：\nsymbols = \"abc\" codes = [symbol for symbol in symbols] 这叫做列表推导，是更加Pythonic的写法。\n无论是编写效率还是可阅读性，列表推导都更胜一筹，可以说是构建列表的快捷方式。但是不能滥用，通用原则是，如果列表推导的代码超过了两行，就要考虑用append了。这不是规定，完全可以凭借自我喜好来选择。\n笛卡尔积是指多个序列中元素所有组合，我们用列表推导来实现笛卡尔积：\ncolors = [\"black\", \"white\"] sizes = [\"S\", \"M\", \"L\"] tshirts = [(color, size) for color in colors for size in sizes] 一行代码搞定！Life is short，use Python，list comprehension is wonderful，amazing。\n注意这行代码有两个for循环，等价于：\nfor color in colors: for size in sizes: 运行结果是：\n[('black', 'S'), ('black', 'M'), ('black', 'L'), ('white', 'S'), ('white', 'M'), ('white', 'L')] 如果换一下顺序：\n[(color, size) for color in colors for size in sizes] 等价于：\nfor size in sizes: for color in colors: 运行结果是不同的，观察第2个元素：\n[('black', 'S'), ('white', 'S'), ('black', 'M'), ('white', 'M'), ('black', 'L'), ('white', 'L')] 生成器表达式 一般接触到生成器时，都要讲yield关键字，看似有点复杂，然而却很简单，生成器就像列表推导一样，只不过是用来生成其他类型序列的，比如元组：\nsymbols = \"abc\" codes = (symbol for symbol in symbols) 它的语法非常简单，把列表推导的中括号[]换成小括号()，就可以了。\n语法相似，本质上却有很大区别，我们试着用生成器表达式来实现笛卡尔积，看看会有什么变化：\ncolors = [\"black\", \"white\"] sizes = [\"S\", \"M\", \"L\"] tshirts = ((color, size) for color in colors for size in sizes) 运行结果是：\n",
+  "wordCount" : "245",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-09T00:00:00Z",
+  "dateModified": "2026-01-09T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000009-pythonpython%E9%AA%9A%E6%93%8D%E4%BD%9C%E4%BB%8E%E5%88%97%E8%A1%A8%E6%8E%A8%E5%AF%BC%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%BC%80%E5%A7%8B/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      Python骚操作从列表推导和生成器表达式开始
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>245 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/python/'>#Python</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="序列">序列<a hidden class="anchor" aria-hidden="true" href="#序列">#</a></h1>
+<p>序列是指一组数据，按存放类型分为容器序列与扁平序列，按能否被修改分为不可变序列与可变序列。</p>
+<p><strong>容器序列与扁平序列</strong></p>
+<p>容器序列存放的是对象的引用，包括<code>list</code>、<code>tuple</code>、<code>collections.deque</code>。</p>
+<p>扁平序列存放的是对象的值，包括<code>str</code>、<code>bytes</code>、<code>bytearray</code>、<code>memoryview</code>和<code>array.array</code>。</p>
+<blockquote>
+<p>扁平序列的值是字符、字节和数值这种基础类型。</p>
+</blockquote>
+<p><strong>不可变序列与可变序列</strong></p>
+<p>不可变序列，包括<code>tuple</code>、<code>str</code>、<code>bytes</code>。</p>
+<p>可变序列，包括<code>list</code>、<code>bytearray</code>、<code>array.array</code>、<code>collection.deque</code>、<code>memoryview</code>。</p>
+<p>下图左边是父类，右边是子类，可以看出可变序列是从不可变序列继承来的，扩展了可变方法：</p>
+<p><img loading="lazy" src="../assets/99443fcff54247bf8dd12bc527c7c17f.webp"></p>
+<h1 id="列表推导">列表推导<a hidden class="anchor" aria-hidden="true" href="#列表推导">#</a></h1>
+<p>Python语言魅力在于简洁，这能从最常见的创建列表体现出来，比如我们想把字符串<code>&quot;abc&quot;</code>转换成新列表<code>[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]</code>，常规写法：</p>
+<pre tabindex="0"><code>symbols = &#34;abc&#34;
+codes = []
+for symbol in symbols:
+    codes.append(symbol)
+print(codes)  # [&#34;a&#34;, &#34;b&#34;, &#34;c&#34;]
+</code></pre><p>用到了for循环和列表append方法。实际上可以不用append方法，直接：</p>
+<pre tabindex="0"><code>symbols = &#34;abc&#34;
+codes = [symbol for symbol in symbols]
+</code></pre><p>这叫做列表推导，是更加Pythonic的写法。</p>
+<p>无论是编写效率还是可阅读性，列表推导都更胜一筹，可以说是构建列表的快捷方式。但是不能滥用，通用原则是，如果列表推导的代码超过了两行，就要考虑用append了。这不是规定，完全可以凭借自我喜好来选择。</p>
+<p>笛卡尔积是指多个序列中元素所有组合，我们用列表推导来实现笛卡尔积：</p>
+<pre tabindex="0"><code>colors = [&#34;black&#34;, &#34;white&#34;]
+sizes = [&#34;S&#34;, &#34;M&#34;, &#34;L&#34;]
+tshirts = [(color, size) for color in colors for size in sizes]
+</code></pre><p>一行代码搞定！Life is short，use Python，list comprehension is wonderful，amazing。</p>
+<p>注意这行代码有两个for循环，等价于：</p>
+<pre tabindex="0"><code>for color in colors:
+    for size in sizes:
+</code></pre><p>运行结果是：</p>
+<pre tabindex="0"><code>[(&#39;black&#39;, &#39;S&#39;), (&#39;black&#39;, &#39;M&#39;), (&#39;black&#39;, &#39;L&#39;), (&#39;white&#39;, &#39;S&#39;), (&#39;white&#39;, &#39;M&#39;), (&#39;white&#39;, &#39;L&#39;)]
+</code></pre><p>如果换一下顺序：</p>
+<pre tabindex="0"><code>[(color, size) for color in colors for size in sizes]
+</code></pre><p>等价于：</p>
+<pre tabindex="0"><code>for size in sizes:
+    for color in colors:
+</code></pre><p>运行结果是不同的，观察第2个元素：</p>
+<pre tabindex="0"><code>[(&#39;black&#39;, &#39;S&#39;), (&#39;white&#39;, &#39;S&#39;), (&#39;black&#39;, &#39;M&#39;), (&#39;white&#39;, &#39;M&#39;), (&#39;black&#39;, &#39;L&#39;), (&#39;white&#39;, &#39;L&#39;)]
+</code></pre><h1 id="生成器表达式">生成器表达式<a hidden class="anchor" aria-hidden="true" href="#生成器表达式">#</a></h1>
+<p>一般接触到生成器时，都要讲<code>yield</code>关键字，看似有点复杂，然而却很简单，生成器就像列表推导一样，只不过是用来生成其他类型序列的，比如元组：</p>
+<pre tabindex="0"><code>symbols = &#34;abc&#34;
+codes = (symbol for symbol in symbols)
+</code></pre><p>它的语法非常简单，把列表推导的中括号<code>[]</code>换成小括号<code>()</code>，就可以了。</p>
+<p>语法相似，本质上却有很大区别，我们试着用生成器表达式来实现笛卡尔积，看看会有什么变化：</p>
+<pre tabindex="0"><code>colors = [&#34;black&#34;, &#34;white&#34;]
+sizes = [&#34;S&#34;, &#34;M&#34;, &#34;L&#34;]
+tshirts = ((color, size) for color in colors for size in sizes)
+</code></pre><p>运行结果是：</p>
+<pre tabindex="0"><code>&lt;generator object &lt;genexpr&gt; at 0x000001FD57D2DB30&gt;
+</code></pre><p><code>generator object</code>，结果是一个生成器对象。因为生成器表达式在每次迭代时才会逐个产出元素，所以这里的结果并不是已经创建好的元组。列表推导才会一次性产生新列表所有元素。</p>
+<p>通过迭代把生成器表达式结果输出：</p>
+<pre tabindex="0"><code>for tshirt in tshirts:
+    print(tshirt)
+(&#39;black&#39;, &#39;S&#39;)
+(&#39;white&#39;, &#39;S&#39;)
+(&#39;black&#39;, &#39;M&#39;)
+(&#39;white&#39;, &#39;M&#39;)
+(&#39;black&#39;, &#39;L&#39;)
+(&#39;white&#39;, &#39;L&#39;)
+</code></pre><p>生成器表达式可以提升程序性能，比如要计算两个各有1000个元素的列表的笛卡尔积，生成器表达式可以帮忙省掉运行for循环的开销，即一个包含100万个元素的列表。</p>
+<blockquote>
+<p>yield作用和return差不多，后面会讲到。</p>
+</blockquote>
+<h1 id="tips">Tips<a hidden class="anchor" aria-hidden="true" href="#tips">#</a></h1>
+<p>本小节内容是我看《流畅的Python》第一遍时记录的知识点：</p>
+<ol>
+<li>Python标准库用C实现了丰富的序列类型。</li>
+<li>列表推导，就是指<code>a = [x for x in something]</code>这种写法。</li>
+<li>生成器表达式用于生成列表外的其他类型的序列，它跟列表推导的区别仅仅在于方括号换成圆括号，如<code>b = tuple(x for x in something)</code> 。</li>
+<li><code>array.array('I', x for x in something) </code>，array构造方法的第一个参数指定了数组中数字的存储方式。</li>
+<li><code>for tshirt in [c, s for c in colors for s in sizes]</code>，列表推导会一次性生成这个列表，存储在内存中，占用资源。<code>for tshirt in ('%s %s' for c in colors for s in sizes)</code>，生成器表达式只在循环时逐个产出元素，避免额外的内存占用，省掉了运行for循环的开销。</li>
+</ol>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文首先介绍了序列的概念，然后演示了Python常规骚操作——列表推导，最后引出了生成器表达式这个看似复杂实则简单的语法。列表是可变的，它有个不可变的孪生兄弟，元组。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>《流畅的Python》</p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/python/">Python</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000009-jmeterjmeter36%E4%B8%AA%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0%E5%8F%8A11%E4%B8%AA%E6%96%B0%E5%A2%9E%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D/">
+    <span class="title">« 上一页</span>
+    <span>JMeter36个内置函数及11个新增函数介绍</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000009-springspringboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B06%E6%B6%88%E6%81%AF/">
+    <span class="title">下一页 »</span>
+    <span>SpringBoot官方笔记6消息</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#序列">序列</a></li>
+    <li><a href="#列表推导">列表推导</a></li>
+    <li><a href="#生成器表达式">生成器表达式</a></li>
+    <li><a href="#tips">Tips</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

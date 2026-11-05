@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JUnit5依赖注入与测试接口 | 测试开发刚哥</title>
+<meta name="keywords" content="单元测试, JUnit">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+依赖注入
+以前的JUnit的类构造方法和测试方法都是不能有参数的，JUnit Jupiter有一个颠覆性的改进，就是允许它们有入参，这样就能做依赖注入了。
+
+如果你对pytest的fixture有了解的话，就知道这个技术是多么的强大。
+
+ParameterResolver是一个接口类，类构造方法和测试方法在运行时，必须由被注册的ParameterResolver进行解析。JUnit Jupiter有三个自动注册的内置解析器：
+
+TestInfoParameterResolver 参数类型为TestInfo
+RepetitionInfoParameterResolver 参数类型为RepetitionInfo
+TestReporterParameterResolver 参数类型为TestReporter
+
+TestInfo
+TestInfo包含the display name, the test class, the test method, and associated tags等信息。
+示例：
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+
+@DisplayName(&#34;TestInfo Demo&#34;)
+class TestInfoDemo {
+
+    TestInfoDemo(TestInfo testInfo) {
+        assertEquals(&#34;TestInfo Demo&#34;, testInfo.getDisplayName());
+    }
+
+    @BeforeEach
+    void init(TestInfo testInfo) {
+        String displayName = testInfo.getDisplayName();
+        assertTrue(displayName.equals(&#34;TEST 1&#34;) || displayName.equals(&#34;test2()&#34;));
+    }
+
+    @Test
+    @DisplayName(&#34;TEST 1&#34;)
+    @Tag(&#34;my-tag&#34;)
+    void test1(TestInfo testInfo) {
+        assertEquals(&#34;TEST 1&#34;, testInfo.getDisplayName());
+        assertTrue(testInfo.getTags().contains(&#34;my-tag&#34;));
+    }
+
+    @Test
+    void test2() {
+    }
+
+}
+RepetitionInfo">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000007-junitjunit5%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E4%B8%8E%E6%B5%8B%E8%AF%95%E6%8E%A5%E5%8F%A3/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000007-junitjunit5%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E4%B8%8E%E6%B5%8B%E8%AF%95%E6%8E%A5%E5%8F%A3/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000007-junitjunit5%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E4%B8%8E%E6%B5%8B%E8%AF%95%E6%8E%A5%E5%8F%A3/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JUnit5依赖注入与测试接口">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+依赖注入 以前的JUnit的类构造方法和测试方法都是不能有参数的，JUnit Jupiter有一个颠覆性的改进，就是允许它们有入参，这样就能做依赖注入了。
+如果你对pytest的fixture有了解的话，就知道这个技术是多么的强大。
+ParameterResolver是一个接口类，类构造方法和测试方法在运行时，必须由被注册的ParameterResolver进行解析。JUnit Jupiter有三个自动注册的内置解析器：
+TestInfoParameterResolver 参数类型为TestInfo RepetitionInfoParameterResolver 参数类型为RepetitionInfo TestReporterParameterResolver 参数类型为TestReporter TestInfo
+TestInfo包含the display name, the test class, the test method, and associated tags等信息。
+示例：
+import static org.junit.jupiter.api.Assertions.assertEquals; import static org.junit.jupiter.api.Assertions.assertTrue; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.DisplayName; import org.junit.jupiter.api.Tag; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.TestInfo; @DisplayName(&#34;TestInfo Demo&#34;) class TestInfoDemo { TestInfoDemo(TestInfo testInfo) { assertEquals(&#34;TestInfo Demo&#34;, testInfo.getDisplayName()); } @BeforeEach void init(TestInfo testInfo) { String displayName = testInfo.getDisplayName(); assertTrue(displayName.equals(&#34;TEST 1&#34;) || displayName.equals(&#34;test2()&#34;)); } @Test @DisplayName(&#34;TEST 1&#34;) @Tag(&#34;my-tag&#34;) void test1(TestInfo testInfo) { assertEquals(&#34;TEST 1&#34;, testInfo.getDisplayName()); assertTrue(testInfo.getTags().contains(&#34;my-tag&#34;)); } @Test void test2() { } } RepetitionInfo">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-07T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-07T00:00:00+00:00">
+    <meta property="article:tag" content="单元测试">
+    <meta property="article:tag" content="JUnit">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JUnit5依赖注入与测试接口">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+依赖注入 以前的JUnit的类构造方法和测试方法都是不能有参数的，JUnit Jupiter有一个颠覆性的改进，就是允许它们有入参，这样就能做依赖注入了。
+如果你对pytest的fixture有了解的话，就知道这个技术是多么的强大。
+ParameterResolver是一个接口类，类构造方法和测试方法在运行时，必须由被注册的ParameterResolver进行解析。JUnit Jupiter有三个自动注册的内置解析器：
+TestInfoParameterResolver 参数类型为TestInfo RepetitionInfoParameterResolver 参数类型为RepetitionInfo TestReporterParameterResolver 参数类型为TestReporter TestInfo
+TestInfo包含the display name, the test class, the test method, and associated tags等信息。
+示例：
+import static org.junit.jupiter.api.Assertions.assertEquals; import static org.junit.jupiter.api.Assertions.assertTrue; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.DisplayName; import org.junit.jupiter.api.Tag; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.TestInfo; @DisplayName(&#34;TestInfo Demo&#34;) class TestInfoDemo { TestInfoDemo(TestInfo testInfo) { assertEquals(&#34;TestInfo Demo&#34;, testInfo.getDisplayName()); } @BeforeEach void init(TestInfo testInfo) { String displayName = testInfo.getDisplayName(); assertTrue(displayName.equals(&#34;TEST 1&#34;) || displayName.equals(&#34;test2()&#34;)); } @Test @DisplayName(&#34;TEST 1&#34;) @Tag(&#34;my-tag&#34;) void test1(TestInfo testInfo) { assertEquals(&#34;TEST 1&#34;, testInfo.getDisplayName()); assertTrue(testInfo.getTags().contains(&#34;my-tag&#34;)); } @Test void test2() { } } RepetitionInfo">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JUnit5依赖注入与测试接口",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000007-junitjunit5%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E4%B8%8E%E6%B5%8B%E8%AF%95%E6%8E%A5%E5%8F%A3/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JUnit5依赖注入与测试接口",
+  "name": "JUnit5依赖注入与测试接口",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n依赖注入 以前的JUnit的类构造方法和测试方法都是不能有参数的，JUnit Jupiter有一个颠覆性的改进，就是允许它们有入参，这样就能做依赖注入了。\n如果你对pytest的fixture有了解的话，就知道这个技术是多么的强大。\nParameterResolver是一个接口类，类构造方法和测试方法在运行时，必须由被注册的ParameterResolver进行解析。JUnit Jupiter有三个自动注册的内置解析器：\nTestInfoParameterResolver 参数类型为TestInfo RepetitionInfoParameterResolver 参数类型为RepetitionInfo TestReporterParameterResolver 参数类型为TestReporter TestInfo\nTestInfo包含the display name, the test class, the test method, and associated tags等信息。\n示例：\nimport static org.junit.jupiter.api.Assertions.assertEquals; import static org.junit.jupiter.api.Assertions.assertTrue; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.DisplayName; import org.junit.jupiter.api.Tag; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.TestInfo; @DisplayName(\u0026#34;TestInfo Demo\u0026#34;) class TestInfoDemo { TestInfoDemo(TestInfo testInfo) { assertEquals(\u0026#34;TestInfo Demo\u0026#34;, testInfo.getDisplayName()); } @BeforeEach void init(TestInfo testInfo) { String displayName = testInfo.getDisplayName(); assertTrue(displayName.equals(\u0026#34;TEST 1\u0026#34;) || displayName.equals(\u0026#34;test2()\u0026#34;)); } @Test @DisplayName(\u0026#34;TEST 1\u0026#34;) @Tag(\u0026#34;my-tag\u0026#34;) void test1(TestInfo testInfo) { assertEquals(\u0026#34;TEST 1\u0026#34;, testInfo.getDisplayName()); assertTrue(testInfo.getTags().contains(\u0026#34;my-tag\u0026#34;)); } @Test void test2() { } } RepetitionInfo\n",
+  "keywords": [
+    "单元测试", "JUnit"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n依赖注入 以前的JUnit的类构造方法和测试方法都是不能有参数的，JUnit Jupiter有一个颠覆性的改进，就是允许它们有入参，这样就能做依赖注入了。\n如果你对pytest的fixture有了解的话，就知道这个技术是多么的强大。\nParameterResolver是一个接口类，类构造方法和测试方法在运行时，必须由被注册的ParameterResolver进行解析。JUnit Jupiter有三个自动注册的内置解析器：\nTestInfoParameterResolver 参数类型为TestInfo RepetitionInfoParameterResolver 参数类型为RepetitionInfo TestReporterParameterResolver 参数类型为TestReporter TestInfo\nTestInfo包含the display name, the test class, the test method, and associated tags等信息。\n示例：\nimport static org.junit.jupiter.api.Assertions.assertEquals; import static org.junit.jupiter.api.Assertions.assertTrue; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.DisplayName; import org.junit.jupiter.api.Tag; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.TestInfo; @DisplayName(\"TestInfo Demo\") class TestInfoDemo { TestInfoDemo(TestInfo testInfo) { assertEquals(\"TestInfo Demo\", testInfo.getDisplayName()); } @BeforeEach void init(TestInfo testInfo) { String displayName = testInfo.getDisplayName(); assertTrue(displayName.equals(\"TEST 1\") || displayName.equals(\"test2()\")); } @Test @DisplayName(\"TEST 1\") @Tag(\"my-tag\") void test1(TestInfo testInfo) { assertEquals(\"TEST 1\", testInfo.getDisplayName()); assertTrue(testInfo.getTags().contains(\"my-tag\")); } @Test void test2() { } } RepetitionInfo\n主要是@RepeatedTest会用到，包含当前重复以及总重复次数等信息。\nTestReporter\nTestReporter能用来输出额外的信息。\n示例：\nclass TestReporterDemo { @Test void reportSingleValue(TestReporter testReporter) { testReporter.publishEntry(\"a status message\"); } @Test void reportKeyValuePair(TestReporter testReporter) { testReporter.publishEntry(\"a key\", \"a value\"); } @Test void reportMultipleKeyValuePairs(TestReporter testReporter) { Map\u003cString, String\u003e values = new HashMap\u003c\u003e(); values.put(\"user name\", \"dk38\"); values.put(\"award year\", \"1974\"); testReporter.publishEntry(values); } } 传自定义参数\n除了内置解析器，如果想传自定义参数，那么需要使用@ExtendWith注册扩展，比如：\n@ExtendWith(RandomParametersExtension.class) class MyRandomParametersTest { @Test void injectsInteger(@Random int i, @Random int j) { assertNotEquals(i, j); } @Test void injectsDouble(@Random double d) { assertEquals(0.0, d, 1.0); } } 有点插件的意思，更常见的是MockitoExtension和SpringExtension。\n测试接口 JUnit Jupiter除了测试类和测试方法，其实也有测试接口，比如：\n@TestInstance(Lifecycle.PER_CLASS) interface TestLifecycleLogger { static final Logger logger = Logger.getLogger(TestLifecycleLogger.class.getName()); @BeforeAll default void beforeAllTests() { logger.info(\"Before all tests\"); } @AfterAll default void afterAllTests() { logger.info(\"After all tests\"); } @BeforeEach default void beforeEachTest(TestInfo testInfo) { logger.info(() -\u003e String.format(\"About to execute [%s]\", testInfo.getDisplayName())); } @AfterEach default void afterEachTest(TestInfo testInfo) { logger.info(() -\u003e String.format(\"Finished executing [%s]\", testInfo.getDisplayName())); } } interface TestInterfaceDynamicTestsDemo { @TestFactory default Stream\u003cDynamicTest\u003e dynamicTestsForPalindromes() { return Stream.of(\"racecar\", \"radar\", \"mom\", \"dad\") .map(text -\u003e dynamicTest(text, () -\u003e assertTrue(isPalindrome(text)))); } } @Test, @RepeatedTest, @ParameterizedTest, @TestFactory, @TestTemplate, @BeforeEach, and @AfterEach能作用到接口的default方法上。\ndefault方法是接口已经实现好了的方法，接口的实现类不需要再编写实现代码，就能直接使用。\n如果测试类是@TestInstance(Lifecycle.PER_CLASS)注解，那么可以使用@BeforeAll and @AfterAll。\n测试接口可以作为模版。如果测试接口有@ExtendWith and @Tag注解，那么它的实现类也会继承tags and extensions。比如：\n@Tag(\"timed\") @ExtendWith(TimingExtension.class) interface TimeExecutionLogger { } class TestInterfaceDemo implements TestLifecycleLogger, TimeExecutionLogger, TestInterfaceDynamicTestsDemo { @Test void isEqualValue() { assertEquals(1, \"a\".length(), \"is always equal\"); } } 结果：\nINFO example.TestLifecycleLogger - Before all tests INFO example.TestLifecycleLogger - About to execute [dynamicTestsForPalindromes()] INFO example.TimingExtension - Method [dynamicTestsForPalindromes] took 19 ms. INFO example.TestLifecycleLogger - Finished executing [dynamicTestsForPalindromes()] INFO example.TestLifecycleLogger - About to execute [isEqualValue()] INFO example.TimingExtension - Method [isEqualValue] took 1 ms. INFO example.TestLifecycleLogger - Finished executing [isEqualValue()] INFO example.TestLifecycleLogger - After all tests **测试接口也可以作为契约。**比如：\npublic interface Testable\u003cT\u003e { T createValue(); } public interface EqualsContract\u003cT\u003e extends Testable\u003cT\u003e { T createNotEqualValue(); @Test default void valueEqualsItself() { T value = createValue(); assertEquals(value, value); } @Test default void valueDoesNotEqualNull() { T value = createValue(); assertFalse(value.equals(null)); } @Test default void valueDoesNotEqualDifferentValue() { T value = createValue(); T differentValue = createNotEqualValue(); assertNotEquals(value, differentValue); assertNotEquals(differentValue, value); } } public interface ComparableContract\u003cT extends Comparable\u003cT\u003e\u003e extends Testable\u003cT\u003e { T createSmallerValue(); @Test default void returnsZeroWhenComparedToItself() { T value = createValue(); assertEquals(0, value.compareTo(value)); } @Test default void returnsPositiveNumberWhenComparedToSmallerValue() { T value = createValue(); T smallerValue = createSmallerValue(); assertTrue(value.compareTo(smallerValue) \u003e 0); } @Test default void returnsNegativeNumberWhenComparedToLargerValue() { T value = createValue(); T smallerValue = createSmallerValue(); assertTrue(smallerValue.compareTo(value) \u003c 0); } } 实现类：\nclass StringTests implements ComparableContract\u003cString\u003e, EqualsContract\u003cString\u003e { @Override public String createValue() { return \"banana\"; } @Override public String createSmallerValue() { return \"apple\"; // 'a' \u003c 'b' in \"banana\" } @Override public String createNotEqualValue() { return \"cherry\"; } } 小结 本文先介绍了JUnit Jupiter的颠覆性技术，允许传参以实现依赖注入，然后介绍了除了测试类和测试方法以外的测试接口，它既可以作为测试模板，也可以作为测试契约。\n参考资料：\nhttps://junit.org/junit5/docs/current/user-guide/#writing-tests-dependency-injection\nhttps://junit.org/junit5/docs/current/user-guide/#writing-tests-test-interfaces-and-default-methods\nhttps://blog.csdn.net/qq_35387940/article/details/104767746\n",
+  "wordCount" : "501",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-07T00:00:00Z",
+  "dateModified": "2026-01-07T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000007-junitjunit5%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E4%B8%8E%E6%B5%8B%E8%AF%95%E6%8E%A5%E5%8F%A3/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      JUnit5依赖注入与测试接口
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-07T00:00:00+00:00'>2026-01-07</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>501 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/'>#单元测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/junit/'>#JUnit</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="依赖注入">依赖注入<a hidden class="anchor" aria-hidden="true" href="#依赖注入">#</a></h1>
+<p>以前的JUnit的类构造方法和测试方法都是不能有参数的，<strong>JUnit Jupiter有一个颠覆性的改进，就是允许它们有入参，这样就能做依赖注入了。</strong></p>
+<blockquote>
+<p>如果你对pytest的fixture有了解的话，就知道这个技术是多么的强大。</p>
+</blockquote>
+<p>ParameterResolver是一个接口类，类构造方法和测试方法在运行时，必须由被注册的ParameterResolver进行解析。JUnit Jupiter有三个自动注册的内置解析器：</p>
+<ul>
+<li>TestInfoParameterResolver 参数类型为TestInfo</li>
+<li>RepetitionInfoParameterResolver 参数类型为RepetitionInfo</li>
+<li>TestReporterParameterResolver 参数类型为TestReporter</li>
+</ul>
+<p><strong>TestInfo</strong></p>
+<p>TestInfo包含the display name, the test class, the test method, and associated tags等信息。</p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import static</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.api.Assertions.assertEquals</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import static</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.api.Assertions.assertTrue</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.api.BeforeEach</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.api.DisplayName</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.api.Tag</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.api.Test</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.api.TestInfo</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@DisplayName</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;TestInfo Demo&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TestInfoDemo</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>TestInfoDemo<span style="color:#1f2328">(</span>TestInfo<span style="color:#fff"> </span>testInfo<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertEquals<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;TestInfo Demo&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>testInfo<span style="color:#1f2328">.</span><span style="color:#1f2328">getDisplayName</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@BeforeEach</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">init</span><span style="color:#1f2328">(</span>TestInfo<span style="color:#fff"> </span>testInfo<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>displayName<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>testInfo<span style="color:#1f2328">.</span><span style="color:#1f2328">getDisplayName</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertTrue<span style="color:#1f2328">(</span>displayName<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;TEST 1&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">||</span><span style="color:#fff"> </span>displayName<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;test2()&#34;</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@DisplayName</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;TEST 1&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Tag</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;my-tag&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">test1</span><span style="color:#1f2328">(</span>TestInfo<span style="color:#fff"> </span>testInfo<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertEquals<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;TEST 1&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>testInfo<span style="color:#1f2328">.</span><span style="color:#1f2328">getDisplayName</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertTrue<span style="color:#1f2328">(</span>testInfo<span style="color:#1f2328">.</span><span style="color:#1f2328">getTags</span><span style="color:#1f2328">().</span><span style="color:#1f2328">contains</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;my-tag&#34;</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">test2</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>RepetitionInfo</strong></p>
+<p>主要是<code>@RepeatedTest</code>会用到，包含当前重复以及总重复次数等信息。</p>
+<p><strong>TestReporter</strong></p>
+<p>TestReporter能用来输出额外的信息。</p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TestReporterDemo</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">reportSingleValue</span><span style="color:#1f2328">(</span>TestReporter<span style="color:#fff"> </span>testReporter<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>testReporter<span style="color:#1f2328">.</span><span style="color:#1f2328">publishEntry</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;a status message&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">reportKeyValuePair</span><span style="color:#1f2328">(</span>TestReporter<span style="color:#fff"> </span>testReporter<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>testReporter<span style="color:#1f2328">.</span><span style="color:#1f2328">publishEntry</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;a key&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;a value&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">reportMultipleKeyValuePairs</span><span style="color:#1f2328">(</span>TestReporter<span style="color:#fff"> </span>testReporter<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>Map<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>values<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>HashMap<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>values<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;user name&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;dk38&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>values<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;award year&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;1974&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>testReporter<span style="color:#1f2328">.</span><span style="color:#1f2328">publishEntry</span><span style="color:#1f2328">(</span>values<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>传自定义参数</strong></p>
+<p>除了内置解析器，如果想传自定义参数，那么需要使用<code>@ExtendWith</code>注册扩展，比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ExtendWith</span><span style="color:#1f2328">(</span>RandomParametersExtension<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyRandomParametersTest</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">injectsInteger</span><span style="color:#1f2328">(</span><span style="color:#0550ae">@Random</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>i<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0550ae">@Random</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>j<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertNotEquals<span style="color:#1f2328">(</span>i<span style="color:#1f2328">,</span><span style="color:#fff"> </span>j<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">injectsDouble</span><span style="color:#1f2328">(</span><span style="color:#0550ae">@Random</span><span style="color:#fff"> </span><span style="color:#cf222e">double</span><span style="color:#fff"> </span>d<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertEquals<span style="color:#1f2328">(</span>0<span style="color:#1f2328">.</span><span style="color:#1f2328">0</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>d<span style="color:#1f2328">,</span><span style="color:#fff"> </span>1<span style="color:#1f2328">.</span><span style="color:#1f2328">0</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>有点插件的意思，更常见的是<a href="https://github.com/mockito/mockito/blob/release/2.x/subprojects/junit-jupiter/src/main/java/org/mockito/junit/jupiter/MockitoExtension.java">MockitoExtension</a>和<a href="https://github.com/spring-projects/spring-framework/tree/HEAD/spring-test/src/main/java/org/springframework/test/context/junit/jupiter/SpringExtension.java">SpringExtension</a>。</p>
+<h1 id="测试接口">测试接口<a hidden class="anchor" aria-hidden="true" href="#测试接口">#</a></h1>
+<p>JUnit Jupiter除了测试类和测试方法，其实也有测试接口，比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@TestInstance</span><span style="color:#1f2328">(</span>Lifecycle<span style="color:#1f2328">.</span><span style="color:#1f2328">PER_CLASS</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">TestLifecycleLogger</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>Logger<span style="color:#fff"> </span>logger<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Logger<span style="color:#1f2328">.</span><span style="color:#1f2328">getLogger</span><span style="color:#1f2328">(</span>TestLifecycleLogger<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">.</span><span style="color:#1f2328">getName</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@BeforeAll</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">beforeAllTests</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>logger<span style="color:#1f2328">.</span><span style="color:#1f2328">info</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Before all tests&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@AfterAll</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">afterAllTests</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>logger<span style="color:#1f2328">.</span><span style="color:#1f2328">info</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;After all tests&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@BeforeEach</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">beforeEachTest</span><span style="color:#1f2328">(</span>TestInfo<span style="color:#fff"> </span>testInfo<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>logger<span style="color:#1f2328">.</span><span style="color:#1f2328">info</span><span style="color:#1f2328">(()</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;About to execute [%s]&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>testInfo<span style="color:#1f2328">.</span><span style="color:#1f2328">getDisplayName</span><span style="color:#1f2328">()));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@AfterEach</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">afterEachTest</span><span style="color:#1f2328">(</span>TestInfo<span style="color:#fff"> </span>testInfo<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>logger<span style="color:#1f2328">.</span><span style="color:#1f2328">info</span><span style="color:#1f2328">(()</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Finished executing [%s]&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>testInfo<span style="color:#1f2328">.</span><span style="color:#1f2328">getDisplayName</span><span style="color:#1f2328">()));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">TestInterfaceDynamicTestsDemo</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@TestFactory</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span>Stream<span style="color:#0550ae">&lt;</span>DynamicTest<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">dynamicTestsForPalindromes</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>Stream<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;racecar&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;radar&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;mom&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;dad&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#1f2328">.</span><span style="color:#1f2328">map</span><span style="color:#1f2328">(</span>text<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>dynamicTest<span style="color:#1f2328">(</span>text<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>assertTrue<span style="color:#1f2328">(</span>isPalindrome<span style="color:#1f2328">(</span>text<span style="color:#1f2328">))));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><code>@Test</code>, <code>@RepeatedTest</code>, <code>@ParameterizedTest</code>, <code>@TestFactory</code>, <code>@TestTemplate</code>, <code>@BeforeEach</code>, and <code>@AfterEach</code>能作用到接口的<code>default</code>方法上。</p>
+<blockquote>
+<p><code>default</code>方法是接口已经实现好了的方法，接口的实现类不需要再编写实现代码，就能直接使用。</p>
+</blockquote>
+<p>如果测试类是<code>@TestInstance(Lifecycle.PER_CLASS)</code>注解，那么可以使用<code>@BeforeAll</code> and <code>@AfterAll</code>。</p>
+<p><strong>测试接口可以作为模版</strong>。如果测试接口有<code>@ExtendWith</code> and <code>@Tag</code>注解，那么它的实现类也会继承tags and extensions。比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@Tag</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;timed&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ExtendWith</span><span style="color:#1f2328">(</span>TimingExtension<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">TimeExecutionLogger</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TestInterfaceDemo</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>TestLifecycleLogger<span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>TimeExecutionLogger<span style="color:#1f2328">,</span><span style="color:#fff"> </span>TestInterfaceDynamicTestsDemo<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">isEqualValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertEquals<span style="color:#1f2328">(</span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;a&#34;</span><span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">(),</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;is always equal&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>结果：</p>
+<pre tabindex="0"><code>INFO  example.TestLifecycleLogger - Before all tests
+INFO  example.TestLifecycleLogger - About to execute [dynamicTestsForPalindromes()]
+INFO  example.TimingExtension - Method [dynamicTestsForPalindromes] took 19 ms.
+INFO  example.TestLifecycleLogger - Finished executing [dynamicTestsForPalindromes()]
+INFO  example.TestLifecycleLogger - About to execute [isEqualValue()]
+INFO  example.TimingExtension - Method [isEqualValue] took 1 ms.
+INFO  example.TestLifecycleLogger - Finished executing [isEqualValue()]
+INFO  example.TestLifecycleLogger - After all tests
+</code></pre><p>**测试接口也可以作为契约。**比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">Testable</span><span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>T<span style="color:#fff"> </span><span style="color:#6639ba">createValue</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">EqualsContract</span><span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>Testable<span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>T<span style="color:#fff"> </span><span style="color:#6639ba">createNotEqualValue</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">valueEqualsItself</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>T<span style="color:#fff"> </span>value<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>createValue<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertEquals<span style="color:#1f2328">(</span>value<span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">valueDoesNotEqualNull</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>T<span style="color:#fff"> </span>value<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>createValue<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertFalse<span style="color:#1f2328">(</span>value<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#cf222e">null</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">valueDoesNotEqualDifferentValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>T<span style="color:#fff"> </span>value<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>createValue<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>T<span style="color:#fff"> </span>differentValue<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>createNotEqualValue<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertNotEquals<span style="color:#1f2328">(</span>value<span style="color:#1f2328">,</span><span style="color:#fff"> </span>differentValue<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertNotEquals<span style="color:#1f2328">(</span>differentValue<span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">ComparableContract</span><span style="color:#0550ae">&lt;</span>T<span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>Comparable<span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;&gt;</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>Testable<span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>T<span style="color:#fff"> </span><span style="color:#6639ba">createSmallerValue</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">returnsZeroWhenComparedToItself</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>T<span style="color:#fff"> </span>value<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>createValue<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertEquals<span style="color:#1f2328">(</span>0<span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">.</span><span style="color:#1f2328">compareTo</span><span style="color:#1f2328">(</span>value<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">returnsPositiveNumberWhenComparedToSmallerValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>T<span style="color:#fff"> </span>value<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>createValue<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>T<span style="color:#fff"> </span>smallerValue<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>createSmallerValue<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertTrue<span style="color:#1f2328">(</span>value<span style="color:#1f2328">.</span><span style="color:#1f2328">compareTo</span><span style="color:#1f2328">(</span>smallerValue<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>0<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">returnsNegativeNumberWhenComparedToLargerValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>T<span style="color:#fff"> </span>value<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>createValue<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>T<span style="color:#fff"> </span>smallerValue<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>createSmallerValue<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertTrue<span style="color:#1f2328">(</span>smallerValue<span style="color:#1f2328">.</span><span style="color:#1f2328">compareTo</span><span style="color:#1f2328">(</span>value<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span><span style="color:#fff"> </span>0<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>实现类：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">StringTests</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>ComparableContract<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>EqualsContract<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span><span style="color:#6639ba">createValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;banana&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span><span style="color:#6639ba">createSmallerValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;apple&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff"> </span><span style="color:#57606a">// &#39;a&#39; &lt; &#39;b&#39; in &#34;banana&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span><span style="color:#6639ba">createNotEqualValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;cherry&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文先介绍了JUnit Jupiter的颠覆性技术，允许传参以实现依赖注入，然后介绍了除了测试类和测试方法以外的测试接口，它既可以作为测试模板，也可以作为测试契约。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-dependency-injection">https://junit.org/junit5/docs/current/user-guide/#writing-tests-dependency-injection</a></p>
+<p><a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-test-interfaces-and-default-methods">https://junit.org/junit5/docs/current/user-guide/#writing-tests-test-interfaces-and-default-methods</a></p>
+<p><a href="https://blog.csdn.net/qq_35387940/article/details/104767746">https://blog.csdn.net/qq_35387940/article/details/104767746</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">单元测试</a></li>
+      <li><a href="https://dongfanger.github.io/tags/junit/">JUnit</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000007-jmeterjmeter%E5%85%B3%E8%81%94%E9%99%8C%E7%94%9F%E5%8F%88%E7%86%9F%E6%82%89/">
+    <span class="title">« 上一页</span>
+    <span>JMeter关联陌生又熟悉</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/pytest/000007-pytestpytest%E7%94%A8%E4%BE%8B%E6%9F%A5%E6%89%BE%E5%8E%9F%E7%90%86/">
+    <span class="title">下一页 »</span>
+    <span>pytest用例查找原理</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#依赖注入">依赖注入</a></li>
+    <li><a href="#测试接口">测试接口</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

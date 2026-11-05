@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>理想中的接口自动化项目 | 测试开发刚哥</title>
+<meta name="keywords" content="自动化">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+如何评价接口自动化项目
+我理想中的接口自动化项目，是有一套脚本，能够100%覆盖核心业务场景，能够回归线上频繁出现的问题，能够支持手工无法验证的场景，能够抛出偶现问题，能够包含容易遗漏的边界场景、异常场景，每天都能定时运行，出具报告，给予反馈。
+用实际的指标量化下：
+
+
+功能测试自动化率 = 自动化测试用例数/总测试用例数
+
+
+自动化发现bug占比 = 自动化发现的bug/总bug数
+
+
+自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数
+
+
+自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数
+
+
+周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例)
+
+
+应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数
+
+
+现状是什么(Situation)
+我负责的业务是发票中台，数据流简化后如下图所示：
+
+发票中台对调用方提供RPC服务，底层有读写MySQL、同步ES、消息队列、异步任务等服务，上游是用户和订单，需要账号、增票资质、订单等物料；下游是财务，推送申请单给财务开具发票等。
+发票的接口自动化在多年前是写了的，用Java&#43;TestNG&#43;RPC本地化了一套框架来实现，因为人员离职和业务变更，这套自动化到我手上的时候，已经不能用了，本地化的接口自动化项目也无法做数据度量，只有接口测试平台写的自动化用例才会被统计到。
+任务是什么(Task)
+我给自己定的绩效是在Q2完成95条自动化用例，按照一个标准化的自动化项目来实现发票的接口自动化，结合测试环境、测试物料、流水线、精准分析，打造一个个人的稳定的沉淀物，无论是晋升还是求职，都能拿来讲点故事。
+行动是什么(Action)
+编写自动化用例的方式
+1、最理想的方式，是能够录制线上流量直接转换为自动化用例，修修改改即可。虽然我们有流量录制回放平台，但是它跟接口自动化平台并没有打通，很可惜不能采取这种方式。
+2、参考线上流量日志，抓取接口、入参，人工转化为自动化用例。
+3、参考接口的代码设计，比如controller/provider/sdk都定义了应用接口，能知道哪些覆盖到了，哪些还需要补充。
+4、根据入参模板自行构造参数。参数个数太多的话造起来很麻烦。
+我主要采用第2种和第3种方式结合来编写自动化用例。
+典型自动化用例
+
+前置步骤：初始化数据，将订单发票类型更新为3。
+预设变量：提供参数化数据。
+执行步骤：调用修改订单发票类型接口，将发票类型3改为2，入参引用预设变量。
+财务接口：依赖测试物料无法满足，通过Mock来返回模板数据，让接口继续往下走。
+基础断言：接口响应状态码200。
+业务断言：调用订单列表查询接口，用JSONPath提取响应中的发票类型，断言已经改成了2。
+场景用例
+
+数据准备：通过物料工具造订单数据，写入MySQL数据库中。
+更新MySQL数据：更新订单的部分字段数据，触发binlake，将数据同步至ES，因为提交开票申请是读取的ES数据；从预设变量获取orderId。
+提交开票申请：从ES读取订单数据，提交开票申请；从预设变量获取orderId和userId。
+查询申请单号：根据订单号查询申请单号；从预设变量获取orderId和userId。用JSONPath提取申请单号，存入动态变量中。
+推送财务：把申请单号推送给财务；从动态变量获取applyId。
+覆盖更多代码
+①看代码：
+
+在Java工程里面的Controller/Provider找到所有接口，分析可以用来做自动化的接口，设计自动化用例进行覆盖。
+②代码覆盖率：
+
+借助于jacoco，在执行自动化用例后，把代码覆盖率跑出来，分析没覆盖的代码，补充更多正常/异常/边界的自动化用例。也就是精准测试。
+自动化巡检
+
+每天早上8点，定时任务执行用例集；发送邮件，抄送测试组、开发组、领导，让测试、开发和领导都知道自动化建设情况；如果出现问题，一定要在当天解决，并邮件回复问题原因；确保当天的自动化用例结果都是正确的；第二天接着继续巡检。
+流水线
+在持续集成中，引入自动化用例环节，把自动化用例跑通作为提测卡点，不通过可以驳回。
+产出是什么(Result)
+定性来看：
+结合测试环境、测试物料、自动化、流水线、精准测试，完成了一个能对环境和业务进行稳定性巡检，能对研发提测进行质量门禁，能对应用进行代码覆盖率分析的接口自动化项目。
+定量来看：
+
+功能测试自动化率 = 自动化测试用例数/总测试用例数 95/100=95%
+自动化发现bug占比 = 自动化发现的bug/总bug数 2/53=3.7%
+自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数 2/2=100%
+自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数 5396/5621=96%
+周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例) 77%
+应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数 39%
+
+这个Q主要完成了核心流程和重要接口的自动化用例，还需要持续补充场景用例和异常/边界的自动化用例。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000002-%E7%90%86%E6%83%B3%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A1%B9%E7%9B%AE/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000002-%E7%90%86%E6%83%B3%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A1%B9%E7%9B%AE/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000002-%E7%90%86%E6%83%B3%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A1%B9%E7%9B%AE/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="理想中的接口自动化项目">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+如何评价接口自动化项目 我理想中的接口自动化项目，是有一套脚本，能够100%覆盖核心业务场景，能够回归线上频繁出现的问题，能够支持手工无法验证的场景，能够抛出偶现问题，能够包含容易遗漏的边界场景、异常场景，每天都能定时运行，出具报告，给予反馈。
+用实际的指标量化下：
+功能测试自动化率 = 自动化测试用例数/总测试用例数
+自动化发现bug占比 = 自动化发现的bug/总bug数
+自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数
+自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数
+周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例)
+应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数
+现状是什么(Situation) 我负责的业务是发票中台，数据流简化后如下图所示：
+发票中台对调用方提供RPC服务，底层有读写MySQL、同步ES、消息队列、异步任务等服务，上游是用户和订单，需要账号、增票资质、订单等物料；下游是财务，推送申请单给财务开具发票等。
+发票的接口自动化在多年前是写了的，用Java&#43;TestNG&#43;RPC本地化了一套框架来实现，因为人员离职和业务变更，这套自动化到我手上的时候，已经不能用了，本地化的接口自动化项目也无法做数据度量，只有接口测试平台写的自动化用例才会被统计到。
+任务是什么(Task) 我给自己定的绩效是在Q2完成95条自动化用例，按照一个标准化的自动化项目来实现发票的接口自动化，结合测试环境、测试物料、流水线、精准分析，打造一个个人的稳定的沉淀物，无论是晋升还是求职，都能拿来讲点故事。
+行动是什么(Action) 编写自动化用例的方式 1、最理想的方式，是能够录制线上流量直接转换为自动化用例，修修改改即可。虽然我们有流量录制回放平台，但是它跟接口自动化平台并没有打通，很可惜不能采取这种方式。
+2、参考线上流量日志，抓取接口、入参，人工转化为自动化用例。
+3、参考接口的代码设计，比如controller/provider/sdk都定义了应用接口，能知道哪些覆盖到了，哪些还需要补充。
+4、根据入参模板自行构造参数。参数个数太多的话造起来很麻烦。
+我主要采用第2种和第3种方式结合来编写自动化用例。
+典型自动化用例 前置步骤：初始化数据，将订单发票类型更新为3。
+预设变量：提供参数化数据。
+执行步骤：调用修改订单发票类型接口，将发票类型3改为2，入参引用预设变量。
+财务接口：依赖测试物料无法满足，通过Mock来返回模板数据，让接口继续往下走。
+基础断言：接口响应状态码200。
+业务断言：调用订单列表查询接口，用JSONPath提取响应中的发票类型，断言已经改成了2。
+场景用例 数据准备：通过物料工具造订单数据，写入MySQL数据库中。
+更新MySQL数据：更新订单的部分字段数据，触发binlake，将数据同步至ES，因为提交开票申请是读取的ES数据；从预设变量获取orderId。
+提交开票申请：从ES读取订单数据，提交开票申请；从预设变量获取orderId和userId。
+查询申请单号：根据订单号查询申请单号；从预设变量获取orderId和userId。用JSONPath提取申请单号，存入动态变量中。
+推送财务：把申请单号推送给财务；从动态变量获取applyId。
+覆盖更多代码 ①看代码：
+在Java工程里面的Controller/Provider找到所有接口，分析可以用来做自动化的接口，设计自动化用例进行覆盖。
+②代码覆盖率：
+借助于jacoco，在执行自动化用例后，把代码覆盖率跑出来，分析没覆盖的代码，补充更多正常/异常/边界的自动化用例。也就是精准测试。
+自动化巡检 每天早上8点，定时任务执行用例集；发送邮件，抄送测试组、开发组、领导，让测试、开发和领导都知道自动化建设情况；如果出现问题，一定要在当天解决，并邮件回复问题原因；确保当天的自动化用例结果都是正确的；第二天接着继续巡检。
+流水线 在持续集成中，引入自动化用例环节，把自动化用例跑通作为提测卡点，不通过可以驳回。
+产出是什么(Result) 定性来看：
+结合测试环境、测试物料、自动化、流水线、精准测试，完成了一个能对环境和业务进行稳定性巡检，能对研发提测进行质量门禁，能对应用进行代码覆盖率分析的接口自动化项目。
+定量来看：
+功能测试自动化率 = 自动化测试用例数/总测试用例数 95/100=95% 自动化发现bug占比 = 自动化发现的bug/总bug数 2/53=3.7% 自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数 2/2=100% 自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数 5396/5621=96% 周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例) 77% 应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数 39% 这个Q主要完成了核心流程和重要接口的自动化用例，还需要持续补充场景用例和异常/边界的自动化用例。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-02T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-02T00:00:00+00:00">
+    <meta property="article:tag" content="自动化">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="理想中的接口自动化项目">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+如何评价接口自动化项目 我理想中的接口自动化项目，是有一套脚本，能够100%覆盖核心业务场景，能够回归线上频繁出现的问题，能够支持手工无法验证的场景，能够抛出偶现问题，能够包含容易遗漏的边界场景、异常场景，每天都能定时运行，出具报告，给予反馈。
+用实际的指标量化下：
+功能测试自动化率 = 自动化测试用例数/总测试用例数
+自动化发现bug占比 = 自动化发现的bug/总bug数
+自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数
+自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数
+周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例)
+应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数
+现状是什么(Situation) 我负责的业务是发票中台，数据流简化后如下图所示：
+发票中台对调用方提供RPC服务，底层有读写MySQL、同步ES、消息队列、异步任务等服务，上游是用户和订单，需要账号、增票资质、订单等物料；下游是财务，推送申请单给财务开具发票等。
+发票的接口自动化在多年前是写了的，用Java&#43;TestNG&#43;RPC本地化了一套框架来实现，因为人员离职和业务变更，这套自动化到我手上的时候，已经不能用了，本地化的接口自动化项目也无法做数据度量，只有接口测试平台写的自动化用例才会被统计到。
+任务是什么(Task) 我给自己定的绩效是在Q2完成95条自动化用例，按照一个标准化的自动化项目来实现发票的接口自动化，结合测试环境、测试物料、流水线、精准分析，打造一个个人的稳定的沉淀物，无论是晋升还是求职，都能拿来讲点故事。
+行动是什么(Action) 编写自动化用例的方式 1、最理想的方式，是能够录制线上流量直接转换为自动化用例，修修改改即可。虽然我们有流量录制回放平台，但是它跟接口自动化平台并没有打通，很可惜不能采取这种方式。
+2、参考线上流量日志，抓取接口、入参，人工转化为自动化用例。
+3、参考接口的代码设计，比如controller/provider/sdk都定义了应用接口，能知道哪些覆盖到了，哪些还需要补充。
+4、根据入参模板自行构造参数。参数个数太多的话造起来很麻烦。
+我主要采用第2种和第3种方式结合来编写自动化用例。
+典型自动化用例 前置步骤：初始化数据，将订单发票类型更新为3。
+预设变量：提供参数化数据。
+执行步骤：调用修改订单发票类型接口，将发票类型3改为2，入参引用预设变量。
+财务接口：依赖测试物料无法满足，通过Mock来返回模板数据，让接口继续往下走。
+基础断言：接口响应状态码200。
+业务断言：调用订单列表查询接口，用JSONPath提取响应中的发票类型，断言已经改成了2。
+场景用例 数据准备：通过物料工具造订单数据，写入MySQL数据库中。
+更新MySQL数据：更新订单的部分字段数据，触发binlake，将数据同步至ES，因为提交开票申请是读取的ES数据；从预设变量获取orderId。
+提交开票申请：从ES读取订单数据，提交开票申请；从预设变量获取orderId和userId。
+查询申请单号：根据订单号查询申请单号；从预设变量获取orderId和userId。用JSONPath提取申请单号，存入动态变量中。
+推送财务：把申请单号推送给财务；从动态变量获取applyId。
+覆盖更多代码 ①看代码：
+在Java工程里面的Controller/Provider找到所有接口，分析可以用来做自动化的接口，设计自动化用例进行覆盖。
+②代码覆盖率：
+借助于jacoco，在执行自动化用例后，把代码覆盖率跑出来，分析没覆盖的代码，补充更多正常/异常/边界的自动化用例。也就是精准测试。
+自动化巡检 每天早上8点，定时任务执行用例集；发送邮件，抄送测试组、开发组、领导，让测试、开发和领导都知道自动化建设情况；如果出现问题，一定要在当天解决，并邮件回复问题原因；确保当天的自动化用例结果都是正确的；第二天接着继续巡检。
+流水线 在持续集成中，引入自动化用例环节，把自动化用例跑通作为提测卡点，不通过可以驳回。
+产出是什么(Result) 定性来看：
+结合测试环境、测试物料、自动化、流水线、精准测试，完成了一个能对环境和业务进行稳定性巡检，能对研发提测进行质量门禁，能对应用进行代码覆盖率分析的接口自动化项目。
+定量来看：
+功能测试自动化率 = 自动化测试用例数/总测试用例数 95/100=95% 自动化发现bug占比 = 自动化发现的bug/总bug数 2/53=3.7% 自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数 2/2=100% 自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数 5396/5621=96% 周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例) 77% 应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数 39% 这个Q主要完成了核心流程和重要接口的自动化用例，还需要持续补充场景用例和异常/边界的自动化用例。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "理想中的接口自动化项目",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000002-%E7%90%86%E6%83%B3%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A1%B9%E7%9B%AE/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "理想中的接口自动化项目",
+  "name": "理想中的接口自动化项目",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n如何评价接口自动化项目 我理想中的接口自动化项目，是有一套脚本，能够100%覆盖核心业务场景，能够回归线上频繁出现的问题，能够支持手工无法验证的场景，能够抛出偶现问题，能够包含容易遗漏的边界场景、异常场景，每天都能定时运行，出具报告，给予反馈。\n用实际的指标量化下：\n功能测试自动化率 = 自动化测试用例数/总测试用例数\n自动化发现bug占比 = 自动化发现的bug/总bug数\n自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数\n自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数\n周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例)\n应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数\n现状是什么(Situation) 我负责的业务是发票中台，数据流简化后如下图所示：\n发票中台对调用方提供RPC服务，底层有读写MySQL、同步ES、消息队列、异步任务等服务，上游是用户和订单，需要账号、增票资质、订单等物料；下游是财务，推送申请单给财务开具发票等。\n发票的接口自动化在多年前是写了的，用Java+TestNG+RPC本地化了一套框架来实现，因为人员离职和业务变更，这套自动化到我手上的时候，已经不能用了，本地化的接口自动化项目也无法做数据度量，只有接口测试平台写的自动化用例才会被统计到。\n任务是什么(Task) 我给自己定的绩效是在Q2完成95条自动化用例，按照一个标准化的自动化项目来实现发票的接口自动化，结合测试环境、测试物料、流水线、精准分析，打造一个个人的稳定的沉淀物，无论是晋升还是求职，都能拿来讲点故事。\n行动是什么(Action) 编写自动化用例的方式 1、最理想的方式，是能够录制线上流量直接转换为自动化用例，修修改改即可。虽然我们有流量录制回放平台，但是它跟接口自动化平台并没有打通，很可惜不能采取这种方式。\n2、参考线上流量日志，抓取接口、入参，人工转化为自动化用例。\n3、参考接口的代码设计，比如controller/provider/sdk都定义了应用接口，能知道哪些覆盖到了，哪些还需要补充。\n4、根据入参模板自行构造参数。参数个数太多的话造起来很麻烦。\n我主要采用第2种和第3种方式结合来编写自动化用例。\n典型自动化用例 前置步骤：初始化数据，将订单发票类型更新为3。\n预设变量：提供参数化数据。\n执行步骤：调用修改订单发票类型接口，将发票类型3改为2，入参引用预设变量。\n财务接口：依赖测试物料无法满足，通过Mock来返回模板数据，让接口继续往下走。\n基础断言：接口响应状态码200。\n业务断言：调用订单列表查询接口，用JSONPath提取响应中的发票类型，断言已经改成了2。\n场景用例 数据准备：通过物料工具造订单数据，写入MySQL数据库中。\n更新MySQL数据：更新订单的部分字段数据，触发binlake，将数据同步至ES，因为提交开票申请是读取的ES数据；从预设变量获取orderId。\n提交开票申请：从ES读取订单数据，提交开票申请；从预设变量获取orderId和userId。\n查询申请单号：根据订单号查询申请单号；从预设变量获取orderId和userId。用JSONPath提取申请单号，存入动态变量中。\n推送财务：把申请单号推送给财务；从动态变量获取applyId。\n覆盖更多代码 ①看代码：\n在Java工程里面的Controller/Provider找到所有接口，分析可以用来做自动化的接口，设计自动化用例进行覆盖。\n②代码覆盖率：\n借助于jacoco，在执行自动化用例后，把代码覆盖率跑出来，分析没覆盖的代码，补充更多正常/异常/边界的自动化用例。也就是精准测试。\n自动化巡检 每天早上8点，定时任务执行用例集；发送邮件，抄送测试组、开发组、领导，让测试、开发和领导都知道自动化建设情况；如果出现问题，一定要在当天解决，并邮件回复问题原因；确保当天的自动化用例结果都是正确的；第二天接着继续巡检。\n流水线 在持续集成中，引入自动化用例环节，把自动化用例跑通作为提测卡点，不通过可以驳回。\n产出是什么(Result) 定性来看：\n结合测试环境、测试物料、自动化、流水线、精准测试，完成了一个能对环境和业务进行稳定性巡检，能对研发提测进行质量门禁，能对应用进行代码覆盖率分析的接口自动化项目。\n定量来看：\n功能测试自动化率 = 自动化测试用例数/总测试用例数 95/100=95% 自动化发现bug占比 = 自动化发现的bug/总bug数 2/53=3.7% 自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数 2/2=100% 自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数 5396/5621=96% 周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例) 77% 应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数 39% 这个Q主要完成了核心流程和重要接口的自动化用例，还需要持续补充场景用例和异常/边界的自动化用例。\n",
+  "keywords": [
+    "自动化"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n如何评价接口自动化项目 我理想中的接口自动化项目，是有一套脚本，能够100%覆盖核心业务场景，能够回归线上频繁出现的问题，能够支持手工无法验证的场景，能够抛出偶现问题，能够包含容易遗漏的边界场景、异常场景，每天都能定时运行，出具报告，给予反馈。\n用实际的指标量化下：\n功能测试自动化率 = 自动化测试用例数/总测试用例数\n自动化发现bug占比 = 自动化发现的bug/总bug数\n自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数\n自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数\n周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例)\n应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数\n现状是什么(Situation) 我负责的业务是发票中台，数据流简化后如下图所示：\n发票中台对调用方提供RPC服务，底层有读写MySQL、同步ES、消息队列、异步任务等服务，上游是用户和订单，需要账号、增票资质、订单等物料；下游是财务，推送申请单给财务开具发票等。\n发票的接口自动化在多年前是写了的，用Java+TestNG+RPC本地化了一套框架来实现，因为人员离职和业务变更，这套自动化到我手上的时候，已经不能用了，本地化的接口自动化项目也无法做数据度量，只有接口测试平台写的自动化用例才会被统计到。\n任务是什么(Task) 我给自己定的绩效是在Q2完成95条自动化用例，按照一个标准化的自动化项目来实现发票的接口自动化，结合测试环境、测试物料、流水线、精准分析，打造一个个人的稳定的沉淀物，无论是晋升还是求职，都能拿来讲点故事。\n行动是什么(Action) 编写自动化用例的方式 1、最理想的方式，是能够录制线上流量直接转换为自动化用例，修修改改即可。虽然我们有流量录制回放平台，但是它跟接口自动化平台并没有打通，很可惜不能采取这种方式。\n2、参考线上流量日志，抓取接口、入参，人工转化为自动化用例。\n3、参考接口的代码设计，比如controller/provider/sdk都定义了应用接口，能知道哪些覆盖到了，哪些还需要补充。\n4、根据入参模板自行构造参数。参数个数太多的话造起来很麻烦。\n我主要采用第2种和第3种方式结合来编写自动化用例。\n典型自动化用例 前置步骤：初始化数据，将订单发票类型更新为3。\n预设变量：提供参数化数据。\n执行步骤：调用修改订单发票类型接口，将发票类型3改为2，入参引用预设变量。\n财务接口：依赖测试物料无法满足，通过Mock来返回模板数据，让接口继续往下走。\n基础断言：接口响应状态码200。\n业务断言：调用订单列表查询接口，用JSONPath提取响应中的发票类型，断言已经改成了2。\n场景用例 数据准备：通过物料工具造订单数据，写入MySQL数据库中。\n更新MySQL数据：更新订单的部分字段数据，触发binlake，将数据同步至ES，因为提交开票申请是读取的ES数据；从预设变量获取orderId。\n提交开票申请：从ES读取订单数据，提交开票申请；从预设变量获取orderId和userId。\n查询申请单号：根据订单号查询申请单号；从预设变量获取orderId和userId。用JSONPath提取申请单号，存入动态变量中。\n推送财务：把申请单号推送给财务；从动态变量获取applyId。\n覆盖更多代码 ①看代码：\n在Java工程里面的Controller/Provider找到所有接口，分析可以用来做自动化的接口，设计自动化用例进行覆盖。\n②代码覆盖率：\n借助于jacoco，在执行自动化用例后，把代码覆盖率跑出来，分析没覆盖的代码，补充更多正常/异常/边界的自动化用例。也就是精准测试。\n自动化巡检 每天早上8点，定时任务执行用例集；发送邮件，抄送测试组、开发组、领导，让测试、开发和领导都知道自动化建设情况；如果出现问题，一定要在当天解决，并邮件回复问题原因；确保当天的自动化用例结果都是正确的；第二天接着继续巡检。\n流水线 在持续集成中，引入自动化用例环节，把自动化用例跑通作为提测卡点，不通过可以驳回。\n产出是什么(Result) 定性来看：\n结合测试环境、测试物料、自动化、流水线、精准测试，完成了一个能对环境和业务进行稳定性巡检，能对研发提测进行质量门禁，能对应用进行代码覆盖率分析的接口自动化项目。\n定量来看：\n功能测试自动化率 = 自动化测试用例数/总测试用例数 95/100=95% 自动化发现bug占比 = 自动化发现的bug/总bug数 2/53=3.7% 自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数 2/2=100% 自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数 5396/5621=96% 周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例) 77% 应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数 39% 这个Q主要完成了核心流程和重要接口的自动化用例，还需要持续补充场景用例和异常/边界的自动化用例。\n你理想中的接口自动化项目是什么样的呢？\n",
+  "wordCount" : "87",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-02T00:00:00Z",
+  "dateModified": "2026-01-02T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000002-%E7%90%86%E6%83%B3%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A1%B9%E7%9B%AE/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      理想中的接口自动化项目
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-02T00:00:00+00:00'>2026-01-02</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>87 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E8%87%AA%E5%8A%A8%E5%8C%96/'>#自动化</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="如何评价接口自动化项目">如何评价接口自动化项目<a hidden class="anchor" aria-hidden="true" href="#如何评价接口自动化项目">#</a></h1>
+<p>我理想中的接口自动化项目，是有一套脚本，能够100%覆盖核心业务场景，能够回归线上频繁出现的问题，能够支持手工无法验证的场景，能够抛出偶现问题，能够包含容易遗漏的边界场景、异常场景，每天都能定时运行，出具报告，给予反馈。</p>
+<p>用实际的<strong>指标量化</strong>下：</p>
+<ul>
+<li>
+<p>功能测试自动化率 = 自动化测试用例数/总测试用例数</p>
+</li>
+<li>
+<p>自动化发现bug占比 = 自动化发现的bug/总bug数</p>
+</li>
+<li>
+<p>自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数</p>
+</li>
+<li>
+<p>自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数</p>
+</li>
+<li>
+<p>周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例)</p>
+</li>
+<li>
+<p>应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数</p>
+</li>
+</ul>
+<h1 id="现状是什么situation">现状是什么(Situation)<a hidden class="anchor" aria-hidden="true" href="#现状是什么situation">#</a></h1>
+<p>我负责的业务是发票中台，数据流简化后如下图所示：</p>
+<p><img loading="lazy" src="../assets/b337c73fa45a4a5b80cc91b13305c987.png"></p>
+<p>发票中台对调用方提供RPC服务，底层有读写MySQL、同步ES、消息队列、异步任务等服务，上游是用户和订单，需要账号、增票资质、订单等物料；下游是财务，推送申请单给财务开具发票等。</p>
+<p>发票的接口自动化在多年前是写了的，用Java+TestNG+RPC本地化了一套框架来实现，因为人员离职和业务变更，这套自动化到我手上的时候，已经不能用了，本地化的接口自动化项目也无法做数据度量，只有接口测试平台写的自动化用例才会被统计到。</p>
+<h1 id="任务是什么task">任务是什么(Task)<a hidden class="anchor" aria-hidden="true" href="#任务是什么task">#</a></h1>
+<p>我给自己定的绩效是在Q2完成95条自动化用例，按照一个标准化的自动化项目来实现发票的接口自动化，结合测试环境、测试物料、流水线、精准分析，打造一个个人的稳定的沉淀物，无论是晋升还是求职，都能拿来讲点故事。</p>
+<h1 id="行动是什么action">行动是什么(Action)<a hidden class="anchor" aria-hidden="true" href="#行动是什么action">#</a></h1>
+<h2 id="编写自动化用例的方式"><strong>编写自动化用例的方式</strong><a hidden class="anchor" aria-hidden="true" href="#编写自动化用例的方式">#</a></h2>
+<p>1、最理想的方式，是能够录制线上流量直接转换为自动化用例，修修改改即可。虽然我们有流量录制回放平台，但是它跟接口自动化平台并没有打通，很可惜不能采取这种方式。</p>
+<p>2、参考线上流量日志，抓取接口、入参，人工转化为自动化用例。</p>
+<p>3、参考接口的代码设计，比如controller/provider/sdk都定义了应用接口，能知道哪些覆盖到了，哪些还需要补充。</p>
+<p>4、根据入参模板自行构造参数。参数个数太多的话造起来很麻烦。</p>
+<p>我主要采用第2种和第3种方式结合来编写自动化用例。</p>
+<h2 id="典型自动化用例"><strong>典型自动化用例</strong><a hidden class="anchor" aria-hidden="true" href="#典型自动化用例">#</a></h2>
+<p><img loading="lazy" src="../assets/5f98cecbf9624b92b0947b266bf882e3.png"></p>
+<p>前置步骤：初始化数据，将订单发票类型更新为3。</p>
+<p>预设变量：提供参数化数据。</p>
+<p>执行步骤：调用修改订单发票类型接口，将发票类型3改为2，入参引用预设变量。</p>
+<p>财务接口：依赖测试物料无法满足，通过Mock来返回模板数据，让接口继续往下走。</p>
+<p>基础断言：接口响应状态码200。</p>
+<p>业务断言：调用订单列表查询接口，用JSONPath提取响应中的发票类型，断言已经改成了2。</p>
+<h2 id="场景用例">场景用例<a hidden class="anchor" aria-hidden="true" href="#场景用例">#</a></h2>
+<p><img loading="lazy" src="../assets/97835629bcf84376b1b076ecc2efe71f.png"></p>
+<p>数据准备：通过物料工具造订单数据，写入MySQL数据库中。</p>
+<p>更新MySQL数据：更新订单的部分字段数据，触发binlake，将数据同步至ES，因为提交开票申请是读取的ES数据；从预设变量获取orderId。</p>
+<p>提交开票申请：从ES读取订单数据，提交开票申请；从预设变量获取orderId和userId。</p>
+<p>查询申请单号：根据订单号查询申请单号；从预设变量获取orderId和userId。用JSONPath提取申请单号，存入动态变量中。</p>
+<p>推送财务：把申请单号推送给财务；从动态变量获取applyId。</p>
+<h2 id="覆盖更多代码">覆盖更多代码<a hidden class="anchor" aria-hidden="true" href="#覆盖更多代码">#</a></h2>
+<p>①看代码：</p>
+<p><img loading="lazy" src="../assets/9044fdece03b49cabe47430cce991cc4.png"></p>
+<p>在Java工程里面的Controller/Provider找到所有接口，分析可以用来做自动化的接口，设计自动化用例进行覆盖。</p>
+<p>②代码覆盖率：</p>
+<p><img loading="lazy" src="../assets/7e8be8a6cb654d5cb6b90ba93382873f.png"></p>
+<p>借助于jacoco，在执行自动化用例后，把代码覆盖率跑出来，分析没覆盖的代码，补充更多<strong>正常/异常/边界</strong>的自动化用例。也就是精准测试。</p>
+<h2 id="自动化巡检">自动化巡检<a hidden class="anchor" aria-hidden="true" href="#自动化巡检">#</a></h2>
+<p><img loading="lazy" src="../assets/bb44fe887eb3478685555b893a1b483c.png"></p>
+<p>每天早上8点，定时任务执行用例集；发送邮件，抄送测试组、开发组、领导，让测试、开发和领导都知道自动化建设情况；如果出现问题，一定要在当天解决，并邮件回复问题原因；确保当天的自动化用例结果都是正确的；第二天接着继续巡检。</p>
+<h2 id="流水线">流水线<a hidden class="anchor" aria-hidden="true" href="#流水线">#</a></h2>
+<p>在持续集成中，引入自动化用例环节，把自动化用例跑通作为提测卡点，不通过可以驳回。</p>
+<h1 id="产出是什么result">产出是什么(Result)<a hidden class="anchor" aria-hidden="true" href="#产出是什么result">#</a></h1>
+<p>定性来看：</p>
+<p><strong>结合测试环境、测试物料、自动化、流水线、精准测试，完成了一个能对环境和业务进行稳定性巡检，能对研发提测进行质量门禁，能对应用进行代码覆盖率分析的接口自动化项目。</strong></p>
+<p>定量来看：</p>
+<ul>
+<li>功能测试自动化率 = 自动化测试用例数/总测试用例数 <strong>95/100=95%</strong></li>
+<li>自动化发现bug占比 = 自动化发现的bug/总bug数 <strong>2/53=3.7%</strong></li>
+<li>自动化发现bug有效性 = 自动化发现的有效bug/自动化提交的bug总数 <strong>2/2=100%</strong></li>
+<li>自动化执行成功率 = 自动化执行成功的次数/自动化执行总次数 <strong>5396/5621=96%</strong></li>
+<li>周活跃自动化用例占比 = (∑每周执行过的自动化测试用例)/(∑周维度自动化测试用例) <strong>77%</strong></li>
+<li>应用维度自动化代码覆盖率 = 自动化用例覆盖代码行数/应用维度代码总行数 <strong>39%</strong></li>
+</ul>
+<p>这个Q主要完成了核心流程和重要接口的自动化用例，还需要持续补充场景用例和异常/边界的自动化用例。</p>
+<p><strong>你理想中的接口自动化项目是什么样的呢？</strong></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E8%87%AA%E5%8A%A8%E5%8C%96/">自动化</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000002-spring%E5%BC%80%E5%8F%91%E4%BD%A0%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AAspringboot%E5%BA%94%E7%94%A8/">
+    <span class="title">« 上一页</span>
+    <span>开发你的第一个SpringBoot应用</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/000002-ai%E5%BC%80%E5%8F%91%E5%85%8D%E8%B4%B9%E6%90%AD%E5%BB%BA%E4%BD%A0%E7%9A%84%E7%94%B5%E5%AD%90%E4%B9%A6%E7%BD%91%E7%AB%99%E9%99%84%E6%BA%90%E7%A0%81/">
+    <span class="title">下一页 »</span>
+    <span>免费搭建你的电子书网站（附源码）</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#如何评价接口自动化项目">如何评价接口自动化项目</a></li>
+    <li><a href="#现状是什么situation">现状是什么(Situation)</a></li>
+    <li><a href="#任务是什么task">任务是什么(Task)</a></li>
+    <li><a href="#行动是什么action">行动是什么(Action)</a>
+      <ul>
+        <li><a href="#编写自动化用例的方式"><strong>编写自动化用例的方式</strong></a></li>
+        <li><a href="#典型自动化用例"><strong>典型自动化用例</strong></a></li>
+        <li><a href="#场景用例">场景用例</a></li>
+        <li><a href="#覆盖更多代码">覆盖更多代码</a></li>
+        <li><a href="#自动化巡检">自动化巡检</a></li>
+        <li><a href="#流水线">流水线</a></li>
+      </ul>
+    </li>
+    <li><a href="#产出是什么result">产出是什么(Result)</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

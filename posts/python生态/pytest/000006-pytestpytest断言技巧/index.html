@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>pytest断言技巧 | 测试开发刚哥</title>
+<meta name="keywords" content="pytest">
+<meta name="description" content="pytest的断言把Python语言简洁的优点发挥的淋漓尽致，因为它用的就是Python的标准断言assert。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/pytest/000006-pytestpytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/pytest/000006-pytestpytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/pytest/000006-pytestpytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="pytest断言技巧">
+  <meta property="og:description" content="pytest的断言把Python语言简洁的优点发挥的淋漓尽致，因为它用的就是Python的标准断言assert。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:tag" content="Pytest">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="pytest断言技巧">
+  <meta name="twitter:description" content="pytest的断言把Python语言简洁的优点发挥的淋漓尽致，因为它用的就是Python的标准断言assert。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "pytest断言技巧",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/pytest/000006-pytestpytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "pytest断言技巧",
+  "name": "pytest断言技巧",
+  "description": "pytest的断言把Python语言简洁的优点发挥的淋漓尽致，因为它用的就是Python的标准断言assert。",
+  "keywords": [
+    "pytest"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\npytest的断言把Python语言简洁的优点发挥的淋漓尽致，因为它用的就是Python的标准断言assert。\nassert基础 assert用法\nassert_stmt ::= \"assert\" expression1 [\",\" expression2] “assert” expression1，expression1和 if 的条件语句是一模一样的，if 能写什么这里就能写什么。\n[\",\" expression2]，是可选的，不写错误信息也可以。\nassert断言等价于\nif __debug__: if not expression1: raise AssertionError(expression2) 示例，只考了59分，满分100分，不及格\ndef test(): assert 59 == 100, \"不及格\" 结果，\u003e指出了断言失败的代码行，E指出了具体的错误\na.py::test FAILED [100%] AssertionError: 不及格 59 != 100 Expected :100 Actual :59 \u003cClick to see difference\u003e def test(): \u003e assert 59 == 100, \"不及格\" E AssertionError: 不及格 E assert 59 == 100 a.py:2: AssertionError ================================== FAILURES =================================== ____________________________________ test _____________________________________ def test(): \u003e assert 59 == 100, \"不及格\" E AssertionError: 不及格 E assert 59 == 100 a.py:2: AssertionError =========================== short test summary info =========================== FAILED a.py::test - AssertionError: 不及格 ============================== 1 failed in 0.30s ============================== 把这个例子稍微抽象一下，assert 实际 == 预期，错误信息。记住把预期放在右边。\npytest.raises pytest.raises用于断言异常。\n示例，断言会抛出ZeroDivisionError，如果抛出了测试结果是pass，如果没抛出，测试结果是failed\nimport pytest def test_zero_division(): with pytest.raises(ZeroDivisionError): 1 / 0 同时可以断言异常信息。示例，定义f()，递归循环抛异常，assert断言这个异常信息包括\"maximum recursion\"\ndef test_recursion_depth(): with pytest.raises(RuntimeError) as excinfo: def f(): f() f() assert \"maximum recursion\" in str(excinfo.value) 可以添加match参数来用正则过滤异常信息。示例，匹配包括123的异常\nimport pytest def myfunc(): raise ValueError(\"Exception 123 raised\") def test_match(): with pytest.raises(ValueError, match=r\".* 123 .*\"): myfunc() 如果是对整个test异常断言，也可以加marker xfail\n@pytest.mark.xfail(raises=IndexError) 44个failure例子 每个test用大横线做了分隔\nassertion $ pytest failure_demo.py =========================== test session starts ============================ platform linux -- Python 3.x.y, pytest-6.x.y, py-1.x.y, pluggy-0.x.y cachedir: $PYTHON_PREFIX/.pytest_cache rootdir: $REGENDOC_TMPDIR/assertion collected 44 items failure_demo.py FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF [100%] ================================= FAILURES ================================= ___________________________ test_generative[3-6] ___________________________ param1 = 3, param2 = 6 @pytest.mark.parametrize(\"param1, param2\", [(3, 6)]) def test_generative(param1, param2): \u003e assert param1 * 2 \u003c param2 E assert (3 * 2) \u003c 6 failure_demo.py:19: AssertionError _________________________ TestFailing.test_simple __________________________ self = def test_simple(self): def f(): return 42 def g(): return 43 \u003e assert f() == g() E assert 42 == 43 E + where 42 = \u003cfunction TestFailing.test_simple..f at 0xdeadbeef\u003e() E + and 43 = \u003cfunction TestFailing.test_simple..g at 0xdeadbeef\u003e() failure_demo.py:30: AssertionError ____________________ TestFailing.test_simple_multiline _____________________ self = def test_simple_multiline(self): \u003e otherfunc_multi(42, 6 * 9) failure_demo.py:33: _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ a = 42, b = 54 def otherfunc_multi(a, b): \u003e assert a == b E assert 42 == 54 failure_demo.py:14: AssertionError ___________________________ TestFailing.test_not ___________________________ self = def test_not(self): def f(): return 42 \u003e assert not f() E assert not 42 E + where 42 = \u003cfunction TestFailing.test_not..f at 0xdeadbeef\u003e() failure_demo.py:39: AssertionError _________________ TestSpecialisedExplanations.test_eq_text _________________ self = def test_eq_text(self): \u003e assert \"spam\" == \"eggs\" E AssertionError: assert 'spam' == 'eggs' E - eggs E + spam failure_demo.py:44: AssertionError _____________ TestSpecialisedExplanations.test_eq_similar_text _____________ self = def test_eq_similar_text(self): \u003e assert \"foo 1 bar\" == \"foo 2 bar\" E AssertionError: assert 'foo 1 bar' == 'foo 2 bar' E - foo 2 bar E ? ^ E + foo 1 bar E ? ^ failure_demo.py:47: AssertionError ____________ TestSpecialisedExplanations.test_eq_multiline_text ____________ self = def test_eq_multiline_text(self): \u003e assert \"foo\\nspam\\nbar\" == \"foo\\neggs\\nbar\" E AssertionError: assert 'foo\\nspam\\nbar' == 'foo\\neggs\\nbar' E foo E - eggs E + spam E bar failure_demo.py:50: AssertionError ______________ TestSpecialisedExplanations.test_eq_long_text _______________ self = def test_eq_long_text(self): a = \"1\" * 100 + \"a\" + \"2\" * 100 b = \"1\" * 100 + \"b\" + \"2\" * 100 \u003e assert a == b E AssertionError: assert '111111111111...2222222222222' == '111111111111...2222222222222' E Skipping 90 identical leading characters in diff, use -v to show E Skipping 91 identical trailing characters in diff, use -v to show E - 1111111111b222222222 E ? ^ E + 1111111111a222222222 E ? ^ failure_demo.py:55: AssertionError _________ TestSpecialisedExplanations.test_eq_long_text_multiline __________ self = def test_eq_long_text_multiline(self): a = \"1\\n\" * 100 + \"a\" + \"2\\n\" * 100 b = \"1\\n\" * 100 + \"b\" + \"2\\n\" * 100 \u003e assert a == b E AssertionError: assert '1\\n1\\n1\\n1\\n...n2\\n2\\n2\\n2\\n' == '1\\n1\\n1\\n1\\n...n2\\n2\\n2\\n2\\n' E Skipping 190 identical leading characters in diff, use -v to show E Skipping 191 identical trailing characters in diff, use -v to show E 1 E 1 E 1 E 1 E 1... E E ...Full output truncated (7 lines hidden), use '-vv' to show failure_demo.py:60: AssertionError _________________ TestSpecialisedExplanations.test_eq_list _________________ self = def test_eq_list(self): \u003e assert [0, 1, 2] == [0, 1, 3] E assert [0, 1, 2] == [0, 1, 3] E At index 2 diff: 2 != 3 E Use -v to get the full diff failure_demo.py:63: AssertionError ______________ TestSpecialisedExplanations.test_eq_list_long _______________ self = def test_eq_list_long(self): a = [0] * 100 + [1] + [3] * 100 b = [0] * 100 + [2] + [3] * 100 \u003e assert a == b E assert [0, 0, 0, 0, 0, 0, ...] == [0, 0, 0, 0, 0, 0, ...] E At index 100 diff: 1 != 2 E Use -v to get the full diff failure_demo.py:68: AssertionError _________________ TestSpecialisedExplanations.test_eq_dict _________________ self = def test_eq_dict(self): \u003e assert {\"a\": 0, \"b\": 1, \"c\": 0} == {\"a\": 0, \"b\": 2, \"d\": 0} E AssertionError: assert {'a': 0, 'b': 1, 'c': 0} == {'a': 0, 'b': 2, 'd': 0} E Omitting 1 identical items, use -vv to show E Differing items: E {'b': 1} != {'b': 2} E Left contains 1 more item: E {'c': 0} E Right contains 1 more item: E {'d': 0}... E E ...Full output truncated (2 lines hidden), use '-vv' to show failure_demo.py:71: AssertionError _________________ TestSpecialisedExplanations.test_eq_set __________________ self = def test_eq_set(self): \u003e assert {0, 10, 11, 12} == {0, 20, 21} E AssertionError: assert {0, 10, 11, 12} == {0, 20, 21} E Extra items in the left set: E 10 E 11 E 12 E Extra items in the right set: E 20 E 21... E E ...Full output truncated (2 lines hidden), use '-vv' to show failure_demo.py:74: AssertionError _____________ TestSpecialisedExplanations.test_eq_longer_list ______________ self = def test_eq_longer_list(self): \u003e assert [1, 2] == [1, 2, 3] E assert [1, 2] == [1, 2, 3] E Right contains one more item: 3 E Use -v to get the full diff failure_demo.py:77: AssertionError _________________ TestSpecialisedExplanations.test_in_list _________________ self = def test_in_list(self): \u003e assert 1 in [0, 2, 3, 4, 5] E assert 1 in [0, 2, 3, 4, 5] failure_demo.py:80: AssertionError __________ TestSpecialisedExplanations.test_not_in_text_multiline __________ self = def test_not_in_text_multiline(self): text = \"some multiline\\ntext\\nwhich\\nincludes foo\\nand a\\ntail\" \u003e assert \"foo\" not in text E AssertionError: assert 'foo' not in 'some multil...nand a\\ntail' E 'foo' is contained here: E some multiline E text E which E includes foo E ? +++ E and a... E E ...Full output truncated (2 lines hidden), use '-vv' to show failure_demo.py:84: AssertionError ___________ TestSpecialisedExplanations.test_not_in_text_single ____________ self = def test_not_in_text_single(self): text = \"single foo line\" \u003e assert \"foo\" not in text E AssertionError: assert 'foo' not in 'single foo line' E 'foo' is contained here: E single foo line E ? +++ failure_demo.py:88: AssertionError _________ TestSpecialisedExplanations.test_not_in_text_single_long _________ self = def test_not_in_text_single_long(self): text = \"head \" * 50 + \"foo \" + \"tail \" * 20 \u003e assert \"foo\" not in text E AssertionError: assert 'foo' not in 'head head h...l tail tail ' E 'foo' is contained here: E head head foo tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail E ? +++ failure_demo.py:92: AssertionError ______ TestSpecialisedExplanations.test_not_in_text_single_long_term _______ self = def test_not_in_text_single_long_term(self): text = \"head \" * 50 + \"f\" * 70 + \"tail \" * 20 \u003e assert \"f\" * 70 not in text E AssertionError: assert 'fffffffffff...ffffffffffff' not in 'head head h...ltail tail ' E 'ffffffffffffffffff...fffffffffffffffffff' is contained here: E head head fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffftail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail E ? ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ failure_demo.py:96: AssertionError ______________ TestSpecialisedExplanations.test_eq_dataclass _______________ self = def test_eq_dataclass(self): from dataclasses import dataclass @dataclass class Foo: a: int b: str left = Foo(1, \"b\") right = Foo(1, \"c\") \u003e assert left == right E AssertionError: assert TestSpecialis...oo(a=1, b='b') == TestSpecialis...oo(a=1, b='c') E E Omitting 1 identical items, use -vv to show E Differing attributes: E ['b'] E E Drill down into differing attribute b: E b: 'b' != 'c'... E E ...Full output truncated (3 lines hidden), use '-vv' to show failure_demo.py:108: AssertionError ________________ TestSpecialisedExplanations.test_eq_attrs _________________ self = def test_eq_attrs(self): import attr @attr.s class Foo: a = attr.ib() b = attr.ib() left = Foo(1, \"b\") right = Foo(1, \"c\") \u003e assert left == right E AssertionError: assert Foo(a=1, b='b') == Foo(a=1, b='c') E E Omitting 1 identical items, use -vv to show E Differing attributes: E ['b'] E E Drill down into differing attribute b: E b: 'b' != 'c'... E E ...Full output truncated (3 lines hidden), use '-vv' to show failure_demo.py:120: AssertionError ______________________________ test_attribute ______________________________ def test_attribute(): class Foo: b = 1 i = Foo() \u003e assert i.b == 2 E assert 1 == 2 E + where 1 = ",
+  "wordCount" : "2583",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-06T00:00:00Z",
+  "dateModified": "2026-01-06T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/pytest/000006-pytestpytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      pytest断言技巧
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-06T00:00:00+00:00'>2026-01-06</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>2583 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/pytest/'>#Pytest</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>pytest的断言把Python语言简洁的优点发挥的淋漓尽致，因为它用的就是Python的标准断言<strong>assert</strong>。</p>
+<h2 id="assert基础">assert基础<a hidden class="anchor" aria-hidden="true" href="#assert基础">#</a></h2>
+<p>assert用法</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>assert_stmt <span style="color:#1f2328">:</span><span style="color:#0550ae">:=</span>  <span style="color:#0a3069">&#34;assert&#34;</span> expression1 <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;,&#34;</span> expression2<span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>&ldquo;assert&rdquo; expression1，expression1和 if 的条件语句是一模一样的，if 能写什么这里就能写什么。</p>
+<p>[&quot;,&quot; expression2]，是可选的，不写错误信息也可以。</p>
+<p>assert断言等价于</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">if</span> __debug__<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> expression1<span style="color:#1f2328">:</span> <span style="color:#cf222e">raise</span> AssertionError<span style="color:#1f2328">(</span>expression2<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>示例，只考了59分，满分100分，不及格</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> <span style="color:#0550ae">59</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">100</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;不及格&#34;</span>
+</span></span></code></pre></div><p>结果，<code>&gt;</code>指出了断言失败的代码行，<code>E</code>指出了具体的错误</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>a<span style="color:#0550ae">.</span>py<span style="color:#1f2328">::</span>test FAILED                                                        <span style="color:#1f2328">[</span><span style="color:#0550ae">100</span><span style="color:#0550ae">%</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>AssertionError<span style="color:#1f2328">:</span> 不及格
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">59</span> <span style="color:#0550ae">!=</span> <span style="color:#0550ae">100</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Expected <span style="color:#1f2328">:</span><span style="color:#0550ae">100</span>
+</span></span><span style="display:flex;"><span>Actual   <span style="color:#1f2328">:</span><span style="color:#0550ae">59</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Click to see difference<span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;</span>       <span style="color:#cf222e">assert</span> <span style="color:#0550ae">59</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">100</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;不及格&#34;</span>
+</span></span><span style="display:flex;"><span>E       AssertionError<span style="color:#1f2328">:</span> 不及格
+</span></span><span style="display:flex;"><span>E       <span style="color:#cf222e">assert</span> <span style="color:#0550ae">59</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">100</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>a<span style="color:#0550ae">.</span>py<span style="color:#1f2328">:</span><span style="color:#0550ae">2</span><span style="color:#1f2328">:</span> AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">==================================</span> FAILURES <span style="color:#0550ae">===================================</span>
+</span></span><span style="display:flex;"><span>____________________________________ test _____________________________________
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;</span>       <span style="color:#cf222e">assert</span> <span style="color:#0550ae">59</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">100</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;不及格&#34;</span>
+</span></span><span style="display:flex;"><span>E       AssertionError<span style="color:#1f2328">:</span> 不及格
+</span></span><span style="display:flex;"><span>E       <span style="color:#cf222e">assert</span> <span style="color:#0550ae">59</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">100</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>a<span style="color:#0550ae">.</span>py<span style="color:#1f2328">:</span><span style="color:#0550ae">2</span><span style="color:#1f2328">:</span> AssertionError
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">===========================</span> short test summary info <span style="color:#0550ae">===========================</span>
+</span></span><span style="display:flex;"><span>FAILED a<span style="color:#0550ae">.</span>py<span style="color:#1f2328">::</span>test <span style="color:#0550ae">-</span> AssertionError<span style="color:#1f2328">:</span> 不及格
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">==============================</span> <span style="color:#0550ae">1</span> failed <span style="color:#0550ae">in</span> <span style="color:#0550ae">0.30</span>s <span style="color:#0550ae">==============================</span>
+</span></span></code></pre></div><p>把这个例子稍微抽象一下，<strong>assert 实际 == 预期，错误信息。<strong>记住把</strong>预期放在右边</strong>。</p>
+<h2 id="pytestraises">pytest.raises<a hidden class="anchor" aria-hidden="true" href="#pytestraises">#</a></h2>
+<p>pytest.raises用于断言异常。</p>
+<p>示例，断言会抛出ZeroDivisionError，<strong>如果抛出了测试结果是pass，如果没抛出，测试结果是failed</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_zero_division</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">with</span> pytest<span style="color:#0550ae">.</span>raises<span style="color:#1f2328">(</span>ZeroDivisionError<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">1</span> <span style="color:#0550ae">/</span> <span style="color:#0550ae">0</span>
+</span></span></code></pre></div><p>同时可以断言异常信息。示例，定义f()，递归循环抛异常，assert断言这个异常信息包括&quot;maximum recursion&quot;</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_recursion_depth</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">with</span> pytest<span style="color:#0550ae">.</span>raises<span style="color:#1f2328">(</span>RuntimeError<span style="color:#1f2328">)</span> <span style="color:#cf222e">as</span> excinfo<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">def</span> <span style="color:#6639ba">f</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            f<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>        f<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> <span style="color:#0a3069">&#34;maximum recursion&#34;</span> <span style="color:#0550ae">in</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>excinfo<span style="color:#0550ae">.</span>value<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>可以添加match参数来用正则过滤异常信息。示例，匹配包括123的异常</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">myfunc</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">raise</span> ValueError<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Exception 123 raised&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_match</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">with</span> pytest<span style="color:#0550ae">.</span>raises<span style="color:#1f2328">(</span>ValueError<span style="color:#1f2328">,</span> <span style="color:#cf222e">match</span><span style="color:#0550ae">=</span><span style="color:#0a3069">r</span><span style="color:#0a3069">&#34;.* 123 .*&#34;</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        myfunc<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>如果是对整个test异常断言，也可以加marker xfail</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.xfail</span><span style="color:#1f2328">(</span>raises<span style="color:#0550ae">=</span>IndexError<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><h2 id="44个failure例子">44个failure例子<a hidden class="anchor" aria-hidden="true" href="#44个failure例子">#</a></h2>
+<p>每个test用大横线做了分隔</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>assertion $ pytest failure_demo.py
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">===========================</span> <span style="color:#6639ba">test</span> session <span style="color:#953800">starts</span> <span style="color:#0550ae">============================</span>
+</span></span><span style="display:flex;"><span>platform linux -- Python 3.x.y, pytest-6.x.y, py-1.x.y, pluggy-0.x.y
+</span></span><span style="display:flex;"><span>cachedir: <span style="color:#953800">$PYTHON_PREFIX</span>/.pytest_cache
+</span></span><span style="display:flex;"><span>rootdir: <span style="color:#953800">$REGENDOC_TMPDIR</span>/assertion
+</span></span><span style="display:flex;"><span>collected <span style="color:#0550ae">44</span> items
+</span></span><span style="display:flex;"><span>failure_demo.py FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF <span style="color:#0550ae">[</span>100%<span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">=================================</span> <span style="color:#953800">FAILURES</span> <span style="color:#0550ae">=================================</span>
+</span></span><span style="display:flex;"><span>___________________________ test_generative<span style="color:#0550ae">[</span>3-6<span style="color:#0550ae">]</span> ___________________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">param1</span> <span style="color:#0550ae">=</span> 3, <span style="color:#953800">param2</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">6</span>
+</span></span><span style="display:flex;"><span>    @pytest.mark.parametrize<span style="color:#0550ae">(</span><span style="color:#0a3069">&#34;param1, param2&#34;</span>, <span style="color:#0550ae">[(</span>3, 6<span style="color:#0550ae">)])</span>
+</span></span><span style="display:flex;"><span>    def test_generative<span style="color:#0550ae">(</span>param1, param2<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt;       assert param1 * <span style="color:#0550ae">2</span> &lt; param2
+</span></span><span style="display:flex;"><span>E       assert <span style="color:#0550ae">(</span><span style="color:#0550ae">3</span> * 2<span style="color:#0550ae">)</span> &lt; <span style="color:#0550ae">6</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:19: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_________________________ TestFailing.test_simple __________________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestFailing object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>    def test_simple<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>        def f<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> <span style="color:#0550ae">42</span>           
+</span></span><span style="display:flex;"><span>        def g<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> <span style="color:#0550ae">43</span>
+</span></span><span style="display:flex;"><span>&gt;       assert f<span style="color:#0550ae">()</span> <span style="color:#0550ae">==</span> g<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>E       assert <span style="color:#953800">42</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">43</span>
+</span></span><span style="display:flex;"><span>E        + where <span style="color:#953800">42</span> <span style="color:#0550ae">=</span> &lt;<span style="color:#cf222e">function</span> TestFailing.test_simple.&lt;locals&gt;.f at 0xdeadbeef&gt;<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>E        + and <span style="color:#953800">43</span> <span style="color:#0550ae">=</span> &lt;<span style="color:#cf222e">function</span> TestFailing.test_simple.&lt;locals&gt;.g at 0xdeadbeef&gt;<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:30: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>____________________ TestFailing.test_simple_multiline _____________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestFailing object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>    def test_simple_multiline<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt;       otherfunc_multi<span style="color:#0550ae">(</span>42, <span style="color:#0550ae">6</span> * 9<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:33:
+</span></span><span style="display:flex;"><span>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+</span></span><span style="display:flex;"><span><span style="color:#953800">a</span> <span style="color:#0550ae">=</span> 42, <span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">54</span>
+</span></span><span style="display:flex;"><span>    def otherfunc_multi<span style="color:#0550ae">(</span>a, b<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt;       assert <span style="color:#953800">a</span> <span style="color:#0550ae">==</span> b
+</span></span><span style="display:flex;"><span>E       assert <span style="color:#953800">42</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">54</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:14: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>___________________________ TestFailing.test_not ___________________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestFailing object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>    def test_not<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>        def f<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> <span style="color:#0550ae">42</span>
+</span></span><span style="display:flex;"><span>&gt;       assert not f<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>E       assert not <span style="color:#0550ae">42</span>
+</span></span><span style="display:flex;"><span>E        + where <span style="color:#953800">42</span> <span style="color:#0550ae">=</span> &lt;<span style="color:#cf222e">function</span> TestFailing.test_not.&lt;locals&gt;.f at 0xdeadbeef&gt;<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:39: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_________________ TestSpecialisedExplanations.test_eq_text _________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>    def test_eq_text<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt;       assert <span style="color:#0a3069">&#34;spam&#34;</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;eggs&#34;</span>
+</span></span><span style="display:flex;"><span>E       AssertionError: assert <span style="color:#0a3069">&#39;spam&#39;</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;eggs&#39;</span>
+</span></span><span style="display:flex;"><span>E         - eggs
+</span></span><span style="display:flex;"><span>E         + spam
+</span></span><span style="display:flex;"><span>failure_demo.py:44: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_____________ TestSpecialisedExplanations.test_eq_similar_text _____________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_eq_similar_text<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0a3069">&#34;foo 1 bar&#34;</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;foo 2 bar&#34;</span>
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#0a3069">&#39;foo 1 bar&#39;</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;foo 2 bar&#39;</span>
+</span></span><span style="display:flex;"><span>E 		  - foo <span style="color:#0550ae">2</span> bar
+</span></span><span style="display:flex;"><span>E 		  ? ^
+</span></span><span style="display:flex;"><span>E 		  + foo <span style="color:#0550ae">1</span> bar
+</span></span><span style="display:flex;"><span>E 		  ? ^
+</span></span><span style="display:flex;"><span>failure_demo.py:47: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>____________ TestSpecialisedExplanations.test_eq_multiline_text ____________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_eq_multiline_text<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0a3069">&#34;foo\nspam\nbar&#34;</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;foo\neggs\nbar&#34;</span>
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#0a3069">&#39;foo\nspam\nbar&#39;</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;foo\neggs\nbar&#39;</span>
+</span></span><span style="display:flex;"><span>E 		  foo
+</span></span><span style="display:flex;"><span>E 		  - eggs
+</span></span><span style="display:flex;"><span>E 		  + spam
+</span></span><span style="display:flex;"><span>E 		  bar
+</span></span><span style="display:flex;"><span>failure_demo.py:50: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>______________ TestSpecialisedExplanations.test_eq_long_text _______________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_eq_long_text<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">a</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;1&#34;</span> * <span style="color:#0550ae">100</span> + <span style="color:#0a3069">&#34;a&#34;</span> + <span style="color:#0a3069">&#34;2&#34;</span> * <span style="color:#0550ae">100</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;1&#34;</span> * <span style="color:#0550ae">100</span> + <span style="color:#0a3069">&#34;b&#34;</span> + <span style="color:#0a3069">&#34;2&#34;</span> * <span style="color:#0550ae">100</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#953800">a</span> <span style="color:#0550ae">==</span> b
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#0a3069">&#39;111111111111...2222222222222&#39;</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;111111111111...2222222222222&#39;</span>
+</span></span><span style="display:flex;"><span>E 		  Skipping <span style="color:#0550ae">90</span> identical leading characters in diff, use -v to show
+</span></span><span style="display:flex;"><span>E 		  Skipping <span style="color:#0550ae">91</span> identical trailing characters in diff, use -v to show
+</span></span><span style="display:flex;"><span>E 		  - 1111111111b222222222
+</span></span><span style="display:flex;"><span>E 		  ? ^
+</span></span><span style="display:flex;"><span>E 		  + 1111111111a222222222
+</span></span><span style="display:flex;"><span>E 		  ? ^
+</span></span><span style="display:flex;"><span>failure_demo.py:55: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_________ TestSpecialisedExplanations.test_eq_long_text_multiline __________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_eq_long_text_multiline<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">a</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;1\n&#34;</span> * <span style="color:#0550ae">100</span> + <span style="color:#0a3069">&#34;a&#34;</span> + <span style="color:#0a3069">&#34;2\n&#34;</span> * <span style="color:#0550ae">100</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;1\n&#34;</span> * <span style="color:#0550ae">100</span> + <span style="color:#0a3069">&#34;b&#34;</span> + <span style="color:#0a3069">&#34;2\n&#34;</span> * <span style="color:#0550ae">100</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#953800">a</span> <span style="color:#0550ae">==</span> b
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#0a3069">&#39;1\n1\n1\n1\n...n2\n2\n2\n2\n&#39;</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;1\n1\n1\n1\n...n2\n2\n2\n2\n&#39;</span>
+</span></span><span style="display:flex;"><span>E 		  Skipping <span style="color:#0550ae">190</span> identical leading characters in diff, use -v to show
+</span></span><span style="display:flex;"><span>E 		  Skipping <span style="color:#0550ae">191</span> identical trailing characters in diff, use -v to show
+</span></span><span style="display:flex;"><span>E 		    <span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>E 			<span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>E 			<span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>E 			<span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>E 			1...
+</span></span><span style="display:flex;"><span>E
+</span></span><span style="display:flex;"><span>E 		  ...Full output truncated <span style="color:#0550ae">(</span><span style="color:#0550ae">7</span> lines hidden<span style="color:#0550ae">)</span>, use <span style="color:#0a3069">&#39;-vv&#39;</span> to show
+</span></span><span style="display:flex;"><span>failure_demo.py:60: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_________________ TestSpecialisedExplanations.test_eq_list _________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_eq_list<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0550ae">[</span>0, 1, 2<span style="color:#0550ae">]</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">[</span>0, 1, 3<span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>E 		assert <span style="color:#0550ae">[</span>0, 1, 2<span style="color:#0550ae">]</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">[</span>0, 1, 3<span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>E 		  At index <span style="color:#0550ae">2</span> diff: <span style="color:#0550ae">2</span> !<span style="color:#0550ae">=</span> <span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span>E 		  Use -v to get the full diff
+</span></span><span style="display:flex;"><span>failure_demo.py:63: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>______________ TestSpecialisedExplanations.test_eq_list_long _______________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>def test_eq_list_long<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span><span style="color:#953800">a</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">[</span>0<span style="color:#0550ae">]</span> * <span style="color:#0550ae">100</span> + <span style="color:#0550ae">[</span>1<span style="color:#0550ae">]</span> + <span style="color:#0550ae">[</span>3<span style="color:#0550ae">]</span> * <span style="color:#0550ae">100</span>
+</span></span><span style="display:flex;"><span><span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">[</span>0<span style="color:#0550ae">]</span> * <span style="color:#0550ae">100</span> + <span style="color:#0550ae">[</span>2<span style="color:#0550ae">]</span> + <span style="color:#0550ae">[</span>3<span style="color:#0550ae">]</span> * <span style="color:#0550ae">100</span>
+</span></span><span style="display:flex;"><span>&gt; assert <span style="color:#953800">a</span> <span style="color:#0550ae">==</span> b
+</span></span><span style="display:flex;"><span>E assert <span style="color:#0550ae">[</span>0, 0, 0, 0, 0, 0, ...<span style="color:#0550ae">]</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">[</span>0, 0, 0, 0, 0, 0, ...<span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>E At index <span style="color:#0550ae">100</span> diff: <span style="color:#0550ae">1</span> !<span style="color:#0550ae">=</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>E Use -v to get the full diff
+</span></span><span style="display:flex;"><span>failure_demo.py:68: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_________________ TestSpecialisedExplanations.test_eq_dict _________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_eq_dict<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0550ae">{</span><span style="color:#0a3069">&#34;a&#34;</span>: 0, <span style="color:#0a3069">&#34;b&#34;</span>: 1, <span style="color:#0a3069">&#34;c&#34;</span>: 0<span style="color:#0550ae">}</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">{</span><span style="color:#0a3069">&#34;a&#34;</span>: 0, <span style="color:#0a3069">&#34;b&#34;</span>: 2, <span style="color:#0a3069">&#34;d&#34;</span>: 0<span style="color:#0550ae">}</span>
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#0550ae">{</span><span style="color:#0a3069">&#39;a&#39;</span>: 0, <span style="color:#0a3069">&#39;b&#39;</span>: 1, <span style="color:#0a3069">&#39;c&#39;</span>: 0<span style="color:#0550ae">}</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">{</span><span style="color:#0a3069">&#39;a&#39;</span>: 0, <span style="color:#0a3069">&#39;b&#39;</span>: 2, <span style="color:#0a3069">&#39;d&#39;</span>: 0<span style="color:#0550ae">}</span>
+</span></span><span style="display:flex;"><span>E 		  Omitting <span style="color:#0550ae">1</span> identical items, use -vv to show
+</span></span><span style="display:flex;"><span>E 		  Differing items:
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0550ae">{</span><span style="color:#0a3069">&#39;b&#39;</span>: 1<span style="color:#0550ae">}</span> !<span style="color:#0550ae">=</span> <span style="color:#0550ae">{</span><span style="color:#0a3069">&#39;b&#39;</span>: 2<span style="color:#0550ae">}</span>
+</span></span><span style="display:flex;"><span>E 		  Left contains <span style="color:#0550ae">1</span> more item:
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0550ae">{</span><span style="color:#0a3069">&#39;c&#39;</span>: 0<span style="color:#0550ae">}</span>
+</span></span><span style="display:flex;"><span>E 		  Right contains <span style="color:#0550ae">1</span> more item:
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0550ae">{</span><span style="color:#0a3069">&#39;d&#39;</span>: 0<span style="color:#0550ae">}</span>...
+</span></span><span style="display:flex;"><span>E
+</span></span><span style="display:flex;"><span>E 		  ...Full output truncated <span style="color:#0550ae">(</span><span style="color:#0550ae">2</span> lines hidden<span style="color:#0550ae">)</span>, use <span style="color:#0a3069">&#39;-vv&#39;</span> to show
+</span></span><span style="display:flex;"><span>failure_demo.py:71: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_________________ TestSpecialisedExplanations.test_eq_set __________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_eq_set<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0550ae">{</span>0, 10, 11, 12<span style="color:#0550ae">}</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">{</span>0, 20, 21<span style="color:#0550ae">}</span>
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#0550ae">{</span>0, 10, 11, 12<span style="color:#0550ae">}</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">{</span>0, 20, 21<span style="color:#0550ae">}</span>
+</span></span><span style="display:flex;"><span>E 		  Extra items in the left set:
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0550ae">10</span>
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0550ae">11</span>
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0550ae">12</span>
+</span></span><span style="display:flex;"><span>E 		  Extra items in the right set:
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0550ae">20</span>
+</span></span><span style="display:flex;"><span>E 		  21...
+</span></span><span style="display:flex;"><span>E
+</span></span><span style="display:flex;"><span>E 		  ...Full output truncated <span style="color:#0550ae">(</span><span style="color:#0550ae">2</span> lines hidden<span style="color:#0550ae">)</span>, use <span style="color:#0a3069">&#39;-vv&#39;</span> to show
+</span></span><span style="display:flex;"><span>failure_demo.py:74: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_____________ TestSpecialisedExplanations.test_eq_longer_list ______________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_eq_longer_list<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0550ae">[</span>1, 2<span style="color:#0550ae">]</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">[</span>1, 2, 3<span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>E 		assert <span style="color:#0550ae">[</span>1, 2<span style="color:#0550ae">]</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">[</span>1, 2, 3<span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>E 		  Right contains one more item: <span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span>E 		  Use -v to get the full diff
+</span></span><span style="display:flex;"><span>failure_demo.py:77: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_________________ TestSpecialisedExplanations.test_in_list _________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_in_list<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0550ae">1</span> in <span style="color:#0550ae">[</span>0, 2, 3, 4, 5<span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>E 		assert <span style="color:#0550ae">1</span> in <span style="color:#0550ae">[</span>0, 2, 3, 4, 5<span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:80: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__________ TestSpecialisedExplanations.test_not_in_text_multiline __________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_not_in_text_multiline<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">text</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;some multiline\ntext\nwhich\nincludes foo\nand a\ntail&#34;</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0a3069">&#34;foo&#34;</span> not in text
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#0a3069">&#39;foo&#39;</span> not in <span style="color:#0a3069">&#39;some multil...nand a\ntail&#39;</span>
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0a3069">&#39;foo&#39;</span> is contained here:
+</span></span><span style="display:flex;"><span>E 			some multiline
+</span></span><span style="display:flex;"><span>E 			text
+</span></span><span style="display:flex;"><span>E 			which
+</span></span><span style="display:flex;"><span>E 			includes foo
+</span></span><span style="display:flex;"><span>E 		  ? 		 +++
+</span></span><span style="display:flex;"><span>E 			and a...
+</span></span><span style="display:flex;"><span>E
+</span></span><span style="display:flex;"><span>E 		  ...Full output truncated <span style="color:#0550ae">(</span><span style="color:#0550ae">2</span> lines hidden<span style="color:#0550ae">)</span>, use <span style="color:#0a3069">&#39;-vv&#39;</span> to show
+</span></span><span style="display:flex;"><span>failure_demo.py:84: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>___________ TestSpecialisedExplanations.test_not_in_text_single ____________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_not_in_text_single<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">text</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;single foo line&#34;</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0a3069">&#34;foo&#34;</span> not in text
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#0a3069">&#39;foo&#39;</span> not in <span style="color:#0a3069">&#39;single foo line&#39;</span>
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0a3069">&#39;foo&#39;</span> is contained here:
+</span></span><span style="display:flex;"><span>E 			single foo line
+</span></span><span style="display:flex;"><span>E 		  ? 	   +++
+</span></span><span style="display:flex;"><span>failure_demo.py:88: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_________ TestSpecialisedExplanations.test_not_in_text_single_long _________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_not_in_text_single_long<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">text</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;head &#34;</span> * <span style="color:#0550ae">50</span> + <span style="color:#0a3069">&#34;foo &#34;</span> + <span style="color:#0a3069">&#34;tail &#34;</span> * <span style="color:#0550ae">20</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0a3069">&#34;foo&#34;</span> not in text
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#0a3069">&#39;foo&#39;</span> not in <span style="color:#0a3069">&#39;head head h...l tail tail &#39;</span>
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0a3069">&#39;foo&#39;</span> is contained here:
+</span></span><span style="display:flex;"><span>E    		head head foo tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail
+</span></span><span style="display:flex;"><span>E 		  ? 		+++
+</span></span><span style="display:flex;"><span>failure_demo.py:92: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>______ TestSpecialisedExplanations.test_not_in_text_single_long_term _______
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_not_in_text_single_long_term<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">text</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;head &#34;</span> * <span style="color:#0550ae">50</span> + <span style="color:#0a3069">&#34;f&#34;</span> * <span style="color:#0550ae">70</span> + <span style="color:#0a3069">&#34;tail &#34;</span> * <span style="color:#0550ae">20</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0a3069">&#34;f&#34;</span> * <span style="color:#0550ae">70</span> not in text
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#0a3069">&#39;fffffffffff...ffffffffffff&#39;</span> not in <span style="color:#0a3069">&#39;head head h...ltail tail &#39;</span>
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0a3069">&#39;ffffffffffffffffff...fffffffffffffffffff&#39;</span> is contained here:
+</span></span><span style="display:flex;"><span>E 			head head fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffftail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail tail
+</span></span><span style="display:flex;"><span>E 		  ? 		++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+</span></span><span style="display:flex;"><span>failure_demo.py:96: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>______________ TestSpecialisedExplanations.test_eq_dataclass _______________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_eq_dataclass<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		from dataclasses import dataclass
+</span></span><span style="display:flex;"><span>        @dataclass
+</span></span><span style="display:flex;"><span>        class Foo:
+</span></span><span style="display:flex;"><span>            a: int
+</span></span><span style="display:flex;"><span>            b: str
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">left</span> <span style="color:#0550ae">=</span> Foo<span style="color:#0550ae">(</span>1, <span style="color:#0a3069">&#34;b&#34;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">right</span> <span style="color:#0550ae">=</span> Foo<span style="color:#0550ae">(</span>1, <span style="color:#0a3069">&#34;c&#34;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#953800">left</span> <span style="color:#0550ae">==</span> right
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert TestSpecialis...oo<span style="color:#0550ae">(</span><span style="color:#953800">a</span><span style="color:#0550ae">=</span>1, <span style="color:#953800">b</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;b&#39;</span><span style="color:#0550ae">)</span> <span style="color:#0550ae">==</span> TestSpecialis...oo<span style="color:#0550ae">(</span><span style="color:#953800">a</span><span style="color:#0550ae">=</span>1, <span style="color:#953800">b</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;c&#39;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E
+</span></span><span style="display:flex;"><span>E 		Omitting <span style="color:#0550ae">1</span> identical items, use -vv to show
+</span></span><span style="display:flex;"><span>E 		Differing attributes:
+</span></span><span style="display:flex;"><span>E 		<span style="color:#0550ae">[</span><span style="color:#0a3069">&#39;b&#39;</span><span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>E
+</span></span><span style="display:flex;"><span>E 		Drill down into differing attribute b:
+</span></span><span style="display:flex;"><span>E 		  b: <span style="color:#0a3069">&#39;b&#39;</span> !<span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;c&#39;</span>...
+</span></span><span style="display:flex;"><span>E
+</span></span><span style="display:flex;"><span>E 		...Full output truncated <span style="color:#0550ae">(</span><span style="color:#0550ae">3</span> lines hidden<span style="color:#0550ae">)</span>, use <span style="color:#0a3069">&#39;-vv&#39;</span> to show
+</span></span><span style="display:flex;"><span>failure_demo.py:108: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>________________ TestSpecialisedExplanations.test_eq_attrs _________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestSpecialisedExplanations object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_eq_attrs<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		import attr
+</span></span><span style="display:flex;"><span>		@attr.s
+</span></span><span style="display:flex;"><span>		class Foo:
+</span></span><span style="display:flex;"><span>            <span style="color:#953800">a</span> <span style="color:#0550ae">=</span> attr.ib<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#953800">b</span> <span style="color:#0550ae">=</span> attr.ib<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">left</span> <span style="color:#0550ae">=</span> Foo<span style="color:#0550ae">(</span>1, <span style="color:#0a3069">&#34;b&#34;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">right</span> <span style="color:#0550ae">=</span> Foo<span style="color:#0550ae">(</span>1, <span style="color:#0a3069">&#34;c&#34;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#953800">left</span> <span style="color:#0550ae">==</span> right
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert Foo<span style="color:#0550ae">(</span><span style="color:#953800">a</span><span style="color:#0550ae">=</span>1, <span style="color:#953800">b</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;b&#39;</span><span style="color:#0550ae">)</span> <span style="color:#0550ae">==</span> Foo<span style="color:#0550ae">(</span><span style="color:#953800">a</span><span style="color:#0550ae">=</span>1, <span style="color:#953800">b</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;c&#39;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E
+</span></span><span style="display:flex;"><span>E 		  Omitting <span style="color:#0550ae">1</span> identical items, use -vv to show
+</span></span><span style="display:flex;"><span>E 		  Differing attributes:
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0550ae">[</span><span style="color:#0a3069">&#39;b&#39;</span><span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>E
+</span></span><span style="display:flex;"><span>E 		  Drill down into differing attribute b:
+</span></span><span style="display:flex;"><span>E 			b: <span style="color:#0a3069">&#39;b&#39;</span> !<span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;c&#39;</span>...
+</span></span><span style="display:flex;"><span>E
+</span></span><span style="display:flex;"><span>E 		  ...Full output truncated <span style="color:#0550ae">(</span><span style="color:#0550ae">3</span> lines hidden<span style="color:#0550ae">)</span>, use <span style="color:#0a3069">&#39;-vv&#39;</span> to show
+</span></span><span style="display:flex;"><span>failure_demo.py:120: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>______________________________ test_attribute ______________________________
+</span></span><span style="display:flex;"><span>	def test_attribute<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>		class Foo:
+</span></span><span style="display:flex;"><span>			<span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">i</span> <span style="color:#0550ae">=</span> Foo<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert i.b <span style="color:#0550ae">==</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>E 		assert <span style="color:#953800">1</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#953800">1</span> <span style="color:#0550ae">=</span> &lt;failure_demo.test_attribute.&lt;locals&gt;.Foo object at 0xdeadbeef&gt;.b
+</span></span><span style="display:flex;"><span>failure_demo.py:128: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_________________________ test_attribute_instance __________________________
+</span></span><span style="display:flex;"><span>	def test_attribute_instance<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>		class Foo:
+</span></span><span style="display:flex;"><span>			<span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert Foo<span style="color:#0550ae">()</span>.b <span style="color:#0550ae">==</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert <span style="color:#953800">1</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#953800">1</span> <span style="color:#0550ae">=</span> &lt;failure_demo.test_attribute_instance.&lt;locals&gt;.Foo object at 0xdeadbeef&gt;.b
+</span></span><span style="display:flex;"><span>E 		 + where &lt;failure_demo.test_attribute_instance.&lt;locals&gt;.Foo object at 0xdeadbeef&gt; <span style="color:#0550ae">=</span> &lt;class <span style="color:#0a3069">&#39;failure_demo.test_attribute_instance.&lt;locals&gt;.Foo&#39;</span>&gt;<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:135: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__________________________ test_attribute_failure __________________________
+</span></span><span style="display:flex;"><span>	def test_attribute_failure<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>		class Foo:
+</span></span><span style="display:flex;"><span>			def _get_b<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>				raise Exception<span style="color:#0550ae">(</span><span style="color:#0a3069">&#34;Failed to get attrib&#34;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#953800">b</span> <span style="color:#0550ae">=</span> property<span style="color:#0550ae">(</span>_get_b<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">i</span> <span style="color:#0550ae">=</span> Foo<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert i.b <span style="color:#0550ae">==</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:146:
+</span></span><span style="display:flex;"><span>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.test_attribute_failure.&lt;locals&gt;.Foo object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def _get_b<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 	raise Exception<span style="color:#0550ae">(</span><span style="color:#0a3069">&#34;Failed to get attrib&#34;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E 	Exception: Failed to get attrib
+</span></span><span style="display:flex;"><span>failure_demo.py:141: Exception
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_________________________ test_attribute_multiple __________________________
+</span></span><span style="display:flex;"><span>def test_attribute_multiple<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>	class Foo:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>	class Bar:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>&gt; 	assert Foo<span style="color:#0550ae">()</span>.b <span style="color:#0550ae">==</span> Bar<span style="color:#0550ae">()</span>.b
+</span></span><span style="display:flex;"><span>E 	AssertionError: assert <span style="color:#953800">1</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>E 	 + where <span style="color:#953800">1</span> <span style="color:#0550ae">=</span> &lt;failure_demo.test_attribute_multiple.&lt;locals&gt;.Foo object at 0xdeadbeef&gt;.b
+</span></span><span style="display:flex;"><span>E 	 + where &lt;failure_demo.test_attribute_multiple.&lt;locals&gt;.Foo object at 0xdeadbeef&gt; <span style="color:#0550ae">=</span> &lt;class <span style="color:#0a3069">&#39;failure_demo.test_attribute_multiple.&lt;locals&gt;.Foo&#39;</span>&gt;<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>E 	 + and <span style="color:#953800">2</span> <span style="color:#0550ae">=</span> &lt;failure_demo.test_attribute_multiple.&lt;locals&gt;.Bar object at 0xdeadbeef&gt;.b
+</span></span><span style="display:flex;"><span>E 	 + where &lt;failure_demo.test_attribute_multiple.&lt;locals&gt;.Bar object at 0xdeadbeef&gt; <span style="color:#0550ae">=</span> &lt;class <span style="color:#0a3069">&#39;failure_demo.test_attribute_multiple.&lt;locals&gt;.Bar&#39;</span>&gt;<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:156: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__________________________ TestRaises.test_raises __________________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestRaises object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_raises<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">s</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;qwe&#34;</span>
+</span></span><span style="display:flex;"><span>&gt; 		raises<span style="color:#0550ae">(</span>TypeError, int, s<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E 		ValueError: invalid literal <span style="color:#cf222e">for</span> int<span style="color:#0550ae">()</span> with base 10: <span style="color:#0a3069">&#39;qwe&#39;</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:166: ValueError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>______________________ TestRaises.test_raises_doesnt _______________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestRaises object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_raises_doesnt<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		raises<span style="color:#0550ae">(</span>OSError, int, <span style="color:#0a3069">&#34;3&#34;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E 		Failed: DID NOT RAISE &lt;class <span style="color:#0a3069">&#39;OSError&#39;</span>&gt;
+</span></span><span style="display:flex;"><span>failure_demo.py:169: Failed
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__________________________ TestRaises.test_raise ___________________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestRaises object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_raise<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		raise ValueError<span style="color:#0550ae">(</span><span style="color:#0a3069">&#34;demo error&#34;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E 		ValueError: demo error
+</span></span><span style="display:flex;"><span>failure_demo.py:172: ValueError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>________________________ TestRaises.test_tupleerror ________________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestRaises object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_tupleerror<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		a, <span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">[</span>1<span style="color:#0550ae">]</span> <span style="color:#57606a"># NOQA</span>
+</span></span><span style="display:flex;"><span>E 		ValueError: not enough values to unpack <span style="color:#0550ae">(</span>expected 2, got 1<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:175: ValueError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>______ TestRaises.test_reinterpret_fails_with_print_for_the_fun_of_it ______
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestRaises object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_reinterpret_fails_with_print_for_the_fun_of_it<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">items</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">[</span>1, 2, 3<span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>        print<span style="color:#0550ae">(</span><span style="color:#0a3069">&#34;items is {!r}&#34;</span>.format<span style="color:#0550ae">(</span>items<span style="color:#0550ae">))</span>
+</span></span><span style="display:flex;"><span>&gt; 		a, <span style="color:#953800">b</span> <span style="color:#0550ae">=</span> items.pop<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>E 		TypeError: cannot unpack non-iterable int object
+</span></span><span style="display:flex;"><span>failure_demo.py:180: TypeError
+</span></span><span style="display:flex;"><span>--------------------------- Captured stdout call ---------------------------
+</span></span><span style="display:flex;"><span>items is <span style="color:#0550ae">[</span>1, 2, 3<span style="color:#0550ae">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>________________________ TestRaises.test_some_error ________________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestRaises object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_some_error<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		<span style="color:#cf222e">if</span> namenotexi: <span style="color:#57606a"># NOQA</span>
+</span></span><span style="display:flex;"><span>E 		NameError: name <span style="color:#0a3069">&#39;namenotexi&#39;</span> is not defined
+</span></span><span style="display:flex;"><span>failure_demo.py:183: NameError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>____________________ test_dynamic_compile_shows_nicely _____________________
+</span></span><span style="display:flex;"><span>	def test_dynamic_compile_shows_nicely<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>        import importlib.util
+</span></span><span style="display:flex;"><span>        import sys
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">src</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;def foo():\n assert 1 == 0\n&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">name</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;abc-123&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">spec</span> <span style="color:#0550ae">=</span> importlib.util.spec_from_loader<span style="color:#0550ae">(</span>name, <span style="color:#953800">loader</span><span style="color:#0550ae">=</span>None<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">module</span> <span style="color:#0550ae">=</span> importlib.util.module_from_spec<span style="color:#0550ae">(</span>spec<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">code</span> <span style="color:#0550ae">=</span> compile<span style="color:#0550ae">(</span>src, name, <span style="color:#0a3069">&#34;exec&#34;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>        exec<span style="color:#0550ae">(</span>code, module.__dict__<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>        sys.modules<span style="color:#0550ae">[</span>name<span style="color:#0550ae">]</span> <span style="color:#0550ae">=</span> module
+</span></span><span style="display:flex;"><span>&gt; 		module.foo<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:202:
+</span></span><span style="display:flex;"><span>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+</span></span><span style="display:flex;"><span>&gt; 	???
+</span></span><span style="display:flex;"><span>E 	AssertionError
+</span></span><span style="display:flex;"><span>abc-123:2: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>____________________ TestMoreErrors.test_complex_error _____________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestMoreErrors object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_complex_error<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		def f<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>			<span style="color:#cf222e">return</span> <span style="color:#0550ae">44</span>
+</span></span><span style="display:flex;"><span>		def g<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>			<span style="color:#cf222e">return</span> <span style="color:#0550ae">43</span>
+</span></span><span style="display:flex;"><span>&gt; 		somefunc<span style="color:#0550ae">(</span>f<span style="color:#0550ae">()</span>, g<span style="color:#0550ae">())</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:213:
+</span></span><span style="display:flex;"><span>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+</span></span><span style="display:flex;"><span>failure_demo.py:10: in somefunc
+</span></span><span style="display:flex;"><span>	otherfunc<span style="color:#0550ae">(</span>x, y<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+</span></span><span style="display:flex;"><span><span style="color:#953800">a</span> <span style="color:#0550ae">=</span> 44, <span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">43</span>
+</span></span><span style="display:flex;"><span>	def otherfunc<span style="color:#0550ae">(</span>a, b<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#953800">a</span> <span style="color:#0550ae">==</span> b
+</span></span><span style="display:flex;"><span>E 		assert <span style="color:#953800">44</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">43</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:6: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>___________________ TestMoreErrors.test_z1_unpack_error ____________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestMoreErrors object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_z1_unpack_error<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">items</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">[]</span>
+</span></span><span style="display:flex;"><span>&gt; 		a, <span style="color:#953800">b</span> <span style="color:#0550ae">=</span> items
+</span></span><span style="display:flex;"><span>E 		ValueError: not enough values to unpack <span style="color:#0550ae">(</span>expected 2, got 0<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:217: ValueError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>____________________ TestMoreErrors.test_z2_type_error _____________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestMoreErrors object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_z2_type_error<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">items</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span>&gt; 		a, <span style="color:#953800">b</span> <span style="color:#0550ae">=</span> items
+</span></span><span style="display:flex;"><span>E 		TypeError: cannot unpack non-iterable int object
+</span></span><span style="display:flex;"><span>failure_demo.py:221: TypeError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>______________________ TestMoreErrors.test_startswith ______________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestMoreErrors object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_startswith<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">s</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;123&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">g</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;456&#34;</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert s.startswith<span style="color:#0550ae">(</span>g<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert False
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#953800">False</span> <span style="color:#0550ae">=</span> &lt;built-in method startswith of str object at 0xdeadbeef&gt;<span style="color:#0550ae">(</span><span style="color:#0a3069">&#39;456&#39;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E 		 + where &lt;built-in method startswith of str object at 0xdeadbeef&gt; <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;123&#39;</span>.startswith
+</span></span><span style="display:flex;"><span>failure_demo.py:226: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__________________ TestMoreErrors.test_startswith_nested ___________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestMoreErrors object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_startswith_nested<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		def f<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>			<span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;123&#34;</span>
+</span></span><span style="display:flex;"><span>		def g<span style="color:#0550ae">()</span>:
+</span></span><span style="display:flex;"><span>			<span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;456&#34;</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert f<span style="color:#0550ae">()</span>.startswith<span style="color:#0550ae">(</span>g<span style="color:#0550ae">())</span>
+</span></span><span style="display:flex;"><span>E 		AssertionError: assert False
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#953800">False</span> <span style="color:#0550ae">=</span> &lt;built-in method startswith of str object at 0xdeadbeef&gt;<span style="color:#0550ae">(</span><span style="color:#0a3069">&#39;456&#39;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E 		 + where &lt;built-in method startswith of str object at 0xdeadbeef&gt; <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;123&#39;</span>.startswith
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#0a3069">&#39;123&#39;</span> <span style="color:#0550ae">=</span> &lt;<span style="color:#cf222e">function</span> TestMoreErrors.test_startswith_nested.&lt;locals&gt;.f at 0xdeadbeef&gt;<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>E 		 + and <span style="color:#0a3069">&#39;456&#39;</span> <span style="color:#0550ae">=</span> &lt;<span style="color:#cf222e">function</span> TestMoreErrors.test_startswith_nested.&lt;locals&gt;.g at 0xdeadbeef&gt;<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:235: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_____________________ TestMoreErrors.test_global_func ______________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestMoreErrors object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_global_func<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		assert isinstance<span style="color:#0550ae">(</span>globf<span style="color:#0550ae">(</span>42<span style="color:#0550ae">)</span>, float<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E 		assert False
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#953800">False</span> <span style="color:#0550ae">=</span> isinstance<span style="color:#0550ae">(</span>43, float<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#953800">43</span> <span style="color:#0550ae">=</span> globf<span style="color:#0550ae">(</span>42<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:238: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_______________________ TestMoreErrors.test_instance _______________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestMoreErrors object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_instance<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		self.x <span style="color:#0550ae">=</span> <span style="color:#0550ae">6</span> * <span style="color:#0550ae">7</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert self.x !<span style="color:#0550ae">=</span> <span style="color:#0550ae">42</span>
+</span></span><span style="display:flex;"><span>E 		assert <span style="color:#0550ae">42</span> !<span style="color:#0550ae">=</span> <span style="color:#0550ae">42</span>
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#953800">42</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestMoreErrors object at 0xdeadbeef&gt;.x
+</span></span><span style="display:flex;"><span>failure_demo.py:242: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_______________________ TestMoreErrors.test_compare ________________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestMoreErrors object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_compare<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>&gt; 		assert globf<span style="color:#0550ae">(</span>10<span style="color:#0550ae">)</span> &lt; <span style="color:#0550ae">5</span>
+</span></span><span style="display:flex;"><span>E 		assert <span style="color:#0550ae">11</span> &lt; <span style="color:#0550ae">5</span>
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#953800">11</span> <span style="color:#0550ae">=</span> globf<span style="color:#0550ae">(</span>10<span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:245: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>_____________________ TestMoreErrors.test_try_finally ______________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestMoreErrors object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_try_finally<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">x</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>		try:
+</span></span><span style="display:flex;"><span>&gt; 			assert <span style="color:#953800">x</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">0</span>
+</span></span><span style="display:flex;"><span>E 			assert <span style="color:#953800">1</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">0</span>
+</span></span><span style="display:flex;"><span>failure_demo.py:250: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>___________________ TestCustomAssertMsg.test_single_line ___________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestCustomAssertMsg object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_single_line<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		class A:
+</span></span><span style="display:flex;"><span>			<span style="color:#953800">a</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert A.a <span style="color:#0550ae">==</span> b, <span style="color:#0a3069">&#34;A.a appears not to be b&#34;</span>
+</span></span><span style="display:flex;"><span>E 		AssertionError: A.a appears not to be b
+</span></span><span style="display:flex;"><span>E 		assert <span style="color:#953800">1</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#953800">1</span> <span style="color:#0550ae">=</span> &lt;class <span style="color:#0a3069">&#39;failure_demo.TestCustomAssertMsg.test_single_line.&lt;locals&gt;.A&#39;</span>&gt;.a
+</span></span><span style="display:flex;"><span>failure_demo.py:261: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>____________________ TestCustomAssertMsg.test_multiline ____________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestCustomAssertMsg object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>	def test_multiline<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>		class A:
+</span></span><span style="display:flex;"><span>			<span style="color:#953800">a</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert <span style="color:#0550ae">(</span>
+</span></span><span style="display:flex;"><span>			A.a <span style="color:#0550ae">==</span> b
+</span></span><span style="display:flex;"><span>		<span style="color:#0550ae">)</span>, <span style="color:#0a3069">&#34;A.a appears not to be b\nor does not appear to be b\none of those&#34;</span>
+</span></span><span style="display:flex;"><span>E 		AssertionError: A.a appears not to be b
+</span></span><span style="display:flex;"><span>E 		  or does not appear to be b
+</span></span><span style="display:flex;"><span>E 		  one of those
+</span></span><span style="display:flex;"><span>E 		assert <span style="color:#953800">1</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>E 		  + where <span style="color:#953800">1</span> <span style="color:#0550ae">=</span> &lt;class <span style="color:#0a3069">&#39;failure_demo.TestCustomAssertMsg.test_multiline.&lt;locals&gt;.A&#39;</span>&gt;.a
+</span></span><span style="display:flex;"><span>failure_demo.py:268: AssertionError
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>___________________ TestCustomAssertMsg.test_custom_repr ___________________
+</span></span><span style="display:flex;"><span><span style="color:#953800">self</span> <span style="color:#0550ae">=</span> &lt;failure_demo.TestCustomAssertMsg object at 0xdeadbeef&gt;
+</span></span><span style="display:flex;"><span>    def test_custom_repr<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>        class JSON:
+</span></span><span style="display:flex;"><span>			<span style="color:#953800">a</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>			def __repr__<span style="color:#0550ae">(</span>self<span style="color:#0550ae">)</span>:
+</span></span><span style="display:flex;"><span>				<span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;This is JSON\n{\n &#39;foo&#39;: &#39;bar&#39;\n}&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">a</span> <span style="color:#0550ae">=</span> JSON<span style="color:#0550ae">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#953800">b</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>&gt; 		assert a.a <span style="color:#0550ae">==</span> b, a
+</span></span><span style="display:flex;"><span>E 		AssertionError: This is JSON
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0550ae">{</span>
+</span></span><span style="display:flex;"><span>E 			<span style="color:#0a3069">&#39;foo&#39;</span>: <span style="color:#0a3069">&#39;bar&#39;</span>
+</span></span><span style="display:flex;"><span>E 		  <span style="color:#0550ae">}</span>  
+</span></span><span style="display:flex;"><span>E 		assert <span style="color:#953800">1</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>E 		 + where <span style="color:#953800">1</span> <span style="color:#0550ae">=</span> This is JSON<span style="color:#0a3069">\n</span><span style="color:#0550ae">{</span><span style="color:#0a3069">\n</span> <span style="color:#0a3069">&#39;foo&#39;</span>: <span style="color:#0a3069">&#39;bar&#39;</span><span style="color:#0a3069">\n</span><span style="color:#0550ae">}</span>.a
+</span></span><span style="display:flex;"><span>failure_demo.py:281: <span style="color:#953800">AssertionError</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">============================</span> <span style="color:#0550ae">44</span> failed in 0.12s <span style="color:#0550ae">============================</span>
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/pytest/">Pytest</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000006-junitjunit5%E5%8F%82%E6%95%B0%E5%8C%96%E6%B5%8B%E8%AF%95%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/">
+    <span class="title">« 上一页</span>
+    <span>JUnit5参数化测试的几种方式</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000006-springspringboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B03%E6%A0%B8%E5%BF%83/">
+    <span class="title">下一页 »</span>
+    <span>SpringBoot官方笔记3核心</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#assert基础">assert基础</a></li>
+        <li><a href="#pytestraises">pytest.raises</a></li>
+        <li><a href="#44个failure例子">44个failure例子</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Python中的接口协议和抽象基类 | 测试开发刚哥</title>
+<meta name="keywords" content="Python">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Python接口与协议
+Python语言是没有interface关键字的，这也是动态类型语言的特点之一。Python的接口指的是类实现或继承的公开属性，包括数据或方法。比如Sequence的正式接口如下图所示：
+
+这些都叫做Python接口。事实上，Python每个类都有接口，除了抽象基类。
+接口是正式的，它定义了类具有哪些属性，协议是非正式的接口，只由文档和约定定义。比如只要类实现了__getitem__方法，按照序列协议的约定，Python就会支持这个类完成访问元素、迭代和使用in运算符等一系列操作。
+猴子补丁
+我们可以通过猴子补丁来进一步认识，Python中协议的约定是怎么回事。猴子补丁是这样一种技术：在运行时修改类或模块，而不改动源码。还是以序列协议来举例，比如：
+&gt;&gt;&gt; from random import shuffle
+&gt;&gt;&gt; from frenchdeck import FrenchDeck
+&gt;&gt;&gt; deck = FrenchDeck()
+&gt;&gt;&gt; shuffle(deck)
+假设运行报错了：TypeError: &#39;FrenchDeck&#39; object does not support item assignment，因为FrenchDeck类只有__getitem__方法，只实现了不可变的序列协议。为了解决这个报错，需要通过__setitem__方法实现可变的序列协议。
+代码如下：
+def set_card(deck, position, card):
+    deck._cards[position] = card
+
+FrenchDeck.__setitem__ = set_card
+shuffle(deck)
+这就是一段猴子补丁技术的实现代码，没有修改FrenchDeck类的源码，而是在运行时动态修改。
+抽象基类
+Python的抽象基类是指必须让继承它的子类去实现它所要求的方法的类。Python的collections.abc模块中就定义了很多抽象基类：
+
+虽然我们在实际编程中并不会自己编写抽象基类（一般也不建议这样做，因为可能会导致意想不到的问题），但是了解抽象基类，可以帮助我们更好理解Python面向对象的继承等概念。
+抛开枯燥的理论知识，我在书中找到了一处具有实践价值的片段：
+「在一连串if/elif/elif中使用isinstance做检查，然后根据对象的类型执行不同的操作，通常是不好的做法；此时应该使用多态，即采用一定的方式定义类，让解释器把调用分派给正确的方法，而不使用if/elif/elif块硬编码分派逻辑。」
+交流群和公司都有人问过我这个问题，写了太多的ifelse有没有更好的实现方式，我想这里已经给出了答案。
+鸭子类型和白鹅类型
+Python鸭子类型是指对象的类型无关紧要，只要实现了特定的协议即可。它的好处是避免过多的isinstance，如果遵守既定协议，能增加利用现有的标准库和第三方代码的可能性。示例：
+class Animal(object):
+    
+    def run(self):
+        print(&#34;The animal is running...&#34;)
+
+class Dog(Animal):
+
+    def run(self):
+        print(&#39;The dog is running...&#39;)
+
+class Cat(Animal):
+
+    def run(self):
+        print(&#39;The cat is running...&#39;)
+
+def make_run(animal):
+    animal.run()
+
+dog = Dog()
+cat = Cat()
+make_run(dog)
+make_run(cat)
+对于 make_run() 函数来说，传入的参数并不一定需要是 Animal 类型的，只需要保证传入的对象有一个 run() 方法即可。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000027-pythonpython%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E5%8D%8F%E8%AE%AE%E5%92%8C%E6%8A%BD%E8%B1%A1%E5%9F%BA%E7%B1%BB/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000027-pythonpython%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E5%8D%8F%E8%AE%AE%E5%92%8C%E6%8A%BD%E8%B1%A1%E5%9F%BA%E7%B1%BB/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000027-pythonpython%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E5%8D%8F%E8%AE%AE%E5%92%8C%E6%8A%BD%E8%B1%A1%E5%9F%BA%E7%B1%BB/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Python中的接口协议和抽象基类">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Python接口与协议 Python语言是没有interface关键字的，这也是动态类型语言的特点之一。Python的接口指的是类实现或继承的公开属性，包括数据或方法。比如Sequence的正式接口如下图所示：
+这些都叫做Python接口。事实上，Python每个类都有接口，除了抽象基类。
+接口是正式的，它定义了类具有哪些属性，协议是非正式的接口，只由文档和约定定义。比如只要类实现了__getitem__方法，按照序列协议的约定，Python就会支持这个类完成访问元素、迭代和使用in运算符等一系列操作。
+猴子补丁 我们可以通过猴子补丁来进一步认识，Python中协议的约定是怎么回事。猴子补丁是这样一种技术：在运行时修改类或模块，而不改动源码。还是以序列协议来举例，比如：
+&gt;&gt;&gt; from random import shuffle &gt;&gt;&gt; from frenchdeck import FrenchDeck &gt;&gt;&gt; deck = FrenchDeck() &gt;&gt;&gt; shuffle(deck) 假设运行报错了：TypeError: &#39;FrenchDeck&#39; object does not support item assignment，因为FrenchDeck类只有__getitem__方法，只实现了不可变的序列协议。为了解决这个报错，需要通过__setitem__方法实现可变的序列协议。
+代码如下：
+def set_card(deck, position, card): deck._cards[position] = card FrenchDeck.__setitem__ = set_card shuffle(deck) 这就是一段猴子补丁技术的实现代码，没有修改FrenchDeck类的源码，而是在运行时动态修改。
+抽象基类 Python的抽象基类是指必须让继承它的子类去实现它所要求的方法的类。Python的collections.abc模块中就定义了很多抽象基类：
+虽然我们在实际编程中并不会自己编写抽象基类（一般也不建议这样做，因为可能会导致意想不到的问题），但是了解抽象基类，可以帮助我们更好理解Python面向对象的继承等概念。
+抛开枯燥的理论知识，我在书中找到了一处具有实践价值的片段：
+「在一连串if/elif/elif中使用isinstance做检查，然后根据对象的类型执行不同的操作，通常是不好的做法；此时应该使用多态，即采用一定的方式定义类，让解释器把调用分派给正确的方法，而不使用if/elif/elif块硬编码分派逻辑。」
+交流群和公司都有人问过我这个问题，写了太多的ifelse有没有更好的实现方式，我想这里已经给出了答案。
+鸭子类型和白鹅类型 Python鸭子类型是指对象的类型无关紧要，只要实现了特定的协议即可。它的好处是避免过多的isinstance，如果遵守既定协议，能增加利用现有的标准库和第三方代码的可能性。示例：
+class Animal(object): def run(self): print(&#34;The animal is running...&#34;) class Dog(Animal): def run(self): print(&#39;The dog is running...&#39;) class Cat(Animal): def run(self): print(&#39;The cat is running...&#39;) def make_run(animal): animal.run() dog = Dog() cat = Cat() make_run(dog) make_run(cat) 对于 make_run() 函数来说，传入的参数并不一定需要是 Animal 类型的，只需要保证传入的对象有一个 run() 方法即可。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-27T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-27T00:00:00+00:00">
+    <meta property="article:tag" content="Python">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Python中的接口协议和抽象基类">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Python接口与协议 Python语言是没有interface关键字的，这也是动态类型语言的特点之一。Python的接口指的是类实现或继承的公开属性，包括数据或方法。比如Sequence的正式接口如下图所示：
+这些都叫做Python接口。事实上，Python每个类都有接口，除了抽象基类。
+接口是正式的，它定义了类具有哪些属性，协议是非正式的接口，只由文档和约定定义。比如只要类实现了__getitem__方法，按照序列协议的约定，Python就会支持这个类完成访问元素、迭代和使用in运算符等一系列操作。
+猴子补丁 我们可以通过猴子补丁来进一步认识，Python中协议的约定是怎么回事。猴子补丁是这样一种技术：在运行时修改类或模块，而不改动源码。还是以序列协议来举例，比如：
+&gt;&gt;&gt; from random import shuffle &gt;&gt;&gt; from frenchdeck import FrenchDeck &gt;&gt;&gt; deck = FrenchDeck() &gt;&gt;&gt; shuffle(deck) 假设运行报错了：TypeError: &#39;FrenchDeck&#39; object does not support item assignment，因为FrenchDeck类只有__getitem__方法，只实现了不可变的序列协议。为了解决这个报错，需要通过__setitem__方法实现可变的序列协议。
+代码如下：
+def set_card(deck, position, card): deck._cards[position] = card FrenchDeck.__setitem__ = set_card shuffle(deck) 这就是一段猴子补丁技术的实现代码，没有修改FrenchDeck类的源码，而是在运行时动态修改。
+抽象基类 Python的抽象基类是指必须让继承它的子类去实现它所要求的方法的类。Python的collections.abc模块中就定义了很多抽象基类：
+虽然我们在实际编程中并不会自己编写抽象基类（一般也不建议这样做，因为可能会导致意想不到的问题），但是了解抽象基类，可以帮助我们更好理解Python面向对象的继承等概念。
+抛开枯燥的理论知识，我在书中找到了一处具有实践价值的片段：
+「在一连串if/elif/elif中使用isinstance做检查，然后根据对象的类型执行不同的操作，通常是不好的做法；此时应该使用多态，即采用一定的方式定义类，让解释器把调用分派给正确的方法，而不使用if/elif/elif块硬编码分派逻辑。」
+交流群和公司都有人问过我这个问题，写了太多的ifelse有没有更好的实现方式，我想这里已经给出了答案。
+鸭子类型和白鹅类型 Python鸭子类型是指对象的类型无关紧要，只要实现了特定的协议即可。它的好处是避免过多的isinstance，如果遵守既定协议，能增加利用现有的标准库和第三方代码的可能性。示例：
+class Animal(object): def run(self): print(&#34;The animal is running...&#34;) class Dog(Animal): def run(self): print(&#39;The dog is running...&#39;) class Cat(Animal): def run(self): print(&#39;The cat is running...&#39;) def make_run(animal): animal.run() dog = Dog() cat = Cat() make_run(dog) make_run(cat) 对于 make_run() 函数来说，传入的参数并不一定需要是 Animal 类型的，只需要保证传入的对象有一个 run() 方法即可。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Python中的接口协议和抽象基类",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000027-pythonpython%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E5%8D%8F%E8%AE%AE%E5%92%8C%E6%8A%BD%E8%B1%A1%E5%9F%BA%E7%B1%BB/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python中的接口协议和抽象基类",
+  "name": "Python中的接口协议和抽象基类",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nPython接口与协议 Python语言是没有interface关键字的，这也是动态类型语言的特点之一。Python的接口指的是类实现或继承的公开属性，包括数据或方法。比如Sequence的正式接口如下图所示：\n这些都叫做Python接口。事实上，Python每个类都有接口，除了抽象基类。\n接口是正式的，它定义了类具有哪些属性，协议是非正式的接口，只由文档和约定定义。比如只要类实现了__getitem__方法，按照序列协议的约定，Python就会支持这个类完成访问元素、迭代和使用in运算符等一系列操作。\n猴子补丁 我们可以通过猴子补丁来进一步认识，Python中协议的约定是怎么回事。猴子补丁是这样一种技术：在运行时修改类或模块，而不改动源码。还是以序列协议来举例，比如：\n\u0026gt;\u0026gt;\u0026gt; from random import shuffle \u0026gt;\u0026gt;\u0026gt; from frenchdeck import FrenchDeck \u0026gt;\u0026gt;\u0026gt; deck = FrenchDeck() \u0026gt;\u0026gt;\u0026gt; shuffle(deck) 假设运行报错了：TypeError: 'FrenchDeck' object does not support item assignment，因为FrenchDeck类只有__getitem__方法，只实现了不可变的序列协议。为了解决这个报错，需要通过__setitem__方法实现可变的序列协议。\n代码如下：\ndef set_card(deck, position, card): deck._cards[position] = card FrenchDeck.__setitem__ = set_card shuffle(deck) 这就是一段猴子补丁技术的实现代码，没有修改FrenchDeck类的源码，而是在运行时动态修改。\n抽象基类 Python的抽象基类是指必须让继承它的子类去实现它所要求的方法的类。Python的collections.abc模块中就定义了很多抽象基类：\n虽然我们在实际编程中并不会自己编写抽象基类（一般也不建议这样做，因为可能会导致意想不到的问题），但是了解抽象基类，可以帮助我们更好理解Python面向对象的继承等概念。\n抛开枯燥的理论知识，我在书中找到了一处具有实践价值的片段：\n「在一连串if/elif/elif中使用isinstance做检查，然后根据对象的类型执行不同的操作，通常是不好的做法；此时应该使用多态，即采用一定的方式定义类，让解释器把调用分派给正确的方法，而不使用if/elif/elif块硬编码分派逻辑。」\n交流群和公司都有人问过我这个问题，写了太多的ifelse有没有更好的实现方式，我想这里已经给出了答案。\n鸭子类型和白鹅类型 Python鸭子类型是指对象的类型无关紧要，只要实现了特定的协议即可。它的好处是避免过多的isinstance，如果遵守既定协议，能增加利用现有的标准库和第三方代码的可能性。示例：\nclass Animal(object): def run(self): print(\u0026#34;The animal is running...\u0026#34;) class Dog(Animal): def run(self): print(\u0026#39;The dog is running...\u0026#39;) class Cat(Animal): def run(self): print(\u0026#39;The cat is running...\u0026#39;) def make_run(animal): animal.run() dog = Dog() cat = Cat() make_run(dog) make_run(cat) 对于 make_run() 函数来说，传入的参数并不一定需要是 Animal 类型的，只需要保证传入的对象有一个 run() 方法即可。\n",
+  "keywords": [
+    "Python"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nPython接口与协议 Python语言是没有interface关键字的，这也是动态类型语言的特点之一。Python的接口指的是类实现或继承的公开属性，包括数据或方法。比如Sequence的正式接口如下图所示：\n这些都叫做Python接口。事实上，Python每个类都有接口，除了抽象基类。\n接口是正式的，它定义了类具有哪些属性，协议是非正式的接口，只由文档和约定定义。比如只要类实现了__getitem__方法，按照序列协议的约定，Python就会支持这个类完成访问元素、迭代和使用in运算符等一系列操作。\n猴子补丁 我们可以通过猴子补丁来进一步认识，Python中协议的约定是怎么回事。猴子补丁是这样一种技术：在运行时修改类或模块，而不改动源码。还是以序列协议来举例，比如：\n\u003e\u003e\u003e from random import shuffle \u003e\u003e\u003e from frenchdeck import FrenchDeck \u003e\u003e\u003e deck = FrenchDeck() \u003e\u003e\u003e shuffle(deck) 假设运行报错了：TypeError: 'FrenchDeck' object does not support item assignment，因为FrenchDeck类只有__getitem__方法，只实现了不可变的序列协议。为了解决这个报错，需要通过__setitem__方法实现可变的序列协议。\n代码如下：\ndef set_card(deck, position, card): deck._cards[position] = card FrenchDeck.__setitem__ = set_card shuffle(deck) 这就是一段猴子补丁技术的实现代码，没有修改FrenchDeck类的源码，而是在运行时动态修改。\n抽象基类 Python的抽象基类是指必须让继承它的子类去实现它所要求的方法的类。Python的collections.abc模块中就定义了很多抽象基类：\n虽然我们在实际编程中并不会自己编写抽象基类（一般也不建议这样做，因为可能会导致意想不到的问题），但是了解抽象基类，可以帮助我们更好理解Python面向对象的继承等概念。\n抛开枯燥的理论知识，我在书中找到了一处具有实践价值的片段：\n「在一连串if/elif/elif中使用isinstance做检查，然后根据对象的类型执行不同的操作，通常是不好的做法；此时应该使用多态，即采用一定的方式定义类，让解释器把调用分派给正确的方法，而不使用if/elif/elif块硬编码分派逻辑。」\n交流群和公司都有人问过我这个问题，写了太多的ifelse有没有更好的实现方式，我想这里已经给出了答案。\n鸭子类型和白鹅类型 Python鸭子类型是指对象的类型无关紧要，只要实现了特定的协议即可。它的好处是避免过多的isinstance，如果遵守既定协议，能增加利用现有的标准库和第三方代码的可能性。示例：\nclass Animal(object): def run(self): print(\"The animal is running...\") class Dog(Animal): def run(self): print('The dog is running...') class Cat(Animal): def run(self): print('The cat is running...') def make_run(animal): animal.run() dog = Dog() cat = Cat() make_run(dog) make_run(cat) 对于 make_run() 函数来说，传入的参数并不一定需要是 Animal 类型的，只需要保证传入的对象有一个 run() 方法即可。\n白鹅类型是指只要cls是抽象基类（即cls的元类是abc.ABCMeta），就可以使用isinstance(obj, cls)。它的基本特性是，即便不继承，也有办法把一个类注册为抽象基类的虚拟子类。Python不会检查虚拟子类是否实现了抽象基类要求实现的方法，而是由我们自己保证，并捕获异常。具体会在下篇文章《Python抽象基类的定义与使用》进行介绍。\n参考资料：\n《流畅的Python》第11章 接口：从协议到抽象基类\n",
+  "wordCount" : "99",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-27T00:00:00Z",
+  "dateModified": "2026-01-27T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000027-pythonpython%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E5%8D%8F%E8%AE%AE%E5%92%8C%E6%8A%BD%E8%B1%A1%E5%9F%BA%E7%B1%BB/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      Python中的接口协议和抽象基类
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-27T00:00:00+00:00'>2026-01-27</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>99 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/python/'>#Python</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="python接口与协议">Python接口与协议<a hidden class="anchor" aria-hidden="true" href="#python接口与协议">#</a></h1>
+<p><strong>Python语言是没有interface关键字的</strong>，这也是动态类型语言的特点之一。Python的接口指的是类实现或继承的公开属性，包括数据或方法。比如Sequence的正式接口如下图所示：</p>
+<p><img loading="lazy" src="../assets/109cdc21f5b149b582b136d1e8e82e11.png"></p>
+<p>这些都叫做Python接口。事实上，Python每个类都有接口，<strong>除了抽象基类</strong>。</p>
+<p><strong>接口是正式的</strong>，它定义了类具有哪些属性，<strong>协议是非正式的接口</strong>，只由文档和约定定义。比如只要类实现了<code>__getitem__</code>方法，按照序列协议的约定，Python就会支持这个类完成访问元素、迭代和使用in运算符等一系列操作。</p>
+<h1 id="猴子补丁">猴子补丁<a hidden class="anchor" aria-hidden="true" href="#猴子补丁">#</a></h1>
+<p>我们可以通过猴子补丁来进一步认识，Python中协议的约定是怎么回事。猴子补丁是这样一种技术：<strong>在运行时修改类或模块，而不改动源码</strong>。还是以序列协议来举例，比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#cf222e">from</span> <span style="color:#24292e">random</span> <span style="color:#cf222e">import</span> shuffle
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#cf222e">from</span> <span style="color:#24292e">frenchdeck</span> <span style="color:#cf222e">import</span> FrenchDeck
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> deck <span style="color:#0550ae">=</span> FrenchDeck<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> shuffle<span style="color:#1f2328">(</span>deck<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>假设运行报错了：<code>TypeError: 'FrenchDeck' object does not support item assignment</code>，因为FrenchDeck类只有<code>__getitem__</code>方法，只实现了<strong>不可变的序列协议</strong>。为了解决这个报错，需要通过<code>__setitem__</code>方法实现<strong>可变的序列协议</strong>。</p>
+<p>代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">set_card</span><span style="color:#1f2328">(</span>deck<span style="color:#1f2328">,</span> position<span style="color:#1f2328">,</span> card<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    deck<span style="color:#0550ae">.</span>_cards<span style="color:#1f2328">[</span>position<span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> card
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>FrenchDeck<span style="color:#0550ae">.</span><span style="color:#6639ba">__setitem__</span> <span style="color:#0550ae">=</span> set_card
+</span></span><span style="display:flex;"><span>shuffle<span style="color:#1f2328">(</span>deck<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>这就是一段猴子补丁技术的实现代码，没有修改FrenchDeck类的源码，而是在运行时动态修改。</p>
+<h1 id="抽象基类">抽象基类<a hidden class="anchor" aria-hidden="true" href="#抽象基类">#</a></h1>
+<p>Python的抽象基类是指<strong>必须让继承它的子类去实现它所要求的方法</strong>的类。Python的collections.abc模块中就定义了很多抽象基类：</p>
+<p><img loading="lazy" src="../assets/b4085d0047b24193aad3456dd116b560.png"></p>
+<p>虽然我们在实际编程中并不会自己编写抽象基类（一般也不建议这样做，因为可能会导致意想不到的问题），但是了解抽象基类，可以帮助我们更好理解Python面向对象的继承等概念。</p>
+<p><strong>抛开枯燥的理论知识，我在书中找到了一处具有实践价值的片段：</strong></p>
+<p><strong>「在一连串if/elif/elif中使用isinstance做检查，然后根据对象的类型执行不同的操作，通常是不好的做法；此时应该使用多态，即采用一定的方式定义类，让解释器把调用分派给正确的方法，而不使用if/elif/elif块硬编码分派逻辑。」</strong></p>
+<p>交流群和公司都有人问过我这个问题，写了太多的ifelse有没有更好的实现方式，我想这里已经给出了答案。</p>
+<h1 id="鸭子类型和白鹅类型">鸭子类型和白鹅类型<a hidden class="anchor" aria-hidden="true" href="#鸭子类型和白鹅类型">#</a></h1>
+<p>Python鸭子类型是指对象的类型无关紧要，只要实现了特定的协议即可。它的好处是避免过多的isinstance，如果遵守既定协议，能增加利用现有的标准库和第三方代码的可能性。示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Animal</span><span style="color:#1f2328">(</span><span style="color:#6639ba">object</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">run</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;The animal is running...&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Dog</span><span style="color:#1f2328">(</span>Animal<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">run</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;The dog is running...&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Cat</span><span style="color:#1f2328">(</span>Animal<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">run</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;The cat is running...&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">make_run</span><span style="color:#1f2328">(</span>animal<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    animal<span style="color:#0550ae">.</span>run<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>dog <span style="color:#0550ae">=</span> Dog<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>cat <span style="color:#0550ae">=</span> Cat<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>make_run<span style="color:#1f2328">(</span>dog<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>make_run<span style="color:#1f2328">(</span>cat<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>对于 <code>make_run()</code> 函数来说，传入的参数并不一定需要是 <code>Animal</code> 类型的，只需要保证传入的对象有一个 <code>run()</code> 方法即可。</p>
+<p>白鹅类型是指只要cls是抽象基类（即cls的元类是abc.ABCMeta），就可以使用isinstance(obj, cls)。它的基本特性是，即便不继承，也有办法把一个类注册为抽象基类的虚拟子类。Python不会检查虚拟子类是否实现了抽象基类要求实现的方法，而是由我们自己保证，并捕获异常。具体会在下篇文章《Python抽象基类的定义与使用》进行介绍。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>《流畅的Python》第11章 接口：从协议到抽象基类</p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/python/">Python</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000028-pythonpython%E6%8A%BD%E8%B1%A1%E5%9F%BA%E7%B1%BB%E7%9A%84%E5%AE%9A%E4%B9%89%E4%B8%8E%E4%BD%BF%E7%94%A8/">
+    <span class="title">« 上一页</span>
+    <span>Python抽象基类的定义与使用</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000026-pythonpython%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%9A%84%E7%B1%BB%E4%B8%8B/">
+    <span class="title">下一页 »</span>
+    <span>Python如何设计面向对象的类（下）</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#python接口与协议">Python接口与协议</a></li>
+    <li><a href="#猴子补丁">猴子补丁</a></li>
+    <li><a href="#抽象基类">抽象基类</a></li>
+    <li><a href="#鸭子类型和白鹅类型">鸭子类型和白鹅类型</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

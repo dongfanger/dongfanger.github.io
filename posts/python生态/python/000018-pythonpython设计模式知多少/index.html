@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Python设计模式知多少 | 测试开发刚哥</title>
+<meta name="keywords" content="Python">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+设计模式
+设计模式是前辈们经过相当长的一段时间的试验和错误总结出来的最佳实践。我找到的资料列举了以下这些设计模式：工厂模式、抽象工厂模式、单例模式、建造者模式、原型模式、适配器模式、桥接模式、过滤器模式、组合模式、装饰器模式、外观模式、享元模式、代理模式、责任链模式、命令模式、解释器模式、迭代器模式、中介者模式、备忘录模式、观察者模式、状态模式、空对象模式、策略模式、模板模式、访问者模式、MVC模式、业务代表模式、组合实体模式、数据访问对象模式、前端控制器模式、拦截过滤器模式、服务定位器模式、传输对象模式，共33种。
+这些设计模式在纯面向对象编程语言中使用最多。**Python拥有一等函数，既不需要使用某些设计模式，也减少了某些设计模式样板代码。**本文将使用一等函数实现策略模式和命令模式，研究Python代码是如何简化的。
+策略模式
+策略模式概述：“定义一系列算法，把它们一一封装起来，并且使它们可以相互替换。本模式使得算法可以独立于使用它的客户而变化。”
+经典实现
+示例，根据客户的属性或订单中的商品计算折扣，规则如下：
+
+有1000或以上积分的客户，每个订单享5%折扣。
+同一订单中，单个商品的数量达到20个或以上，享10%折扣。
+订单中的不同商品达到10个或以上，享7%折扣。
+
+这很适合用策略模式来做，UML类图设计如下：
+
+
+上下文，集成算法的类，图中Order会根据不同的算法计算折扣。
+策略，实现不同算法的组件的共同接口，图中Promotion是个抽象类。
+具体策略，策略的具体子类，图中FidelityPromo、BulkItemPromo、LargeOrderPromo分别对应上面3条计算折扣规则。
+
+代码实现如下：
+from abc import ABC, abstractmethod
+from collections import namedtuple
+
+Customer = namedtuple(&#39;Customer&#39;, &#39;name fidelity&#39;)
+
+
+class LineItem:
+
+    def __init__(self, product, quantity, price):
+        self.product = product
+        self.quantity = quantity
+        self.price = price
+
+    def total(self):
+        return self.price * self.quantity
+
+
+class Order:  # the Context
+
+    def __init__(self, customer, cart, promotion=None):
+        self.customer = customer
+        self.cart = list(cart)
+        self.promotion = promotion
+
+    def total(self):
+        if not hasattr(self, &#39;__total&#39;):
+            self.__total = sum(item.total() for item in self.cart)
+        return self.__total
+
+    def due(self):
+        if self.promotion is None:
+            discount = 0
+        else:
+            discount = self.promotion.discount(self)
+        return self.total() - discount
+
+    def __repr__(self):
+        fmt = &#39;&lt;Order total: {:.2f} due: {:.2f}&gt;&#39;
+        return fmt.format(self.total(), self.due())
+
+
+class Promotion(ABC):  # the Strategy: an Abstract Base Class
+
+    @abstractmethod
+    def discount(self, order):
+        &#34;&#34;&#34;Return discount as a positive dollar amount&#34;&#34;&#34;
+
+
+class FidelityPromo(Promotion):  # first Concrete Strategy
+    &#34;&#34;&#34;5% discount for customers with 1000 or more fidelity points&#34;&#34;&#34;
+
+    def discount(self, order):
+        return order.total() * .05 if order.customer.fidelity &gt;= 1000 else 0
+
+
+class BulkItemPromo(Promotion):  # second Concrete Strategy
+    &#34;&#34;&#34;10% discount for each LineItem with 20 or more units&#34;&#34;&#34;
+
+    def discount(self, order):
+        discount = 0
+        for item in order.cart:
+            if item.quantity &gt;= 20:
+                discount &#43;= item.total() * .1
+        return discount
+
+
+class LargeOrderPromo(Promotion):  # third Concrete Strategy
+    &#34;&#34;&#34;7% discount for orders with 10 or more distinct items&#34;&#34;&#34;
+
+    def discount(self, order):
+        distinct_items = {item.product for item in order.cart}
+        if len(distinct_items) &gt;= 10:
+            return order.total() * .07
+        return 0
+实现策略模式的关键代码是Promotion类，它是一个抽象基类，通过继承abc.ABC来定义。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000018-pythonpython%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9F%A5%E5%A4%9A%E5%B0%91/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000018-pythonpython%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9F%A5%E5%A4%9A%E5%B0%91/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000018-pythonpython%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9F%A5%E5%A4%9A%E5%B0%91/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Python设计模式知多少">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+设计模式 设计模式是前辈们经过相当长的一段时间的试验和错误总结出来的最佳实践。我找到的资料列举了以下这些设计模式：工厂模式、抽象工厂模式、单例模式、建造者模式、原型模式、适配器模式、桥接模式、过滤器模式、组合模式、装饰器模式、外观模式、享元模式、代理模式、责任链模式、命令模式、解释器模式、迭代器模式、中介者模式、备忘录模式、观察者模式、状态模式、空对象模式、策略模式、模板模式、访问者模式、MVC模式、业务代表模式、组合实体模式、数据访问对象模式、前端控制器模式、拦截过滤器模式、服务定位器模式、传输对象模式，共33种。
+这些设计模式在纯面向对象编程语言中使用最多。**Python拥有一等函数，既不需要使用某些设计模式，也减少了某些设计模式样板代码。**本文将使用一等函数实现策略模式和命令模式，研究Python代码是如何简化的。
+策略模式 策略模式概述：“定义一系列算法，把它们一一封装起来，并且使它们可以相互替换。本模式使得算法可以独立于使用它的客户而变化。”
+经典实现 示例，根据客户的属性或订单中的商品计算折扣，规则如下：
+有1000或以上积分的客户，每个订单享5%折扣。 同一订单中，单个商品的数量达到20个或以上，享10%折扣。 订单中的不同商品达到10个或以上，享7%折扣。 这很适合用策略模式来做，UML类图设计如下：
+上下文，集成算法的类，图中Order会根据不同的算法计算折扣。 策略，实现不同算法的组件的共同接口，图中Promotion是个抽象类。 具体策略，策略的具体子类，图中FidelityPromo、BulkItemPromo、LargeOrderPromo分别对应上面3条计算折扣规则。 代码实现如下：
+from abc import ABC, abstractmethod from collections import namedtuple Customer = namedtuple(&#39;Customer&#39;, &#39;name fidelity&#39;) class LineItem: def __init__(self, product, quantity, price): self.product = product self.quantity = quantity self.price = price def total(self): return self.price * self.quantity class Order: # the Context def __init__(self, customer, cart, promotion=None): self.customer = customer self.cart = list(cart) self.promotion = promotion def total(self): if not hasattr(self, &#39;__total&#39;): self.__total = sum(item.total() for item in self.cart) return self.__total def due(self): if self.promotion is None: discount = 0 else: discount = self.promotion.discount(self) return self.total() - discount def __repr__(self): fmt = &#39;&lt;Order total: {:.2f} due: {:.2f}&gt;&#39; return fmt.format(self.total(), self.due()) class Promotion(ABC): # the Strategy: an Abstract Base Class @abstractmethod def discount(self, order): &#34;&#34;&#34;Return discount as a positive dollar amount&#34;&#34;&#34; class FidelityPromo(Promotion): # first Concrete Strategy &#34;&#34;&#34;5% discount for customers with 1000 or more fidelity points&#34;&#34;&#34; def discount(self, order): return order.total() * .05 if order.customer.fidelity &gt;= 1000 else 0 class BulkItemPromo(Promotion): # second Concrete Strategy &#34;&#34;&#34;10% discount for each LineItem with 20 or more units&#34;&#34;&#34; def discount(self, order): discount = 0 for item in order.cart: if item.quantity &gt;= 20: discount &#43;= item.total() * .1 return discount class LargeOrderPromo(Promotion): # third Concrete Strategy &#34;&#34;&#34;7% discount for orders with 10 or more distinct items&#34;&#34;&#34; def discount(self, order): distinct_items = {item.product for item in order.cart} if len(distinct_items) &gt;= 10: return order.total() * .07 return 0 实现策略模式的关键代码是Promotion类，它是一个抽象基类，通过继承abc.ABC来定义。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-18T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-18T00:00:00+00:00">
+    <meta property="article:tag" content="Python">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Python设计模式知多少">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+设计模式 设计模式是前辈们经过相当长的一段时间的试验和错误总结出来的最佳实践。我找到的资料列举了以下这些设计模式：工厂模式、抽象工厂模式、单例模式、建造者模式、原型模式、适配器模式、桥接模式、过滤器模式、组合模式、装饰器模式、外观模式、享元模式、代理模式、责任链模式、命令模式、解释器模式、迭代器模式、中介者模式、备忘录模式、观察者模式、状态模式、空对象模式、策略模式、模板模式、访问者模式、MVC模式、业务代表模式、组合实体模式、数据访问对象模式、前端控制器模式、拦截过滤器模式、服务定位器模式、传输对象模式，共33种。
+这些设计模式在纯面向对象编程语言中使用最多。**Python拥有一等函数，既不需要使用某些设计模式，也减少了某些设计模式样板代码。**本文将使用一等函数实现策略模式和命令模式，研究Python代码是如何简化的。
+策略模式 策略模式概述：“定义一系列算法，把它们一一封装起来，并且使它们可以相互替换。本模式使得算法可以独立于使用它的客户而变化。”
+经典实现 示例，根据客户的属性或订单中的商品计算折扣，规则如下：
+有1000或以上积分的客户，每个订单享5%折扣。 同一订单中，单个商品的数量达到20个或以上，享10%折扣。 订单中的不同商品达到10个或以上，享7%折扣。 这很适合用策略模式来做，UML类图设计如下：
+上下文，集成算法的类，图中Order会根据不同的算法计算折扣。 策略，实现不同算法的组件的共同接口，图中Promotion是个抽象类。 具体策略，策略的具体子类，图中FidelityPromo、BulkItemPromo、LargeOrderPromo分别对应上面3条计算折扣规则。 代码实现如下：
+from abc import ABC, abstractmethod from collections import namedtuple Customer = namedtuple(&#39;Customer&#39;, &#39;name fidelity&#39;) class LineItem: def __init__(self, product, quantity, price): self.product = product self.quantity = quantity self.price = price def total(self): return self.price * self.quantity class Order: # the Context def __init__(self, customer, cart, promotion=None): self.customer = customer self.cart = list(cart) self.promotion = promotion def total(self): if not hasattr(self, &#39;__total&#39;): self.__total = sum(item.total() for item in self.cart) return self.__total def due(self): if self.promotion is None: discount = 0 else: discount = self.promotion.discount(self) return self.total() - discount def __repr__(self): fmt = &#39;&lt;Order total: {:.2f} due: {:.2f}&gt;&#39; return fmt.format(self.total(), self.due()) class Promotion(ABC): # the Strategy: an Abstract Base Class @abstractmethod def discount(self, order): &#34;&#34;&#34;Return discount as a positive dollar amount&#34;&#34;&#34; class FidelityPromo(Promotion): # first Concrete Strategy &#34;&#34;&#34;5% discount for customers with 1000 or more fidelity points&#34;&#34;&#34; def discount(self, order): return order.total() * .05 if order.customer.fidelity &gt;= 1000 else 0 class BulkItemPromo(Promotion): # second Concrete Strategy &#34;&#34;&#34;10% discount for each LineItem with 20 or more units&#34;&#34;&#34; def discount(self, order): discount = 0 for item in order.cart: if item.quantity &gt;= 20: discount &#43;= item.total() * .1 return discount class LargeOrderPromo(Promotion): # third Concrete Strategy &#34;&#34;&#34;7% discount for orders with 10 or more distinct items&#34;&#34;&#34; def discount(self, order): distinct_items = {item.product for item in order.cart} if len(distinct_items) &gt;= 10: return order.total() * .07 return 0 实现策略模式的关键代码是Promotion类，它是一个抽象基类，通过继承abc.ABC来定义。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Python设计模式知多少",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000018-pythonpython%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9F%A5%E5%A4%9A%E5%B0%91/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python设计模式知多少",
+  "name": "Python设计模式知多少",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n设计模式 设计模式是前辈们经过相当长的一段时间的试验和错误总结出来的最佳实践。我找到的资料列举了以下这些设计模式：工厂模式、抽象工厂模式、单例模式、建造者模式、原型模式、适配器模式、桥接模式、过滤器模式、组合模式、装饰器模式、外观模式、享元模式、代理模式、责任链模式、命令模式、解释器模式、迭代器模式、中介者模式、备忘录模式、观察者模式、状态模式、空对象模式、策略模式、模板模式、访问者模式、MVC模式、业务代表模式、组合实体模式、数据访问对象模式、前端控制器模式、拦截过滤器模式、服务定位器模式、传输对象模式，共33种。\n这些设计模式在纯面向对象编程语言中使用最多。**Python拥有一等函数，既不需要使用某些设计模式，也减少了某些设计模式样板代码。**本文将使用一等函数实现策略模式和命令模式，研究Python代码是如何简化的。\n策略模式 策略模式概述：“定义一系列算法，把它们一一封装起来，并且使它们可以相互替换。本模式使得算法可以独立于使用它的客户而变化。”\n经典实现 示例，根据客户的属性或订单中的商品计算折扣，规则如下：\n有1000或以上积分的客户，每个订单享5%折扣。 同一订单中，单个商品的数量达到20个或以上，享10%折扣。 订单中的不同商品达到10个或以上，享7%折扣。 这很适合用策略模式来做，UML类图设计如下：\n上下文，集成算法的类，图中Order会根据不同的算法计算折扣。 策略，实现不同算法的组件的共同接口，图中Promotion是个抽象类。 具体策略，策略的具体子类，图中FidelityPromo、BulkItemPromo、LargeOrderPromo分别对应上面3条计算折扣规则。 代码实现如下：\nfrom abc import ABC, abstractmethod from collections import namedtuple Customer = namedtuple(\u0026#39;Customer\u0026#39;, \u0026#39;name fidelity\u0026#39;) class LineItem: def __init__(self, product, quantity, price): self.product = product self.quantity = quantity self.price = price def total(self): return self.price * self.quantity class Order: # the Context def __init__(self, customer, cart, promotion=None): self.customer = customer self.cart = list(cart) self.promotion = promotion def total(self): if not hasattr(self, \u0026#39;__total\u0026#39;): self.__total = sum(item.total() for item in self.cart) return self.__total def due(self): if self.promotion is None: discount = 0 else: discount = self.promotion.discount(self) return self.total() - discount def __repr__(self): fmt = \u0026#39;\u0026lt;Order total: {:.2f} due: {:.2f}\u0026gt;\u0026#39; return fmt.format(self.total(), self.due()) class Promotion(ABC): # the Strategy: an Abstract Base Class @abstractmethod def discount(self, order): \u0026#34;\u0026#34;\u0026#34;Return discount as a positive dollar amount\u0026#34;\u0026#34;\u0026#34; class FidelityPromo(Promotion): # first Concrete Strategy \u0026#34;\u0026#34;\u0026#34;5% discount for customers with 1000 or more fidelity points\u0026#34;\u0026#34;\u0026#34; def discount(self, order): return order.total() * .05 if order.customer.fidelity \u0026gt;= 1000 else 0 class BulkItemPromo(Promotion): # second Concrete Strategy \u0026#34;\u0026#34;\u0026#34;10% discount for each LineItem with 20 or more units\u0026#34;\u0026#34;\u0026#34; def discount(self, order): discount = 0 for item in order.cart: if item.quantity \u0026gt;= 20: discount += item.total() * .1 return discount class LargeOrderPromo(Promotion): # third Concrete Strategy \u0026#34;\u0026#34;\u0026#34;7% discount for orders with 10 or more distinct items\u0026#34;\u0026#34;\u0026#34; def discount(self, order): distinct_items = {item.product for item in order.cart} if len(distinct_items) \u0026gt;= 10: return order.total() * .07 return 0 实现策略模式的关键代码是Promotion类，它是一个抽象基类，通过继承abc.ABC来定义。\n",
+  "keywords": [
+    "Python"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n设计模式 设计模式是前辈们经过相当长的一段时间的试验和错误总结出来的最佳实践。我找到的资料列举了以下这些设计模式：工厂模式、抽象工厂模式、单例模式、建造者模式、原型模式、适配器模式、桥接模式、过滤器模式、组合模式、装饰器模式、外观模式、享元模式、代理模式、责任链模式、命令模式、解释器模式、迭代器模式、中介者模式、备忘录模式、观察者模式、状态模式、空对象模式、策略模式、模板模式、访问者模式、MVC模式、业务代表模式、组合实体模式、数据访问对象模式、前端控制器模式、拦截过滤器模式、服务定位器模式、传输对象模式，共33种。\n这些设计模式在纯面向对象编程语言中使用最多。**Python拥有一等函数，既不需要使用某些设计模式，也减少了某些设计模式样板代码。**本文将使用一等函数实现策略模式和命令模式，研究Python代码是如何简化的。\n策略模式 策略模式概述：“定义一系列算法，把它们一一封装起来，并且使它们可以相互替换。本模式使得算法可以独立于使用它的客户而变化。”\n经典实现 示例，根据客户的属性或订单中的商品计算折扣，规则如下：\n有1000或以上积分的客户，每个订单享5%折扣。 同一订单中，单个商品的数量达到20个或以上，享10%折扣。 订单中的不同商品达到10个或以上，享7%折扣。 这很适合用策略模式来做，UML类图设计如下：\n上下文，集成算法的类，图中Order会根据不同的算法计算折扣。 策略，实现不同算法的组件的共同接口，图中Promotion是个抽象类。 具体策略，策略的具体子类，图中FidelityPromo、BulkItemPromo、LargeOrderPromo分别对应上面3条计算折扣规则。 代码实现如下：\nfrom abc import ABC, abstractmethod from collections import namedtuple Customer = namedtuple('Customer', 'name fidelity') class LineItem: def __init__(self, product, quantity, price): self.product = product self.quantity = quantity self.price = price def total(self): return self.price * self.quantity class Order: # the Context def __init__(self, customer, cart, promotion=None): self.customer = customer self.cart = list(cart) self.promotion = promotion def total(self): if not hasattr(self, '__total'): self.__total = sum(item.total() for item in self.cart) return self.__total def due(self): if self.promotion is None: discount = 0 else: discount = self.promotion.discount(self) return self.total() - discount def __repr__(self): fmt = '",
+  "wordCount" : "595",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-18T00:00:00Z",
+  "dateModified": "2026-01-18T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000018-pythonpython%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9F%A5%E5%A4%9A%E5%B0%91/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      Python设计模式知多少
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-18T00:00:00+00:00'>2026-01-18</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>595 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/python/'>#Python</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="设计模式">设计模式<a hidden class="anchor" aria-hidden="true" href="#设计模式">#</a></h1>
+<p>设计模式是前辈们经过相当长的一段时间的试验和错误总结出来的最佳实践。我找到的资料列举了以下这些设计模式：工厂模式、抽象工厂模式、单例模式、建造者模式、原型模式、适配器模式、桥接模式、过滤器模式、组合模式、装饰器模式、外观模式、享元模式、代理模式、责任链模式、命令模式、解释器模式、迭代器模式、中介者模式、备忘录模式、观察者模式、状态模式、空对象模式、策略模式、模板模式、访问者模式、MVC模式、业务代表模式、组合实体模式、数据访问对象模式、前端控制器模式、拦截过滤器模式、服务定位器模式、传输对象模式，<strong>共33种</strong>。</p>
+<p>这些设计模式在纯面向对象编程语言中使用最多。**Python拥有一等函数，既不需要使用某些设计模式，也减少了某些设计模式样板代码。**本文将使用一等函数实现策略模式和命令模式，研究Python代码是如何简化的。</p>
+<h1 id="策略模式">策略模式<a hidden class="anchor" aria-hidden="true" href="#策略模式">#</a></h1>
+<p>策略模式概述：“定义一系列算法，把它们一一封装起来，并且使它们可以相互替换。本模式使得算法可以独立于使用它的客户而变化。”</p>
+<h2 id="经典实现">经典实现<a hidden class="anchor" aria-hidden="true" href="#经典实现">#</a></h2>
+<p>示例，根据客户的属性或订单中的商品计算折扣，规则如下：</p>
+<ul>
+<li>有1000或以上积分的客户，每个订单享5%折扣。</li>
+<li>同一订单中，单个商品的数量达到20个或以上，享10%折扣。</li>
+<li>订单中的不同商品达到10个或以上，享7%折扣。</li>
+</ul>
+<p>这很适合用策略模式来做，UML类图设计如下：</p>
+<p><img loading="lazy" src="../assets/46c053dd12c841acb5de50859780f673.png"></p>
+<ul>
+<li>上下文，集成算法的类，图中Order会根据不同的算法计算折扣。</li>
+<li>策略，实现不同算法的组件的共同接口，图中Promotion是个抽象类。</li>
+<li>具体策略，策略的具体子类，图中FidelityPromo、BulkItemPromo、LargeOrderPromo分别对应上面3条计算折扣规则。</li>
+</ul>
+<p>代码实现如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">abc</span> <span style="color:#cf222e">import</span> ABC<span style="color:#1f2328">,</span> abstractmethod
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">collections</span> <span style="color:#cf222e">import</span> namedtuple
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Customer <span style="color:#0550ae">=</span> namedtuple<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;Customer&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;name fidelity&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">LineItem</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> product<span style="color:#1f2328">,</span> quantity<span style="color:#1f2328">,</span> price<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>product <span style="color:#0550ae">=</span> product
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>quantity <span style="color:#0550ae">=</span> quantity
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>price <span style="color:#0550ae">=</span> price
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">total</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>price <span style="color:#0550ae">*</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>quantity
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Order</span><span style="color:#1f2328">:</span>  <span style="color:#57606a"># the Context</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> customer<span style="color:#1f2328">,</span> cart<span style="color:#1f2328">,</span> promotion<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>customer <span style="color:#0550ae">=</span> customer
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>cart <span style="color:#0550ae">=</span> <span style="color:#6639ba">list</span><span style="color:#1f2328">(</span>cart<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>promotion <span style="color:#0550ae">=</span> promotion
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">total</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> <span style="color:#6639ba">hasattr</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;__total&#39;</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>__total <span style="color:#0550ae">=</span> <span style="color:#6639ba">sum</span><span style="color:#1f2328">(</span>item<span style="color:#0550ae">.</span>total<span style="color:#1f2328">()</span> <span style="color:#cf222e">for</span> item <span style="color:#0550ae">in</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>cart<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>__total
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">due</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>promotion <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            discount <span style="color:#0550ae">=</span> <span style="color:#0550ae">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            discount <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>promotion<span style="color:#0550ae">.</span>discount<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>total<span style="color:#1f2328">()</span> <span style="color:#0550ae">-</span> discount
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__repr__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        fmt <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;&lt;Order total: </span><span style="color:#0a3069">{:.2f}</span><span style="color:#0a3069"> due: </span><span style="color:#0a3069">{:.2f}</span><span style="color:#0a3069">&gt;&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> fmt<span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>total<span style="color:#1f2328">(),</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>due<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Promotion</span><span style="color:#1f2328">(</span>ABC<span style="color:#1f2328">):</span>  <span style="color:#57606a"># the Strategy: an Abstract Base Class</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@abstractmethod</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">discount</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;&#34;&#34;Return discount as a positive dollar amount&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">FidelityPromo</span><span style="color:#1f2328">(</span>Promotion<span style="color:#1f2328">):</span>  <span style="color:#57606a"># first Concrete Strategy</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;5</span><span style="color:#0a3069">% d</span><span style="color:#0a3069">iscount for customers with 1000 or more fidelity points&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">discount</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> order<span style="color:#0550ae">.</span>total<span style="color:#1f2328">()</span> <span style="color:#0550ae">*</span> <span style="color:#0550ae">.05</span> <span style="color:#cf222e">if</span> order<span style="color:#0550ae">.</span>customer<span style="color:#0550ae">.</span>fidelity <span style="color:#0550ae">&gt;=</span> <span style="color:#0550ae">1000</span> <span style="color:#cf222e">else</span> <span style="color:#0550ae">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">BulkItemPromo</span><span style="color:#1f2328">(</span>Promotion<span style="color:#1f2328">):</span>  <span style="color:#57606a"># second Concrete Strategy</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;10</span><span style="color:#0a3069">% d</span><span style="color:#0a3069">iscount for each LineItem with 20 or more units&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">discount</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        discount <span style="color:#0550ae">=</span> <span style="color:#0550ae">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> item <span style="color:#0550ae">in</span> order<span style="color:#0550ae">.</span>cart<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">if</span> item<span style="color:#0550ae">.</span>quantity <span style="color:#0550ae">&gt;=</span> <span style="color:#0550ae">20</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                discount <span style="color:#0550ae">+=</span> item<span style="color:#0550ae">.</span>total<span style="color:#1f2328">()</span> <span style="color:#0550ae">*</span> <span style="color:#0550ae">.1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> discount
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">LargeOrderPromo</span><span style="color:#1f2328">(</span>Promotion<span style="color:#1f2328">):</span>  <span style="color:#57606a"># third Concrete Strategy</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;7</span><span style="color:#0a3069">% d</span><span style="color:#0a3069">iscount for orders with 10 or more distinct items&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">discount</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        distinct_items <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>item<span style="color:#0550ae">.</span>product <span style="color:#cf222e">for</span> item <span style="color:#0550ae">in</span> order<span style="color:#0550ae">.</span>cart<span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> <span style="color:#6639ba">len</span><span style="color:#1f2328">(</span>distinct_items<span style="color:#1f2328">)</span> <span style="color:#0550ae">&gt;=</span> <span style="color:#0550ae">10</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> order<span style="color:#0550ae">.</span>total<span style="color:#1f2328">()</span> <span style="color:#0550ae">*</span> <span style="color:#0550ae">.07</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#0550ae">0</span>
+</span></span></code></pre></div><p><strong>实现策略模式的关键代码是Promotion类，它是一个抽象基类，通过继承abc.ABC来定义。</strong></p>
+<p>测试下这段代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> joe <span style="color:#0550ae">=</span> Customer<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;John Doe&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">0</span><span style="color:#1f2328">)</span>  <span style="color:#57606a"># 顾客joe积分0</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> ann <span style="color:#0550ae">=</span> Customer<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;Ann Smith&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1100</span><span style="color:#1f2328">)</span>  <span style="color:#57606a"># 顾客ann积分1100</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 测试第一条折扣规则</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> cart <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>LineItem<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;banana&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">4</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">.5</span><span style="color:#1f2328">),</span>  <span style="color:#57606a"># 3类商品</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>         LineItem<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;apple&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">10</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1.5</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>         LineItem<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;watermellon&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">5</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">5.0</span><span style="color:#1f2328">)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>joe<span style="color:#1f2328">,</span> cart<span style="color:#1f2328">,</span> FidelityPromo<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>ann<span style="color:#1f2328">,</span> cart<span style="color:#1f2328">,</span> FidelityPromo<span style="color:#1f2328">())</span>  <span style="color:#57606a"># 积分折扣</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">39.90</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 测试第二条折扣规则</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> banana_cart <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>LineItem<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;banana&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">30</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">.5</span><span style="color:#1f2328">),</span>  <span style="color:#57606a"># 商品数量超过20</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>                LineItem<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;apple&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">10</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1.5</span><span style="color:#1f2328">)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>joe<span style="color:#1f2328">,</span> banana_cart<span style="color:#1f2328">,</span> BulkItemPromo<span style="color:#1f2328">())</span>  <span style="color:#57606a"># 数量折扣</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">30.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">28.50</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 测试第三条折扣规则</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> long_order <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>LineItem<span style="color:#1f2328">(</span><span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>item_code<span style="color:#1f2328">),</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1.0</span><span style="color:#1f2328">)</span> <span style="color:#57606a"># 10类不同商品</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>               <span style="color:#cf222e">for</span> item_code <span style="color:#0550ae">in</span> <span style="color:#6639ba">range</span><span style="color:#1f2328">(</span><span style="color:#0550ae">10</span><span style="color:#1f2328">)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>joe<span style="color:#1f2328">,</span> long_order<span style="color:#1f2328">,</span> LargeOrderPromo<span style="color:#1f2328">())</span>  <span style="color:#57606a"># 种类折扣</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">10.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">9.30</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>joe<span style="color:#1f2328">,</span> cart<span style="color:#1f2328">,</span> LargeOrderPromo<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span><span style="color:#0550ae">&gt;</span>
+</span></span></code></pre></div><h2 id="函数实现">函数实现<a hidden class="anchor" aria-hidden="true" href="#函数实现">#</a></h2>
+<p>现在开始使用Python函数改写代码。观察上文代码可以发现每个具体策略是一个类，类里面只有一个方法：discount()，并且没有属性。**看起来就像是普通的函数。**改造如下：</p>
+<p><img loading="lazy" src="../assets/10ba663046ea434db7de12c9617a4076.png"></p>
+<p>最关键的是，**删除了抽象类。**测试一下，函数拿来即用的美妙体验：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> joe <span style="color:#0550ae">=</span> Customer<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;John Doe&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">0</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> ann <span style="color:#0550ae">=</span> Customer<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;Ann Smith&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1100</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> cart <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>LineItem<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;banana&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">4</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">.5</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>         LineItem<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;apple&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">10</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1.5</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>         LineItem<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;watermellon&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">5</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">5.0</span><span style="color:#1f2328">)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>joe<span style="color:#1f2328">,</span> cart<span style="color:#1f2328">,</span> fidelity_promo<span style="color:#1f2328">)</span>  <span style="color:#57606a"># 直接传函数名</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>ann<span style="color:#1f2328">,</span> cart<span style="color:#1f2328">,</span> fidelity_promo<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">39.90</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> banana_cart <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>LineItem<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;banana&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">30</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">.5</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>                LineItem<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;apple&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">10</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1.5</span><span style="color:#1f2328">)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>joe<span style="color:#1f2328">,</span> banana_cart<span style="color:#1f2328">,</span> bulk_item_promo<span style="color:#1f2328">)</span>  <span style="color:#57606a"># 直接传函数名</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">30.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">28.50</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> long_order <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>LineItem<span style="color:#1f2328">(</span><span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>item_code<span style="color:#1f2328">),</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1.0</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>               <span style="color:#cf222e">for</span> item_code <span style="color:#0550ae">in</span> <span style="color:#6639ba">range</span><span style="color:#1f2328">(</span><span style="color:#0550ae">10</span><span style="color:#1f2328">)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>joe<span style="color:#1f2328">,</span> long_order<span style="color:#1f2328">,</span> large_order_promo<span style="color:#1f2328">)</span>  <span style="color:#57606a"># 直接传函数名</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">10.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">9.30</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>joe<span style="color:#1f2328">,</span> cart<span style="color:#1f2328">,</span> large_order_promo<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span><span style="color:#0550ae">&gt;</span>
+</span></span></code></pre></div><p><strong>函数的意义体现在：</strong></p>
+<p><img loading="lazy" src="../assets/8ee900cf3e204a948cda6924b45cefc7.png"></p>
+<p>可以得出结论：<strong>普通函数比只有一个方法的类使用起来更简单</strong>。</p>
+<h2 id="选择最佳策略">选择最佳策略<a hidden class="anchor" aria-hidden="true" href="#选择最佳策略">#</a></h2>
+<p>继续看另外一个问题，从具体策略中选择最佳策略，本文示例就是要选择优惠最多的折扣，代码实现如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>promos <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>fidelity_promo<span style="color:#1f2328">,</span> bulk_item_promo<span style="color:#1f2328">,</span> large_order_promo<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">best_promo</span><span style="color:#1f2328">(</span>order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;Select best discount available
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#6639ba">max</span><span style="color:#1f2328">(</span>promo<span style="color:#1f2328">(</span>order<span style="color:#1f2328">)</span> <span style="color:#cf222e">for</span> promo <span style="color:#0550ae">in</span> promos<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>promos列表包含了三个具体策略。best_promo()函数先使用生成器表达式计算每个策略的折扣，再使用max()函数返回最大折扣。</p>
+<p>测试一下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>joe<span style="color:#1f2328">,</span> long_order<span style="color:#1f2328">,</span> best_promo<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">10.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">9.30</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>joe<span style="color:#1f2328">,</span> banana_cart<span style="color:#1f2328">,</span> best_promo<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">30.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">28.50</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> Order<span style="color:#1f2328">(</span>ann<span style="color:#1f2328">,</span> cart<span style="color:#1f2328">,</span> best_promo<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>Order total<span style="color:#1f2328">:</span> <span style="color:#0550ae">42.00</span> due<span style="color:#1f2328">:</span> <span style="color:#0550ae">39.90</span><span style="color:#0550ae">&gt;</span>
+</span></span></code></pre></div><p>没有问题。但是存在一个<strong>隐藏缺陷</strong>：如果想要添加新的促销策略，那么要定义相应函数并添加到promos列表中。</p>
+<h2 id="添加新策略">添加新策略<a hidden class="anchor" aria-hidden="true" href="#添加新策略">#</a></h2>
+<p>接下来针对这个缺陷进行优化。</p>
+<p><strong>方法一</strong></p>
+<p>借助globals()函数自动找到其他可用的<code>*_promo</code>函数：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>promos <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span><span style="color:#6639ba">globals</span><span style="color:#1f2328">()[</span>name<span style="color:#1f2328">]</span> <span style="color:#cf222e">for</span> name <span style="color:#0550ae">in</span> <span style="color:#6639ba">globals</span><span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">if</span> name<span style="color:#0550ae">.</span>endswith<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;_promo&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">and</span> name <span style="color:#0550ae">!=</span> <span style="color:#0a3069">&#39;best_promo&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">best_promo</span><span style="color:#1f2328">(</span>order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;Select best discount available
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#6639ba">max</span><span style="color:#1f2328">(</span>promo<span style="color:#1f2328">(</span>order<span style="color:#1f2328">)</span> <span style="color:#cf222e">for</span> promo <span style="color:#0550ae">in</span> promos<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><blockquote>
+<p>globals()返回一个字典，表示当前的全局符号表。这个符号表始终针对当前模块。对函数或方法来说，是指定义它们的模块，而不是调用它们的模块。</p>
+</blockquote>
+<p><strong>方法二</strong></p>
+<p>通过函数内省自动查找promotions模块中的所有函数作为策略函数（要求promotions模块中只能包含策略函数，不能包含其他函数）：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>promos <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>func <span style="color:#cf222e">for</span> name<span style="color:#1f2328">,</span> func <span style="color:#0550ae">in</span>
+</span></span><span style="display:flex;"><span>                inspect<span style="color:#0550ae">.</span>getmembers<span style="color:#1f2328">(</span>promotions<span style="color:#1f2328">,</span> inspect<span style="color:#0550ae">.</span>isfunction<span style="color:#1f2328">)]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">best_promo</span><span style="color:#1f2328">(</span>order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;Select best discount available
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#6639ba">max</span><span style="color:#1f2328">(</span>promo<span style="color:#1f2328">(</span>order<span style="color:#1f2328">)</span> <span style="color:#cf222e">for</span> promo <span style="color:#0550ae">in</span> promos<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>inspect.getmembers()的第一个参数是目标模块（promotions模块），第二个参数是判断条件（只查找模块中的函数）。</p>
+<p><strong>方法三</strong></p>
+<p>装饰器，这个方法更优雅，在下篇文章讲到装饰器时，再给出代码实现。</p>
+<h1 id="命令模式">命令模式<a hidden class="anchor" aria-hidden="true" href="#命令模式">#</a></h1>
+<p>命令模式的目的是解耦调用操作的对象（调用者）和提供实现的对象（接收者）。</p>
+<p>示例，菜单驱动文本编辑器，调用者是菜单，接收者是被编辑的文档。</p>
+<p>UML类图设计如下：</p>
+<p><img loading="lazy" src="../assets/63be327530294df79b5fbaf8705d98d3.png"></p>
+<p>命令模式的做法是在调用者和接收者之间放一个Command对象，让它实现只有一个execute()方法的接口，调用接收者中的方法执行具体命令。**这样调用者Menu不需要了解接收者Document的接口。**并且可以添加Command子类扩展多个不同的接收者。</p>
+<p>使用一等函数对命令模式的优化思路：不为调用者提供一个Command对象，而是给它一个函数，调用者不用调command.execute()，直接调command()即可。这和策略模式是类似的，<strong>把实现单方法接口的类的实例替换成可调用对象</strong>。</p>
+<p>注意，图中的MacroCommand是宏命令，可能保存一系列命令，它的execute()方法会在各个命令上调用相同的方法，在使用一等函数函数时，可以实现成定义了<code>__call__</code>方法的类：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MacroCommand</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;一个执行一组命令的命令&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> commands<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>commands <span style="color:#0550ae">=</span> <span style="color:#6639ba">list</span><span style="color:#1f2328">(</span>commands<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__call__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> command <span style="color:#0550ae">in</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>commands<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            command<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>毕竟，<code>__call__</code>使得每个Python可调用对象都实现了单方法接口。</p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文简单列举了33种设计模式，从两个经典的设计模式，策略模式和命令模式入手，介绍设计模式在Python中是如何实现的，借助函数是一等对象的这一特性，大大简化了代码。在此基础上，还能更Pythonic一点，那就是用函数装饰器和闭包。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>《流畅的Python》</p>
+<p><a href="https://www.runoob.com/design-pattern/design-pattern-tutorial.html">https://www.runoob.com/design-pattern/design-pattern-tutorial.html</a></p>
+<p><a href="https://blog.csdn.net/xldmx/article/details/112337759">https://blog.csdn.net/xldmx/article/details/112337759</a></p>
+<p><a href="https://github.com/fluentpython/example-code/tree/master/06-dp-1class-func">https://github.com/fluentpython/example-code/tree/master/06-dp-1class-func</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/python/">Python</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000018-locustlocust%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF@task%E5%92%8C@events/">
+    <span class="title">« 上一页</span>
+    <span>Locust性能测试工具核心技术@task和@events</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000018-%E5%AE%98%E6%96%B9%E4%BA%8C%E5%88%B7java%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B/">
+    <span class="title">下一页 »</span>
+    <span>二刷Java官方教程</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#设计模式">设计模式</a></li>
+    <li><a href="#策略模式">策略模式</a>
+      <ul>
+        <li><a href="#经典实现">经典实现</a></li>
+        <li><a href="#函数实现">函数实现</a></li>
+        <li><a href="#选择最佳策略">选择最佳策略</a></li>
+        <li><a href="#添加新策略">添加新策略</a></li>
+      </ul>
+    </li>
+    <li><a href="#命令模式">命令模式</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

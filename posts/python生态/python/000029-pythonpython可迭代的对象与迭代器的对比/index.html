@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Python可迭代的对象与迭代器的对比 | 测试开发刚哥</title>
+<meta name="keywords" content="Python">
+<meta name="description" content="什么是迭代？迭代是指按需一次获取一个数据。是否可以迭代，可以通过是否可以使用for循环取值来进行简单的判断。更准确的判断是使用iter()函数，这是一个Python内置函数。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000029-pythonpython%E5%8F%AF%E8%BF%AD%E4%BB%A3%E7%9A%84%E5%AF%B9%E8%B1%A1%E4%B8%8E%E8%BF%AD%E4%BB%A3%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000029-pythonpython%E5%8F%AF%E8%BF%AD%E4%BB%A3%E7%9A%84%E5%AF%B9%E8%B1%A1%E4%B8%8E%E8%BF%AD%E4%BB%A3%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000029-pythonpython%E5%8F%AF%E8%BF%AD%E4%BB%A3%E7%9A%84%E5%AF%B9%E8%B1%A1%E4%B8%8E%E8%BF%AD%E4%BB%A3%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Python可迭代的对象与迭代器的对比">
+  <meta property="og:description" content="什么是迭代？迭代是指按需一次获取一个数据。是否可以迭代，可以通过是否可以使用for循环取值来进行简单的判断。更准确的判断是使用iter()函数，这是一个Python内置函数。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-29T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-29T00:00:00+00:00">
+    <meta property="article:tag" content="Python">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Python可迭代的对象与迭代器的对比">
+  <meta name="twitter:description" content="什么是迭代？迭代是指按需一次获取一个数据。是否可以迭代，可以通过是否可以使用for循环取值来进行简单的判断。更准确的判断是使用iter()函数，这是一个Python内置函数。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Python可迭代的对象与迭代器的对比",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000029-pythonpython%E5%8F%AF%E8%BF%AD%E4%BB%A3%E7%9A%84%E5%AF%B9%E8%B1%A1%E4%B8%8E%E8%BF%AD%E4%BB%A3%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python可迭代的对象与迭代器的对比",
+  "name": "Python可迭代的对象与迭代器的对比",
+  "description": "什么是迭代？迭代是指按需一次获取一个数据。是否可以迭代，可以通过是否可以使用for循环取值来进行简单的判断。更准确的判断是使用iter()函数，这是一个Python内置函数。",
+  "keywords": [
+    "Python"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n什么是迭代？迭代是指按需一次获取一个数据。是否可以迭代，可以通过是否可以使用for循环取值来进行简单的判断。更准确的判断是使用iter()函数，这是一个Python内置函数。\n可迭代的对象 iter()函数的作用如下：\n如果对象实现了__iter__方法，那么就调用它，获取一个迭代器。比如：\ndef __iter__(self): return SentenceIterator(self.words) 如果对象没有实现__iter__但是实现了__getitem__方法，那么就创建一个迭代器，尝试从索引0开始获取元素。\n如果尝试获取元素失败，就会抛出TypeError异常。\n可迭代的对象，就是使用iter()函数判断，满足前面2点的对象。\n任何Python序列都是可以迭代的，因为它们都实现了__getitem__方法。\n迭代器 从前面iter()函数的作用可以发现，迭代器是从可迭代的对象中获取的。\n如果对象本身是可迭代的，就调用__iter__方法获取一个迭代器。 如果对象不可迭代但是实现了__getitem__方法，那么就会创建一个迭代器。 比如可以使用iter()函数把列表转换为迭代器：\n\u003e\u003e\u003e test_list = [1, 2, 3] \u003e\u003e\u003e print(type(test_list)) \u003cclass 'list'\u003e \u003e\u003e\u003e test_iter = iter(test_list) \u003e\u003e\u003e print(type(test_iter)) \u003cclass 'list_iterator'\u003e 迭代器可以使用for循环遍历：\nfor x in test_iter: print(x) 也可以使用while循环遍历：\nwhile True: try: print(next(test_iter)) except StopIteration: del test_iter break next()函数用于获取迭代器下一个元素。 没有元素了，迭代器会抛出StopIteration异常。 标准的迭代器接口有两个方法：\n__next__返回下一个元素。\n__iter__返回self，以便在应该使用可迭代对象的地方使用迭代器，比如for循环中。\ndef __iter__(self): return self 迭代器的准确定义是：迭代器是这样的对象，它实现了无参数的__next__方法，返回序列中的下一个元素；如果没有元素了，那么抛出StopIteration异常。Python中的迭代器还实现了__iter__方法，因此迭代器也是可以迭代的。\n最后，通过对比可以发现，可迭代对象的__iter__返回的是迭代器：\ndef __iter__(self): return SentenceIterator(self.words) 迭代器的__iter__返回的是self：\nclass SentenceIterator: def __iter__(self): return self 而且迭代器还需要有__next__方法。\n从这一点就能清楚看出它们的区别了。\n需要特别注意的是，可迭代的对象一定不能是自身的迭代器，也就是说，可迭代对象必须实现__iter__方法，但是不能实现__next__方法。否则会让设计模式变得混乱不堪。\n参考资料：\n《流畅的Python》第14章 可迭代的对象、迭代器和生成器\nhttps://www.runoob.com/python3/python3-iterator-generator.html\n",
+  "wordCount" : "81",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-29T00:00:00Z",
+  "dateModified": "2026-01-29T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000029-pythonpython%E5%8F%AF%E8%BF%AD%E4%BB%A3%E7%9A%84%E5%AF%B9%E8%B1%A1%E4%B8%8E%E8%BF%AD%E4%BB%A3%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      Python可迭代的对象与迭代器的对比
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-29T00:00:00+00:00'>2026-01-29</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>81 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/python/'>#Python</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>什么是迭代？迭代是指按需一次获取一个数据。是否可以迭代，可以通过是否可以使用for循环取值来进行简单的判断。更准确的判断是使用<code>iter()</code>函数，这是一个Python内置函数。</p>
+<h1 id="可迭代的对象">可迭代的对象<a hidden class="anchor" aria-hidden="true" href="#可迭代的对象">#</a></h1>
+<p><code>iter()</code>函数的作用如下：</p>
+<ol>
+<li>
+<p>如果对象实现了<code>__iter__</code>方法，那么就调用它，<strong>获取一个迭代器</strong>。比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">__iter__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> SentenceIterator<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>words<span style="color:#1f2328">)</span>
+</span></span></code></pre></div></li>
+<li>
+<p>如果对象没有实现<code>__iter__</code>但是实现了<code>__getitem__</code>方法，那么就<strong>创建一个迭代器</strong>，尝试从索引0开始获取元素。</p>
+</li>
+<li>
+<p>如果尝试获取元素失败，就会抛出TypeError异常。</p>
+</li>
+</ol>
+<p>可迭代的对象，就是使用<code>iter()</code>函数判断，满足前面2点的对象。</p>
+<p>任何Python序列都是可以迭代的，因为它们都实现了<code>__getitem__</code>方法。</p>
+<h1 id="迭代器">迭代器<a hidden class="anchor" aria-hidden="true" href="#迭代器">#</a></h1>
+<p>从前面<code>iter()</code>函数的作用可以发现，<strong>迭代器是从可迭代的对象中获取的</strong>。</p>
+<ol>
+<li>如果对象本身是可迭代的，就调用<code>__iter__</code>方法获取一个迭代器。</li>
+<li>如果对象不可迭代但是实现了<code>__getitem__</code>方法，那么就会创建一个迭代器。</li>
+</ol>
+<p>比如可以使用<code>iter()</code>函数把列表转换为迭代器：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> test_list <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span><span style="color:#0550ae">1</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">2</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">3</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#6639ba">type</span><span style="color:#1f2328">(</span>test_list<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span><span style="color:#cf222e">class</span> <span style="color:#f6f8fa;background-color:#82071e">&#39;</span><span style="color:#1f2328">list</span><span style="color:#0a3069">&#39;&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> test_iter <span style="color:#0550ae">=</span> <span style="color:#6639ba">iter</span><span style="color:#1f2328">(</span>test_list<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#6639ba">type</span><span style="color:#1f2328">(</span>test_iter<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span><span style="color:#cf222e">class</span> <span style="color:#f6f8fa;background-color:#82071e">&#39;</span><span style="color:#1f2328">list_iterator</span><span style="color:#0a3069">&#39;&gt;</span>
+</span></span></code></pre></div><p>迭代器可以使用for循环遍历：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">for</span> x <span style="color:#0550ae">in</span> test_iter<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span>x<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>也可以使用while循环遍历：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">while</span> <span style="color:#cf222e">True</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#6639ba">next</span><span style="color:#1f2328">(</span>test_iter<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">except</span> StopIteration<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">del</span> test_iter
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">break</span>
+</span></span></code></pre></div><ul>
+<li><code>next()</code>函数用于获取迭代器下一个元素。</li>
+<li>没有元素了，迭代器会抛出StopIteration异常。</li>
+</ul>
+<p>标准的迭代器接口有两个方法：</p>
+<ul>
+<li>
+<p><code>__next__</code>返回下一个元素。</p>
+</li>
+<li>
+<p><code>__iter__</code>返回self，以便在应该使用可迭代对象的地方使用迭代器，比如for循环中。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">__iter__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span>
+</span></span></code></pre></div></li>
+</ul>
+<p><strong>迭代器的准确定义是</strong>：迭代器是这样的对象，它实现了无参数的<code>__next__</code>方法，返回序列中的下一个元素；如果没有元素了，那么抛出StopIteration异常。Python中的迭代器还实现了<code>__iter__</code>方法，因此迭代器也是可以迭代的。</p>
+<p>最后，通过对比可以发现，<strong>可迭代对象</strong>的<code>__iter__</code>返回的是迭代器：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">__iter__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> SentenceIterator<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>words<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p><strong>迭代器</strong>的<code>__iter__</code>返回的是self：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">SentenceIterator</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__iter__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span>
+</span></span></code></pre></div><p>而且迭代器还需要有<code>__next__</code>方法。</p>
+<p><strong>从这一点就能清楚看出它们的区别了。</strong></p>
+<p>需要特别注意的是，可迭代的对象一定不能是自身的迭代器，也就是说，可迭代对象必须实现<code>__iter__</code>方法，但是不能实现<code>__next__</code>方法。否则会让设计模式变得混乱不堪。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>《流畅的Python》第14章 可迭代的对象、迭代器和生成器</p>
+<p><a href="https://www.runoob.com/python3/python3-iterator-generator.html">https://www.runoob.com/python3/python3-iterator-generator.html</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/python/">Python</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000030-python%E9%95%BF%E7%AF%87%E5%A4%A7%E8%AE%BApython%E7%94%9F%E6%88%90%E5%99%A8/">
+    <span class="title">« 上一页</span>
+    <span>长篇大论Python生成器</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000028-pythonpython%E6%8A%BD%E8%B1%A1%E5%9F%BA%E7%B1%BB%E7%9A%84%E5%AE%9A%E4%B9%89%E4%B8%8E%E4%BD%BF%E7%94%A8/">
+    <span class="title">下一页 »</span>
+    <span>Python抽象基类的定义与使用</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#可迭代的对象">可迭代的对象</a></li>
+    <li><a href="#迭代器">迭代器</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

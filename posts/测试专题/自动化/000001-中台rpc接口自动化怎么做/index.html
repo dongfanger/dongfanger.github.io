@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>中台RPC接口自动化怎么做 | 测试开发刚哥</title>
+<meta name="keywords" content="自动化">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+RPC接口
+我所在的部门是技术中台，主要负责toB业务，上游是业务条线，包括PC、APP、小程序等终端，这些端的后台是HTTP接口层，而在HTTP接口层之下，就是技术中台的RPC接口层。
+HTTP是一种超文本传输协议，基于TCP/IP来传输文本、图片、音频、视频等数据。数据包的传输能力不是HTTP提供的，而是TCP/IP干的。HTTP的本质是客户端和服务端约定好的一种通信格式，是一种全世界认可的通用范本。
+RPC是一种远程调用，也就是进程间通信，既可以用HTTP协议，也可以用自定义协议。RPC的好处是没有HTTP那么多约束，简化了写法，可以根据公司自定义规范，内部统一即可。 所以在公司内部特别流行，比如阿里的Dubbo接口就是一种RPC接口，我们公司用的JSF接口，自研的服务框架，简称杰夫。
+
+谈谈京东的服务框架 https://juejin.cn/post/6948351920088186888
+
+举个例子，本地调用，是调用的本地方法：
+ public User getUserById(Long id) {
+       return userDao.getUserById(id); // 这叫本地调用
+    }
+而RPC远程调用，调用的是另外一个服务的方法：
+ public User getUserById(Long id) {
+       return userConsumer.getUserById(id); // 这是远程调用，逻辑是用户小组的服务实现的。
+    }
+本地调用和远程调用的比较如下图所示：
+
+左边的本地调用，只在应用内部调用。右边的远程调用，会跨应用在应用之间调用。
+RPC和HTTP用法区别
+HTTP接口在调用时，输入URL，Method，Headers，Body等等等就可以发送请求了。
+RPC接口的调用大同小异，输入：
+JSF地址：方法引用路径，比如com.dongfanger.api.service.ShopProvider。
+方法名：方法名称，比如queryShopList。
+别名：既可以是分组别名，也可以直连IP地址。
+方法入参：JSON串。
+等等等，就可以发起请求了。
+从用法能看出来，RPC和HTTP接口的结构体是差不多的，但是RPC不需要Method和Headers，精简了许多。
+接口自动化
+首先需要考虑的是目录结构设计，HTTP可以模块菜单创建用例目录，比如：
+一级目录：管理端
+二级目录：发票管理
+三级目录：发票查询
+而RPC是无页面的，一般存在很多业务线，所以可以按照功能域和业务线来组织目录，比如：
+一级目录：发票
+二级目录：提交申请
+三级目录：分销
+其次就得考虑技术实现了，公司基建比较完善，无论是HTTP还是JSF接口，都能在接口测试平台上编写自动化用例。虽然是Web平台写用例，但是得益于测试平台的优秀设计和使用体验，用起来很方便，效率也很高。交互方式跟JMeter大同小异，只是在细节上做了很多打磨。
+然后就是参数构造了，建议是用流量回放的方式来做，省去手工编写参数的崩溃感。流量用例创建好以后，需要做一些参数化处理和接口关联。这样才能够把多个接口串起来。
+对于测试数据，通过预设变量来统一管理，自动化用例也尽可能设计成闭环，增加，修改，查询，删除，用例跑完后产生的数据也跟着清理掉。
+最后就是断言了。没有断言的自动化用例，不叫做自动化用例。断言一定要加上，否则定时任务跑出结果后，无法判断到底有没有问题。而断言内容不能只是简单的code200，需要加上业务校验。
+中台RPC接口自动化最难处理的是接口依赖问题，链路特别长，依赖特别多。我一般通过Mock来解决这个问题，公司的测试平台也提供了这个功能。
+需要注意的是，核心用例定时运行监控起来，而一次性用例要及时维护或清理，防止变成僵尸用例。
+最后，我准备基于Vue&#43;FastAPI开发一套新的pytest脚本管理平台，集成流量录制创建用例和Mock等功能，并借鉴公司测试平台的设计，感兴趣的同学可以添加微信cekaigang加群讨论哟。
+
+参考资料：
+HTTP 的本质？HTTP 和 RPC 的区别？ https://www.jianshu.com/p/fe5ccfc5d7bd
+谈谈京东的服务框架 https://juejin.cn/post/6948351920088186888
+">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000001-%E4%B8%AD%E5%8F%B0rpc%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E6%80%8E%E4%B9%88%E5%81%9A/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000001-%E4%B8%AD%E5%8F%B0rpc%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E6%80%8E%E4%B9%88%E5%81%9A/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000001-%E4%B8%AD%E5%8F%B0rpc%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E6%80%8E%E4%B9%88%E5%81%9A/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="中台RPC接口自动化怎么做">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+RPC接口 我所在的部门是技术中台，主要负责toB业务，上游是业务条线，包括PC、APP、小程序等终端，这些端的后台是HTTP接口层，而在HTTP接口层之下，就是技术中台的RPC接口层。
+HTTP是一种超文本传输协议，基于TCP/IP来传输文本、图片、音频、视频等数据。数据包的传输能力不是HTTP提供的，而是TCP/IP干的。HTTP的本质是客户端和服务端约定好的一种通信格式，是一种全世界认可的通用范本。
+RPC是一种远程调用，也就是进程间通信，既可以用HTTP协议，也可以用自定义协议。RPC的好处是没有HTTP那么多约束，简化了写法，可以根据公司自定义规范，内部统一即可。 所以在公司内部特别流行，比如阿里的Dubbo接口就是一种RPC接口，我们公司用的JSF接口，自研的服务框架，简称杰夫。
+谈谈京东的服务框架 https://juejin.cn/post/6948351920088186888
+举个例子，本地调用，是调用的本地方法：
+public User getUserById(Long id) { return userDao.getUserById(id); // 这叫本地调用 } 而RPC远程调用，调用的是另外一个服务的方法：
+public User getUserById(Long id) { return userConsumer.getUserById(id); // 这是远程调用，逻辑是用户小组的服务实现的。 } 本地调用和远程调用的比较如下图所示：
+左边的本地调用，只在应用内部调用。右边的远程调用，会跨应用在应用之间调用。
+RPC和HTTP用法区别 HTTP接口在调用时，输入URL，Method，Headers，Body等等等就可以发送请求了。
+RPC接口的调用大同小异，输入：
+JSF地址：方法引用路径，比如com.dongfanger.api.service.ShopProvider。
+方法名：方法名称，比如queryShopList。
+别名：既可以是分组别名，也可以直连IP地址。
+方法入参：JSON串。
+等等等，就可以发起请求了。
+从用法能看出来，RPC和HTTP接口的结构体是差不多的，但是RPC不需要Method和Headers，精简了许多。
+接口自动化 首先需要考虑的是目录结构设计，HTTP可以模块菜单创建用例目录，比如：
+一级目录：管理端
+二级目录：发票管理
+三级目录：发票查询
+而RPC是无页面的，一般存在很多业务线，所以可以按照功能域和业务线来组织目录，比如：
+一级目录：发票
+二级目录：提交申请
+三级目录：分销
+其次就得考虑技术实现了，公司基建比较完善，无论是HTTP还是JSF接口，都能在接口测试平台上编写自动化用例。虽然是Web平台写用例，但是得益于测试平台的优秀设计和使用体验，用起来很方便，效率也很高。交互方式跟JMeter大同小异，只是在细节上做了很多打磨。
+然后就是参数构造了，建议是用流量回放的方式来做，省去手工编写参数的崩溃感。流量用例创建好以后，需要做一些参数化处理和接口关联。这样才能够把多个接口串起来。
+对于测试数据，通过预设变量来统一管理，自动化用例也尽可能设计成闭环，增加，修改，查询，删除，用例跑完后产生的数据也跟着清理掉。
+最后就是断言了。没有断言的自动化用例，不叫做自动化用例。断言一定要加上，否则定时任务跑出结果后，无法判断到底有没有问题。而断言内容不能只是简单的code200，需要加上业务校验。
+中台RPC接口自动化最难处理的是接口依赖问题，链路特别长，依赖特别多。我一般通过Mock来解决这个问题，公司的测试平台也提供了这个功能。
+需要注意的是，核心用例定时运行监控起来，而一次性用例要及时维护或清理，防止变成僵尸用例。
+最后，我准备基于Vue&#43;FastAPI开发一套新的pytest脚本管理平台，集成流量录制创建用例和Mock等功能，并借鉴公司测试平台的设计，感兴趣的同学可以添加微信cekaigang加群讨论哟。
+参考资料：
+HTTP 的本质？HTTP 和 RPC 的区别？ https://www.jianshu.com/p/fe5ccfc5d7bd
+谈谈京东的服务框架 https://juejin.cn/post/6948351920088186888">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:tag" content="自动化">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="中台RPC接口自动化怎么做">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+RPC接口 我所在的部门是技术中台，主要负责toB业务，上游是业务条线，包括PC、APP、小程序等终端，这些端的后台是HTTP接口层，而在HTTP接口层之下，就是技术中台的RPC接口层。
+HTTP是一种超文本传输协议，基于TCP/IP来传输文本、图片、音频、视频等数据。数据包的传输能力不是HTTP提供的，而是TCP/IP干的。HTTP的本质是客户端和服务端约定好的一种通信格式，是一种全世界认可的通用范本。
+RPC是一种远程调用，也就是进程间通信，既可以用HTTP协议，也可以用自定义协议。RPC的好处是没有HTTP那么多约束，简化了写法，可以根据公司自定义规范，内部统一即可。 所以在公司内部特别流行，比如阿里的Dubbo接口就是一种RPC接口，我们公司用的JSF接口，自研的服务框架，简称杰夫。
+谈谈京东的服务框架 https://juejin.cn/post/6948351920088186888
+举个例子，本地调用，是调用的本地方法：
+public User getUserById(Long id) { return userDao.getUserById(id); // 这叫本地调用 } 而RPC远程调用，调用的是另外一个服务的方法：
+public User getUserById(Long id) { return userConsumer.getUserById(id); // 这是远程调用，逻辑是用户小组的服务实现的。 } 本地调用和远程调用的比较如下图所示：
+左边的本地调用，只在应用内部调用。右边的远程调用，会跨应用在应用之间调用。
+RPC和HTTP用法区别 HTTP接口在调用时，输入URL，Method，Headers，Body等等等就可以发送请求了。
+RPC接口的调用大同小异，输入：
+JSF地址：方法引用路径，比如com.dongfanger.api.service.ShopProvider。
+方法名：方法名称，比如queryShopList。
+别名：既可以是分组别名，也可以直连IP地址。
+方法入参：JSON串。
+等等等，就可以发起请求了。
+从用法能看出来，RPC和HTTP接口的结构体是差不多的，但是RPC不需要Method和Headers，精简了许多。
+接口自动化 首先需要考虑的是目录结构设计，HTTP可以模块菜单创建用例目录，比如：
+一级目录：管理端
+二级目录：发票管理
+三级目录：发票查询
+而RPC是无页面的，一般存在很多业务线，所以可以按照功能域和业务线来组织目录，比如：
+一级目录：发票
+二级目录：提交申请
+三级目录：分销
+其次就得考虑技术实现了，公司基建比较完善，无论是HTTP还是JSF接口，都能在接口测试平台上编写自动化用例。虽然是Web平台写用例，但是得益于测试平台的优秀设计和使用体验，用起来很方便，效率也很高。交互方式跟JMeter大同小异，只是在细节上做了很多打磨。
+然后就是参数构造了，建议是用流量回放的方式来做，省去手工编写参数的崩溃感。流量用例创建好以后，需要做一些参数化处理和接口关联。这样才能够把多个接口串起来。
+对于测试数据，通过预设变量来统一管理，自动化用例也尽可能设计成闭环，增加，修改，查询，删除，用例跑完后产生的数据也跟着清理掉。
+最后就是断言了。没有断言的自动化用例，不叫做自动化用例。断言一定要加上，否则定时任务跑出结果后，无法判断到底有没有问题。而断言内容不能只是简单的code200，需要加上业务校验。
+中台RPC接口自动化最难处理的是接口依赖问题，链路特别长，依赖特别多。我一般通过Mock来解决这个问题，公司的测试平台也提供了这个功能。
+需要注意的是，核心用例定时运行监控起来，而一次性用例要及时维护或清理，防止变成僵尸用例。
+最后，我准备基于Vue&#43;FastAPI开发一套新的pytest脚本管理平台，集成流量录制创建用例和Mock等功能，并借鉴公司测试平台的设计，感兴趣的同学可以添加微信cekaigang加群讨论哟。
+参考资料：
+HTTP 的本质？HTTP 和 RPC 的区别？ https://www.jianshu.com/p/fe5ccfc5d7bd
+谈谈京东的服务框架 https://juejin.cn/post/6948351920088186888">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "中台RPC接口自动化怎么做",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000001-%E4%B8%AD%E5%8F%B0rpc%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E6%80%8E%E4%B9%88%E5%81%9A/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "中台RPC接口自动化怎么做",
+  "name": "中台RPC接口自动化怎么做",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nRPC接口 我所在的部门是技术中台，主要负责toB业务，上游是业务条线，包括PC、APP、小程序等终端，这些端的后台是HTTP接口层，而在HTTP接口层之下，就是技术中台的RPC接口层。\nHTTP是一种超文本传输协议，基于TCP/IP来传输文本、图片、音频、视频等数据。数据包的传输能力不是HTTP提供的，而是TCP/IP干的。HTTP的本质是客户端和服务端约定好的一种通信格式，是一种全世界认可的通用范本。\nRPC是一种远程调用，也就是进程间通信，既可以用HTTP协议，也可以用自定义协议。RPC的好处是没有HTTP那么多约束，简化了写法，可以根据公司自定义规范，内部统一即可。 所以在公司内部特别流行，比如阿里的Dubbo接口就是一种RPC接口，我们公司用的JSF接口，自研的服务框架，简称杰夫。\n谈谈京东的服务框架 https://juejin.cn/post/6948351920088186888\n举个例子，本地调用，是调用的本地方法：\npublic User getUserById(Long id) { return userDao.getUserById(id); // 这叫本地调用 } 而RPC远程调用，调用的是另外一个服务的方法：\npublic User getUserById(Long id) { return userConsumer.getUserById(id); // 这是远程调用，逻辑是用户小组的服务实现的。 } 本地调用和远程调用的比较如下图所示：\n左边的本地调用，只在应用内部调用。右边的远程调用，会跨应用在应用之间调用。\nRPC和HTTP用法区别 HTTP接口在调用时，输入URL，Method，Headers，Body等等等就可以发送请求了。\nRPC接口的调用大同小异，输入：\nJSF地址：方法引用路径，比如com.dongfanger.api.service.ShopProvider。\n方法名：方法名称，比如queryShopList。\n别名：既可以是分组别名，也可以直连IP地址。\n方法入参：JSON串。\n等等等，就可以发起请求了。\n从用法能看出来，RPC和HTTP接口的结构体是差不多的，但是RPC不需要Method和Headers，精简了许多。\n接口自动化 首先需要考虑的是目录结构设计，HTTP可以模块菜单创建用例目录，比如：\n一级目录：管理端\n二级目录：发票管理\n三级目录：发票查询\n而RPC是无页面的，一般存在很多业务线，所以可以按照功能域和业务线来组织目录，比如：\n一级目录：发票\n二级目录：提交申请\n三级目录：分销\n其次就得考虑技术实现了，公司基建比较完善，无论是HTTP还是JSF接口，都能在接口测试平台上编写自动化用例。虽然是Web平台写用例，但是得益于测试平台的优秀设计和使用体验，用起来很方便，效率也很高。交互方式跟JMeter大同小异，只是在细节上做了很多打磨。\n然后就是参数构造了，建议是用流量回放的方式来做，省去手工编写参数的崩溃感。流量用例创建好以后，需要做一些参数化处理和接口关联。这样才能够把多个接口串起来。\n对于测试数据，通过预设变量来统一管理，自动化用例也尽可能设计成闭环，增加，修改，查询，删除，用例跑完后产生的数据也跟着清理掉。\n最后就是断言了。没有断言的自动化用例，不叫做自动化用例。断言一定要加上，否则定时任务跑出结果后，无法判断到底有没有问题。而断言内容不能只是简单的code200，需要加上业务校验。\n中台RPC接口自动化最难处理的是接口依赖问题，链路特别长，依赖特别多。我一般通过Mock来解决这个问题，公司的测试平台也提供了这个功能。\n需要注意的是，核心用例定时运行监控起来，而一次性用例要及时维护或清理，防止变成僵尸用例。\n最后，我准备基于Vue+FastAPI开发一套新的pytest脚本管理平台，集成流量录制创建用例和Mock等功能，并借鉴公司测试平台的设计，感兴趣的同学可以添加微信cekaigang加群讨论哟。\n参考资料：\nHTTP 的本质？HTTP 和 RPC 的区别？ https://www.jianshu.com/p/fe5ccfc5d7bd\n谈谈京东的服务框架 https://juejin.cn/post/6948351920088186888\n",
+  "keywords": [
+    "自动化"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nRPC接口 我所在的部门是技术中台，主要负责toB业务，上游是业务条线，包括PC、APP、小程序等终端，这些端的后台是HTTP接口层，而在HTTP接口层之下，就是技术中台的RPC接口层。\nHTTP是一种超文本传输协议，基于TCP/IP来传输文本、图片、音频、视频等数据。数据包的传输能力不是HTTP提供的，而是TCP/IP干的。HTTP的本质是客户端和服务端约定好的一种通信格式，是一种全世界认可的通用范本。\nRPC是一种远程调用，也就是进程间通信，既可以用HTTP协议，也可以用自定义协议。RPC的好处是没有HTTP那么多约束，简化了写法，可以根据公司自定义规范，内部统一即可。 所以在公司内部特别流行，比如阿里的Dubbo接口就是一种RPC接口，我们公司用的JSF接口，自研的服务框架，简称杰夫。\n谈谈京东的服务框架 https://juejin.cn/post/6948351920088186888\n举个例子，本地调用，是调用的本地方法：\npublic User getUserById(Long id) { return userDao.getUserById(id); // 这叫本地调用 } 而RPC远程调用，调用的是另外一个服务的方法：\npublic User getUserById(Long id) { return userConsumer.getUserById(id); // 这是远程调用，逻辑是用户小组的服务实现的。 } 本地调用和远程调用的比较如下图所示：\n左边的本地调用，只在应用内部调用。右边的远程调用，会跨应用在应用之间调用。\nRPC和HTTP用法区别 HTTP接口在调用时，输入URL，Method，Headers，Body等等等就可以发送请求了。\nRPC接口的调用大同小异，输入：\nJSF地址：方法引用路径，比如com.dongfanger.api.service.ShopProvider。\n方法名：方法名称，比如queryShopList。\n别名：既可以是分组别名，也可以直连IP地址。\n方法入参：JSON串。\n等等等，就可以发起请求了。\n从用法能看出来，RPC和HTTP接口的结构体是差不多的，但是RPC不需要Method和Headers，精简了许多。\n接口自动化 首先需要考虑的是目录结构设计，HTTP可以模块菜单创建用例目录，比如：\n一级目录：管理端\n二级目录：发票管理\n三级目录：发票查询\n而RPC是无页面的，一般存在很多业务线，所以可以按照功能域和业务线来组织目录，比如：\n一级目录：发票\n二级目录：提交申请\n三级目录：分销\n其次就得考虑技术实现了，公司基建比较完善，无论是HTTP还是JSF接口，都能在接口测试平台上编写自动化用例。虽然是Web平台写用例，但是得益于测试平台的优秀设计和使用体验，用起来很方便，效率也很高。交互方式跟JMeter大同小异，只是在细节上做了很多打磨。\n然后就是参数构造了，建议是用流量回放的方式来做，省去手工编写参数的崩溃感。流量用例创建好以后，需要做一些参数化处理和接口关联。这样才能够把多个接口串起来。\n对于测试数据，通过预设变量来统一管理，自动化用例也尽可能设计成闭环，增加，修改，查询，删除，用例跑完后产生的数据也跟着清理掉。\n最后就是断言了。没有断言的自动化用例，不叫做自动化用例。断言一定要加上，否则定时任务跑出结果后，无法判断到底有没有问题。而断言内容不能只是简单的code200，需要加上业务校验。\n中台RPC接口自动化最难处理的是接口依赖问题，链路特别长，依赖特别多。我一般通过Mock来解决这个问题，公司的测试平台也提供了这个功能。\n需要注意的是，核心用例定时运行监控起来，而一次性用例要及时维护或清理，防止变成僵尸用例。\n最后，我准备基于Vue+FastAPI开发一套新的pytest脚本管理平台，集成流量录制创建用例和Mock等功能，并借鉴公司测试平台的设计，感兴趣的同学可以添加微信cekaigang加群讨论哟。\n参考资料：\nHTTP 的本质？HTTP 和 RPC 的区别？ https://www.jianshu.com/p/fe5ccfc5d7bd\n谈谈京东的服务框架 https://juejin.cn/post/6948351920088186888\n",
+  "wordCount" : "66",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-01T00:00:00Z",
+  "dateModified": "2026-01-01T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000001-%E4%B8%AD%E5%8F%B0rpc%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E6%80%8E%E4%B9%88%E5%81%9A/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      中台RPC接口自动化怎么做
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-01T00:00:00+00:00'>2026-01-01</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>66 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E8%87%AA%E5%8A%A8%E5%8C%96/'>#自动化</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="rpc接口">RPC接口<a hidden class="anchor" aria-hidden="true" href="#rpc接口">#</a></h1>
+<p>我所在的部门是技术中台，主要负责toB业务，上游是业务条线，包括PC、APP、小程序等终端，这些端的后台是HTTP接口层，而在HTTP接口层之下，就是技术中台的RPC接口层。</p>
+<p>HTTP是一种超文本传输协议，基于TCP/IP来传输文本、图片、音频、视频等数据。数据包的传输能力不是HTTP提供的，而是TCP/IP干的。<strong>HTTP的本质是客户端和服务端约定好的一种通信格式，是一种全世界认可的通用范本。</strong></p>
+<p>RPC是一种远程调用，也就是进程间通信，既可以用HTTP协议，也可以用自定义协议。<strong>RPC的好处是没有HTTP那么多约束，简化了写法，可以根据公司自定义规范，内部统一即可。</strong> 所以在公司内部特别流行，比如阿里的Dubbo接口就是一种RPC接口，我们公司用的JSF接口，自研的服务框架，简称杰夫。</p>
+<blockquote>
+<p>谈谈京东的服务框架 <a href="https://juejin.cn/post/6948351920088186888">https://juejin.cn/post/6948351920088186888</a></p>
+</blockquote>
+<p>举个例子，本地调用，是调用的本地方法：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#fff"> </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>User<span style="color:#fff"> </span><span style="color:#6639ba">getUserById</span><span style="color:#1f2328">(</span>Long<span style="color:#fff"> </span>id<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">       </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>userDao<span style="color:#1f2328">.</span><span style="color:#1f2328">getUserById</span><span style="color:#1f2328">(</span>id<span style="color:#1f2328">);</span><span style="color:#fff"> </span><span style="color:#57606a">// 这叫本地调用</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>而RPC远程调用，调用的是另外一个服务的方法：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#fff"> </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>User<span style="color:#fff"> </span><span style="color:#6639ba">getUserById</span><span style="color:#1f2328">(</span>Long<span style="color:#fff"> </span>id<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">       </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>userConsumer<span style="color:#1f2328">.</span><span style="color:#1f2328">getUserById</span><span style="color:#1f2328">(</span>id<span style="color:#1f2328">);</span><span style="color:#fff"> </span><span style="color:#57606a">// 这是远程调用，逻辑是用户小组的服务实现的。</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>本地调用和远程调用的比较如下图所示：</p>
+<p><img loading="lazy" src="../assets/e0c812e4fc6b43eda732c1edfba24398.png"></p>
+<p>左边的本地调用，只在应用内部调用。右边的远程调用，会跨应用在应用之间调用。</p>
+<h1 id="rpc和http用法区别">RPC和HTTP用法区别<a hidden class="anchor" aria-hidden="true" href="#rpc和http用法区别">#</a></h1>
+<p>HTTP接口在调用时，输入URL，Method，Headers，Body等等等就可以发送请求了。</p>
+<p>RPC接口的调用大同小异，输入：</p>
+<p><strong>JSF地址</strong>：方法引用路径，比如<code>com.dongfanger.api.service.ShopProvider</code>。</p>
+<p><strong>方法名</strong>：方法名称，比如<code>queryShopList</code>。</p>
+<p><strong>别名</strong>：既可以是分组别名，也可以直连IP地址。</p>
+<p><strong>方法入参</strong>：JSON串。</p>
+<p>等等等，就可以发起请求了。</p>
+<p>从用法能看出来，<strong>RPC和HTTP接口的结构体是差不多的，但是RPC不需要Method和Headers</strong>，精简了许多。</p>
+<h1 id="接口自动化">接口自动化<a hidden class="anchor" aria-hidden="true" href="#接口自动化">#</a></h1>
+<p>首先需要考虑的是<strong>目录结构设计</strong>，HTTP可以模块菜单创建用例目录，比如：</p>
+<p>一级目录：管理端</p>
+<p>二级目录：发票管理</p>
+<p>三级目录：发票查询</p>
+<p>而RPC是无页面的，一般存在很多业务线，所以可以按照功能域和业务线来组织目录，比如：</p>
+<p>一级目录：发票</p>
+<p>二级目录：提交申请</p>
+<p>三级目录：分销</p>
+<p>其次就得考虑<strong>技术实现</strong>了，公司基建比较完善，无论是HTTP还是JSF接口，都能在接口测试平台上编写自动化用例。虽然是Web平台写用例，但是得益于测试平台的优秀设计和使用体验，用起来很方便，效率也很高。交互方式跟JMeter大同小异，只是在细节上做了很多打磨。</p>
+<p>然后就是<strong>参数构造</strong>了，建议是用流量回放的方式来做，省去手工编写参数的崩溃感。流量用例创建好以后，需要做一些参数化处理和接口关联。这样才能够把多个接口串起来。</p>
+<p>对于<strong>测试数据</strong>，通过预设变量来统一管理，自动化用例也尽可能设计成闭环，增加，修改，查询，删除，用例跑完后产生的数据也跟着清理掉。</p>
+<p>最后就是<strong>断言了</strong>。没有断言的自动化用例，不叫做自动化用例。断言一定要加上，否则定时任务跑出结果后，无法判断到底有没有问题。而断言内容不能只是简单的code200，需要加上业务校验。</p>
+<p>中台RPC接口自动化最难处理的是接口依赖问题，链路特别长，依赖特别多。我一般通过Mock来解决这个问题，公司的测试平台也提供了这个功能。</p>
+<p>需要注意的是，核心用例定时运行监控起来，而一次性用例要及时维护或清理，防止变成僵尸用例。</p>
+<p>最后，我准备基于Vue+FastAPI开发一套新的pytest脚本管理平台，集成流量录制创建用例和Mock等功能，并借鉴公司测试平台的设计，感兴趣的同学可以添加微信<strong>cekaigang</strong>加群讨论哟。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>HTTP 的本质？HTTP 和 RPC 的区别？ <a href="https://www.jianshu.com/p/fe5ccfc5d7bd">https://www.jianshu.com/p/fe5ccfc5d7bd</a></p>
+<p>谈谈京东的服务框架 <a href="https://juejin.cn/post/6948351920088186888">https://juejin.cn/post/6948351920088186888</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E8%87%AA%E5%8A%A8%E5%8C%96/">自动化</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/golang/000001-golang%E6%80%8E%E4%B9%88%E5%86%99go%E4%BB%A3%E7%A0%81/">
+    <span class="title">« 上一页</span>
+    <span>怎么写Go代码</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#rpc接口">RPC接口</a></li>
+    <li><a href="#rpc和http用法区别">RPC和HTTP用法区别</a></li>
+    <li><a href="#接口自动化">接口自动化</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

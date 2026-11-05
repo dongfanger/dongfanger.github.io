@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>关于版本质量的思考V1.0 | 测试开发刚哥</title>
+<meta name="keywords" content="个人思考">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+
+这个版本质量好不好？
+每次遇到这种问题，都很难给出让人满意的答案。
+本文梳理下当前我对版本质量的思考，未来会不断迭代更新我的认知。
+软件产品质量模型，描述了8个特性：功能适用性、性能效率、兼容性、可用性、可靠性、安全性、可维护性、可移植性。这个模型可以从全局视角，对软件产品质量进行评估。
+总不能每次发完版，就套用这个模型来给产品质量打个分吧。
+更现实的做法是，定义量化指标多维度进行评估。
+指标库是个庞大和复杂的体系，涵盖了项目、产品、需求、开发、测试、质量等多个方面的关键性能指标（Key Performance Indicators，简称KPIs）。
+这里只罗列版本质量相关的指标：
+线上问题数量及问题级别：系统发布触发用户问题。质量好不好，必然要看问题多不多，影响大不大。
+需求缺陷密度：需求缺陷数 / 完成需求数。缺陷少，质量高。想必我们都体验过测出来一堆问题，上线后还是一堆问题的烂质量。
+缺陷关闭率：已关闭缺陷数 / 有效缺陷总数。要想提高质量，就要解决问题。曾经历过遗留30个bug不处理就上线的，初创团队抢占市场可以理解，稳定产品的缺陷关闭率低就需要引起重视了。
+缺陷关闭时长：所有缺陷(关闭时间 - 创建时间)求和 / 有效缺陷总数。长时间、跨版本都没有解决的问题，一拖再拖，说不定哪天就在线上暴雷了。所有问题都要及时关注，尽快修复。
+缺陷逃逸率：上线后发现缺陷数 / 有效缺陷总数。测试同学注意了，灵魂三问，没有测过吗？为什么没测到？为什么不知道？遇到过测试马虎了事的，测试不给力，保不住质量下限。
+除了怎么衡量版本质量以外，还有个问题是怎么交付出高质量产品，是让开发少写点bug，还是让测试多找点bug？
+有个很有意思的说法是，高质量产品是用出来的。这个认知没有局限于开发、测试谁背锅的责任归属，而是从产品迭代的角度出发，更多的功能，更多的缺陷，就会投入更多的努力去修复这些质量问题，从而提高产品质量。
+让更多客户使用，发现更多问题，持续完善产品，才能打磨出高质量产品。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000012-%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E8%B4%A8%E9%87%8F%E7%9A%84%E6%80%9D%E8%80%83v1.0/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000012-%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E8%B4%A8%E9%87%8F%E7%9A%84%E6%80%9D%E8%80%83v1.0/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000012-%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E8%B4%A8%E9%87%8F%E7%9A%84%E6%80%9D%E8%80%83v1.0/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="关于版本质量的思考V1.0">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+这个版本质量好不好？
+每次遇到这种问题，都很难给出让人满意的答案。
+本文梳理下当前我对版本质量的思考，未来会不断迭代更新我的认知。
+软件产品质量模型，描述了8个特性：功能适用性、性能效率、兼容性、可用性、可靠性、安全性、可维护性、可移植性。这个模型可以从全局视角，对软件产品质量进行评估。
+总不能每次发完版，就套用这个模型来给产品质量打个分吧。
+更现实的做法是，定义量化指标多维度进行评估。
+指标库是个庞大和复杂的体系，涵盖了项目、产品、需求、开发、测试、质量等多个方面的关键性能指标（Key Performance Indicators，简称KPIs）。
+这里只罗列版本质量相关的指标：
+线上问题数量及问题级别：系统发布触发用户问题。质量好不好，必然要看问题多不多，影响大不大。
+需求缺陷密度：需求缺陷数 / 完成需求数。缺陷少，质量高。想必我们都体验过测出来一堆问题，上线后还是一堆问题的烂质量。
+缺陷关闭率：已关闭缺陷数 / 有效缺陷总数。要想提高质量，就要解决问题。曾经历过遗留30个bug不处理就上线的，初创团队抢占市场可以理解，稳定产品的缺陷关闭率低就需要引起重视了。
+缺陷关闭时长：所有缺陷(关闭时间 - 创建时间)求和 / 有效缺陷总数。长时间、跨版本都没有解决的问题，一拖再拖，说不定哪天就在线上暴雷了。所有问题都要及时关注，尽快修复。
+缺陷逃逸率：上线后发现缺陷数 / 有效缺陷总数。测试同学注意了，灵魂三问，没有测过吗？为什么没测到？为什么不知道？遇到过测试马虎了事的，测试不给力，保不住质量下限。
+除了怎么衡量版本质量以外，还有个问题是怎么交付出高质量产品，是让开发少写点bug，还是让测试多找点bug？
+有个很有意思的说法是，高质量产品是用出来的。这个认知没有局限于开发、测试谁背锅的责任归属，而是从产品迭代的角度出发，更多的功能，更多的缺陷，就会投入更多的努力去修复这些质量问题，从而提高产品质量。
+让更多客户使用，发现更多问题，持续完善产品，才能打磨出高质量产品。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-12T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-12T00:00:00+00:00">
+    <meta property="article:tag" content="个人思考">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="关于版本质量的思考V1.0">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+这个版本质量好不好？
+每次遇到这种问题，都很难给出让人满意的答案。
+本文梳理下当前我对版本质量的思考，未来会不断迭代更新我的认知。
+软件产品质量模型，描述了8个特性：功能适用性、性能效率、兼容性、可用性、可靠性、安全性、可维护性、可移植性。这个模型可以从全局视角，对软件产品质量进行评估。
+总不能每次发完版，就套用这个模型来给产品质量打个分吧。
+更现实的做法是，定义量化指标多维度进行评估。
+指标库是个庞大和复杂的体系，涵盖了项目、产品、需求、开发、测试、质量等多个方面的关键性能指标（Key Performance Indicators，简称KPIs）。
+这里只罗列版本质量相关的指标：
+线上问题数量及问题级别：系统发布触发用户问题。质量好不好，必然要看问题多不多，影响大不大。
+需求缺陷密度：需求缺陷数 / 完成需求数。缺陷少，质量高。想必我们都体验过测出来一堆问题，上线后还是一堆问题的烂质量。
+缺陷关闭率：已关闭缺陷数 / 有效缺陷总数。要想提高质量，就要解决问题。曾经历过遗留30个bug不处理就上线的，初创团队抢占市场可以理解，稳定产品的缺陷关闭率低就需要引起重视了。
+缺陷关闭时长：所有缺陷(关闭时间 - 创建时间)求和 / 有效缺陷总数。长时间、跨版本都没有解决的问题，一拖再拖，说不定哪天就在线上暴雷了。所有问题都要及时关注，尽快修复。
+缺陷逃逸率：上线后发现缺陷数 / 有效缺陷总数。测试同学注意了，灵魂三问，没有测过吗？为什么没测到？为什么不知道？遇到过测试马虎了事的，测试不给力，保不住质量下限。
+除了怎么衡量版本质量以外，还有个问题是怎么交付出高质量产品，是让开发少写点bug，还是让测试多找点bug？
+有个很有意思的说法是，高质量产品是用出来的。这个认知没有局限于开发、测试谁背锅的责任归属，而是从产品迭代的角度出发，更多的功能，更多的缺陷，就会投入更多的努力去修复这些质量问题，从而提高产品质量。
+让更多客户使用，发现更多问题，持续完善产品，才能打磨出高质量产品。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "关于版本质量的思考V1.0",
+      "item": "https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000012-%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E8%B4%A8%E9%87%8F%E7%9A%84%E6%80%9D%E8%80%83v1.0/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "关于版本质量的思考V1.0",
+  "name": "关于版本质量的思考V1.0",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n这个版本质量好不好？\n每次遇到这种问题，都很难给出让人满意的答案。\n本文梳理下当前我对版本质量的思考，未来会不断迭代更新我的认知。\n软件产品质量模型，描述了8个特性：功能适用性、性能效率、兼容性、可用性、可靠性、安全性、可维护性、可移植性。这个模型可以从全局视角，对软件产品质量进行评估。\n总不能每次发完版，就套用这个模型来给产品质量打个分吧。\n更现实的做法是，定义量化指标多维度进行评估。\n指标库是个庞大和复杂的体系，涵盖了项目、产品、需求、开发、测试、质量等多个方面的关键性能指标（Key Performance Indicators，简称KPIs）。\n这里只罗列版本质量相关的指标：\n线上问题数量及问题级别：系统发布触发用户问题。质量好不好，必然要看问题多不多，影响大不大。\n需求缺陷密度：需求缺陷数 / 完成需求数。缺陷少，质量高。想必我们都体验过测出来一堆问题，上线后还是一堆问题的烂质量。\n缺陷关闭率：已关闭缺陷数 / 有效缺陷总数。要想提高质量，就要解决问题。曾经历过遗留30个bug不处理就上线的，初创团队抢占市场可以理解，稳定产品的缺陷关闭率低就需要引起重视了。\n缺陷关闭时长：所有缺陷(关闭时间 - 创建时间)求和 / 有效缺陷总数。长时间、跨版本都没有解决的问题，一拖再拖，说不定哪天就在线上暴雷了。所有问题都要及时关注，尽快修复。\n缺陷逃逸率：上线后发现缺陷数 / 有效缺陷总数。测试同学注意了，灵魂三问，没有测过吗？为什么没测到？为什么不知道？遇到过测试马虎了事的，测试不给力，保不住质量下限。\n除了怎么衡量版本质量以外，还有个问题是怎么交付出高质量产品，是让开发少写点bug，还是让测试多找点bug？\n有个很有意思的说法是，高质量产品是用出来的。这个认知没有局限于开发、测试谁背锅的责任归属，而是从产品迭代的角度出发，更多的功能，更多的缺陷，就会投入更多的努力去修复这些质量问题，从而提高产品质量。\n让更多客户使用，发现更多问题，持续完善产品，才能打磨出高质量产品。\n",
+  "keywords": [
+    "个人思考"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n这个版本质量好不好？\n每次遇到这种问题，都很难给出让人满意的答案。\n本文梳理下当前我对版本质量的思考，未来会不断迭代更新我的认知。\n软件产品质量模型，描述了8个特性：功能适用性、性能效率、兼容性、可用性、可靠性、安全性、可维护性、可移植性。这个模型可以从全局视角，对软件产品质量进行评估。\n总不能每次发完版，就套用这个模型来给产品质量打个分吧。\n更现实的做法是，定义量化指标多维度进行评估。\n指标库是个庞大和复杂的体系，涵盖了项目、产品、需求、开发、测试、质量等多个方面的关键性能指标（Key Performance Indicators，简称KPIs）。\n这里只罗列版本质量相关的指标：\n线上问题数量及问题级别：系统发布触发用户问题。质量好不好，必然要看问题多不多，影响大不大。\n需求缺陷密度：需求缺陷数 / 完成需求数。缺陷少，质量高。想必我们都体验过测出来一堆问题，上线后还是一堆问题的烂质量。\n缺陷关闭率：已关闭缺陷数 / 有效缺陷总数。要想提高质量，就要解决问题。曾经历过遗留30个bug不处理就上线的，初创团队抢占市场可以理解，稳定产品的缺陷关闭率低就需要引起重视了。\n缺陷关闭时长：所有缺陷(关闭时间 - 创建时间)求和 / 有效缺陷总数。长时间、跨版本都没有解决的问题，一拖再拖，说不定哪天就在线上暴雷了。所有问题都要及时关注，尽快修复。\n缺陷逃逸率：上线后发现缺陷数 / 有效缺陷总数。测试同学注意了，灵魂三问，没有测过吗？为什么没测到？为什么不知道？遇到过测试马虎了事的，测试不给力，保不住质量下限。\n除了怎么衡量版本质量以外，还有个问题是怎么交付出高质量产品，是让开发少写点bug，还是让测试多找点bug？\n有个很有意思的说法是，高质量产品是用出来的。这个认知没有局限于开发、测试谁背锅的责任归属，而是从产品迭代的角度出发，更多的功能，更多的缺陷，就会投入更多的努力去修复这些质量问题，从而提高产品质量。\n让更多客户使用，发现更多问题，持续完善产品，才能打磨出高质量产品。\n",
+  "wordCount" : "29",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-12T00:00:00Z",
+  "dateModified": "2026-01-12T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000012-%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E8%B4%A8%E9%87%8F%E7%9A%84%E6%80%9D%E8%80%83v1.0/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      关于版本质量的思考V1.0
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-12T00:00:00+00:00'>2026-01-12</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>29 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/'>读书与思考</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/'>#个人思考</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p><img loading="lazy" src="../assets/41b06258d80d4711a81d97d4be317ce4.png"></p>
+<p>这个版本质量好不好？</p>
+<p>每次遇到这种问题，都很难给出让人满意的答案。</p>
+<p>本文梳理下当前我对版本质量的思考，未来会不断迭代更新我的认知。</p>
+<p>软件产品质量模型，描述了8个特性：功能适用性、性能效率、兼容性、可用性、可靠性、安全性、可维护性、可移植性。这个模型可以从全局视角，对软件产品质量进行评估。</p>
+<p>总不能每次发完版，就套用这个模型来给产品质量打个分吧。</p>
+<p>更现实的做法是，定义<strong>量化指标</strong>多维度进行评估。</p>
+<p>指标库是个庞大和复杂的体系，涵盖了项目、产品、需求、开发、测试、质量等多个方面的关键性能指标（Key Performance Indicators，简称KPIs）。</p>
+<p>这里只罗列<strong>版本质量相关</strong>的指标：</p>
+<p><strong>线上问题数量及问题级别</strong>：系统发布触发用户问题。质量好不好，必然要看问题多不多，影响大不大。</p>
+<p><strong>需求缺陷密度</strong>：需求缺陷数 / 完成需求数。缺陷少，质量高。想必我们都体验过测出来一堆问题，上线后还是一堆问题的烂质量。</p>
+<p><strong>缺陷关闭率</strong>：已关闭缺陷数 / 有效缺陷总数。要想提高质量，就要解决问题。曾经历过遗留30个bug不处理就上线的，初创团队抢占市场可以理解，稳定产品的缺陷关闭率低就需要引起重视了。</p>
+<p><strong>缺陷关闭时长</strong>：所有缺陷(关闭时间 - 创建时间)求和 / 有效缺陷总数。长时间、跨版本都没有解决的问题，一拖再拖，说不定哪天就在线上暴雷了。所有问题都要及时关注，尽快修复。</p>
+<p><strong>缺陷逃逸率</strong>：上线后发现缺陷数 / 有效缺陷总数。测试同学注意了，灵魂三问，没有测过吗？为什么没测到？为什么不知道？遇到过测试马虎了事的，测试不给力，保不住质量下限。</p>
+<p>除了怎么衡量版本质量以外，还有个问题是怎么交付出高质量产品，是让开发少写点bug，还是让测试多找点bug？</p>
+<p>有个很有意思的说法是，<strong>高质量产品是用出来的</strong>。这个认知没有局限于开发、测试谁背锅的责任归属，而是从产品迭代的角度出发，更多的功能，更多的缺陷，就会投入更多的努力去修复这些质量问题，从而提高产品质量。</p>
+<p>让更多客户使用，发现更多问题，持续完善产品，才能打磨出高质量产品。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/">个人思考</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000012-spring%E5%AF%B9ioc%E5%AE%B9%E5%99%A8%E5%92%8Cbean%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+    <span class="title">« 上一页</span>
+    <span>对IoC容器和Bean的学习笔记</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000012-%E6%B0%91%E9%97%B4%E6%B5%81%E8%BD%AC%E7%9A%84pytest%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/">
+    <span class="title">下一页 »</span>
+    <span>民间流转的pytest项目结构设计</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar">
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

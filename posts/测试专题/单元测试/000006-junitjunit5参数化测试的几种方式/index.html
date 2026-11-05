@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JUnit5参数化测试的几种方式 | 测试开发刚哥</title>
+<meta name="keywords" content="单元测试, JUnit">
+<meta name="description" content="参数化测试一直是津津乐道的话题，我们都知道JMeter有四种参数化方式：用户自定义变量、用户参数、CSV文件、函数助手，那么JUnit5有哪些参数化测试的方式呢？">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000006-junitjunit5%E5%8F%82%E6%95%B0%E5%8C%96%E6%B5%8B%E8%AF%95%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000006-junitjunit5%E5%8F%82%E6%95%B0%E5%8C%96%E6%B5%8B%E8%AF%95%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000006-junitjunit5%E5%8F%82%E6%95%B0%E5%8C%96%E6%B5%8B%E8%AF%95%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JUnit5参数化测试的几种方式">
+  <meta property="og:description" content="参数化测试一直是津津乐道的话题，我们都知道JMeter有四种参数化方式：用户自定义变量、用户参数、CSV文件、函数助手，那么JUnit5有哪些参数化测试的方式呢？">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:tag" content="单元测试">
+    <meta property="article:tag" content="JUnit">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JUnit5参数化测试的几种方式">
+  <meta name="twitter:description" content="参数化测试一直是津津乐道的话题，我们都知道JMeter有四种参数化方式：用户自定义变量、用户参数、CSV文件、函数助手，那么JUnit5有哪些参数化测试的方式呢？">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JUnit5参数化测试的几种方式",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000006-junitjunit5%E5%8F%82%E6%95%B0%E5%8C%96%E6%B5%8B%E8%AF%95%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JUnit5参数化测试的几种方式",
+  "name": "JUnit5参数化测试的几种方式",
+  "description": "参数化测试一直是津津乐道的话题，我们都知道JMeter有四种参数化方式：用户自定义变量、用户参数、CSV文件、函数助手，那么JUnit5有哪些参数化测试的方式呢？",
+  "keywords": [
+    "单元测试", "JUnit"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n参数化测试一直是津津乐道的话题，我们都知道JMeter有四种参数化方式：用户自定义变量、用户参数、CSV文件、函数助手，那么JUnit5有哪些参数化测试的方式呢？\n依赖 JUnit5需要添加junit-jupiter-params依赖才能使用参数化：\norg.junit.jupiter junit-jupiter-params 5.7.2 test 简单示例 @ParameterizedTest用来定义参数化测试，@ValueSource用来定义参数值：\n@ParameterizedTest @ValueSource(strings = { \"racecar\", \"radar\", \"able was I ere I saw elba\" }) void palindromes(String candidate) { assertTrue(StringUtils.isPalindrome(candidate)); } 执行结果：\npalindromes(String) ✔ ├─ [1] candidate=racecar ✔ ├─ [2] candidate=radar ✔ └─ [3] candidate=able was I ere I saw elba ✔ 参数值会匹配测试方法的参数列表，然后依次赋值，这里一共产生了3个测试。\n七种方式 1 @ValueSource @ValueSource是最简单的参数化方式，它是一个数组，支持以下数据类型：\nshort byte int long float double char boolean java.lang.String java.lang.Class 示例：\n@ParameterizedTest @ValueSource(ints = { 1, 2, 3 }) void testWithValueSource(int argument) { assertTrue(argument \u003e 0 \u0026\u0026 argument \u003c 4); } 2 Null and Empty Sources @NullSource 值为null\n不能用在基元类型的测试方法。\n@EmptySource 值为空，根据测试方法的参数类决定数据类型，支持java.lang.String, java.util.List, java.util.Set, java.util.Map, 基元类型数组 (int[], char[][]等), 对象数组 (String[], Integer[][]等)\n@NullAndEmptySource 结合了前面两个\n示例：\n@ParameterizedTest @NullSource @EmptySource @ValueSource(strings = { \" \", \" \", \"\\t\", \"\\n\" }) void nullEmptyAndBlankStrings(String text) { assertTrue(text == null || text.trim().isEmpty()); } 等价于：\n@ParameterizedTest @NullAndEmptySource @ValueSource(strings = { \" \", \" \", \"\\t\", \"\\n\" }) void nullEmptyAndBlankStrings(String text) { assertTrue(text == null || text.trim().isEmpty()); } 3 @EnumSource 参数化的值为枚举类型。\n示例：\n@ParameterizedTest @EnumSource void testWithEnumSourceWithAutoDetection(ChronoUnit unit) { assertNotNull(unit); } 其中的ChronoUnit是个日期枚举类。\nChronoUnit是接口TemporalUnit的实现类，如果测试方法的参数为TemporalUnit，那么需要给@EnumSource加上值：\n@ParameterizedTest @EnumSource(ChronoUnit.class) void testWithEnumSource(TemporalUnit unit) { assertNotNull(unit); } 因为JUnit5规定了@EnumSource的默认值的类型必须是枚举类型。\nnames属性用来指定使用哪些特定的枚举值：\n@ParameterizedTest @EnumSource(names = { \"DAYS\", \"HOURS\" }) void testWithEnumSourceInclude(ChronoUnit unit) { assertTrue(EnumSet.of(ChronoUnit.DAYS, ChronoUnit.HOURS).contains(unit)); } mode属性用来指定使用模式，比如排除哪些枚举值：\n@ParameterizedTest @EnumSource(mode = EXCLUDE, names = { \"ERAS\", \"FOREVER\" }) void testWithEnumSourceExclude(ChronoUnit unit) { assertFalse(EnumSet.of(ChronoUnit.ERAS, ChronoUnit.FOREVER).contains(unit)); } 比如采用正则匹配：\n@ParameterizedTest @EnumSource(mode = MATCH_ALL, names = \"^.*DAYS$\") void testWithEnumSourceRegex(ChronoUnit unit) { assertTrue(unit.name().endsWith(\"DAYS\")); } 4 @MethodSource 参数值为factory方法，并且factory方法不能带参数。\n示例：\n@ParameterizedTest @MethodSource(\"stringProvider\") void testWithExplicitLocalMethodSource(String argument) { assertNotNull(argument); } static Stream\u003cString\u003e stringProvider() { return Stream.of(\"apple\", \"banana\"); } 除非是@TestInstance(Lifecycle.PER_CLASS)生命周期，否则factory方法必须是static。factory方法的返回值是能转换为Stream的类型，比如Stream, DoubleStream, LongStream, IntStream, Collection, Iterator, Iterable, 对象数组, 或者基元类型数组，比如：\n@ParameterizedTest @MethodSource(\"range\") void testWithRangeMethodSource(int argument) { assertNotEquals(9, argument); } static IntStream range() { return IntStream.range(0, 20).skip(10); } @MethodSource的属性如果省略了，那么JUnit Jupiter会找跟测试方法同名的factory方法，比如：\n@ParameterizedTest @MethodSource void testWithDefaultLocalMethodSource(String argument) { assertNotNull(argument); } static Stream\u003cString\u003e testWithDefaultLocalMethodSource() { return Stream.of(\"apple\", \"banana\"); } 如果测试方法有多个参数，那么factory方法也应该返回多个：\n@ParameterizedTest @MethodSource(\"stringIntAndListProvider\") void testWithMultiArgMethodSource(String str, int num, List\u003cString\u003e list) { assertEquals(5, str.length()); assertTrue(num \u003e=1 \u0026\u0026 num \u003c=2); assertEquals(2, list.size()); } static Stream\u003cArguments\u003e stringIntAndListProvider() { return Stream.of( arguments(\"apple\", 1, Arrays.asList(\"a\", \"b\")), arguments(\"lemon\", 2, Arrays.asList(\"x\", \"y\")) ); } 其中arguments(Object…)是Arguments接口的static factory method，也可以换成Arguments.of(Object…)。\nfactory方法也可以防止测试类外部：\npackage example; import java.util.stream.Stream; import org.junit.jupiter.params.ParameterizedTest; import org.junit.jupiter.params.provider.MethodSource; class ExternalMethodSourceDemo { @ParameterizedTest @MethodSource(\"example.StringsProviders#tinyStrings\") void testWithExternalMethodSource(String tinyString) { // test with tiny string } } class StringsProviders { static Stream\u003cString\u003e tinyStrings() { return Stream.of(\".\", \"oo\", \"OOO\"); } } 5 @CsvSource 参数化的值为csv格式的数据（默认逗号分隔），比如：\n@ParameterizedTest @CsvSource({ \"apple, 1\", \"banana, 2\", \"'lemon, lime', 0xF1\" }) void testWithCsvSource(String fruit, int rank) { assertNotNull(fruit); assertNotEquals(0, rank); } delimiter属性可以设置分隔字符。delimiterString属性可以设置分隔字符串（String而非char）。\n更多输入输出示例如下：\n注意，如果null引用的目标类型是基元类型，那么会报异常ArgumentConversionException。\n6 @CsvFileSource 顾名思义，选择本地csv文件作为数据来源。\n示例：\n@ParameterizedTest @CsvFileSource(resources = \"/two-column.csv\", numLinesToSkip = 1) void testWithCsvFileSourceFromClasspath(String country, int reference) { assertNotNull(country); assertNotEquals(0, reference); } @ParameterizedTest @CsvFileSource(files = \"src/test/resources/two-column.csv\", numLinesToSkip = 1) void testWithCsvFileSourceFromFile(String country, int reference) { assertNotNull(country); assertNotEquals(0, reference); } delimiter属性可以设置分隔字符。delimiterString属性可以设置分隔字符串（String而非char）。需要特别注意的是，#开头的行会被认为是注释而略过。\n7 @ArgumentsSource 自定义ArgumentsProvider。\n示例：\n@ParameterizedTest @ArgumentsSource(MyArgumentsProvider.class) void testWithArgumentsSource(String argument) { assertNotNull(argument); } public class MyArgumentsProvider implements ArgumentsProvider { @Override public Stream\u003c? extends Arguments\u003e provideArguments(ExtensionContext context) { return Stream.of(\"apple\", \"banana\").map(Arguments::of); } } MyArgumentsProvider必须是外部类或者static内部类。\n参数类型转换 隐式转换 JUnit Jupiter会对String类型进行隐式转换。比如：\n@ParameterizedTest @ValueSource(strings = \"SECONDS\") void testWithImplicitArgumentConversion(ChronoUnit argument) { assertNotNull(argument.name()); } 更多转换示例：\n也可以把String转换为自定义对象：\n@ParameterizedTest @ValueSource(strings = \"42 Cats\") void testWithImplicitFallbackArgumentConversion(Book book) { assertEquals(\"42 Cats\", book.getTitle()); } public class Book { private final String title; private Book(String title) { this.title = title; } public static Book fromTitle(String title) { return new Book(title); } public String getTitle() { return this.title; } } JUnit Jupiter会找到Book.fromTitle(String)方法，然后把@ValueSource的值传入进去，进而把String类型转换为Book类型。转换的factory方法既可以是接受单个String参数的构造方法，也可以是接受单个String参数并返回目标类型的普通方法。详细规则如下（官方原文）：\n显式转换 显式转换需要使用@ConvertWith注解：\n@ParameterizedTest @EnumSource(ChronoUnit.class) void testWithExplicitArgumentConversion( @ConvertWith(ToStringArgumentConverter.class) String argument) { assertNotNull(ChronoUnit.valueOf(argument)); } 并实现ArgumentConverter：\npublic class ToStringArgumentConverter extends SimpleArgumentConverter { @Override protected Object convert(Object source, Class\u003c?\u003e targetType) { assertEquals(String.class, targetType, \"Can only convert to String\"); if (source instanceof Enum\u003c?\u003e) { return ((Enum\u003c?\u003e) source).name(); } return String.valueOf(source); } } 如果只是简单类型转换，实现TypedArgumentConverter即可：\npublic class ToLengthArgumentConverter extends TypedArgumentConverter\u003cString, Integer\u003e { protected ToLengthArgumentConverter() { super(String.class, Integer.class); } @Override protected Integer convert(String source) { return source.length(); } } JUnit Jupiter只内置了一个JavaTimeArgumentConverter，通过@JavaTimeConversionPattern使用：\n@ParameterizedTest @ValueSource(strings = { \"01.01.2017\", \"31.12.2017\" }) void testWithExplicitJavaTimeConverter( @JavaTimeConversionPattern(\"dd.MM.yyyy\") LocalDate argument) { assertEquals(2017, argument.getYear()); } 参数聚合 测试方法的多个参数可以聚合为一个ArgumentsAccessor参数，然后通过get来取值，示例：\n@ParameterizedTest @CsvSource({ \"Jane, Doe, F, 1990-05-20\", \"John, Doe, M, 1990-10-22\" }) void testWithArgumentsAccessor(ArgumentsAccessor arguments) { Person person = new Person(arguments.getString(0), arguments.getString(1), arguments.get(2, Gender.class), arguments.get(3, LocalDate.class)); if (person.getFirstName().equals(\"Jane\")) { assertEquals(Gender.F, person.getGender()); } else { assertEquals(Gender.M, person.getGender()); } assertEquals(\"Doe\", person.getLastName()); assertEquals(1990, person.getDateOfBirth().getYear()); } 也可以自定义Aggregator：\npublic class PersonAggregator implements ArgumentsAggregator { @Override public Person aggregateArguments(ArgumentsAccessor arguments, ParameterContext context) { return new Person(arguments.getString(0), arguments.getString(1), arguments.get(2, Gender.class), arguments.get(3, LocalDate.class)); } } 然后通过@AggregateWith来使用：\n@ParameterizedTest @CsvSource({ \"Jane, Doe, F, 1990-05-20\", \"John, Doe, M, 1990-10-22\" }) void testWithArgumentsAggregator(@AggregateWith(PersonAggregator.class) Person person) { // perform assertions against person } 借助于组合注解，我们可以进一步简化代码：\n@Retention(RetentionPolicy.RUNTIME) @Target(ElementType.PARAMETER) @AggregateWith(PersonAggregator.class) public @interface CsvToPerson { } @ParameterizedTest @CsvSource({ \"Jane, Doe, F, 1990-05-20\", \"John, Doe, M, 1990-10-22\" }) void testWithCustomAggregatorAnnotation(@CsvToPerson Person person) { // perform assertions against person } 自定义显示名字 参数化测试生成的test，JUnit Jupiter给定了默认名字，我们可以通过name属性进行自定义。\n示例：\n@DisplayName(\"Display name of container\") @ParameterizedTest(name = \"{index} ==\u003e the rank of ''{0}'' is {1}\") @CsvSource({ \"apple, 1\", \"banana, 2\", \"'lemon, lime', 3\" }) void testWithCustomDisplayNames(String fruit, int rank) { } 结果：\nDisplay name of container ✔ ├─ 1 ==\u003e the rank of 'apple' is 1 ✔ ├─ 2 ==\u003e the rank of 'banana' is 2 ✔ └─ 3 ==\u003e the rank of 'lemon, lime' is 3 ✔ 注意如果要显示'apple'，需要使用两层''apple''，因为name是MessageFormat。\n占位符说明如下：\n小结 本文介绍了JUnit5参数化测试的7种方式，分别是@ValueSource，Null and Empty Sources，@EnumSource，@MethodSource，@CsvSource，@CsvFileSource，@ArgumentsSource，比较偏向于Java语法，符合JUnit单元测试框架的特征。另外还介绍了JUnit Jupiter的参数类型转换和参数聚合。最后，如果想要自定义参数化测试的名字，可以使用name属性实现。\n参考资料：\nhttps://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests\n",
+  "wordCount" : "823",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-06T00:00:00Z",
+  "dateModified": "2026-01-06T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000006-junitjunit5%E5%8F%82%E6%95%B0%E5%8C%96%E6%B5%8B%E8%AF%95%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      JUnit5参数化测试的几种方式
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-06T00:00:00+00:00'>2026-01-06</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>823 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/'>#单元测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/junit/'>#JUnit</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>参数化测试一直是津津乐道的话题，我们都知道JMeter有四种参数化方式：用户自定义变量、用户参数、CSV文件、函数助手，那么JUnit5有哪些参数化测试的方式呢？</p>
+<h1 id="依赖">依赖<a hidden class="anchor" aria-hidden="true" href="#依赖">#</a></h1>
+<p>JUnit5需要添加<code>junit-jupiter-params</code>依赖才能使用参数化：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;groupId&gt;</span>org.junit.jupiter<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;artifactId&gt;</span>junit-jupiter-params<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;version&gt;</span>5.7.2<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;scope&gt;</span>test<span style="color:#0550ae">&lt;/scope&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/dependency&gt;</span>
+</span></span></code></pre></div><h1 id="简单示例">简单示例<a hidden class="anchor" aria-hidden="true" href="#简单示例">#</a></h1>
+<p><code>@ParameterizedTest</code>用来定义参数化测试，<code>@ValueSource</code>用来定义参数值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ValueSource</span><span style="color:#1f2328">(</span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;racecar&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;radar&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;able was I ere I saw elba&#34;</span><span style="color:#fff"> </span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">palindromes</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>candidate<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertTrue<span style="color:#1f2328">(</span>StringUtils<span style="color:#1f2328">.</span><span style="color:#1f2328">isPalindrome</span><span style="color:#1f2328">(</span>candidate<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>执行结果：</p>
+<pre tabindex="0"><code>palindromes(String) ✔
+├─ [1] candidate=racecar ✔
+├─ [2] candidate=radar ✔
+└─ [3] candidate=able was I ere I saw elba ✔
+</code></pre><p>参数值会匹配测试方法的参数列表，然后依次赋值，这里一共产生了3个测试。</p>
+<h1 id="七种方式">七种方式<a hidden class="anchor" aria-hidden="true" href="#七种方式">#</a></h1>
+<h2 id="1-valuesource">1 <code>@ValueSource</code><a hidden class="anchor" aria-hidden="true" href="#1-valuesource">#</a></h2>
+<p><code>@ValueSource</code>是最简单的参数化方式，它是一个数组，支持以下数据类型：</p>
+<ul>
+<li><code>short</code></li>
+<li><code>byte</code></li>
+<li><code>int</code></li>
+<li><code>long</code></li>
+<li><code>float</code></li>
+<li><code>double</code></li>
+<li><code>char</code></li>
+<li><code>boolean</code></li>
+<li><code>java.lang.String</code></li>
+<li><code>java.lang.Class</code></li>
+</ul>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ValueSource</span><span style="color:#1f2328">(</span>ints<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span>3<span style="color:#fff"> </span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithValueSource</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>argument<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertTrue<span style="color:#1f2328">(</span>argument<span style="color:#fff"> </span><span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>0<span style="color:#fff"> </span><span style="color:#0550ae">&amp;&amp;</span><span style="color:#fff"> </span>argument<span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span><span style="color:#fff"> </span>4<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="2-null-and-empty-sources">2 Null and Empty Sources<a hidden class="anchor" aria-hidden="true" href="#2-null-and-empty-sources">#</a></h2>
+<ul>
+<li>
+<p><code>@NullSource</code> 值为null</p>
+<blockquote>
+<p>不能用在基元类型的测试方法。</p>
+</blockquote>
+</li>
+<li>
+<p><code>@EmptySource</code> 值为空，根据测试方法的参数类决定数据类型，支持<code>java.lang.String</code>, <code>java.util.List</code>, <code>java.util.Set</code>, <code>java.util.Map</code>, 基元类型数组 (<code>int[]</code>, <code>char[][]</code>等), 对象数组 (<code>String[]</code>, <code>Integer[][]</code>等)</p>
+</li>
+<li>
+<p><code>@NullAndEmptySource</code> 结合了前面两个</p>
+</li>
+</ul>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@NullSource</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@EmptySource</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ValueSource</span><span style="color:#1f2328">(</span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; &#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;   &#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;\t&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;\n&#34;</span><span style="color:#fff"> </span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">nullEmptyAndBlankStrings</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>text<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertTrue<span style="color:#1f2328">(</span>text<span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span><span style="color:#cf222e">null</span><span style="color:#fff"> </span><span style="color:#0550ae">||</span><span style="color:#fff"> </span>text<span style="color:#1f2328">.</span><span style="color:#1f2328">trim</span><span style="color:#1f2328">().</span><span style="color:#1f2328">isEmpty</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>等价于：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@NullAndEmptySource</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ValueSource</span><span style="color:#1f2328">(</span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; &#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;   &#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;\t&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;\n&#34;</span><span style="color:#fff"> </span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">nullEmptyAndBlankStrings</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>text<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertTrue<span style="color:#1f2328">(</span>text<span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span><span style="color:#cf222e">null</span><span style="color:#fff"> </span><span style="color:#0550ae">||</span><span style="color:#fff"> </span>text<span style="color:#1f2328">.</span><span style="color:#1f2328">trim</span><span style="color:#1f2328">().</span><span style="color:#1f2328">isEmpty</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="3-enumsource">3 <code>@EnumSource</code><a hidden class="anchor" aria-hidden="true" href="#3-enumsource">#</a></h2>
+<p>参数化的值为枚举类型。</p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@EnumSource</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithEnumSourceWithAutoDetection</span><span style="color:#1f2328">(</span>ChronoUnit<span style="color:#fff"> </span>unit<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotNull<span style="color:#1f2328">(</span>unit<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>其中的ChronoUnit是个日期枚举类。</p>
+<p>ChronoUnit是接口TemporalUnit的实现类，如果测试方法的参数为TemporalUnit，那么需要给<code>@EnumSource</code>加上值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@EnumSource</span><span style="color:#1f2328">(</span>ChronoUnit<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithEnumSource</span><span style="color:#1f2328">(</span>TemporalUnit<span style="color:#fff"> </span>unit<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotNull<span style="color:#1f2328">(</span>unit<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>因为JUnit5规定了<code>@EnumSource</code>的默认值的类型必须是枚举类型。</p>
+<p>names属性用来指定使用哪些特定的枚举值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@EnumSource</span><span style="color:#1f2328">(</span>names<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;DAYS&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;HOURS&#34;</span><span style="color:#fff"> </span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithEnumSourceInclude</span><span style="color:#1f2328">(</span>ChronoUnit<span style="color:#fff"> </span>unit<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertTrue<span style="color:#1f2328">(</span>EnumSet<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span>ChronoUnit<span style="color:#1f2328">.</span><span style="color:#1f2328">DAYS</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>ChronoUnit<span style="color:#1f2328">.</span><span style="color:#1f2328">HOURS</span><span style="color:#1f2328">).</span><span style="color:#1f2328">contains</span><span style="color:#1f2328">(</span>unit<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>mode属性用来指定使用模式，比如排除哪些枚举值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@EnumSource</span><span style="color:#1f2328">(</span>mode<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>EXCLUDE<span style="color:#1f2328">,</span><span style="color:#fff"> </span>names<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;ERAS&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;FOREVER&#34;</span><span style="color:#fff"> </span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithEnumSourceExclude</span><span style="color:#1f2328">(</span>ChronoUnit<span style="color:#fff"> </span>unit<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertFalse<span style="color:#1f2328">(</span>EnumSet<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span>ChronoUnit<span style="color:#1f2328">.</span><span style="color:#1f2328">ERAS</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>ChronoUnit<span style="color:#1f2328">.</span><span style="color:#1f2328">FOREVER</span><span style="color:#1f2328">).</span><span style="color:#1f2328">contains</span><span style="color:#1f2328">(</span>unit<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>比如采用正则匹配：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@EnumSource</span><span style="color:#1f2328">(</span>mode<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>MATCH_ALL<span style="color:#1f2328">,</span><span style="color:#fff"> </span>names<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;^.*DAYS$&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithEnumSourceRegex</span><span style="color:#1f2328">(</span>ChronoUnit<span style="color:#fff"> </span>unit<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertTrue<span style="color:#1f2328">(</span>unit<span style="color:#1f2328">.</span><span style="color:#1f2328">name</span><span style="color:#1f2328">().</span><span style="color:#1f2328">endsWith</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;DAYS&#34;</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="4-methodsource">4 <code>@MethodSource</code><a hidden class="anchor" aria-hidden="true" href="#4-methodsource">#</a></h2>
+<p>参数值为factory方法，并且factory方法不能带参数。</p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@MethodSource</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;stringProvider&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithExplicitLocalMethodSource</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>argument<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotNull<span style="color:#1f2328">(</span>argument<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">static</span><span style="color:#fff"> </span>Stream<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">stringProvider</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>Stream<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;apple&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;banana&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>除非是<code>@TestInstance(Lifecycle.PER_CLASS)</code>生命周期，否则factory方法必须是static。factory方法的返回值是能转换为<code>Stream</code>的类型，比如<code>Stream</code>, <code>DoubleStream</code>, <code>LongStream</code>, <code>IntStream</code>, <code>Collection</code>, <code>Iterator</code>, <code>Iterable</code>, 对象数组, 或者基元类型数组，比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@MethodSource</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;range&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithRangeMethodSource</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>argument<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotEquals<span style="color:#1f2328">(</span>9<span style="color:#1f2328">,</span><span style="color:#fff"> </span>argument<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">static</span><span style="color:#fff"> </span>IntStream<span style="color:#fff"> </span><span style="color:#6639ba">range</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>IntStream<span style="color:#1f2328">.</span><span style="color:#1f2328">range</span><span style="color:#1f2328">(</span>0<span style="color:#1f2328">,</span><span style="color:#fff"> </span>20<span style="color:#1f2328">).</span><span style="color:#1f2328">skip</span><span style="color:#1f2328">(</span>10<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><code>@MethodSource</code>的属性如果省略了，那么JUnit Jupiter会找跟测试方法同名的factory方法，比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@MethodSource</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithDefaultLocalMethodSource</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>argument<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotNull<span style="color:#1f2328">(</span>argument<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">static</span><span style="color:#fff"> </span>Stream<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithDefaultLocalMethodSource</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>Stream<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;apple&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;banana&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>如果测试方法有多个参数，那么factory方法也应该返回多个：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@MethodSource</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;stringIntAndListProvider&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithMultiArgMethodSource</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>str<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>num<span style="color:#1f2328">,</span><span style="color:#fff"> </span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>list<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertEquals<span style="color:#1f2328">(</span>5<span style="color:#1f2328">,</span><span style="color:#fff"> </span>str<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertTrue<span style="color:#1f2328">(</span>num<span style="color:#fff"> </span><span style="color:#0550ae">&gt;=</span>1<span style="color:#fff"> </span><span style="color:#0550ae">&amp;&amp;</span><span style="color:#fff"> </span>num<span style="color:#fff"> </span><span style="color:#0550ae">&lt;=</span>2<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertEquals<span style="color:#1f2328">(</span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span>list<span style="color:#1f2328">.</span><span style="color:#1f2328">size</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">static</span><span style="color:#fff"> </span>Stream<span style="color:#0550ae">&lt;</span>Arguments<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">stringIntAndListProvider</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>Stream<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>arguments<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;apple&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Arrays<span style="color:#1f2328">.</span><span style="color:#1f2328">asList</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;a&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;b&#34;</span><span style="color:#1f2328">)),</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>arguments<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;lemon&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Arrays<span style="color:#1f2328">.</span><span style="color:#1f2328">asList</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;x&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;y&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>其中<code>arguments(Object…)</code>是Arguments接口的static factory method，也可以换成<code>Arguments.of(Object…)</code>。</p>
+<p>factory方法也可以防止测试类外部：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">package</span><span style="color:#fff"> </span><span style="color:#24292e">example</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.util.stream.Stream</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.params.ParameterizedTest</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.params.provider.MethodSource</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ExternalMethodSourceDemo</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@MethodSource</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;example.StringsProviders#tinyStrings&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithExternalMethodSource</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>tinyString<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// test with tiny string</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">StringsProviders</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span>Stream<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">tinyStrings</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>Stream<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;.&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;oo&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;OOO&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="5-csvsource">5 <code>@CsvSource</code><a hidden class="anchor" aria-hidden="true" href="#5-csvsource">#</a></h2>
+<p>参数化的值为csv格式的数据（默认逗号分隔），比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@CsvSource</span><span style="color:#1f2328">({</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0a3069">&#34;apple,         1&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0a3069">&#34;banana,        2&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0a3069">&#34;&#39;lemon, lime&#39;, 0xF1&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithCsvSource</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>fruit<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>rank<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotNull<span style="color:#1f2328">(</span>fruit<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotEquals<span style="color:#1f2328">(</span>0<span style="color:#1f2328">,</span><span style="color:#fff"> </span>rank<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>delimiter属性可以设置分隔字符。delimiterString属性可以设置分隔字符串（String而非char）。</p>
+<p>更多输入输出示例如下：</p>
+<p><img loading="lazy" src="../assets/f8ba627fbba84666bb21791fc30de0aa.png"></p>
+<p>注意，如果null引用的目标类型是基元类型，那么会报异常<code>ArgumentConversionException</code>。</p>
+<h2 id="6-csvfilesource">6 <code>@CsvFileSource</code><a hidden class="anchor" aria-hidden="true" href="#6-csvfilesource">#</a></h2>
+<p>顾名思义，选择本地csv文件作为数据来源。</p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@CsvFileSource</span><span style="color:#1f2328">(</span>resources<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;/two-column.csv&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>numLinesToSkip<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithCsvFileSourceFromClasspath</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>country<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>reference<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotNull<span style="color:#1f2328">(</span>country<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotEquals<span style="color:#1f2328">(</span>0<span style="color:#1f2328">,</span><span style="color:#fff"> </span>reference<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@CsvFileSource</span><span style="color:#1f2328">(</span>files<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;src/test/resources/two-column.csv&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>numLinesToSkip<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithCsvFileSourceFromFile</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>country<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>reference<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotNull<span style="color:#1f2328">(</span>country<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotEquals<span style="color:#1f2328">(</span>0<span style="color:#1f2328">,</span><span style="color:#fff"> </span>reference<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>delimiter属性可以设置分隔字符。delimiterString属性可以设置分隔字符串（String而非char）。<strong>需要特别注意的是，<code>#</code>开头的行会被认为是注释而略过。</strong></p>
+<h2 id="7-argumentssource">7 <code>@ArgumentsSource</code><a hidden class="anchor" aria-hidden="true" href="#7-argumentssource">#</a></h2>
+<p>自定义ArgumentsProvider。</p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ArgumentsSource</span><span style="color:#1f2328">(</span>MyArgumentsProvider<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithArgumentsSource</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>argument<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotNull<span style="color:#1f2328">(</span>argument<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyArgumentsProvider</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>ArgumentsProvider<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>Stream<span style="color:#0550ae">&lt;?</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>Arguments<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">provideArguments</span><span style="color:#1f2328">(</span>ExtensionContext<span style="color:#fff"> </span>context<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>Stream<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;apple&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;banana&#34;</span><span style="color:#1f2328">).</span><span style="color:#1f2328">map</span><span style="color:#1f2328">(</span>Arguments<span style="color:#1f2328">::</span>of<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>MyArgumentsProvider必须是外部类或者static内部类。</p>
+<h1 id="参数类型转换">参数类型转换<a hidden class="anchor" aria-hidden="true" href="#参数类型转换">#</a></h1>
+<h2 id="隐式转换">隐式转换<a hidden class="anchor" aria-hidden="true" href="#隐式转换">#</a></h2>
+<p>JUnit Jupiter会对String类型进行隐式转换。比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ValueSource</span><span style="color:#1f2328">(</span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;SECONDS&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithImplicitArgumentConversion</span><span style="color:#1f2328">(</span>ChronoUnit<span style="color:#fff"> </span>argument<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotNull<span style="color:#1f2328">(</span>argument<span style="color:#1f2328">.</span><span style="color:#1f2328">name</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>更多转换示例：</p>
+<p><img loading="lazy" src="../assets/ebac5205142044c0a79e9b702092cd73.png"></p>
+<p><img loading="lazy" src="../assets/3b139eaf0dd14814a5a4eebb81e50569.jpg"></p>
+<p>也可以把String转换为自定义对象：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ValueSource</span><span style="color:#1f2328">(</span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;42 Cats&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithImplicitFallbackArgumentConversion</span><span style="color:#1f2328">(</span>Book<span style="color:#fff"> </span>book<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertEquals<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;42 Cats&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>book<span style="color:#1f2328">.</span><span style="color:#1f2328">getTitle</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Book</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>title<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#6639ba">Book</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>title<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">title</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>title<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span>Book<span style="color:#fff"> </span><span style="color:#6639ba">fromTitle</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>title<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Book<span style="color:#1f2328">(</span>title<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span><span style="color:#6639ba">getTitle</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">title</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>JUnit Jupiter会找到<code>Book.fromTitle(String)</code>方法，然后把<code>@ValueSource</code>的值传入进去，进而把String类型转换为Book类型。转换的factory方法既可以是接受单个String参数的构造方法，也可以是接受单个String参数并返回目标类型的普通方法。详细规则如下（官方原文）：</p>
+<p><img loading="lazy" src="../assets/1f8e48f8c9604258bf77547386cc1f2d.png"></p>
+<h2 id="显式转换">显式转换<a hidden class="anchor" aria-hidden="true" href="#显式转换">#</a></h2>
+<p>显式转换需要使用<code>@ConvertWith</code>注解：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@EnumSource</span><span style="color:#1f2328">(</span>ChronoUnit<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithExplicitArgumentConversion</span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#0550ae">@ConvertWith</span><span style="color:#1f2328">(</span>ToStringArgumentConverter<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>argument<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertNotNull<span style="color:#1f2328">(</span>ChronoUnit<span style="color:#1f2328">.</span><span style="color:#1f2328">valueOf</span><span style="color:#1f2328">(</span>argument<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>并实现ArgumentConverter：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ToStringArgumentConverter</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>SimpleArgumentConverter<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">protected</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span><span style="color:#6639ba">convert</span><span style="color:#1f2328">(</span>Object<span style="color:#fff"> </span>source<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Class<span style="color:#0550ae">&lt;?&gt;</span><span style="color:#fff"> </span>targetType<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertEquals<span style="color:#1f2328">(</span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>targetType<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;Can only convert to String&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>source<span style="color:#fff"> </span><span style="color:#cf222e">instanceof</span><span style="color:#fff"> </span>Enum<span style="color:#0550ae">&lt;?&gt;</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#1f2328">((</span>Enum<span style="color:#0550ae">&lt;?&gt;</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>source<span style="color:#1f2328">).</span><span style="color:#1f2328">name</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">valueOf</span><span style="color:#1f2328">(</span>source<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>如果只是简单类型转换，实现TypedArgumentConverter即可：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ToLengthArgumentConverter</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>TypedArgumentConverter<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">protected</span><span style="color:#fff"> </span><span style="color:#6639ba">ToLengthArgumentConverter</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">super</span><span style="color:#1f2328">(</span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>Integer<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">protected</span><span style="color:#fff"> </span>Integer<span style="color:#fff"> </span><span style="color:#6639ba">convert</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>source<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>source<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>JUnit Jupiter只内置了一个JavaTimeArgumentConverter，通过<code>@JavaTimeConversionPattern</code>使用：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ValueSource</span><span style="color:#1f2328">(</span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;01.01.2017&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;31.12.2017&#34;</span><span style="color:#fff"> </span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithExplicitJavaTimeConverter</span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#0550ae">@JavaTimeConversionPattern</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;dd.MM.yyyy&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>LocalDate<span style="color:#fff"> </span>argument<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertEquals<span style="color:#1f2328">(</span>2017<span style="color:#1f2328">,</span><span style="color:#fff"> </span>argument<span style="color:#1f2328">.</span><span style="color:#1f2328">getYear</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h1 id="参数聚合">参数聚合<a hidden class="anchor" aria-hidden="true" href="#参数聚合">#</a></h1>
+<p>测试方法的多个参数可以聚合为一个ArgumentsAccessor参数，然后通过get来取值，示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@CsvSource</span><span style="color:#1f2328">({</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0a3069">&#34;Jane, Doe, F, 1990-05-20&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0a3069">&#34;John, Doe, M, 1990-10-22&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithArgumentsAccessor</span><span style="color:#1f2328">(</span>ArgumentsAccessor<span style="color:#fff"> </span>arguments<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>Person<span style="color:#fff"> </span>person<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Person<span style="color:#1f2328">(</span>arguments<span style="color:#1f2328">.</span><span style="color:#1f2328">getString</span><span style="color:#1f2328">(</span>0<span style="color:#1f2328">),</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                               </span>arguments<span style="color:#1f2328">.</span><span style="color:#1f2328">getString</span><span style="color:#1f2328">(</span>1<span style="color:#1f2328">),</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                               </span>arguments<span style="color:#1f2328">.</span><span style="color:#1f2328">get</span><span style="color:#1f2328">(</span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Gender<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">),</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                               </span>arguments<span style="color:#1f2328">.</span><span style="color:#1f2328">get</span><span style="color:#1f2328">(</span>3<span style="color:#1f2328">,</span><span style="color:#fff"> </span>LocalDate<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>person<span style="color:#1f2328">.</span><span style="color:#1f2328">getFirstName</span><span style="color:#1f2328">().</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Jane&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertEquals<span style="color:#1f2328">(</span>Gender<span style="color:#1f2328">.</span><span style="color:#1f2328">F</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>person<span style="color:#1f2328">.</span><span style="color:#1f2328">getGender</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertEquals<span style="color:#1f2328">(</span>Gender<span style="color:#1f2328">.</span><span style="color:#1f2328">M</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>person<span style="color:#1f2328">.</span><span style="color:#1f2328">getGender</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertEquals<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Doe&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>person<span style="color:#1f2328">.</span><span style="color:#1f2328">getLastName</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>assertEquals<span style="color:#1f2328">(</span>1990<span style="color:#1f2328">,</span><span style="color:#fff"> </span>person<span style="color:#1f2328">.</span><span style="color:#1f2328">getDateOfBirth</span><span style="color:#1f2328">().</span><span style="color:#1f2328">getYear</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>也可以自定义Aggregator：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">PersonAggregator</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>ArgumentsAggregator<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>Person<span style="color:#fff"> </span><span style="color:#6639ba">aggregateArguments</span><span style="color:#1f2328">(</span>ArgumentsAccessor<span style="color:#fff"> </span>arguments<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ParameterContext<span style="color:#fff"> </span>context<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Person<span style="color:#1f2328">(</span>arguments<span style="color:#1f2328">.</span><span style="color:#1f2328">getString</span><span style="color:#1f2328">(</span>0<span style="color:#1f2328">),</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                          </span>arguments<span style="color:#1f2328">.</span><span style="color:#1f2328">getString</span><span style="color:#1f2328">(</span>1<span style="color:#1f2328">),</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                          </span>arguments<span style="color:#1f2328">.</span><span style="color:#1f2328">get</span><span style="color:#1f2328">(</span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Gender<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">),</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                          </span>arguments<span style="color:#1f2328">.</span><span style="color:#1f2328">get</span><span style="color:#1f2328">(</span>3<span style="color:#1f2328">,</span><span style="color:#fff"> </span>LocalDate<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>然后通过<code>@AggregateWith</code>来使用：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@CsvSource</span><span style="color:#1f2328">({</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0a3069">&#34;Jane, Doe, F, 1990-05-20&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0a3069">&#34;John, Doe, M, 1990-10-22&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithArgumentsAggregator</span><span style="color:#1f2328">(</span><span style="color:#0550ae">@AggregateWith</span><span style="color:#1f2328">(</span>PersonAggregator<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>Person<span style="color:#fff"> </span>person<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// perform assertions against person</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>借助于组合注解，我们可以进一步简化代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@Retention</span><span style="color:#1f2328">(</span>RetentionPolicy<span style="color:#1f2328">.</span><span style="color:#1f2328">RUNTIME</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@Target</span><span style="color:#1f2328">(</span>ElementType<span style="color:#1f2328">.</span><span style="color:#1f2328">PARAMETER</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@AggregateWith</span><span style="color:#1f2328">(</span>PersonAggregator<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#0550ae">@interface</span><span style="color:#fff"> </span>CsvToPerson<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@CsvSource</span><span style="color:#1f2328">({</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0a3069">&#34;Jane, Doe, F, 1990-05-20&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0a3069">&#34;John, Doe, M, 1990-10-22&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithCustomAggregatorAnnotation</span><span style="color:#1f2328">(</span><span style="color:#0550ae">@CsvToPerson</span><span style="color:#fff"> </span>Person<span style="color:#fff"> </span>person<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// perform assertions against person</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h1 id="自定义显示名字">自定义显示名字<a hidden class="anchor" aria-hidden="true" href="#自定义显示名字">#</a></h1>
+<p>参数化测试生成的test，JUnit Jupiter给定了默认名字，我们可以通过name属性进行自定义。</p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@DisplayName</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Display name of container&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ParameterizedTest</span><span style="color:#1f2328">(</span>name<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;{index} ==&gt; the rank of &#39;&#39;{0}&#39;&#39; is {1}&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@CsvSource</span><span style="color:#1f2328">({</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;apple, 1&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;banana, 2&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;&#39;lemon, lime&#39;, 3&#34;</span><span style="color:#fff"> </span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">testWithCustomDisplayNames</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>fruit<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>rank<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>结果：</p>
+<pre tabindex="0"><code>Display name of container ✔
+├─ 1 ==&gt; the rank of &#39;apple&#39; is 1 ✔
+├─ 2 ==&gt; the rank of &#39;banana&#39; is 2 ✔
+└─ 3 ==&gt; the rank of &#39;lemon, lime&#39; is 3 ✔
+</code></pre><blockquote>
+<p>注意如果要显示<code>'apple'</code>，需要使用两层<code>''apple''</code>，因为name是MessageFormat。</p>
+</blockquote>
+<p>占位符说明如下：</p>
+<p><img loading="lazy" src="../assets/0adeaf8da88643c08a583b60f5c8e79f.png"></p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文介绍了JUnit5参数化测试的7种方式，分别是<code>@ValueSource</code>，Null and Empty Sources，<code>@EnumSource</code>，<code>@MethodSource</code>，<code>@CsvSource</code>，<code>@CsvFileSource</code>，<code>@ArgumentsSource</code>，比较偏向于Java语法，符合JUnit单元测试框架的特征。另外还介绍了JUnit Jupiter的参数类型转换和参数聚合。最后，如果想要自定义参数化测试的名字，可以使用name属性实现。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests">https://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">单元测试</a></li>
+      <li><a href="https://dongfanger.github.io/tags/junit/">JUnit</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000006-jmeterjmeter100%E4%B8%AA%E7%BA%BF%E7%A8%8B%E7%AB%9F%E7%84%B6%E5%8F%AA%E6%A8%A1%E6%8B%9F%E5%87%BA1%E4%B8%AA%E5%B9%B6%E5%8F%91/">
+    <span class="title">« 上一页</span>
+    <span>JMeter100个线程竟然只模拟出1个并发</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/pytest/000006-pytestpytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7/">
+    <span class="title">下一页 »</span>
+    <span>pytest断言技巧</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#依赖">依赖</a></li>
+    <li><a href="#简单示例">简单示例</a></li>
+    <li><a href="#七种方式">七种方式</a>
+      <ul>
+        <li><a href="#1-valuesource">1 <code>@ValueSource</code></a></li>
+        <li><a href="#2-null-and-empty-sources">2 Null and Empty Sources</a></li>
+        <li><a href="#3-enumsource">3 <code>@EnumSource</code></a></li>
+        <li><a href="#4-methodsource">4 <code>@MethodSource</code></a></li>
+        <li><a href="#5-csvsource">5 <code>@CsvSource</code></a></li>
+        <li><a href="#6-csvfilesource">6 <code>@CsvFileSource</code></a></li>
+        <li><a href="#7-argumentssource">7 <code>@ArgumentsSource</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#参数类型转换">参数类型转换</a>
+      <ul>
+        <li><a href="#隐式转换">隐式转换</a></li>
+        <li><a href="#显式转换">显式转换</a></li>
+      </ul>
+    </li>
+    <li><a href="#参数聚合">参数聚合</a></li>
+    <li><a href="#自定义显示名字">自定义显示名字</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

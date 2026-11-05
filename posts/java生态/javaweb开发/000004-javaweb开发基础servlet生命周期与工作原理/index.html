@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JavaWeb开发基础Servlet生命周期与工作原理 | 测试开发刚哥</title>
+<meta name="keywords" content="JavaWeb开发">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Servlet生命周期
+Servlet的生命周期由Servlet容器（如Tomcat、Jetty等）管理，主要包括以下5个阶段：
+
+
+加载Servlet类
+
+
+创建Servlet实例
+
+
+调用init方法
+
+
+调用service方法
+
+
+调用destroy方法
+
+
+
+
+
+加载（Loading）：
+
+当Servlet容器启动或第一次接收到对某个Servlet的请求时，它会加载Servlet类
+这个过程只发生一次，除非Servlet被卸载或容器重新启动
+
+
+
+实例化（Instantiation）：
+
+在加载Servlet类之后，容器会创建一个Servlet实例
+这个实例化过程也是一次性的，除非Servlet被卸载或容器重新启动
+
+
+
+初始化（Initialization）：
+
+
+容器调用Servlet实例的init()方法进行初始化
+
+
+init()方法只被调用一次，用于执行一次性的初始化任务，如读取配置参数、初始化资源等
+
+
+你可以重写init()方法以执行自定义的初始化逻辑
+public void init(ServletConfig config)
+
+
+
+
+请求处理（Request Handling）：
+
+
+每当有请求到达时，容器会调用Servlet的service()方法来处理请求
+
+
+service()方法根据请求的类型（如GET、POST等）调用相应的处理方法（如doGet()、doPost()等）
+public void service(ServletRequest request, ServletResponse response)
+
+
+
+
+销毁（Destruction）：
+
+
+当容器决定卸载Servlet（如容器关闭或Servlet被重新加载）时，它会调用Servlet的destroy()方法
+
+
+destroy()方法用于执行清理任务，如关闭资源、保存状态等
+
+
+destroy()方法只被调用一次
+public void destroy()
+
+
+
+
+Servlet重新加载
+Servlet被重新加载通常发生在以下几种情况下：
+
+
+Servlet类文件被修改：
+
+如果在开发过程中修改了Servlet类文件，Servlet容器可能会检测到这些更改并重新加载Servlet
+这通常发生在开发环境中，生产环境中一般不会自动重新加载
+
+
+
+容器配置发生变化：
+
+如果修改了Servlet容器的配置文件（如web.xml），容器可能会重新加载相关的Servlet
+
+
+
+容器重启：
+
+当Servlet容器重启时，所有的Servlet都会被重新加载
+
+
+
+手动重新加载：
+
+某些Servlet容器提供了手动重新加载Servlet的功能，通常通过管理控制台或命令行工具
+
+
+
+当Servlet被重新加载时，Servlet容器会执行以下步骤：
+
+
+销毁现有的Servlet实例：
+
+容器调用现有Servlet实例的destroy()方法，执行清理任务
+释放资源，如关闭数据库连接、释放文件句柄等
+
+
+
+卸载Servlet类：
+
+容器卸载现有的Servlet类，释放类加载器持有的资源
+
+
+
+重新加载Servlet类：
+
+容器重新加载Servlet类文件，创建新的类加载器实例
+
+
+
+实例化新的Servlet对象：
+
+容器创建新的Servlet实例
+
+
+
+初始化新的Servlet实例：
+
+容器调用新的Servlet实例的init()方法进行初始化
+
+
+
+Servlet代码示例
+有3种方式使用Servlet：
+①实现Servlet接口
+import java.io.*;
+import javax.servlet.*;
+
+public class First implements Servlet {
+    ServletConfig config = null;
+
+    public void init(ServletConfig config) {
+        this.config = config;
+        System.out.println(&#34;servlet is initialized&#34;);
+    }
+
+    public void service(ServletRequest req, ServletResponse res)
+            throws IOException, ServletException {
+        res.setContentType(&#34;text/html&#34;);
+        PrintWriter out = res.getWriter();
+        out.print(&#34;&lt;html&gt;&lt;body&gt;&#34;);
+        out.print(&#34;&lt;b&gt;hello simple servlet&lt;/b&gt;&#34;);
+        out.print(&#34;&lt;/body&gt;&lt;/html&gt;&#34;);
+
+    }
+
+    public void destroy() {
+        System.out.println(&#34;servlet is destroyed&#34;);
+    }
+
+    public ServletConfig getServletConfig() {
+        return config;
+    }
+
+    public String getServletInfo() {
+        return &#34;copyright 2007-1010&#34;;
+    }
+}
+②继承GenericServlet类">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000004-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000004-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000004-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JavaWeb开发基础Servlet生命周期与工作原理">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Servlet生命周期 Servlet的生命周期由Servlet容器（如Tomcat、Jetty等）管理，主要包括以下5个阶段：
+加载Servlet类
+创建Servlet实例
+调用init方法
+调用service方法
+调用destroy方法
+加载（Loading）：
+当Servlet容器启动或第一次接收到对某个Servlet的请求时，它会加载Servlet类 这个过程只发生一次，除非Servlet被卸载或容器重新启动 实例化（Instantiation）：
+在加载Servlet类之后，容器会创建一个Servlet实例 这个实例化过程也是一次性的，除非Servlet被卸载或容器重新启动 初始化（Initialization）：
+容器调用Servlet实例的init()方法进行初始化
+init()方法只被调用一次，用于执行一次性的初始化任务，如读取配置参数、初始化资源等
+你可以重写init()方法以执行自定义的初始化逻辑
+public void init(ServletConfig config) 请求处理（Request Handling）：
+每当有请求到达时，容器会调用Servlet的service()方法来处理请求
+service()方法根据请求的类型（如GET、POST等）调用相应的处理方法（如doGet()、doPost()等）
+public void service(ServletRequest request, ServletResponse response) 销毁（Destruction）：
+当容器决定卸载Servlet（如容器关闭或Servlet被重新加载）时，它会调用Servlet的destroy()方法
+destroy()方法用于执行清理任务，如关闭资源、保存状态等
+destroy()方法只被调用一次
+public void destroy() Servlet重新加载
+Servlet被重新加载通常发生在以下几种情况下：
+Servlet类文件被修改：
+如果在开发过程中修改了Servlet类文件，Servlet容器可能会检测到这些更改并重新加载Servlet 这通常发生在开发环境中，生产环境中一般不会自动重新加载 容器配置发生变化：
+如果修改了Servlet容器的配置文件（如web.xml），容器可能会重新加载相关的Servlet 容器重启：
+当Servlet容器重启时，所有的Servlet都会被重新加载 手动重新加载：
+某些Servlet容器提供了手动重新加载Servlet的功能，通常通过管理控制台或命令行工具 当Servlet被重新加载时，Servlet容器会执行以下步骤：
+销毁现有的Servlet实例：
+容器调用现有Servlet实例的destroy()方法，执行清理任务 释放资源，如关闭数据库连接、释放文件句柄等 卸载Servlet类：
+容器卸载现有的Servlet类，释放类加载器持有的资源 重新加载Servlet类：
+容器重新加载Servlet类文件，创建新的类加载器实例 实例化新的Servlet对象：
+容器创建新的Servlet实例 初始化新的Servlet实例：
+容器调用新的Servlet实例的init()方法进行初始化 Servlet代码示例 有3种方式使用Servlet：
+①实现Servlet接口
+import java.io.*; import javax.servlet.*; public class First implements Servlet { ServletConfig config = null; public void init(ServletConfig config) { this.config = config; System.out.println(&#34;servlet is initialized&#34;); } public void service(ServletRequest req, ServletResponse res) throws IOException, ServletException { res.setContentType(&#34;text/html&#34;); PrintWriter out = res.getWriter(); out.print(&#34;&lt;html&gt;&lt;body&gt;&#34;); out.print(&#34;&lt;b&gt;hello simple servlet&lt;/b&gt;&#34;); out.print(&#34;&lt;/body&gt;&lt;/html&gt;&#34;); } public void destroy() { System.out.println(&#34;servlet is destroyed&#34;); } public ServletConfig getServletConfig() { return config; } public String getServletInfo() { return &#34;copyright 2007-1010&#34;; } } ②继承GenericServlet类">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:tag" content="JavaWeb开发">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JavaWeb开发基础Servlet生命周期与工作原理">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Servlet生命周期 Servlet的生命周期由Servlet容器（如Tomcat、Jetty等）管理，主要包括以下5个阶段：
+加载Servlet类
+创建Servlet实例
+调用init方法
+调用service方法
+调用destroy方法
+加载（Loading）：
+当Servlet容器启动或第一次接收到对某个Servlet的请求时，它会加载Servlet类 这个过程只发生一次，除非Servlet被卸载或容器重新启动 实例化（Instantiation）：
+在加载Servlet类之后，容器会创建一个Servlet实例 这个实例化过程也是一次性的，除非Servlet被卸载或容器重新启动 初始化（Initialization）：
+容器调用Servlet实例的init()方法进行初始化
+init()方法只被调用一次，用于执行一次性的初始化任务，如读取配置参数、初始化资源等
+你可以重写init()方法以执行自定义的初始化逻辑
+public void init(ServletConfig config) 请求处理（Request Handling）：
+每当有请求到达时，容器会调用Servlet的service()方法来处理请求
+service()方法根据请求的类型（如GET、POST等）调用相应的处理方法（如doGet()、doPost()等）
+public void service(ServletRequest request, ServletResponse response) 销毁（Destruction）：
+当容器决定卸载Servlet（如容器关闭或Servlet被重新加载）时，它会调用Servlet的destroy()方法
+destroy()方法用于执行清理任务，如关闭资源、保存状态等
+destroy()方法只被调用一次
+public void destroy() Servlet重新加载
+Servlet被重新加载通常发生在以下几种情况下：
+Servlet类文件被修改：
+如果在开发过程中修改了Servlet类文件，Servlet容器可能会检测到这些更改并重新加载Servlet 这通常发生在开发环境中，生产环境中一般不会自动重新加载 容器配置发生变化：
+如果修改了Servlet容器的配置文件（如web.xml），容器可能会重新加载相关的Servlet 容器重启：
+当Servlet容器重启时，所有的Servlet都会被重新加载 手动重新加载：
+某些Servlet容器提供了手动重新加载Servlet的功能，通常通过管理控制台或命令行工具 当Servlet被重新加载时，Servlet容器会执行以下步骤：
+销毁现有的Servlet实例：
+容器调用现有Servlet实例的destroy()方法，执行清理任务 释放资源，如关闭数据库连接、释放文件句柄等 卸载Servlet类：
+容器卸载现有的Servlet类，释放类加载器持有的资源 重新加载Servlet类：
+容器重新加载Servlet类文件，创建新的类加载器实例 实例化新的Servlet对象：
+容器创建新的Servlet实例 初始化新的Servlet实例：
+容器调用新的Servlet实例的init()方法进行初始化 Servlet代码示例 有3种方式使用Servlet：
+①实现Servlet接口
+import java.io.*; import javax.servlet.*; public class First implements Servlet { ServletConfig config = null; public void init(ServletConfig config) { this.config = config; System.out.println(&#34;servlet is initialized&#34;); } public void service(ServletRequest req, ServletResponse res) throws IOException, ServletException { res.setContentType(&#34;text/html&#34;); PrintWriter out = res.getWriter(); out.print(&#34;&lt;html&gt;&lt;body&gt;&#34;); out.print(&#34;&lt;b&gt;hello simple servlet&lt;/b&gt;&#34;); out.print(&#34;&lt;/body&gt;&lt;/html&gt;&#34;); } public void destroy() { System.out.println(&#34;servlet is destroyed&#34;); } public ServletConfig getServletConfig() { return config; } public String getServletInfo() { return &#34;copyright 2007-1010&#34;; } } ②继承GenericServlet类">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JavaWeb开发基础Servlet生命周期与工作原理",
+      "item": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000004-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JavaWeb开发基础Servlet生命周期与工作原理",
+  "name": "JavaWeb开发基础Servlet生命周期与工作原理",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nServlet生命周期 Servlet的生命周期由Servlet容器（如Tomcat、Jetty等）管理，主要包括以下5个阶段：\n加载Servlet类\n创建Servlet实例\n调用init方法\n调用service方法\n调用destroy方法\n加载（Loading）：\n当Servlet容器启动或第一次接收到对某个Servlet的请求时，它会加载Servlet类 这个过程只发生一次，除非Servlet被卸载或容器重新启动 实例化（Instantiation）：\n在加载Servlet类之后，容器会创建一个Servlet实例 这个实例化过程也是一次性的，除非Servlet被卸载或容器重新启动 初始化（Initialization）：\n容器调用Servlet实例的init()方法进行初始化\ninit()方法只被调用一次，用于执行一次性的初始化任务，如读取配置参数、初始化资源等\n你可以重写init()方法以执行自定义的初始化逻辑\npublic void init(ServletConfig config) 请求处理（Request Handling）：\n每当有请求到达时，容器会调用Servlet的service()方法来处理请求\nservice()方法根据请求的类型（如GET、POST等）调用相应的处理方法（如doGet()、doPost()等）\npublic void service(ServletRequest request, ServletResponse response) 销毁（Destruction）：\n当容器决定卸载Servlet（如容器关闭或Servlet被重新加载）时，它会调用Servlet的destroy()方法\ndestroy()方法用于执行清理任务，如关闭资源、保存状态等\ndestroy()方法只被调用一次\npublic void destroy() Servlet重新加载\nServlet被重新加载通常发生在以下几种情况下：\nServlet类文件被修改：\n如果在开发过程中修改了Servlet类文件，Servlet容器可能会检测到这些更改并重新加载Servlet 这通常发生在开发环境中，生产环境中一般不会自动重新加载 容器配置发生变化：\n如果修改了Servlet容器的配置文件（如web.xml），容器可能会重新加载相关的Servlet 容器重启：\n当Servlet容器重启时，所有的Servlet都会被重新加载 手动重新加载：\n某些Servlet容器提供了手动重新加载Servlet的功能，通常通过管理控制台或命令行工具 当Servlet被重新加载时，Servlet容器会执行以下步骤：\n销毁现有的Servlet实例：\n容器调用现有Servlet实例的destroy()方法，执行清理任务 释放资源，如关闭数据库连接、释放文件句柄等 卸载Servlet类：\n容器卸载现有的Servlet类，释放类加载器持有的资源 重新加载Servlet类：\n容器重新加载Servlet类文件，创建新的类加载器实例 实例化新的Servlet对象：\n容器创建新的Servlet实例 初始化新的Servlet实例：\n容器调用新的Servlet实例的init()方法进行初始化 Servlet代码示例 有3种方式使用Servlet：\n①实现Servlet接口\nimport java.io.*; import javax.servlet.*; public class First implements Servlet { ServletConfig config = null; public void init(ServletConfig config) { this.config = config; System.out.println(\u0026#34;servlet is initialized\u0026#34;); } public void service(ServletRequest req, ServletResponse res) throws IOException, ServletException { res.setContentType(\u0026#34;text/html\u0026#34;); PrintWriter out = res.getWriter(); out.print(\u0026#34;\u0026lt;html\u0026gt;\u0026lt;body\u0026gt;\u0026#34;); out.print(\u0026#34;\u0026lt;b\u0026gt;hello simple servlet\u0026lt;/b\u0026gt;\u0026#34;); out.print(\u0026#34;\u0026lt;/body\u0026gt;\u0026lt;/html\u0026gt;\u0026#34;); } public void destroy() { System.out.println(\u0026#34;servlet is destroyed\u0026#34;); } public ServletConfig getServletConfig() { return config; } public String getServletInfo() { return \u0026#34;copyright 2007-1010\u0026#34;; } } ②继承GenericServlet类\n",
+  "keywords": [
+    "JavaWeb开发"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nServlet生命周期 Servlet的生命周期由Servlet容器（如Tomcat、Jetty等）管理，主要包括以下5个阶段：\n加载Servlet类\n创建Servlet实例\n调用init方法\n调用service方法\n调用destroy方法\n加载（Loading）：\n当Servlet容器启动或第一次接收到对某个Servlet的请求时，它会加载Servlet类 这个过程只发生一次，除非Servlet被卸载或容器重新启动 实例化（Instantiation）：\n在加载Servlet类之后，容器会创建一个Servlet实例 这个实例化过程也是一次性的，除非Servlet被卸载或容器重新启动 初始化（Initialization）：\n容器调用Servlet实例的init()方法进行初始化\ninit()方法只被调用一次，用于执行一次性的初始化任务，如读取配置参数、初始化资源等\n你可以重写init()方法以执行自定义的初始化逻辑\npublic void init(ServletConfig config) 请求处理（Request Handling）：\n每当有请求到达时，容器会调用Servlet的service()方法来处理请求\nservice()方法根据请求的类型（如GET、POST等）调用相应的处理方法（如doGet()、doPost()等）\npublic void service(ServletRequest request, ServletResponse response) 销毁（Destruction）：\n当容器决定卸载Servlet（如容器关闭或Servlet被重新加载）时，它会调用Servlet的destroy()方法\ndestroy()方法用于执行清理任务，如关闭资源、保存状态等\ndestroy()方法只被调用一次\npublic void destroy() Servlet重新加载\nServlet被重新加载通常发生在以下几种情况下：\nServlet类文件被修改：\n如果在开发过程中修改了Servlet类文件，Servlet容器可能会检测到这些更改并重新加载Servlet 这通常发生在开发环境中，生产环境中一般不会自动重新加载 容器配置发生变化：\n如果修改了Servlet容器的配置文件（如web.xml），容器可能会重新加载相关的Servlet 容器重启：\n当Servlet容器重启时，所有的Servlet都会被重新加载 手动重新加载：\n某些Servlet容器提供了手动重新加载Servlet的功能，通常通过管理控制台或命令行工具 当Servlet被重新加载时，Servlet容器会执行以下步骤：\n销毁现有的Servlet实例：\n容器调用现有Servlet实例的destroy()方法，执行清理任务 释放资源，如关闭数据库连接、释放文件句柄等 卸载Servlet类：\n容器卸载现有的Servlet类，释放类加载器持有的资源 重新加载Servlet类：\n容器重新加载Servlet类文件，创建新的类加载器实例 实例化新的Servlet对象：\n容器创建新的Servlet实例 初始化新的Servlet实例：\n容器调用新的Servlet实例的init()方法进行初始化 Servlet代码示例 有3种方式使用Servlet：\n①实现Servlet接口\nimport java.io.*; import javax.servlet.*; public class First implements Servlet { ServletConfig config = null; public void init(ServletConfig config) { this.config = config; System.out.println(\"servlet is initialized\"); } public void service(ServletRequest req, ServletResponse res) throws IOException, ServletException { res.setContentType(\"text/html\"); PrintWriter out = res.getWriter(); out.print(\"\"); out.print(\"hello simple servlet\"); out.print(\"\"); } public void destroy() { System.out.println(\"servlet is destroyed\"); } public ServletConfig getServletConfig() { return config; } public String getServletInfo() { return \"copyright 2007-1010\"; } } ②继承GenericServlet类\nimport java.io.*; import javax.servlet.*; public class First extends GenericServlet { public void service(ServletRequest req, ServletResponse res) throws IOException, ServletException { res.setContentType(\"text/html\"); PrintWriter out = res.getWriter(); out.print(\"\"); out.print(\"hello generic servlet\"); out.print(\"\"); } } ③继承HttpServlet类\nimport javax.servlet.http.*; import javax.servlet.*; import java.io.*; public class DemoServ extends HttpServlet { public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException { res.setContentType(\"text/html\"); PrintWriter pw = res.getWriter(); String name = req.getParameter(\"name\"); pw.println(\"Welcome \" + name); } } 继承HttpServlet类是最常用的方式，接下来通过六个步骤，看看具体实践。\n第一步，创建目录结构。\n第二步，创建Servlet。\nimport javax.servlet.http.*; import javax.servlet.*; import java.io.*; public class DemoServlet extends HttpServlet { public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException { res.setContentType(\"text/html\"); PrintWriter pw = res.getWriter(); pw.println(\"\"); pw.println(\"Welcome to servlet\"); pw.println(\"\"); pw.close(); } } 第三步，编译Servlet。\njavax.servlet javax.servlet-api 3.1.0 provided 编译后将class文件拷贝到WEB-INF/classes。\n第四步，创建web.xml。\nsonoojaiswal DemoServlet sonoojaiswal /welcome web.xml是一个部署描述符文件，用于配置Java Web应用程序。\nJava Servlet 3.0引入了@WebServlet注解，用于简化Servlet的配置：\nimport javax.servlet.http.*; import javax.servlet.*; import java.io.*; import javax.servlet.annotation.WebServlet; @WebServlet(\"/welcome\") public class DemoServlet extends HttpServlet { private static final long serialVersionUID = 1L; public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException { res.setContentType(\"text/html\"); PrintWriter pw = res.getWriter(); pw.println(\"\"); pw.println(\"Welcome to servlet\"); pw.println(\"\"); pw.close(); } } web.xml在低版本Servlet是必须的，在高版本Servlet已经不再需要。\n第五步，部署Servlet。\n将项目文件复制到Apache Tomcat的webapps目录下，启动Tomcat服务。\n第六步，访问Servlet。\n浏览器请求http://localhost:9999/demo/welcome，就能看到Servlet响应内容。\nServlet工作原理 请求映射：\n浏览器发送一个HTTP请求到服务器\n服务器根据web.xml文件中的配置，将请求映射到相应的Servlet\n创建请求和响应对象：\n服务器为每个请求创建HttpServletRequest和HttpServletResponse对象。这些对象包含了请求的所有信息和用于生成响应的方法 调用service方法：\n服务器在一个新的线程中调用Servlet的service方法来处理请求 调用public service方法：\npublic service 方法内部会调用protected service方法。public service方法是HttpServlet类的一部分，它负责处理所有类型的HTTP请求\npublic void service(ServletRequest req, ServletResponse res) throws ServletException, IOException { if (req instanceof HttpServletRequest \u0026\u0026 res instanceof HttpServletResponse) { HttpServletRequest request = (HttpServletRequest)req; HttpServletResponse response = (HttpServletResponse)res; this.service(request, response); } else { throw new ServletException(\"non-HTTP request or response\"); } } 调用protected service方法：\nprotected service方法根据请求的类型（如GET、POST等）调用相应的处理方法（如doGet、doPost等）\nprotected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException { String method = req.getMethod(); long lastModified; if (method.equals(\"GET\")) { lastModified = this.getLastModified(req); if (lastModified == -1L) { this.doGet(req, resp); } else { long ifModifiedSince = req.getDateHeader(\"If-Modified-Since\"); if (ifModifiedSince \u003c lastModified) { this.maybeSetLastModified(resp, lastModified); this.doGet(req, resp); } else { resp.setStatus(304); } } } else if (method.equals(\"HEAD\")) { lastModified = this.getLastModified(req); this.maybeSetLastModified(resp, lastModified); this.doHead(req, resp); } else if (method.equals(\"POST\")) { this.doPost(req, resp); } else if (method.equals(\"PUT\")) { this.doPut(req, resp); } else if (method.equals(\"DELETE\")) { this.doDelete(req, resp); } else if (method.equals(\"OPTIONS\")) { this.doOptions(req, resp); } else if (method.equals(\"TRACE\")) { this.doTrace(req, resp); } else { String errMsg = lStrings.getString(\"http.method_not_implemented\"); Object[] errArgs = new Object[]{method}; errMsg = MessageFormat.format(errMsg, errArgs); resp.sendError(501, errMsg); } } 调用doGet方法：\n如果请求类型是GET，protected service方法会调用doGet方法。doGet方法处理请求并生成响应 生成响应并发送给客户端：\ndoGet方法生成响应（如HTML、JSON等），并通过HttpServletResponse对象将响应发送回客户端 删除请求和响应对象：\n在响应发送完毕后，Web容器会删除HttpServletRequest和HttpServletResponse对象，以释放资源 处理请求的线程要么被返回到线程池，要么被删除，这取决于服务器的实现 总结，Servlet的生命周期包括初始化（init）、请求处理（service，调用doGet、doPost等）、和销毁（destroy）。工作原理是：客户端请求，服务器分发，创建请求和响应对象，调用service方法，生成并发送响应，删除请求和响应对象。\n参考资料：\nhttps://www.javatpoint.com/life-cycle-of-a-servlet\nhttps://www.javatpoint.com/steps-to-create-a-servlet-using-tomcat-server\nhttps://www.javatpoint.com/how-servlet-works\nChatGPT\n",
+  "wordCount" : "511",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-04T00:00:00Z",
+  "dateModified": "2026-01-04T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000004-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      JavaWeb开发基础Servlet生命周期与工作原理
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-04T00:00:00+00:00'>2026-01-04</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>511 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/javaweb%E5%BC%80%E5%8F%91/'>#JavaWeb开发</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="servlet生命周期">Servlet生命周期<a hidden class="anchor" aria-hidden="true" href="#servlet生命周期">#</a></h1>
+<p>Servlet的生命周期由Servlet容器（如Tomcat、Jetty等）管理，主要包括以下5个阶段：</p>
+<ol>
+<li>
+<p>加载Servlet类</p>
+</li>
+<li>
+<p>创建Servlet实例</p>
+</li>
+<li>
+<p>调用init方法</p>
+</li>
+<li>
+<p>调用service方法</p>
+</li>
+<li>
+<p>调用destroy方法</p>
+</li>
+</ol>
+<p><img loading="lazy" src="../assets/1165ac5a6f1c4eb9b037d57e7c48ea6a.png"></p>
+<ol>
+<li>
+<p>加载（Loading）：</p>
+<ul>
+<li>当Servlet容器启动或第一次接收到对某个Servlet的请求时，它会加载Servlet类</li>
+<li>这个过程只发生一次，除非Servlet被卸载或容器重新启动</li>
+</ul>
+</li>
+<li>
+<p>实例化（Instantiation）：</p>
+<ul>
+<li>在加载Servlet类之后，容器会创建一个Servlet实例</li>
+<li>这个实例化过程也是一次性的，除非Servlet被卸载或容器重新启动</li>
+</ul>
+</li>
+<li>
+<p>初始化（Initialization）：</p>
+<ul>
+<li>
+<p>容器调用Servlet实例的<code>init()</code>方法进行初始化</p>
+</li>
+<li>
+<p><code>init()</code>方法只被调用一次，用于执行一次性的初始化任务，如读取配置参数、初始化资源等</p>
+</li>
+<li>
+<p>你可以重写<code>init()</code>方法以执行自定义的初始化逻辑</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">init</span><span style="color:#1f2328">(</span>ServletConfig<span style="color:#fff"> </span>config<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+</ul>
+</li>
+<li>
+<p>请求处理（Request Handling）：</p>
+<ul>
+<li>
+<p>每当有请求到达时，容器会调用Servlet的<code>service()</code>方法来处理请求</p>
+</li>
+<li>
+<p><code>service()</code>方法根据请求的类型（如GET、POST等）调用相应的处理方法（如<code>doGet()</code>、<code>doPost()</code>等）</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">service</span><span style="color:#1f2328">(</span>ServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletResponse<span style="color:#fff"> </span>response<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+</ul>
+</li>
+<li>
+<p>销毁（Destruction）：</p>
+<ul>
+<li>
+<p>当容器决定卸载Servlet（如容器关闭或Servlet被重新加载）时，它会调用Servlet的<code>destroy()</code>方法</p>
+</li>
+<li>
+<p><code>destroy()</code>方法用于执行清理任务，如关闭资源、保存状态等</p>
+</li>
+<li>
+<p><code>destroy()</code>方法只被调用一次</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">destroy</span><span style="color:#1f2328">()</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+</ul>
+</li>
+</ol>
+<p><strong>Servlet重新加载</strong></p>
+<p>Servlet被重新加载通常发生在以下几种情况下：</p>
+<ol>
+<li>
+<p>Servlet类文件被修改：</p>
+<ul>
+<li>如果在开发过程中修改了Servlet类文件，Servlet容器可能会检测到这些更改并重新加载Servlet</li>
+<li>这通常发生在开发环境中，生产环境中一般不会自动重新加载</li>
+</ul>
+</li>
+<li>
+<p>容器配置发生变化：</p>
+<ul>
+<li>如果修改了Servlet容器的配置文件（如<code>web.xml</code>），容器可能会重新加载相关的Servlet</li>
+</ul>
+</li>
+<li>
+<p>容器重启：</p>
+<ul>
+<li>当Servlet容器重启时，所有的Servlet都会被重新加载</li>
+</ul>
+</li>
+<li>
+<p>手动重新加载：</p>
+<ul>
+<li>某些Servlet容器提供了手动重新加载Servlet的功能，通常通过管理控制台或命令行工具</li>
+</ul>
+</li>
+</ol>
+<p>当Servlet被重新加载时，Servlet容器会执行以下步骤：</p>
+<ol>
+<li>
+<p>销毁现有的Servlet实例：</p>
+<ul>
+<li>容器调用现有Servlet实例的<code>destroy()</code>方法，执行清理任务</li>
+<li>释放资源，如关闭数据库连接、释放文件句柄等</li>
+</ul>
+</li>
+<li>
+<p>卸载Servlet类：</p>
+<ul>
+<li>容器卸载现有的Servlet类，释放类加载器持有的资源</li>
+</ul>
+</li>
+<li>
+<p>重新加载Servlet类：</p>
+<ul>
+<li>容器重新加载Servlet类文件，创建新的类加载器实例</li>
+</ul>
+</li>
+<li>
+<p>实例化新的Servlet对象：</p>
+<ul>
+<li>容器创建新的Servlet实例</li>
+</ul>
+</li>
+<li>
+<p>初始化新的Servlet实例：</p>
+<ul>
+<li>容器调用新的Servlet实例的<code>init()</code>方法进行初始化</li>
+</ul>
+</li>
+</ol>
+<h1 id="servlet代码示例">Servlet代码示例<a hidden class="anchor" aria-hidden="true" href="#servlet代码示例">#</a></h1>
+<p>有3种方式使用Servlet：</p>
+<p>①实现Servlet接口</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">First</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>Servlet<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>ServletConfig<span style="color:#fff"> </span>config<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">null</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">init</span><span style="color:#1f2328">(</span>ServletConfig<span style="color:#fff"> </span>config<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">config</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>config<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;servlet is initialized&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">service</span><span style="color:#1f2328">(</span>ServletRequest<span style="color:#fff"> </span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletResponse<span style="color:#fff"> </span>res<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>IOException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>res<span style="color:#1f2328">.</span><span style="color:#1f2328">setContentType</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;text/html&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>PrintWriter<span style="color:#fff"> </span>out<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>res<span style="color:#1f2328">.</span><span style="color:#1f2328">getWriter</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>out<span style="color:#1f2328">.</span><span style="color:#1f2328">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;html&gt;&lt;body&gt;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>out<span style="color:#1f2328">.</span><span style="color:#1f2328">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;b&gt;hello simple servlet&lt;/b&gt;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>out<span style="color:#1f2328">.</span><span style="color:#1f2328">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;/body&gt;&lt;/html&gt;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">destroy</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;servlet is destroyed&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>ServletConfig<span style="color:#fff"> </span><span style="color:#6639ba">getServletConfig</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>config<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span><span style="color:#6639ba">getServletInfo</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;copyright 2007-1010&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>②继承GenericServlet类</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">First</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>GenericServlet<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">service</span><span style="color:#1f2328">(</span>ServletRequest<span style="color:#fff"> </span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletResponse<span style="color:#fff"> </span>res<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>IOException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>res<span style="color:#1f2328">.</span><span style="color:#1f2328">setContentType</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;text/html&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>PrintWriter<span style="color:#fff"> </span>out<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>res<span style="color:#1f2328">.</span><span style="color:#1f2328">getWriter</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>out<span style="color:#1f2328">.</span><span style="color:#1f2328">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;html&gt;&lt;body&gt;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>out<span style="color:#1f2328">.</span><span style="color:#1f2328">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;b&gt;hello generic servlet&lt;/b&gt;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>out<span style="color:#1f2328">.</span><span style="color:#1f2328">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;/body&gt;&lt;/html&gt;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>③继承HttpServlet类</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">DemoServ</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>HttpServlet<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">doGet</span><span style="color:#1f2328">(</span>HttpServletRequest<span style="color:#fff"> </span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>HttpServletResponse<span style="color:#fff"> </span>res<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>IOException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>res<span style="color:#1f2328">.</span><span style="color:#1f2328">setContentType</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;text/html&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>PrintWriter<span style="color:#fff"> </span>pw<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>res<span style="color:#1f2328">.</span><span style="color:#1f2328">getWriter</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>name<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>req<span style="color:#1f2328">.</span><span style="color:#1f2328">getParameter</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;name&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>pw<span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Welcome &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>name<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>继承HttpServlet类是最常用的方式，接下来通过六个步骤，看看具体实践。</p>
+<p>第一步，创建目录结构。</p>
+<p><img loading="lazy" src="../assets/c5d32b053d664331a22c66d3c7433564.png"></p>
+<p>第二步，创建Servlet。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">DemoServlet</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>HttpServlet<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">doGet</span><span style="color:#1f2328">(</span>HttpServletRequest<span style="color:#fff"> </span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>HttpServletResponse<span style="color:#fff"> </span>res<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>IOException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>res<span style="color:#1f2328">.</span><span style="color:#1f2328">setContentType</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;text/html&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>PrintWriter<span style="color:#fff"> </span>pw<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>res<span style="color:#1f2328">.</span><span style="color:#1f2328">getWriter</span><span style="color:#1f2328">();</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>pw<span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;html&gt;&lt;body&gt;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>pw<span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Welcome to servlet&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>pw<span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;/body&gt;&lt;/html&gt;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>pw<span style="color:#1f2328">.</span><span style="color:#1f2328">close</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">  
+</span></span></span></code></pre></div><p>第三步，编译Servlet。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;groupId&gt;</span>javax.servlet<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;artifactId&gt;</span>javax.servlet-api<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;version&gt;</span>3.1.0<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;scope&gt;</span>provided<span style="color:#0550ae">&lt;/scope&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/dependency&gt;</span>
+</span></span></code></pre></div><p>编译后将class文件拷贝到WEB-INF/classes。</p>
+<p>第四步，创建web.xml。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;web-app&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;servlet&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;servlet-name&gt;</span>sonoojaiswal<span style="color:#0550ae">&lt;/servlet-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;servlet-class&gt;</span>DemoServlet<span style="color:#0550ae">&lt;/servlet-class&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/servlet&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;servlet-mapping&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;servlet-name&gt;</span>sonoojaiswal<span style="color:#0550ae">&lt;/servlet-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;url-pattern&gt;</span>/welcome<span style="color:#0550ae">&lt;/url-pattern&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/servlet-mapping&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/web-app&gt;</span>  
+</span></span></code></pre></div><p>web.xml是一个部署描述符文件，用于配置Java Web应用程序。</p>
+<p>Java Servlet 3.0引入了<code>@WebServlet</code>注解，用于简化Servlet的配置：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.annotation.WebServlet</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@WebServlet</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/welcome&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">DemoServlet</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>HttpServlet<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>serialVersionUID<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1L<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">doGet</span><span style="color:#1f2328">(</span>HttpServletRequest<span style="color:#fff"> </span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>HttpServletResponse<span style="color:#fff"> </span>res<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>IOException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>res<span style="color:#1f2328">.</span><span style="color:#1f2328">setContentType</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;text/html&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>PrintWriter<span style="color:#fff"> </span>pw<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>res<span style="color:#1f2328">.</span><span style="color:#1f2328">getWriter</span><span style="color:#1f2328">();</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>pw<span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;html&gt;&lt;body&gt;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>pw<span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Welcome to servlet&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>pw<span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;/body&gt;&lt;/html&gt;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>pw<span style="color:#1f2328">.</span><span style="color:#1f2328">close</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><blockquote>
+<p>web.xml在低版本Servlet是必须的，在高版本Servlet已经不再需要。</p>
+</blockquote>
+<p>第五步，部署Servlet。</p>
+<p>将项目文件复制到Apache Tomcat的webapps目录下，启动Tomcat服务。</p>
+<p>第六步，访问Servlet。</p>
+<p>浏览器请求<code>http://localhost:9999/demo/welcome</code>，就能看到Servlet响应内容。</p>
+<h1 id="servlet工作原理">Servlet工作原理<a hidden class="anchor" aria-hidden="true" href="#servlet工作原理">#</a></h1>
+<ol>
+<li>
+<p>请求映射：</p>
+<ul>
+<li>
+<p>浏览器发送一个HTTP请求到服务器</p>
+</li>
+<li>
+<p>服务器根据<code>web.xml</code>文件中的配置，将请求映射到相应的Servlet</p>
+</li>
+</ul>
+</li>
+<li>
+<p>创建请求和响应对象：</p>
+<ul>
+<li>服务器为每个请求创建<code>HttpServletRequest</code>和<code>HttpServletResponse</code>对象。这些对象包含了请求的所有信息和用于生成响应的方法</li>
+</ul>
+</li>
+<li>
+<p>调用<code>service</code>方法：</p>
+<ul>
+<li>服务器在一个新的线程中调用Servlet的<code>service</code>方法来处理请求</li>
+</ul>
+</li>
+<li>
+<p>调用public <code>service</code>方法：</p>
+<ul>
+<li>
+<p>public <code>service</code> 方法内部会调用protected <code>service</code>方法。public <code>service</code>方法是<code>HttpServlet</code>类的一部分，它负责处理所有类型的HTTP请求</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">service</span><span style="color:#1f2328">(</span>ServletRequest<span style="color:#fff"> </span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletResponse<span style="color:#fff"> </span>res<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>IOException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>req<span style="color:#fff"> </span><span style="color:#cf222e">instanceof</span><span style="color:#fff"> </span>HttpServletRequest<span style="color:#fff"> </span><span style="color:#0550ae">&amp;&amp;</span><span style="color:#fff"> </span>res<span style="color:#fff"> </span><span style="color:#cf222e">instanceof</span><span style="color:#fff"> </span>HttpServletResponse<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>HttpServletRequest<span style="color:#fff"> </span>request<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>HttpServletRequest<span style="color:#1f2328">)</span>req<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>HttpServletResponse<span style="color:#fff"> </span>response<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>HttpServletResponse<span style="color:#1f2328">)</span>res<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">service</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>response<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">throw</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;non-HTTP request or response&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+</ul>
+</li>
+<li>
+<p>调用protected <code>service</code>方法：</p>
+<ul>
+<li>
+<p>protected <code>service</code>方法根据请求的类型（如GET、POST等）调用相应的处理方法（如<code>doGet</code>、<code>doPost</code>等）</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">protected</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">service</span><span style="color:#1f2328">(</span>HttpServletRequest<span style="color:#fff"> </span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>HttpServletResponse<span style="color:#fff"> </span>resp<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>IOException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>method<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>req<span style="color:#1f2328">.</span><span style="color:#1f2328">getMethod</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>lastModified<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;GET&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>lastModified<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">getLastModified</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>lastModified<span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span><span style="color:#0550ae">-</span>1L<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">doGet</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>resp<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>ifModifiedSince<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>req<span style="color:#1f2328">.</span><span style="color:#1f2328">getDateHeader</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;If-Modified-Since&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>ifModifiedSince<span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span><span style="color:#fff"> </span>lastModified<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">maybeSetLastModified</span><span style="color:#1f2328">(</span>resp<span style="color:#1f2328">,</span><span style="color:#fff"> </span>lastModified<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">doGet</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>resp<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                </span>resp<span style="color:#1f2328">.</span><span style="color:#1f2328">setStatus</span><span style="color:#1f2328">(</span>304<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;HEAD&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>lastModified<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">getLastModified</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">maybeSetLastModified</span><span style="color:#1f2328">(</span>resp<span style="color:#1f2328">,</span><span style="color:#fff"> </span>lastModified<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">doHead</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>resp<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;POST&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">doPost</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>resp<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;PUT&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">doPut</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>resp<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;DELETE&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">doDelete</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>resp<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;OPTIONS&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">doOptions</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>resp<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;TRACE&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">doTrace</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">,</span><span style="color:#fff"> </span>resp<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>errMsg<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>lStrings<span style="color:#1f2328">.</span><span style="color:#1f2328">getString</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;http.method_not_implemented&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>Object<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>errArgs<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Object<span style="color:#0550ae">[]</span><span style="color:#1f2328">{</span>method<span style="color:#1f2328">};</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>errMsg<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>MessageFormat<span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span>errMsg<span style="color:#1f2328">,</span><span style="color:#fff"> </span>errArgs<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>resp<span style="color:#1f2328">.</span><span style="color:#1f2328">sendError</span><span style="color:#1f2328">(</span>501<span style="color:#1f2328">,</span><span style="color:#fff"> </span>errMsg<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+</ul>
+</li>
+<li>
+<p>调用<code>doGet</code>方法：</p>
+<ul>
+<li>如果请求类型是GET，protected <code>service</code>方法会调用<code>doGet</code>方法。<code>doGet</code>方法处理请求并生成响应</li>
+</ul>
+</li>
+<li>
+<p>生成响应并发送给客户端：</p>
+<ul>
+<li><code>doGet</code>方法生成响应（如HTML、JSON等），并通过<code>HttpServletResponse</code>对象将响应发送回客户端</li>
+</ul>
+</li>
+<li>
+<p>删除请求和响应对象：</p>
+<ul>
+<li>在响应发送完毕后，Web容器会删除<code>HttpServletRequest</code>和<code>HttpServletResponse</code>对象，以释放资源</li>
+<li>处理请求的线程要么被返回到线程池，要么被删除，这取决于服务器的实现</li>
+</ul>
+</li>
+</ol>
+<p>总结，Servlet的生命周期包括初始化（init）、请求处理（service，调用doGet、doPost等）、和销毁（destroy）。工作原理是：客户端请求，服务器分发，创建请求和响应对象，调用service方法，生成并发送响应，删除请求和响应对象。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.javatpoint.com/life-cycle-of-a-servlet">https://www.javatpoint.com/life-cycle-of-a-servlet</a></p>
+<p><a href="https://www.javatpoint.com/steps-to-create-a-servlet-using-tomcat-server">https://www.javatpoint.com/steps-to-create-a-servlet-using-tomcat-server</a></p>
+<p><a href="https://www.javatpoint.com/how-servlet-works">https://www.javatpoint.com/how-servlet-works</a></p>
+<p>ChatGPT</p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/javaweb%E5%BC%80%E5%8F%91/">JavaWeb开发</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/httprunner/000004-httprunnerhttprunner3%E7%9A%84%E5%8F%98%E9%87%8F%E6%98%AF%E5%A6%82%E4%BD%95%E4%BC%A0%E9%80%92%E7%9A%84/">
+    <span class="title">« 上一页</span>
+    <span>HttpRunner3的变量是如何传递的</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000004-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B01%E7%BC%96%E5%86%99%E8%BF%90%E8%A1%8Cjava%E7%A8%8B%E5%BA%8F/">
+    <span class="title">下一页 »</span>
+    <span>Java官方笔记1编写运行Java程序</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#servlet生命周期">Servlet生命周期</a></li>
+    <li><a href="#servlet代码示例">Servlet代码示例</a></li>
+    <li><a href="#servlet工作原理">Servlet工作原理</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>自定义Django认证系统的技术方案 | 测试开发刚哥</title>
+<meta name="keywords" content="Django">
+<meta name="description" content="Django已经提供了开箱即用的认证系统，但是可能并不满足我们的个性化需求。自定义认证系统需要知道哪些地方可以扩展，哪些地方可以替换。本文就来介绍自定义Django认证系统的相关技术细节。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000005-django%E8%87%AA%E5%AE%9A%E4%B9%89django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000005-django%E8%87%AA%E5%AE%9A%E4%B9%89django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000005-django%E8%87%AA%E5%AE%9A%E4%B9%89django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="自定义Django认证系统的技术方案">
+  <meta property="og:description" content="Django已经提供了开箱即用的认证系统，但是可能并不满足我们的个性化需求。自定义认证系统需要知道哪些地方可以扩展，哪些地方可以替换。本文就来介绍自定义Django认证系统的相关技术细节。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:tag" content="Django">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="自定义Django认证系统的技术方案">
+  <meta name="twitter:description" content="Django已经提供了开箱即用的认证系统，但是可能并不满足我们的个性化需求。自定义认证系统需要知道哪些地方可以扩展，哪些地方可以替换。本文就来介绍自定义Django认证系统的相关技术细节。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "自定义Django认证系统的技术方案",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000005-django%E8%87%AA%E5%AE%9A%E4%B9%89django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "自定义Django认证系统的技术方案",
+  "name": "自定义Django认证系统的技术方案",
+  "description": "Django已经提供了开箱即用的认证系统，但是可能并不满足我们的个性化需求。自定义认证系统需要知道哪些地方可以扩展，哪些地方可以替换。本文就来介绍自定义Django认证系统的相关技术细节。",
+  "keywords": [
+    "Django"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nDjango已经提供了开箱即用的认证系统，但是可能并不满足我们的个性化需求。自定义认证系统需要知道哪些地方可以扩展，哪些地方可以替换。本文就来介绍自定义Django认证系统的相关技术细节。\n自定义认证后端 AUTHENTICATION_BACKENDS Django默认认证后端为：\n['django.contrib.auth.backends.ModelBackend'] 可以在settings.py中配置AUTHENTICATION_BACKENDS为自定义的认证后端，其本质是Python class，在调用django.contrib.auth.authenticate()时会进行遍历：\ndef authenticate(request=None, **credentials): \"\"\" If the given credentials are valid, return a User object. \"\"\" for backend, backend_path in _get_backends(return_tuples=True): backend_signature = inspect.signature(backend.authenticate) try: backend_signature.bind(request, **credentials) except TypeError: # This backend doesn't accept these credentials as arguments. Try the next one. continue try: user = backend.authenticate(request, **credentials) except PermissionDenied: # This backend says to stop in our tracks - this user should not be allowed in at all. break if user is None: continue # Annotate the user object with the path of the backend. user.backend = backend_path return user # The credentials supplied are invalid to all backends, fire signal user_login_failed.send(sender=__name__, credentials=_clean_credentials(credentials), request=request) 列表中的认证后端是有先后顺序的，Django会依次进行认证，只要有后端认证成功，就会结束认证，如果有后端抛出PermissionDenied异常，也会停止认证。\n如果修改了认证后端，想要用户重新认证，那么需要调用Session.objects.all().delete()清除session数据，因为session中会缓存已认证过的认证后端。\n编写认证后端 先看看默认认证后端的源码片段：\nclass ModelBackend(BaseBackend): \"\"\" Authenticates against settings.AUTH_USER_MODEL. \"\"\" def authenticate(self, request, username=None, password=None, **kwargs): if username is None: username = kwargs.get(UserModel.USERNAME_FIELD) if username is None or password is None: return try: user = UserModel._default_manager.get_by_natural_key(username) except UserModel.DoesNotExist: # Run the default password hasher once to reduce the timing # difference between an existing and a nonexistent user (#20760). UserModel().set_password(password) else: if user.check_password(password) and self.user_can_authenticate(user): return user ... def get_user(self, user_id): try: user = UserModel._default_manager.get(pk=user_id) except UserModel.DoesNotExist: return None return user if self.user_can_authenticate(user) else None 总结一下：\n继承BaseBackend。\n实现了authenticate()。（backend也有个authenticate方法，跟django.contrib.auth.authenticate()不一样哦）authenticate(request=None, **credentials)方法的第一个入参是request，可为空，第二个入参是credentials（用户凭证如用户名、密码），示例：\nfrom django.contrib.auth.backends import BaseBackend class MyBackend(BaseBackend): def authenticate(self, request, username=None, password=None): # Check the username/password and return a user. ... 用户凭证也可以是token：\nfrom django.contrib.auth.backends import BaseBackend class MyBackend(BaseBackend): def authenticate(self, request, token=None): # Check the token and return a user. ... 如果认证成功就返回User对象，如果认证失败就返回None。\n实现了get_user()。get_user(user_id)方法入参是user_id，可以是username/数据库ID等，必须是User的主键，返回值为User对象或者None。\n我们试着来编写一个认证后端，为了演示效果，我们不用客户端服务器模式，而是在settings.py文件中增加2个配置，然后用我们自定义的认证后端进行认证，代码如下：\nfrom django.conf import settings from django.contrib.auth.backends import BaseBackend from django.contrib.auth.hashers import check_password from django.contrib.auth.models import User class SettingsBackend(BaseBackend): \"\"\" 认证settings中ADMIN_LOGIN和ADMIN_PASSWORD变量，比如： ADMIN_LOGIN = 'admin' ADMIN_PASSWORD = 'pbkdf2_sha256$30000$Vo0VlMnkR4Bk$qEvtdyZRWTcOsCnI/oQ7fVOu1XAURIZYoOZ3iq8Dr4M=' \"\"\" def authenticate(self, request, username=None, password=None): login_valid = (settings.ADMIN_LOGIN == username) pwd_valid = check_password(password, settings.ADMIN_PASSWORD) if login_valid and pwd_valid: try: user = User.objects.get(username=username) except User.DoesNotExist: # 创建一个新用户 user = User(username=username) user.is_staff = True user.is_superuser = True user.save() return user return None def get_user(self, user_id): try: return User.objects.get(pk=user_id) except User.DoesNotExist: return None 自定义认证后端授权 认证后端可以重写方法get_user_permissions(), get_group_permissions(), get_all_permissions(), has_perm(), has_module_perms(), with_perm()来实现授权。示例：\nfrom django.contrib.auth.backends import BaseBackend class MagicAdminBackend(BaseBackend): def has_perm(self, user_obj, perm, obj=None): # 如果是超管，就会获得所有权限，因为不管perm是什么，都返回True return user_obj.username == settings.ADMIN_LOGIN 可以根据业务编写具体的判断逻辑，给不同用户/组授予不同权限。\nuser_obj可以是django.contrib.auth.models.AnonymousUser，用来给匿名用户授予某些权限。\nUser有个is_active字段，ModelBackend和RemoteUserBackend不能给is_active=False的用户授权，如果想授权，可以使用AllowAllUsersModelBackend或AllowAllUsersRemoteUserBackend。\n自定义新权限 除了增删改查权限，有时我们需要更多的权限，例如，为myapp中的BlogPost创建一个can_publish权限：\n方法1 meta中配置\nclass BlogPost(models.Model): ... class Meta: permissions = ( (\"can_publish\", \"Can Publish Posts\"), ) 方法2 使用create()函数\nfrom myapp.models import BlogPost from django.contrib.auth.models import Permission from django.contrib.contenttypes.models import ContentType content_type = ContentType.objects.get_for_model(BlogPost) permission = Permission.objects.create( codename='can_publish', name='Can Publish Posts', content_type=content_type, ) 在使用python manage.py migrate命令后，就会创建这个新权限，接着就可以在view中编写代码判断用户是否有这个权限来决定能否发表文章。\n扩展User模型 代理模型 如果不需要修改表结构，只扩展行为，那么可以使用代理模型。示例：\nfrom django.contrib.auth.models import User class MyUser(User): class Meta: proxy = True def do_something(self): # ... pass OneToOneField 如果需要扩展字段，那么可以使用OneToOneField。示例：\nfrom django.contrib.auth.models import User class Employee(models.Model): user = models.OneToOneField(User, on_delete=models.CASCADE) department = models.CharField(max_length=100) 这样会新增一张表：\nCREATE TABLE `user_employee` ( `id` int(11) NOT NULL AUTO_INCREMENT, `department` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL, `user_id` int(11) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `user_id` (`user_id`), CONSTRAINT `user_employee_user_id_9b2edd10_fk_auth_user_id` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci; 在代码中使用User也能访问到Employee的属性：\n\u003e\u003e\u003e u = User.objects.get(username='fsmith') \u003e\u003e\u003e freds_department = u.employee.department 虽然这种方式能实现扩展，但是OneToOneField会增加数据库查询的复杂度，加重数据库处理负担，并不建议采用。\n替换User模型 新版Django的推荐做法是，如果不想用默认User模型，那么就把它替换掉。Django除了User模型，还有2个抽象模型AbstractUser和AbstractBaseUser，从源码中可以看到它们的继承关系：\nclass User(AbstractUser): class AbstractUser(AbstractBaseUser, PermissionsMixin): class AbstractBaseUser(models.Model): 为什么不用User模型，还要做2个抽象模型呢？这是因为一般继承有2个用途，一是继承父类的属性和方法，并做出自己的改变或扩展，实现代码重用。但是这种方式会导致子类也包含了父类的实现代码，代码强耦合，所以实践中不会这么做。而是采用第二种方式，把共性的内容抽象出来，只定义属性和方法，不提供具体实现（如java中的接口类），并且只能被继承，不能被实例化。AbstractUser和AbstractBaseUser就是对User的不同程度的抽象，AbstractUser是User的完整实现，可用于扩展User，AbstractBaseUser是高度抽象，可用于完全自定义User。\n继承AbstractUser 除了代理模型和OneToOneField，扩展User的新方式是定义新的MyUser并继承AbstractUser，把User替换掉，再添加额外信息。具体操作步骤我们通过示例来了解：\n替换User最好是创建项目后，首次python manage.py migrate前，就进行替换，否则数据库的表已经生成，再中途替换，会有各种各样的依赖问题，只能手动解决。\n第一步，myapp.models中新建MyUser，继承AbstractUser：\nfrom django.contrib.auth.models import AbstractUser class MyUser(AbstractUser): pass 第二步，settings.py中配置AUTH_USER_MODEL，指定新的用户模型：\nAUTH_USER_MODEL = 'myapp.MyUser' 第三步，settings.py中配置INSTALLED_APPS：\nINSTALLED_APPS = [ 'django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes', 'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles', 'myapp.apps.MyappConfig' # 新增 ] 第四步（可选），如果需要使用Django自带管理后台，那么要在admin.py中注册：\nfrom django.contrib import admin from django.contrib.auth.admin import UserAdmin from .models import MyUser admin.site.register(MyUser, UserAdmin) 我们看下数据库中的效果，提交数据迁移：\npython manage.py makemigrations 执行数据迁移：\npython manage.py migrate 从表能看出来，默认User已经替换为MyUser了：\n替换之后，就可以进行扩展了。比如自定义表名：\nfrom django.contrib.auth.models import AbstractUser class MyUser(AbstractUser): class Meta: db_table = \"user\" pass 替换User后，就不能直接引用django.contrib.auth.models.User了，可以使用get_user_model()函数或者settings.AUTH_USER_MODEL。\n继承AbstractBaseUser 继承AbstractUser只能做扩展，如果我们想完全自定义用户模型，那么就需要继承AbstractBaseUser，再重写属性和方法。\nUSERNAME_FIELD\nUSERNAME_FIELD是用户模型的唯一标识符，不一定是username，也可以是email、phone等。\n唯一标识符是Django认证后端的要求，如果你实现了自定义认证后端，那么也可以用非唯一标识符作为USERNAME_FIELD。\n我们可以参考AbstractUser的实现：\nusername = models.CharField( _('username'), max_length=150, unique=True, help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'), validators=[username_validator], error_messages={ 'unique': _(\"A user with that username already exists.\"), }, ) USERNAME_FIELD = 'username' 修改为自定义：\nclass MyUser(AbstractBaseUser): identifier = models.CharField(max_length=40, unique=True) ... USERNAME_FIELD = 'identifier' EMAIL_FIELD\n参考AbstractUser的实现：\nemail = models.EmailField(_('email address'), blank=True) EMAIL_FIELD = 'email' REQUIRED_FIELDS\nREQUIRED_FIELDS是指必填字段。参考AbstractUser的实现：\nREQUIRED_FIELDS = ['email'] 这表示email是必填的，在使用createsuperuser命令时，会提示必须输入。\n修改为自定义：\nclass MyUser(AbstractBaseUser): ... date_of_birth = models.DateField() height = models.FloatField() ... REQUIRED_FIELDS = ['date_of_birth', 'height'] 不需要再填USERNAME_FIELD和password，因为Django已经默认包含了，只需要填其他字段即可。\nis_active\n可以用来做软删（不删除数据而是把is_active置为False）。参考AbstractUser的实现：\nis_active = models.BooleanField( _('active'), default=True, help_text=_( 'Designates whether this user should be treated as active. ' 'Unselect this instead of deleting accounts.' ), ) get_full_name()\n参考AbstractUser的实现：\ndef get_full_name(self): \"\"\" Return the first_name plus the last_name, with a space in between. \"\"\" full_name = '%s %s' % (self.first_name, self.last_name) return full_name.strip() get_short_name()\n参考AbstractUser的实现：\ndef get_short_name(self): \"\"\"Return the short name for the user.\"\"\" return self.first_name 更多属性和方法请看源码。\n查看源码的方法：在from django.contrib.auth.models import AbstractBaseUser代码上，按住CTRL点击AbstractBaseUser即可。\n重写manager 如果自定义用户模型改变了username, email, is_staff, is_active, is_superuser, last_login, and date_joined字段，那么可能需要继承BaseUserManager，并重写以下2个方法：\ncreate_user(username_field, password=None, **other_fields)\ncreate_user(username_field, password=None, **other_fields)\n示例：\nfrom django.contrib.auth.models import BaseUserManager class CustomUserManager(BaseUserManager): def create_user(self, email, date_of_birth, password=None): # create user here ... def create_superuser(self, email, date_of_birth, password=None): # create superuser here ... 重写权限 从AbstractUser的定义可以看到是继承了PermissionsMixin类的：\nclass AbstractUser(AbstractBaseUser, PermissionsMixin): 所以重写权限就是重写PermissionsMixin的属性和方法，如get_user_permissions()、has_perm()等。\n一个完整示例 我们把email作为USERNAME_FIELD，并且让date_of_birth必填。\nmodels.py\nfrom django.db import models from django.contrib.auth.models import ( BaseUserManager, AbstractBaseUser ) class MyUserManager(BaseUserManager): def create_user(self, email, date_of_birth, password=None): \"\"\" Creates and saves a User with the given email, date of birth and password. \"\"\" if not email: raise ValueError('Users must have an email address') user = self.model( email=self.normalize_email(email), date_of_birth=date_of_birth, ) user.set_password(password) user.save(using=self._db) return user def create_superuser(self, email, date_of_birth, password=None): \"\"\" Creates and saves a superuser with the given email, date of birth and password. \"\"\" user = self.create_user( email, password=password, date_of_birth=date_of_birth, ) user.is_admin = True user.save(using=self._db) return user class MyUser(AbstractBaseUser): email = models.EmailField( verbose_name='email address', max_length=255, unique=True, ) date_of_birth = models.DateField() is_active = models.BooleanField(default=True) is_admin = models.BooleanField(default=False) objects = MyUserManager() USERNAME_FIELD = 'email' REQUIRED_FIELDS = ['date_of_birth'] def __str__(self): return self.email def has_perm(self, perm, obj=None): \"Does the user have a specific permission?\" # Simplest possible answer: Yes, always return True def has_module_perms(self, app_label): \"Does the user have permissions to view the app `app_label`?\" # Simplest possible answer: Yes, always return True @property def is_staff(self): \"Is the user a member of staff?\" # Simplest possible answer: All admins are staff return self.is_admin 不要忘了在settings.py中修改AUTH_USER_MODEL哦：\nAUTH_USER_MODEL = 'customauth.MyUser' 小结 写了这2篇关于Django认证系统的文章，明白了以前似懂非懂的技术细节。如果平时有需求想自己做个小网站，完全可以用Django来快速实现后端，开箱即用还是有点香。Template和Form不属于前后端分离的技术，在学习时可以选择性跳过。公众号后台回复“加群”,“Python互助讨论群”欢迎你。\n参考资料：\nhttps://docs.djangoproject.com/en/3.1/topics/auth/customizing/\n",
+  "wordCount" : "947",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-05T00:00:00Z",
+  "dateModified": "2026-01-05T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000005-django%E8%87%AA%E5%AE%9A%E4%B9%89django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      自定义Django认证系统的技术方案
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-05T00:00:00+00:00'>2026-01-05</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>947 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/django/'>#Django</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>Django已经提供了开箱即用的认证系统，但是可能并不满足我们的个性化需求。自定义认证系统需要知道哪些地方可以扩展，哪些地方可以替换。本文就来介绍自定义Django认证系统的相关技术细节。</p>
+<h1 id="自定义认证后端">自定义认证后端<a hidden class="anchor" aria-hidden="true" href="#自定义认证后端">#</a></h1>
+<h2 id="authentication_backends">AUTHENTICATION_BACKENDS<a hidden class="anchor" aria-hidden="true" href="#authentication_backends">#</a></h2>
+<p>Django默认认证后端为：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;django.contrib.auth.backends.ModelBackend&#39;</span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>可以在<code>settings.py</code>中配置AUTHENTICATION_BACKENDS为自定义的认证后端，其本质是Python class，在调用<code>django.contrib.auth.authenticate()</code>时会进行遍历：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">authenticate</span><span style="color:#1f2328">(</span>request<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>credentials<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    If the given credentials are valid, return a User object.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> backend<span style="color:#1f2328">,</span> backend_path <span style="color:#0550ae">in</span> _get_backends<span style="color:#1f2328">(</span>return_tuples<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        backend_signature <span style="color:#0550ae">=</span> inspect<span style="color:#0550ae">.</span>signature<span style="color:#1f2328">(</span>backend<span style="color:#0550ae">.</span>authenticate<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            backend_signature<span style="color:#0550ae">.</span>bind<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>credentials<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">except</span> TypeError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># This backend doesn&#39;t accept these credentials as arguments. Try the next one.</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">continue</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            user <span style="color:#0550ae">=</span> backend<span style="color:#0550ae">.</span>authenticate<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>credentials<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">except</span> PermissionDenied<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># This backend says to stop in our tracks - this user should not be allowed in at all.</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">break</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> user <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">continue</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># Annotate the user object with the path of the backend.</span>
+</span></span><span style="display:flex;"><span>        user<span style="color:#0550ae">.</span>backend <span style="color:#0550ae">=</span> backend_path
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> user
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># The credentials supplied are invalid to all backends, fire signal</span>
+</span></span><span style="display:flex;"><span>    user_login_failed<span style="color:#0550ae">.</span>send<span style="color:#1f2328">(</span>sender<span style="color:#0550ae">=</span><span style="color:#953800">__name__</span><span style="color:#1f2328">,</span> credentials<span style="color:#0550ae">=</span>_clean_credentials<span style="color:#1f2328">(</span>credentials<span style="color:#1f2328">),</span> request<span style="color:#0550ae">=</span>request<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>列表中的认证后端是有先后顺序的，Django会依次进行认证，只要有后端认证成功，就会结束认证，如果有后端抛出PermissionDenied异常，也会停止认证。</p>
+<blockquote>
+<p>如果修改了认证后端，想要用户重新认证，那么需要调用<code>Session.objects.all().delete()</code>清除session数据，因为session中会缓存已认证过的认证后端。</p>
+</blockquote>
+<h2 id="编写认证后端">编写认证后端<a hidden class="anchor" aria-hidden="true" href="#编写认证后端">#</a></h2>
+<p>先看看默认认证后端的源码片段：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ModelBackend</span><span style="color:#1f2328">(</span>BaseBackend<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Authenticates against settings.AUTH_USER_MODEL.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">authenticate</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> username<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> password<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> username <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            username <span style="color:#0550ae">=</span> kwargs<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span>UserModel<span style="color:#0550ae">.</span>USERNAME_FIELD<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> username <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span> <span style="color:#0550ae">or</span> password <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            user <span style="color:#0550ae">=</span> UserModel<span style="color:#0550ae">.</span>_default_manager<span style="color:#0550ae">.</span>get_by_natural_key<span style="color:#1f2328">(</span>username<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">except</span> UserModel<span style="color:#0550ae">.</span>DoesNotExist<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># Run the default password hasher once to reduce the timing</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># difference between an existing and a nonexistent user (#20760).</span>
+</span></span><span style="display:flex;"><span>            UserModel<span style="color:#1f2328">()</span><span style="color:#0550ae">.</span>set_password<span style="color:#1f2328">(</span>password<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">if</span> user<span style="color:#0550ae">.</span>check_password<span style="color:#1f2328">(</span>password<span style="color:#1f2328">)</span> <span style="color:#0550ae">and</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>user_can_authenticate<span style="color:#1f2328">(</span>user<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">return</span> user
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get_user</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> user_id<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            user <span style="color:#0550ae">=</span> UserModel<span style="color:#0550ae">.</span>_default_manager<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span>pk<span style="color:#0550ae">=</span>user_id<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">except</span> UserModel<span style="color:#0550ae">.</span>DoesNotExist<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> <span style="color:#cf222e">None</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> user <span style="color:#cf222e">if</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>user_can_authenticate<span style="color:#1f2328">(</span>user<span style="color:#1f2328">)</span> <span style="color:#cf222e">else</span> <span style="color:#cf222e">None</span>
+</span></span></code></pre></div><p>总结一下：</p>
+<ol>
+<li>
+<p>继承BaseBackend。</p>
+</li>
+<li>
+<p>实现了<code>authenticate()</code>。（backend也有个authenticate方法，跟<code>django.contrib.auth.authenticate()</code>不一样哦）<code>authenticate(request=None, **credentials)</code>方法的第一个入参是<code>request</code>，可为空，第二个入参是credentials（用户凭证如用户名、密码），示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.backends</span> <span style="color:#cf222e">import</span> BaseBackend
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyBackend</span><span style="color:#1f2328">(</span>BaseBackend<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">authenticate</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> username<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> password<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># Check the username/password and return a user.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">...</span>
+</span></span></code></pre></div><p>用户凭证也可以是token：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.backends</span> <span style="color:#cf222e">import</span> BaseBackend
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyBackend</span><span style="color:#1f2328">(</span>BaseBackend<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">authenticate</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> token<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># Check the token and return a user.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">...</span>
+</span></span></code></pre></div><p>如果认证成功就返回User对象，如果认证失败就返回None。</p>
+</li>
+<li>
+<p>实现了<code>get_user()</code>。<code>get_user(user_id)</code>方法入参是user_id，可以是username/数据库ID等，必须是User的主键，返回值为User对象或者None。</p>
+</li>
+</ol>
+<p>我们试着来编写一个认证后端，为了演示效果，我们不用客户端服务器模式，而是在<code>settings.py</code>文件中增加2个配置，然后用我们自定义的认证后端进行认证，代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.conf</span> <span style="color:#cf222e">import</span> settings
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.backends</span> <span style="color:#cf222e">import</span> BaseBackend
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.hashers</span> <span style="color:#cf222e">import</span> check_password
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> User
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">SettingsBackend</span><span style="color:#1f2328">(</span>BaseBackend<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    认证settings中ADMIN_LOGIN和ADMIN_PASSWORD变量，比如：
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    ADMIN_LOGIN = &#39;admin&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    ADMIN_PASSWORD = &#39;pbkdf2_sha256$30000$Vo0VlMnkR4Bk$qEvtdyZRWTcOsCnI/oQ7fVOu1XAURIZYoOZ3iq8Dr4M=&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">authenticate</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> username<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> password<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        login_valid <span style="color:#0550ae">=</span> <span style="color:#1f2328">(</span>settings<span style="color:#0550ae">.</span>ADMIN_LOGIN <span style="color:#0550ae">==</span> username<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        pwd_valid <span style="color:#0550ae">=</span> check_password<span style="color:#1f2328">(</span>password<span style="color:#1f2328">,</span> settings<span style="color:#0550ae">.</span>ADMIN_PASSWORD<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> login_valid <span style="color:#0550ae">and</span> pwd_valid<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                user <span style="color:#0550ae">=</span> User<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span>username<span style="color:#0550ae">=</span>username<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">except</span> User<span style="color:#0550ae">.</span>DoesNotExist<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#57606a"># 创建一个新用户</span>
+</span></span><span style="display:flex;"><span>                user <span style="color:#0550ae">=</span> User<span style="color:#1f2328">(</span>username<span style="color:#0550ae">=</span>username<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                user<span style="color:#0550ae">.</span>is_staff <span style="color:#0550ae">=</span> <span style="color:#cf222e">True</span>
+</span></span><span style="display:flex;"><span>                user<span style="color:#0550ae">.</span>is_superuser <span style="color:#0550ae">=</span> <span style="color:#cf222e">True</span>
+</span></span><span style="display:flex;"><span>                user<span style="color:#0550ae">.</span>save<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> user
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#cf222e">None</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get_user</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> user_id<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> User<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span>pk<span style="color:#0550ae">=</span>user_id<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">except</span> User<span style="color:#0550ae">.</span>DoesNotExist<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> <span style="color:#cf222e">None</span>
+</span></span></code></pre></div><h2 id="自定义认证后端授权">自定义认证后端授权<a hidden class="anchor" aria-hidden="true" href="#自定义认证后端授权">#</a></h2>
+<p>认证后端可以重写方法<code>get_user_permissions()</code>, <code>get_group_permissions()</code>, <code>get_all_permissions()</code>, <code>has_perm()</code>, <code>has_module_perms()</code>, <code>with_perm()</code>来实现授权。示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.backends</span> <span style="color:#cf222e">import</span> BaseBackend
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MagicAdminBackend</span><span style="color:#1f2328">(</span>BaseBackend<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">has_perm</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> user_obj<span style="color:#1f2328">,</span> perm<span style="color:#1f2328">,</span> obj<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># 如果是超管，就会获得所有权限，因为不管perm是什么，都返回True</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> user_obj<span style="color:#0550ae">.</span>username <span style="color:#0550ae">==</span> settings<span style="color:#0550ae">.</span>ADMIN_LOGIN
+</span></span></code></pre></div><p>可以根据业务编写具体的判断逻辑，给不同用户/组授予不同权限。</p>
+<blockquote>
+<p>user_obj可以是django.contrib.auth.models.AnonymousUser，用来给匿名用户授予某些权限。</p>
+</blockquote>
+<blockquote>
+<p>User有个is_active字段，ModelBackend和RemoteUserBackend不能给is_active=False的用户授权，如果想授权，可以使用AllowAllUsersModelBackend或AllowAllUsersRemoteUserBackend。</p>
+</blockquote>
+<h1 id="自定义新权限">自定义新权限<a hidden class="anchor" aria-hidden="true" href="#自定义新权限">#</a></h1>
+<p>除了增删改查权限，有时我们需要更多的权限，例如，为myapp中的BlogPost创建一个can_publish权限：</p>
+<p><strong>方法1 meta中配置</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">BlogPost</span><span style="color:#1f2328">(</span>models<span style="color:#0550ae">.</span>Model<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">class</span> <span style="color:#1f2328">Meta</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        permissions <span style="color:#0550ae">=</span> <span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;can_publish&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;Can Publish Posts&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p><strong>方法2 使用<code>create()</code>函数</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">myapp.models</span> <span style="color:#cf222e">import</span> BlogPost
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> Permission
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.contenttypes.models</span> <span style="color:#cf222e">import</span> ContentType
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>content_type <span style="color:#0550ae">=</span> ContentType<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>get_for_model<span style="color:#1f2328">(</span>BlogPost<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>permission <span style="color:#0550ae">=</span> Permission<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>create<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    codename<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;can_publish&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;Can Publish Posts&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    content_type<span style="color:#0550ae">=</span>content_type<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>在使用<code>python manage.py migrate</code>命令后，就会创建这个新权限，接着就可以在view中编写代码判断用户是否有这个权限来决定能否发表文章。</p>
+<h1 id="扩展user模型">扩展User模型<a hidden class="anchor" aria-hidden="true" href="#扩展user模型">#</a></h1>
+<h2 id="代理模型">代理模型<a hidden class="anchor" aria-hidden="true" href="#代理模型">#</a></h2>
+<p>如果不需要修改表结构，只扩展行为，那么可以使用代理模型。示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> User
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyUser</span><span style="color:#1f2328">(</span>User<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">class</span> <span style="color:#1f2328">Meta</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        proxy <span style="color:#0550ae">=</span> <span style="color:#cf222e">True</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">do_something</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># ...</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">pass</span>
+</span></span></code></pre></div><h2 id="onetoonefield">OneToOneField<a hidden class="anchor" aria-hidden="true" href="#onetoonefield">#</a></h2>
+<p>如果需要扩展字段，那么可以使用OneToOneField。示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> User
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Employee</span><span style="color:#1f2328">(</span>models<span style="color:#0550ae">.</span>Model<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    user <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>OneToOneField<span style="color:#1f2328">(</span>User<span style="color:#1f2328">,</span> on_delete<span style="color:#0550ae">=</span>models<span style="color:#0550ae">.</span>CASCADE<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    department <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>CharField<span style="color:#1f2328">(</span>max_length<span style="color:#0550ae">=</span><span style="color:#0550ae">100</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>这样会新增一张表：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>user_employee<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#1f2328">(</span><span style="color:#0550ae">11</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#0550ae">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">AUTO_INCREMENT</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>department<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">100</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">COLLATE</span><span style="color:#fff"> </span>utf8mb4_unicode_ci<span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#0550ae">NULL</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>user_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#1f2328">(</span><span style="color:#0550ae">11</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#0550ae">NULL</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">),</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">UNIQUE</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>user_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>user_id<span style="color:#0550ae">`</span><span style="color:#1f2328">),</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">CONSTRAINT</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>user_employee_user_id_9b2edd10_fk_auth_user_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">FOREIGN</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>user_id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">REFERENCES</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>auth_user<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">ENGINE</span><span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">CHARSET</span><span style="color:#0550ae">=</span>utf8mb4<span style="color:#fff"> </span><span style="color:#cf222e">COLLATE</span><span style="color:#0550ae">=</span>utf8mb4_unicode_ci<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>在代码中使用User也能访问到Employee的属性：</p>
+<pre tabindex="0"><code>&gt;&gt;&gt; u = User.objects.get(username=&#39;fsmith&#39;)
+&gt;&gt;&gt; freds_department = u.employee.department
+</code></pre><blockquote>
+<p>虽然这种方式能实现扩展，但是OneToOneField会增加数据库查询的复杂度，加重数据库处理负担，并不建议采用。</p>
+</blockquote>
+<h1 id="替换user模型">替换User模型<a hidden class="anchor" aria-hidden="true" href="#替换user模型">#</a></h1>
+<p>新版Django的推荐做法是，如果不想用默认User模型，那么就把它替换掉。Django除了User模型，还有2个抽象模型AbstractUser和AbstractBaseUser，从源码中可以看到它们的继承关系：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">User</span><span style="color:#1f2328">(</span>AbstractUser<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">AbstractUser</span><span style="color:#1f2328">(</span>AbstractBaseUser<span style="color:#1f2328">,</span> PermissionsMixin<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">AbstractBaseUser</span><span style="color:#1f2328">(</span>models<span style="color:#0550ae">.</span>Model<span style="color:#1f2328">):</span>
+</span></span></code></pre></div><p>为什么不用User模型，还要做2个抽象模型呢？这是因为一般继承有2个用途，一是继承父类的属性和方法，并做出自己的改变或扩展，实现代码重用。但是这种方式会导致子类也包含了父类的实现代码，代码强耦合，所以实践中不会这么做。而是采用第二种方式，把共性的内容抽象出来，只定义属性和方法，不提供具体实现（如java中的接口类），并且只能被继承，不能被实例化。AbstractUser和AbstractBaseUser就是对User的不同程度的抽象，AbstractUser是User的完整实现，可用于扩展User，AbstractBaseUser是高度抽象，可用于完全自定义User。</p>
+<h2 id="继承abstractuser">继承AbstractUser<a hidden class="anchor" aria-hidden="true" href="#继承abstractuser">#</a></h2>
+<p>除了代理模型和OneToOneField，扩展User的新方式是定义新的MyUser并继承AbstractUser，把User替换掉，再添加额外信息。具体操作步骤我们通过示例来了解：</p>
+<blockquote>
+<p>替换User最好是创建项目后，首次<code>python manage.py migrate</code>前，就进行替换，否则数据库的表已经生成，再中途替换，会有各种各样的依赖问题，只能手动解决。</p>
+</blockquote>
+<p>第一步，myapp.models中新建MyUser，继承AbstractUser：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> AbstractUser
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyUser</span><span style="color:#1f2328">(</span>AbstractUser<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">pass</span>
+</span></span></code></pre></div><p>第二步，<code>settings.py</code>中配置AUTH_USER_MODEL，指定新的用户模型：</p>
+<pre tabindex="0"><code>AUTH_USER_MODEL = &#39;myapp.MyUser&#39;
+</code></pre><p>第三步，<code>settings.py</code>中配置INSTALLED_APPS：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>INSTALLED_APPS <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;django.contrib.admin&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;django.contrib.auth&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;django.contrib.contenttypes&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;django.contrib.sessions&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;django.contrib.messages&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;django.contrib.staticfiles&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;myapp.apps.MyappConfig&#39;</span>  <span style="color:#57606a"># 新增</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>第四步（可选），如果需要使用Django自带管理后台，那么要在<code>admin.py</code>中注册：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib</span> <span style="color:#cf222e">import</span> admin
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.admin</span> <span style="color:#cf222e">import</span> UserAdmin
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">.models</span> <span style="color:#cf222e">import</span> MyUser
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>admin<span style="color:#0550ae">.</span>site<span style="color:#0550ae">.</span>register<span style="color:#1f2328">(</span>MyUser<span style="color:#1f2328">,</span> UserAdmin<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>我们看下数据库中的效果，提交数据迁移：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>python manage<span style="color:#0550ae">.</span>py makemigrations
+</span></span></code></pre></div><p>执行数据迁移：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>python manage<span style="color:#0550ae">.</span>py migrate
+</span></span></code></pre></div><p>从表能看出来，默认User已经替换为MyUser了：</p>
+<p><img loading="lazy" src="../assets/a4708fda8604464791f91a6b50dc08b0.png"></p>
+<p>替换之后，就可以进行扩展了。比如自定义表名：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> AbstractUser
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyUser</span><span style="color:#1f2328">(</span>AbstractUser<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span> <span style="color:#cf222e">class</span> <span style="color:#1f2328">Meta</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>     db_table <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;user&#34;</span>
+</span></span><span style="display:flex;"><span> <span style="color:#cf222e">pass</span>
+</span></span></code></pre></div><blockquote>
+<p>替换User后，就不能直接引用<code>django.contrib.auth.models.User</code>了，可以使用<code>get_user_model()</code>函数或者<code>settings.AUTH_USER_MODEL</code>。</p>
+</blockquote>
+<h2 id="继承abstractbaseuser">继承AbstractBaseUser<a hidden class="anchor" aria-hidden="true" href="#继承abstractbaseuser">#</a></h2>
+<p>继承AbstractUser只能做扩展，如果我们想完全自定义用户模型，那么就需要继承AbstractBaseUser，再重写属性和方法。</p>
+<p><strong>USERNAME_FIELD</strong></p>
+<p>USERNAME_FIELD是用户模型的唯一标识符，不一定是username，也可以是email、phone等。</p>
+<blockquote>
+<p>唯一标识符是Django认证后端的要求，如果你实现了自定义认证后端，那么也可以用非唯一标识符作为USERNAME_FIELD。</p>
+</blockquote>
+<p>我们可以参考AbstractUser的实现：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>username <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>CharField<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    _<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;username&#39;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    max_length<span style="color:#0550ae">=</span><span style="color:#0550ae">150</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    unique<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    help_text<span style="color:#0550ae">=</span>_<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.&#39;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    validators<span style="color:#0550ae">=</span><span style="color:#1f2328">[</span>username_validator<span style="color:#1f2328">],</span>
+</span></span><span style="display:flex;"><span>    error_messages<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#39;unique&#39;</span><span style="color:#1f2328">:</span> _<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;A user with that username already exists.&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>USERNAME_FIELD <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;username&#39;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span></code></pre></div><p>修改为自定义：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyUser</span><span style="color:#1f2328">(</span>AbstractBaseUser<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    identifier <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>CharField<span style="color:#1f2328">(</span>max_length<span style="color:#0550ae">=</span><span style="color:#0550ae">40</span><span style="color:#1f2328">,</span> unique<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>    USERNAME_FIELD <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;identifier&#39;</span>
+</span></span></code></pre></div><p><strong>EMAIL_FIELD</strong></p>
+<p>参考AbstractUser的实现：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>email <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>EmailField<span style="color:#1f2328">(</span>_<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;email address&#39;</span><span style="color:#1f2328">),</span> blank<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>EMAIL_FIELD <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;email&#39;</span>
+</span></span></code></pre></div><p><strong>REQUIRED_FIELDS</strong></p>
+<p>REQUIRED_FIELDS是指必填字段。参考AbstractUser的实现：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>REQUIRED_FIELDS <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;email&#39;</span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>这表示email是必填的，在使用<code>createsuperuser</code>命令时，会提示必须输入。</p>
+<p>修改为自定义：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyUser</span><span style="color:#1f2328">(</span>AbstractBaseUser<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>    date_of_birth <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>DateField<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    height <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>FloatField<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>    REQUIRED_FIELDS <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;date_of_birth&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;height&#39;</span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><blockquote>
+<p>不需要再填USERNAME_FIELD和password，因为Django已经默认包含了，只需要填其他字段即可。</p>
+</blockquote>
+<p><strong>is_active</strong></p>
+<p>可以用来做软删（不删除数据而是把is_active置为False）。参考AbstractUser的实现：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>is_active <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>BooleanField<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        _<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;active&#39;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        default<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        help_text<span style="color:#0550ae">=</span>_<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#39;Designates whether this user should be treated as active. &#39;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#39;Unselect this instead of deleting accounts.&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p><strong>get_full_name()</strong></p>
+<p>参考AbstractUser的实现：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get_full_name</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        Return the first_name plus the last_name, with a space in between.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        full_name <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;</span><span style="color:#0a3069">%s</span><span style="color:#0a3069"> </span><span style="color:#0a3069">%s</span><span style="color:#0a3069">&#39;</span> <span style="color:#0550ae">%</span> <span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>first_name<span style="color:#1f2328">,</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>last_name<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> full_name<span style="color:#0550ae">.</span>strip<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p><strong>get_short_name()</strong></p>
+<p>参考AbstractUser的实现：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get_short_name</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;&#34;&#34;Return the short name for the user.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>first_name
+</span></span></code></pre></div><p>更多属性和方法请看源码。</p>
+<blockquote>
+<p>查看源码的方法：在<code>from django.contrib.auth.models import AbstractBaseUser</code>代码上，按住<code>CTRL</code>点击<code>AbstractBaseUser</code>即可。</p>
+</blockquote>
+<h2 id="重写manager">重写manager<a hidden class="anchor" aria-hidden="true" href="#重写manager">#</a></h2>
+<p>如果自定义用户模型改变了username, email, is_staff, is_active, is_superuser, last_login, and date_joined字段，那么可能需要继承BaseUserManager，并重写以下2个方法：</p>
+<p><code>create_user(username_field, password=None, **other_fields)</code></p>
+<p><code>create_user(username_field, password=None, **other_fields)</code></p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> BaseUserManager
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">CustomUserManager</span><span style="color:#1f2328">(</span>BaseUserManager<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">create_user</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> email<span style="color:#1f2328">,</span> date_of_birth<span style="color:#1f2328">,</span> password<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># create user here</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">create_superuser</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> email<span style="color:#1f2328">,</span> date_of_birth<span style="color:#1f2328">,</span> password<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># create superuser here</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">...</span>
+</span></span></code></pre></div><h2 id="重写权限">重写权限<a hidden class="anchor" aria-hidden="true" href="#重写权限">#</a></h2>
+<p>从AbstractUser的定义可以看到是继承了PermissionsMixin类的：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">AbstractUser</span><span style="color:#1f2328">(</span>AbstractBaseUser<span style="color:#1f2328">,</span> PermissionsMixin<span style="color:#1f2328">):</span>
+</span></span></code></pre></div><p>所以重写权限就是重写PermissionsMixin的属性和方法，如get_user_permissions()、has_perm()等。</p>
+<h2 id="一个完整示例">一个完整示例<a hidden class="anchor" aria-hidden="true" href="#一个完整示例">#</a></h2>
+<p>我们把email作为USERNAME_FIELD，并且让date_of_birth必填。</p>
+<p><strong>models.py</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.db</span> <span style="color:#cf222e">import</span> models
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> <span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    BaseUserManager<span style="color:#1f2328">,</span> AbstractBaseUser
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyUserManager</span><span style="color:#1f2328">(</span>BaseUserManager<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">create_user</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> email<span style="color:#1f2328">,</span> date_of_birth<span style="color:#1f2328">,</span> password<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        Creates and saves a User with the given email, date of
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        birth and password.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> email<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">raise</span> ValueError<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;Users must have an email address&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        user <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>model<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            email<span style="color:#0550ae">=</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>normalize_email<span style="color:#1f2328">(</span>email<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>            date_of_birth<span style="color:#0550ae">=</span>date_of_birth<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        user<span style="color:#0550ae">.</span>set_password<span style="color:#1f2328">(</span>password<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        user<span style="color:#0550ae">.</span>save<span style="color:#1f2328">(</span>using<span style="color:#0550ae">=</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>_db<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> user
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">create_superuser</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> email<span style="color:#1f2328">,</span> date_of_birth<span style="color:#1f2328">,</span> password<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        Creates and saves a superuser with the given email, date of
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        birth and password.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        user <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>create_user<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            email<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            password<span style="color:#0550ae">=</span>password<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            date_of_birth<span style="color:#0550ae">=</span>date_of_birth<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        user<span style="color:#0550ae">.</span>is_admin <span style="color:#0550ae">=</span> <span style="color:#cf222e">True</span>
+</span></span><span style="display:flex;"><span>        user<span style="color:#0550ae">.</span>save<span style="color:#1f2328">(</span>using<span style="color:#0550ae">=</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>_db<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> user
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyUser</span><span style="color:#1f2328">(</span>AbstractBaseUser<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    email <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>EmailField<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        verbose_name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;email address&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        max_length<span style="color:#0550ae">=</span><span style="color:#0550ae">255</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        unique<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    date_of_birth <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>DateField<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    is_active <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>BooleanField<span style="color:#1f2328">(</span>default<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    is_admin <span style="color:#0550ae">=</span> models<span style="color:#0550ae">.</span>BooleanField<span style="color:#1f2328">(</span>default<span style="color:#0550ae">=</span><span style="color:#cf222e">False</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    objects <span style="color:#0550ae">=</span> MyUserManager<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    USERNAME_FIELD <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;email&#39;</span>
+</span></span><span style="display:flex;"><span>    REQUIRED_FIELDS <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;date_of_birth&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__str__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>email
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">has_perm</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> perm<span style="color:#1f2328">,</span> obj<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;Does the user have a specific permission?&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># Simplest possible answer: Yes, always</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#cf222e">True</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">has_module_perms</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> app_label<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;Does the user have permissions to view the app `app_label`?&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># Simplest possible answer: Yes, always</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#cf222e">True</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@property</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">is_staff</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;Is the user a member of staff?&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># Simplest possible answer: All admins are staff</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>is_admin
+</span></span></code></pre></div><p>不要忘了在settings.py中修改AUTH_USER_MODEL哦：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>AUTH_USER_MODEL <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;customauth.MyUser&#39;</span>
+</span></span></code></pre></div><h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>写了这2篇关于Django认证系统的文章，明白了以前似懂非懂的技术细节。如果平时有需求想自己做个小网站，完全可以用Django来快速实现后端，开箱即用还是有点香。Template和Form不属于前后端分离的技术，在学习时可以选择性跳过。公众号后台回复“加群”,“Python互助讨论群”欢迎你。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://docs.djangoproject.com/en/3.1/topics/auth/customizing/">https://docs.djangoproject.com/en/3.1/topics/auth/customizing/</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/django/">Django</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000005-%E5%AD%97%E7%AC%A6%E9%9B%86%E5%85%B6%E5%AE%9E%E5%BE%88%E7%AE%80%E5%8D%95/">
+    <span class="title">« 上一页</span>
+    <span>字符集其实很简单</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000004-djangodjango%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E5%B9%B6%E4%B8%8D%E9%B8%A1%E8%82%8B%E5%8F%8D%E8%80%8C%E5%BE%88%E9%87%8D%E8%A6%81/">
+    <span class="title">下一页 »</span>
+    <span>Django认证系统并不鸡肋反而很重要</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#自定义认证后端">自定义认证后端</a>
+      <ul>
+        <li><a href="#authentication_backends">AUTHENTICATION_BACKENDS</a></li>
+        <li><a href="#编写认证后端">编写认证后端</a></li>
+        <li><a href="#自定义认证后端授权">自定义认证后端授权</a></li>
+      </ul>
+    </li>
+    <li><a href="#自定义新权限">自定义新权限</a></li>
+    <li><a href="#扩展user模型">扩展User模型</a>
+      <ul>
+        <li><a href="#代理模型">代理模型</a></li>
+        <li><a href="#onetoonefield">OneToOneField</a></li>
+      </ul>
+    </li>
+    <li><a href="#替换user模型">替换User模型</a>
+      <ul>
+        <li><a href="#继承abstractuser">继承AbstractUser</a></li>
+        <li><a href="#继承abstractbaseuser">继承AbstractBaseUser</a></li>
+        <li><a href="#重写manager">重写manager</a></li>
+        <li><a href="#重写权限">重写权限</a></li>
+        <li><a href="#一个完整示例">一个完整示例</a></li>
+      </ul>
+    </li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

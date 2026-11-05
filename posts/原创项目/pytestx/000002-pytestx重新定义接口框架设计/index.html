@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>pytestx重新定义接口框架设计 | 测试开发刚哥</title>
+<meta name="keywords" content="pytestx">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+概览
+脚手架：
+
+目录：
+
+用例代码：
+&#34;&#34;&#34;
+测试登录到下单流程，需要先启动后端服务
+&#34;&#34;&#34;
+
+test_data = {
+    &#34;查询SKU&#34;: {
+        &#34;skuName&#34;: &#34;电子书&#34;
+    },
+    &#34;添加购物车&#34;: {
+        &#34;skuId&#34;: 123,
+        &#34;skuNum&#34;: 2
+    },
+    &#34;下单&#34;: {
+        &#34;orderId&#34;: 222,
+        &#34;payAmount&#34;: &#34;0.2&#34;
+    },
+    &#34;支付&#34;: {
+        &#34;skuId&#34;: 123,
+        &#34;price&#34;: 0.1,
+        &#34;skuNum&#34;: 2,
+        &#34;totalPrice&#34;: 0.2
+    },
+}
+case_vars = dict()
+
+
+def test(http, login_headers, file_data):
+    # 搜索商品
+    url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/searchSku&#34;
+    body = test_data[&#34;查询SKU&#34;]
+
+    response = http(&#34;get&#34;, url=url, headers=login_headers, params=body)
+    assert response.status_code &lt; 400
+
+    case_vars[&#34;skuId&#34;] = response.jsonpath(&#34;$.skuId&#34;)
+    case_vars[&#34;skuPrice&#34;] = response.jsonpath(&#34;$.price&#34;)
+
+    # 添加购物车
+    url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/addCart&#34;
+    body = test_data[&#34;添加购物车&#34;]
+    body[&#34;skuId&#34;] = case_vars[&#34;skuId&#34;]
+
+    response = http(&#34;post&#34;, url=url, headers=login_headers, json=body)
+    assert response.status_code &lt; 400
+
+    case_vars[&#34;skuNum&#34;] = response.jsonpath(&#34;$.skuNum&#34;)
+    case_vars[&#34;totalPrice&#34;] = response.jsonpath(&#34;$.totalPrice&#34;)
+
+    # 下单
+    url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/order&#34;
+    body = test_data[&#34;下单&#34;]
+    body[&#34;skuId&#34;] = case_vars[&#34;skuId&#34;]
+    body[&#34;price&#34;] = case_vars[&#34;skuPrice&#34;]
+    body[&#34;skuNum&#34;] = case_vars[&#34;skuNum&#34;]
+    body[&#34;totalPrice&#34;] = case_vars[&#34;totalPrice&#34;]
+
+    response = http(&#34;post&#34;, url=url, headers=login_headers, json=body)
+    assert response.status_code &lt; 400
+
+    case_vars[&#34;orderId&#34;] = response.jsonpath(&#34;$.orderId&#34;)
+
+    # 支付
+    url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/pay&#34;
+    body = test_data[&#34;支付&#34;]
+    body[&#34;orderId&#34;] = case_vars[&#34;orderId&#34;]
+
+    response = http(&#34;post&#34;, url=url, headers=login_headers, json=body)
+    assert response.status_code &lt; 400
+    assert response.jsonpath(&#34;$.success&#34;) == &#34;true&#34;
+页面下载脚手架
+启动平台前后端服务后，从页面下载脚手架，平台会拉取开源项目tep-project最新代码，打成压缩包，生成下载文件，弹窗下载。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/pytestx/000002-pytestx%E9%87%8D%E6%96%B0%E5%AE%9A%E4%B9%89%E6%8E%A5%E5%8F%A3%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/pytestx/000002-pytestx%E9%87%8D%E6%96%B0%E5%AE%9A%E4%B9%89%E6%8E%A5%E5%8F%A3%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/pytestx/000002-pytestx%E9%87%8D%E6%96%B0%E5%AE%9A%E4%B9%89%E6%8E%A5%E5%8F%A3%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="pytestx重新定义接口框架设计">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+概览 脚手架：
+目录：
+用例代码：
+&#34;&#34;&#34; 测试登录到下单流程，需要先启动后端服务 &#34;&#34;&#34; test_data = { &#34;查询SKU&#34;: { &#34;skuName&#34;: &#34;电子书&#34; }, &#34;添加购物车&#34;: { &#34;skuId&#34;: 123, &#34;skuNum&#34;: 2 }, &#34;下单&#34;: { &#34;orderId&#34;: 222, &#34;payAmount&#34;: &#34;0.2&#34; }, &#34;支付&#34;: { &#34;skuId&#34;: 123, &#34;price&#34;: 0.1, &#34;skuNum&#34;: 2, &#34;totalPrice&#34;: 0.2 }, } case_vars = dict() def test(http, login_headers, file_data): # 搜索商品 url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/searchSku&#34; body = test_data[&#34;查询SKU&#34;] response = http(&#34;get&#34;, url=url, headers=login_headers, params=body) assert response.status_code &lt; 400 case_vars[&#34;skuId&#34;] = response.jsonpath(&#34;$.skuId&#34;) case_vars[&#34;skuPrice&#34;] = response.jsonpath(&#34;$.price&#34;) # 添加购物车 url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/addCart&#34; body = test_data[&#34;添加购物车&#34;] body[&#34;skuId&#34;] = case_vars[&#34;skuId&#34;] response = http(&#34;post&#34;, url=url, headers=login_headers, json=body) assert response.status_code &lt; 400 case_vars[&#34;skuNum&#34;] = response.jsonpath(&#34;$.skuNum&#34;) case_vars[&#34;totalPrice&#34;] = response.jsonpath(&#34;$.totalPrice&#34;) # 下单 url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/order&#34; body = test_data[&#34;下单&#34;] body[&#34;skuId&#34;] = case_vars[&#34;skuId&#34;] body[&#34;price&#34;] = case_vars[&#34;skuPrice&#34;] body[&#34;skuNum&#34;] = case_vars[&#34;skuNum&#34;] body[&#34;totalPrice&#34;] = case_vars[&#34;totalPrice&#34;] response = http(&#34;post&#34;, url=url, headers=login_headers, json=body) assert response.status_code &lt; 400 case_vars[&#34;orderId&#34;] = response.jsonpath(&#34;$.orderId&#34;) # 支付 url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/pay&#34; body = test_data[&#34;支付&#34;] body[&#34;orderId&#34;] = case_vars[&#34;orderId&#34;] response = http(&#34;post&#34;, url=url, headers=login_headers, json=body) assert response.status_code &lt; 400 assert response.jsonpath(&#34;$.success&#34;) == &#34;true&#34; 页面下载脚手架 启动平台前后端服务后，从页面下载脚手架，平台会拉取开源项目tep-project最新代码，打成压缩包，生成下载文件，弹窗下载。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-02T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-02T00:00:00+00:00">
+    <meta property="article:tag" content="Pytestx">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="pytestx重新定义接口框架设计">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+概览 脚手架：
+目录：
+用例代码：
+&#34;&#34;&#34; 测试登录到下单流程，需要先启动后端服务 &#34;&#34;&#34; test_data = { &#34;查询SKU&#34;: { &#34;skuName&#34;: &#34;电子书&#34; }, &#34;添加购物车&#34;: { &#34;skuId&#34;: 123, &#34;skuNum&#34;: 2 }, &#34;下单&#34;: { &#34;orderId&#34;: 222, &#34;payAmount&#34;: &#34;0.2&#34; }, &#34;支付&#34;: { &#34;skuId&#34;: 123, &#34;price&#34;: 0.1, &#34;skuNum&#34;: 2, &#34;totalPrice&#34;: 0.2 }, } case_vars = dict() def test(http, login_headers, file_data): # 搜索商品 url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/searchSku&#34; body = test_data[&#34;查询SKU&#34;] response = http(&#34;get&#34;, url=url, headers=login_headers, params=body) assert response.status_code &lt; 400 case_vars[&#34;skuId&#34;] = response.jsonpath(&#34;$.skuId&#34;) case_vars[&#34;skuPrice&#34;] = response.jsonpath(&#34;$.price&#34;) # 添加购物车 url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/addCart&#34; body = test_data[&#34;添加购物车&#34;] body[&#34;skuId&#34;] = case_vars[&#34;skuId&#34;] response = http(&#34;post&#34;, url=url, headers=login_headers, json=body) assert response.status_code &lt; 400 case_vars[&#34;skuNum&#34;] = response.jsonpath(&#34;$.skuNum&#34;) case_vars[&#34;totalPrice&#34;] = response.jsonpath(&#34;$.totalPrice&#34;) # 下单 url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/order&#34; body = test_data[&#34;下单&#34;] body[&#34;skuId&#34;] = case_vars[&#34;skuId&#34;] body[&#34;price&#34;] = case_vars[&#34;skuPrice&#34;] body[&#34;skuNum&#34;] = case_vars[&#34;skuNum&#34;] body[&#34;totalPrice&#34;] = case_vars[&#34;totalPrice&#34;] response = http(&#34;post&#34;, url=url, headers=login_headers, json=body) assert response.status_code &lt; 400 case_vars[&#34;orderId&#34;] = response.jsonpath(&#34;$.orderId&#34;) # 支付 url = file_data[&#34;domain&#34;] &#43; &#34;/api/tasks/mock/pay&#34; body = test_data[&#34;支付&#34;] body[&#34;orderId&#34;] = case_vars[&#34;orderId&#34;] response = http(&#34;post&#34;, url=url, headers=login_headers, json=body) assert response.status_code &lt; 400 assert response.jsonpath(&#34;$.success&#34;) == &#34;true&#34; 页面下载脚手架 启动平台前后端服务后，从页面下载脚手架，平台会拉取开源项目tep-project最新代码，打成压缩包，生成下载文件，弹窗下载。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "pytestx重新定义接口框架设计",
+      "item": "https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/pytestx/000002-pytestx%E9%87%8D%E6%96%B0%E5%AE%9A%E4%B9%89%E6%8E%A5%E5%8F%A3%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "pytestx重新定义接口框架设计",
+  "name": "pytestx重新定义接口框架设计",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n概览 脚手架：\n目录：\n用例代码：\n\u0026#34;\u0026#34;\u0026#34; 测试登录到下单流程，需要先启动后端服务 \u0026#34;\u0026#34;\u0026#34; test_data = { \u0026#34;查询SKU\u0026#34;: { \u0026#34;skuName\u0026#34;: \u0026#34;电子书\u0026#34; }, \u0026#34;添加购物车\u0026#34;: { \u0026#34;skuId\u0026#34;: 123, \u0026#34;skuNum\u0026#34;: 2 }, \u0026#34;下单\u0026#34;: { \u0026#34;orderId\u0026#34;: 222, \u0026#34;payAmount\u0026#34;: \u0026#34;0.2\u0026#34; }, \u0026#34;支付\u0026#34;: { \u0026#34;skuId\u0026#34;: 123, \u0026#34;price\u0026#34;: 0.1, \u0026#34;skuNum\u0026#34;: 2, \u0026#34;totalPrice\u0026#34;: 0.2 }, } case_vars = dict() def test(http, login_headers, file_data): # 搜索商品 url = file_data[\u0026#34;domain\u0026#34;] + \u0026#34;/api/tasks/mock/searchSku\u0026#34; body = test_data[\u0026#34;查询SKU\u0026#34;] response = http(\u0026#34;get\u0026#34;, url=url, headers=login_headers, params=body) assert response.status_code \u0026lt; 400 case_vars[\u0026#34;skuId\u0026#34;] = response.jsonpath(\u0026#34;$.skuId\u0026#34;) case_vars[\u0026#34;skuPrice\u0026#34;] = response.jsonpath(\u0026#34;$.price\u0026#34;) # 添加购物车 url = file_data[\u0026#34;domain\u0026#34;] + \u0026#34;/api/tasks/mock/addCart\u0026#34; body = test_data[\u0026#34;添加购物车\u0026#34;] body[\u0026#34;skuId\u0026#34;] = case_vars[\u0026#34;skuId\u0026#34;] response = http(\u0026#34;post\u0026#34;, url=url, headers=login_headers, json=body) assert response.status_code \u0026lt; 400 case_vars[\u0026#34;skuNum\u0026#34;] = response.jsonpath(\u0026#34;$.skuNum\u0026#34;) case_vars[\u0026#34;totalPrice\u0026#34;] = response.jsonpath(\u0026#34;$.totalPrice\u0026#34;) # 下单 url = file_data[\u0026#34;domain\u0026#34;] + \u0026#34;/api/tasks/mock/order\u0026#34; body = test_data[\u0026#34;下单\u0026#34;] body[\u0026#34;skuId\u0026#34;] = case_vars[\u0026#34;skuId\u0026#34;] body[\u0026#34;price\u0026#34;] = case_vars[\u0026#34;skuPrice\u0026#34;] body[\u0026#34;skuNum\u0026#34;] = case_vars[\u0026#34;skuNum\u0026#34;] body[\u0026#34;totalPrice\u0026#34;] = case_vars[\u0026#34;totalPrice\u0026#34;] response = http(\u0026#34;post\u0026#34;, url=url, headers=login_headers, json=body) assert response.status_code \u0026lt; 400 case_vars[\u0026#34;orderId\u0026#34;] = response.jsonpath(\u0026#34;$.orderId\u0026#34;) # 支付 url = file_data[\u0026#34;domain\u0026#34;] + \u0026#34;/api/tasks/mock/pay\u0026#34; body = test_data[\u0026#34;支付\u0026#34;] body[\u0026#34;orderId\u0026#34;] = case_vars[\u0026#34;orderId\u0026#34;] response = http(\u0026#34;post\u0026#34;, url=url, headers=login_headers, json=body) assert response.status_code \u0026lt; 400 assert response.jsonpath(\u0026#34;$.success\u0026#34;) == \u0026#34;true\u0026#34; 页面下载脚手架 启动平台前后端服务后，从页面下载脚手架，平台会拉取开源项目tep-project最新代码，打成压缩包，生成下载文件，弹窗下载。\n",
+  "keywords": [
+    "pytestx"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n概览 脚手架：\n目录：\n用例代码：\n\"\"\" 测试登录到下单流程，需要先启动后端服务 \"\"\" test_data = { \"查询SKU\": { \"skuName\": \"电子书\" }, \"添加购物车\": { \"skuId\": 123, \"skuNum\": 2 }, \"下单\": { \"orderId\": 222, \"payAmount\": \"0.2\" }, \"支付\": { \"skuId\": 123, \"price\": 0.1, \"skuNum\": 2, \"totalPrice\": 0.2 }, } case_vars = dict() def test(http, login_headers, file_data): # 搜索商品 url = file_data[\"domain\"] + \"/api/tasks/mock/searchSku\" body = test_data[\"查询SKU\"] response = http(\"get\", url=url, headers=login_headers, params=body) assert response.status_code \u003c 400 case_vars[\"skuId\"] = response.jsonpath(\"$.skuId\") case_vars[\"skuPrice\"] = response.jsonpath(\"$.price\") # 添加购物车 url = file_data[\"domain\"] + \"/api/tasks/mock/addCart\" body = test_data[\"添加购物车\"] body[\"skuId\"] = case_vars[\"skuId\"] response = http(\"post\", url=url, headers=login_headers, json=body) assert response.status_code \u003c 400 case_vars[\"skuNum\"] = response.jsonpath(\"$.skuNum\") case_vars[\"totalPrice\"] = response.jsonpath(\"$.totalPrice\") # 下单 url = file_data[\"domain\"] + \"/api/tasks/mock/order\" body = test_data[\"下单\"] body[\"skuId\"] = case_vars[\"skuId\"] body[\"price\"] = case_vars[\"skuPrice\"] body[\"skuNum\"] = case_vars[\"skuNum\"] body[\"totalPrice\"] = case_vars[\"totalPrice\"] response = http(\"post\", url=url, headers=login_headers, json=body) assert response.status_code \u003c 400 case_vars[\"orderId\"] = response.jsonpath(\"$.orderId\") # 支付 url = file_data[\"domain\"] + \"/api/tasks/mock/pay\" body = test_data[\"支付\"] body[\"orderId\"] = case_vars[\"orderId\"] response = http(\"post\", url=url, headers=login_headers, json=body) assert response.status_code \u003c 400 assert response.jsonpath(\"$.success\") == \"true\" 页面下载脚手架 启动平台前后端服务后，从页面下载脚手架，平台会拉取开源项目tep-project最新代码，打成压缩包，生成下载文件，弹窗下载。\n备注：tep startproject demo使用的已封版的1.0.0版本，新框架请访问开源项目tep-project，或者开源平台pytestx\n精简目录 目录直观上非常精简，得益于去掉了环境变量、函数等目录，聚焦三大目录：\nfixtures\nresources\ntests\n重度使用fixture fixture原本只能在conftest定义，借助pytest插件扩展识别fixtures目录：\n#!/usr/bin/python ## encoding=utf-8 \"\"\" @Author : dongfanger @Date : 8/14/2020 9:16 AM @Desc : 插件 \"\"\" import os BASE_DIR = os.path.dirname(os.path.abspath(__file__)) RESOURCE_PATH = os.path.join(BASE_DIR, \"resources\") def fixture_paths(): \"\"\" fixture路径，1、项目下的fixtures；2、tep下的fixture； :return: \"\"\" _fixtures_dir = os.path.join(BASE_DIR, \"fixtures\") paths = [] # 项目下的fixtures for root, _, files in os.walk(_fixtures_dir): for file in files: if file.startswith(\"fixture_\") and file.endswith(\".py\"): full_path = os.path.join(root, file) import_path = full_path.replace(_fixtures_dir, \"\").replace(\"\\\\\", \".\") import_path = import_path.replace(\"/\", \".\").replace(\".py\", \"\") paths.append(\"fixtures\" + import_path) return paths pytest_plugins = fixture_paths() # +[其他插件] conftest.py的fixture全部转移至fixtures目录定义。\n公共函数消失，统统通过fixture来实现，依赖注入。\n包括requests.request封装\n#!/usr/bin/python ## encoding=utf-8 import decimal import json import time import jsonpath import pytest import requests import urllib3 from loguru import logger from requests import Response urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning) class TepResponse(Response): \"\"\" 二次封装requests.Response，添加额外方法 \"\"\" def __init__(self, response): super().__init__() for k, v in response.__dict__.items(): self.__dict__[k] = v def jsonpath(self, expr): \"\"\" 此处强制取第一个值，便于简单取值 如果复杂取值，建议直接jsonpath原生用法 \"\"\" return jsonpath.jsonpath(self.json(), expr)[0] @pytest.fixture(scope=\"session\") def http(): def inner(method, url, **kwargs): template = \"\"\"\\n Request URL: {} Request Method: {} Request Headers: {} Request Payload: {} Status Code: {} Response: {} Elapsed: {} \"\"\" start = time.process_time() response = requests.request(method, url, **kwargs) # requests.request原生用法 end = time.process_time() elapsed = str(decimal.Decimal(\"%.3f\" % float(end - start))) + \"s\" headers = kwargs.get(\"headers\", {}) kwargs.pop(\"headers\") payload = kwargs log = template.format(url, method, json.dumps(headers), json.dumps(payload), response.status_code, response.text, elapsed) logger.info(log) return TepResponse(response) return inner 只是名字换成了http：\nhttp(\"post\", url=url, headers=login_headers, json=body) 因为request是fixture保留关键字。\n数据分离 数据支持从文件读取，当然这也是一个fixture：\nimport json import os import pytest import yaml from conftest import RESOURCE_PATH class Resource: def __init__(self, path): self.path = path def get_data(self): file_type = self._get_file_type() if file_type in [\".yml\", \".yaml\", \".YML\", \"YAML\"]: return self._get_yaml_file_data() if file_type in [\".json\", \".JSON\"]: return self._get_json_file_data() def _get_file_type(self): return os.path.splitext(self.path)[-1] def _get_yaml_file_data(self): with open(self.path, encoding=\"utf8\") as f: return yaml.load(f.read(), Loader=yaml.FullLoader) def _get_json_file_data(self): with open(self.path, encoding=\"utf8\") as f: return json.load(f) @pytest.fixture(scope=\"session\") def file_data(): file_path = os.path.join(RESOURCE_PATH, \"demo.yaml\") return Resource(file_path).get_data() 也可以放在用例文件中。为什么？“只改数据不动用例代码”，如果没有这种情况，请毫不犹豫将数据放到用例文件中，不要从excel、yaml读取数据，增加无意义的中间转换。从流量回放替代自动化的趋势来看，数据和用例作为整体来维护和运行，会越来越普遍。在使用低代码平台时，测试数据也是写在用例里面，只有少量的公共信息，会抽出来作为变量。测试技术在发展，只有符合当前实际使用需要的，才是最好的。\n用例设计 约定大于配置：\n数据区域、用例区域分离\n用例由步骤组成\n步骤分为前置条件、用例体、断言、数据提取\n数据区域，接口入参、用例中间变量等：\ntest_data = { \"查询SKU\": { \"skuName\": \"电子书\" }, \"添加购物车\": { \"skuId\": 123, \"skuNum\": 2 }, \"下单\": { \"orderId\": 222, \"payAmount\": \"0.2\" }, \"支付\": { \"skuId\": 123, \"price\": 0.1, \"skuNum\": 2, \"totalPrice\": 0.2 }, } case_vars = dict() 用例定义，test函数，fixture引用：\ndef test(http, login_headers, file_data): 步骤：\n## 搜索商品 url = file_data[\"domain\"] + \"/api/tasks/mock/searchSku\" body = test_data[\"查询SKU\"] response = http(\"get\", url=url, headers=login_headers, params=body) assert response.status_code \u003c 400 case_vars[\"skuId\"] = response.jsonpath(\"$.skuId\") case_vars[\"skuPrice\"] = response.jsonpath(\"$.price\") 每个用例文件单独可运行。不存在用例依赖，复用步骤封装为fixture，以依赖注入方式在各用例中复用。用例一定要解耦，这在任务调度时非常重要。\n总结，重新定义目录，重新定义用例组织，重新定义fixture，减少过程代码，专注于用例编写，轻松上手pytest。\n跟着pytestx学习接口自动化框架设计，更简单，更稳定，更高效。\nhttps://github.com/dongfanger/pytestx\nhttps://gitee.com/dongfanger/tep-project\n",
+  "wordCount" : "548",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-02T00:00:00Z",
+  "dateModified": "2026-01-02T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/pytestx/000002-pytestx%E9%87%8D%E6%96%B0%E5%AE%9A%E4%B9%89%E6%8E%A5%E5%8F%A3%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      pytestx重新定义接口框架设计
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-02T00:00:00+00:00'>2026-01-02</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>548 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/'>原创项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/pytestx/'>#Pytestx</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="概览">概览<a hidden class="anchor" aria-hidden="true" href="#概览">#</a></h1>
+<p>脚手架：</p>
+<p><img loading="lazy" src="../assets/aefec433fde14d39abde74206ab83341.png"></p>
+<p>目录：</p>
+<p><img loading="lazy" src="../assets/d271b2542dab494595723669cc50dd81.png"></p>
+<p>用例代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">测试登录到下单流程，需要先启动后端服务
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>test_data <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;查询SKU&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuName&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;电子书&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;添加购物车&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">123</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;下单&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">222</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;payAmount&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;0.2&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;支付&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">123</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;price&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">0.1</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">2</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">0.2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>case_vars <span style="color:#0550ae">=</span> <span style="color:#6639ba">dict</span><span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">(</span>http<span style="color:#1f2328">,</span> login_headers<span style="color:#1f2328">,</span> file_data<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 搜索商品</span>
+</span></span><span style="display:flex;"><span>    url <span style="color:#0550ae">=</span> file_data<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/api/tasks/mock/searchSku&#34;</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> test_data<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;查询SKU&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> http<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;get&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>login_headers<span style="color:#1f2328">,</span> params<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.skuId&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuPrice&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.price&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 添加购物车</span>
+</span></span><span style="display:flex;"><span>    url <span style="color:#0550ae">=</span> file_data<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/api/tasks/mock/addCart&#34;</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> test_data<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;添加购物车&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> http<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>login_headers<span style="color:#1f2328">,</span> json<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.skuNum&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.totalPrice&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 下单</span>
+</span></span><span style="display:flex;"><span>    url <span style="color:#0550ae">=</span> file_data<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/api/tasks/mock/order&#34;</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> test_data<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;下单&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;price&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuPrice&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> http<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>login_headers<span style="color:#1f2328">,</span> json<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.orderId&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 支付</span>
+</span></span><span style="display:flex;"><span>    url <span style="color:#0550ae">=</span> file_data<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/api/tasks/mock/pay&#34;</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> test_data<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;支付&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> http<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>login_headers<span style="color:#1f2328">,</span> json<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.success&#34;</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;true&#34;</span>
+</span></span></code></pre></div><h1 id="页面下载脚手架">页面下载脚手架<a hidden class="anchor" aria-hidden="true" href="#页面下载脚手架">#</a></h1>
+<p>启动平台前后端服务后，从页面下载脚手架，平台会拉取开源项目tep-project最新代码，打成压缩包，生成下载文件，弹窗下载。</p>
+<p>备注：<code>tep startproject demo</code>使用的已封版的1.0.0版本，新框架请访问开源项目tep-project，或者开源平台pytestx</p>
+<h1 id="精简目录">精简目录<a hidden class="anchor" aria-hidden="true" href="#精简目录">#</a></h1>
+<p>目录直观上非常精简，得益于去掉了环境变量、函数等目录，聚焦三大目录：</p>
+<ul>
+<li>
+<p>fixtures</p>
+</li>
+<li>
+<p>resources</p>
+</li>
+<li>
+<p>tests</p>
+</li>
+</ul>
+<h1 id="重度使用fixture">重度使用fixture<a hidden class="anchor" aria-hidden="true" href="#重度使用fixture">#</a></h1>
+<p>fixture原本只能在conftest定义，借助pytest插件扩展识别fixtures目录：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">#!/usr/bin/python</span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## encoding=utf-8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">@Author  :  dongfanger
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">@Date    :  8/14/2020 9:16 AM
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">@Desc    :  插件
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">os</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>BASE_DIR <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>dirname<span style="color:#1f2328">(</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>abspath<span style="color:#1f2328">(</span><span style="color:#953800">__file__</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>RESOURCE_PATH <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>BASE_DIR<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;resources&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">fixture_paths</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    fixture路径，1、项目下的fixtures；2、tep下的fixture；
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    :return:
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    _fixtures_dir <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>BASE_DIR<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;fixtures&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    paths <span style="color:#0550ae">=</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 项目下的fixtures</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> root<span style="color:#1f2328">,</span> _<span style="color:#1f2328">,</span> files <span style="color:#0550ae">in</span> os<span style="color:#0550ae">.</span>walk<span style="color:#1f2328">(</span>_fixtures_dir<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> file <span style="color:#0550ae">in</span> files<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">if</span> file<span style="color:#0550ae">.</span>startswith<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;fixture_&#34;</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">and</span> file<span style="color:#0550ae">.</span>endswith<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;.py&#34;</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>                full_path <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>root<span style="color:#1f2328">,</span> file<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                import_path <span style="color:#0550ae">=</span> full_path<span style="color:#0550ae">.</span>replace<span style="color:#1f2328">(</span>_fixtures_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">)</span><span style="color:#0550ae">.</span>replace<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">\\</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                import_path <span style="color:#0550ae">=</span> import_path<span style="color:#0550ae">.</span>replace<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.&#34;</span><span style="color:#1f2328">)</span><span style="color:#0550ae">.</span>replace<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;.py&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                paths<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;fixtures&#34;</span> <span style="color:#0550ae">+</span> import_path<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> paths
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pytest_plugins <span style="color:#0550ae">=</span> fixture_paths<span style="color:#1f2328">()</span>  <span style="color:#57606a"># +[其他插件]</span>
+</span></span></code></pre></div><p>conftest.py的fixture全部转移至fixtures目录定义。</p>
+<p>公共函数消失，统统通过fixture来实现，依赖注入。</p>
+<p>包括requests.request封装</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">#!/usr/bin/python</span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## encoding=utf-8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">decimal</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">json</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">time</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">jsonpath</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">requests</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">urllib3</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">loguru</span> <span style="color:#cf222e">import</span> logger
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">requests</span> <span style="color:#cf222e">import</span> Response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>urllib3<span style="color:#0550ae">.</span>disable_warnings<span style="color:#1f2328">(</span>urllib3<span style="color:#0550ae">.</span>exceptions<span style="color:#0550ae">.</span>InsecureRequestWarning<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TepResponse</span><span style="color:#1f2328">(</span>Response<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    二次封装requests.Response，添加额外方法
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> response<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">super</span><span style="color:#1f2328">()</span><span style="color:#0550ae">.</span><span style="color:#6639ba">__init__</span><span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> k<span style="color:#1f2328">,</span> v <span style="color:#0550ae">in</span> response<span style="color:#0550ae">.</span><span style="color:#953800">__dict__</span><span style="color:#0550ae">.</span>items<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span><span style="color:#953800">__dict__</span><span style="color:#1f2328">[</span>k<span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> v
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">jsonpath</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> expr<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        此处强制取第一个值，便于简单取值
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        如果复杂取值，建议直接jsonpath原生用法
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> jsonpath<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>json<span style="color:#1f2328">(),</span> expr<span style="color:#1f2328">)[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;session&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">http</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">inner</span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">,</span> url<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        template <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;&#34;&#34;</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Request URL: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Request Method: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Request Headers: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Request Payload: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Status Code: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Response: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Elapsed: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        start <span style="color:#0550ae">=</span> time<span style="color:#0550ae">.</span>process_time<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> requests<span style="color:#0550ae">.</span>request<span style="color:#1f2328">(</span>method<span style="color:#1f2328">,</span> url<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>  <span style="color:#57606a"># requests.request原生用法</span>
+</span></span><span style="display:flex;"><span>        end <span style="color:#0550ae">=</span> time<span style="color:#0550ae">.</span>process_time<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        elapsed <span style="color:#0550ae">=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>decimal<span style="color:#0550ae">.</span>Decimal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">%.3f</span><span style="color:#0a3069">&#34;</span> <span style="color:#0550ae">%</span> <span style="color:#6639ba">float</span><span style="color:#1f2328">(</span>end <span style="color:#0550ae">-</span> start<span style="color:#1f2328">)))</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;s&#34;</span>
+</span></span><span style="display:flex;"><span>        headers <span style="color:#0550ae">=</span> kwargs<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;headers&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">{})</span>
+</span></span><span style="display:flex;"><span>        kwargs<span style="color:#0550ae">.</span>pop<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;headers&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#0550ae">=</span> kwargs
+</span></span><span style="display:flex;"><span>        log <span style="color:#0550ae">=</span> template<span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>url<span style="color:#1f2328">,</span> method<span style="color:#1f2328">,</span> json<span style="color:#0550ae">.</span>dumps<span style="color:#1f2328">(</span>headers<span style="color:#1f2328">),</span> json<span style="color:#0550ae">.</span>dumps<span style="color:#1f2328">(</span>payload<span style="color:#1f2328">),</span> response<span style="color:#0550ae">.</span>status_code<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                              response<span style="color:#0550ae">.</span>text<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                              elapsed<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span>log<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> TepResponse<span style="color:#1f2328">(</span>response<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> inner
+</span></span></code></pre></div><p>只是名字换成了http：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>http<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>login_headers<span style="color:#1f2328">,</span> json<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>因为request是fixture保留关键字。</p>
+<h1 id="数据分离">数据分离<a hidden class="anchor" aria-hidden="true" href="#数据分离">#</a></h1>
+<p>数据支持从文件读取，当然这也是一个fixture：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">json</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">os</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">yaml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">conftest</span> <span style="color:#cf222e">import</span> RESOURCE_PATH
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Resource</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> path<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>path <span style="color:#0550ae">=</span> path
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get_data</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        file_type <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>_get_file_type<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> file_type <span style="color:#0550ae">in</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;.yml&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.yaml&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.YML&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;YAML&#34;</span><span style="color:#1f2328">]:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>_get_yaml_file_data<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> file_type <span style="color:#0550ae">in</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;.json&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.JSON&#34;</span><span style="color:#1f2328">]:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>_get_json_file_data<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">_get_file_type</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>splitext<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>path<span style="color:#1f2328">)[</span><span style="color:#0550ae">-</span><span style="color:#0550ae">1</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">_get_yaml_file_data</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">with</span> <span style="color:#6639ba">open</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>path<span style="color:#1f2328">,</span> encoding<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;utf8&#34;</span><span style="color:#1f2328">)</span> <span style="color:#cf222e">as</span> f<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> yaml<span style="color:#0550ae">.</span>load<span style="color:#1f2328">(</span>f<span style="color:#0550ae">.</span>read<span style="color:#1f2328">(),</span> Loader<span style="color:#0550ae">=</span>yaml<span style="color:#0550ae">.</span>FullLoader<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">_get_json_file_data</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">with</span> <span style="color:#6639ba">open</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>path<span style="color:#1f2328">,</span> encoding<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;utf8&#34;</span><span style="color:#1f2328">)</span> <span style="color:#cf222e">as</span> f<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> json<span style="color:#0550ae">.</span>load<span style="color:#1f2328">(</span>f<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;session&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">file_data</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    file_path <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>RESOURCE_PATH<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;demo.yaml&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> Resource<span style="color:#1f2328">(</span>file_path<span style="color:#1f2328">)</span><span style="color:#0550ae">.</span>get_data<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>也可以放在用例文件中。为什么？“只改数据不动用例代码”，如果没有这种情况，请毫不犹豫将数据放到用例文件中，不要从excel、yaml读取数据，增加无意义的中间转换。从流量回放替代自动化的趋势来看，数据和用例作为整体来维护和运行，会越来越普遍。在使用低代码平台时，测试数据也是写在用例里面，只有少量的公共信息，会抽出来作为变量。<strong>测试技术在发展，只有符合当前实际使用需要的，才是最好的。</strong></p>
+<h1 id="用例设计">用例设计<a hidden class="anchor" aria-hidden="true" href="#用例设计">#</a></h1>
+<p>约定大于配置：</p>
+<ul>
+<li>
+<p>数据区域、用例区域分离</p>
+</li>
+<li>
+<p>用例由步骤组成</p>
+</li>
+<li>
+<p>步骤分为前置条件、用例体、断言、数据提取</p>
+</li>
+</ul>
+<p>数据区域，接口入参、用例中间变量等：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>test_data <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;查询SKU&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuName&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;电子书&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;添加购物车&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">123</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;下单&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">222</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;payAmount&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;0.2&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;支付&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">123</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;price&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">0.1</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">2</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">0.2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>case_vars <span style="color:#0550ae">=</span> <span style="color:#6639ba">dict</span><span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>用例定义，test函数，fixture引用：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">(</span>http<span style="color:#1f2328">,</span> login_headers<span style="color:#1f2328">,</span> file_data<span style="color:#1f2328">):</span>
+</span></span></code></pre></div><p>步骤：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## 搜索商品</span>
+</span></span><span style="display:flex;"><span>url <span style="color:#0550ae">=</span> file_data<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/api/tasks/mock/searchSku&#34;</span>
+</span></span><span style="display:flex;"><span>body <span style="color:#0550ae">=</span> test_data<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;查询SKU&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>response <span style="color:#0550ae">=</span> http<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;get&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>login_headers<span style="color:#1f2328">,</span> params<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.skuId&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>case_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuPrice&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.price&#34;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p><strong>每个用例文件单独可运行</strong>。不存在用例依赖，复用步骤封装为fixture，以依赖注入方式在各用例中复用。用例一定要解耦，这在任务调度时非常重要。</p>
+<p><img loading="lazy" src="../assets/e93b809f7fa641e88b90d5e0210d559a.png"></p>
+<p>总结，重新定义目录，重新定义用例组织，重新定义fixture，减少过程代码，专注于用例编写，轻松上手pytest。</p>
+<p>跟着pytestx学习接口自动化框架设计，更简单，更稳定，更高效。</p>
+<p><a href="https://github.com/dongfanger/pytestx">https://github.com/dongfanger/pytestx</a></p>
+<p><a href="https://gitee.com/dongfanger/tep-project">https://gitee.com/dongfanger/tep-project</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/pytestx/">Pytestx</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/pytest/000002-pytestpytest132%E4%B8%AA%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E7%94%A8%E6%B3%95/">
+    <span class="title">« 上一页</span>
+    <span>pytest132个命令行参数用法</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/flask/000002-flaskpython%E5%BE%AE%E5%9E%8Bweb%E6%A1%86%E6%9E%B6flask%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/">
+    <span class="title">下一页 »</span>
+    <span>Python微型Web框架Flask快速入门</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#概览">概览</a></li>
+    <li><a href="#页面下载脚手架">页面下载脚手架</a></li>
+    <li><a href="#精简目录">精简目录</a></li>
+    <li><a href="#重度使用fixture">重度使用fixture</a></li>
+    <li><a href="#数据分离">数据分离</a></li>
+    <li><a href="#用例设计">用例设计</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

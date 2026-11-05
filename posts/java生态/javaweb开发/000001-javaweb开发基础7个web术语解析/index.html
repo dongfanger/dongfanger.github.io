@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JavaWeb开发基础7个Web术语解析 | 测试开发刚哥</title>
+<meta name="keywords" content="JavaWeb开发">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+7个Web术语
+
+
+Website: static vs dynamic
+
+
+HTTP
+
+
+HTTP Requests
+
+
+GET vs POST
+
+
+Servlet Container
+
+
+Server: Web vs Application
+
+
+Content Type
+
+
+Website: static vs dynamic
+网站内容包括文本、图片、音频、视频，通过URL来访问。网站分为静态网站和动态网站。
+静态网站
+
+静态网站是用HTML编写的，所有内容都包含在网页内，就像是打印出来的一样。
+动态网站
+
+动态网站分为客户端和服务端，内容是可以动态变化的，可以根据用户请求动态更新网页内容。服务端语言有Servlet、ASP.NET等。
+HTTP
+
+HTTP是Hypertext Transfer Protocol缩写，超文本传输协议，位于OSI网络分层模型的应用层（第七层）。
+
+超文本（Hypertext）是一种文本形式，它不仅包含普通的文本内容，还包含了可以链接到其他文本或资源的元素。这些链接通常称为“超链接”（Hyperlinks）。超文本的概念由Ted Nelson在1960年代提出，并在万维网（World Wide Web）的发展中得到了广泛应用。
+
+HTTP具有以下特点：
+
+
+media independent：支持任何类型的媒体内容
+
+
+connectionless：无连接，客户端发送请求后，就断开了连接
+
+
+stateless：无状态，服务端不会保留客户端请求的状态，不知道谁是谁
+
+
+HTTP是基于TCP/IP协议的，通过TCP建立可靠连接。为什么说HTTP是无连接的，但又是基于TCP可靠连接的？如果想要可靠地传输数据，那么就必须要有稳定可靠的连接，保证数据不丢失，这个连接就是TCP连接。HTTP正是通过TCP连接来发送和接收数据的。
+在HTTP/1.0中，每次请求都会建立一个新的TCP连接，完成请求后立即关闭连接。在HTTP/1.1中，引入了持久连接，允许多个请求/响应在同一个TCP连接上进行，但每个请求/响应对话仍然是独立的。HTTP/1.1是持久连接，那么还能叫做无连接吗？是的，仍然是无连接。持久连接是通过 Connection: keep-alive 头部实现的，允许连接在一段时间内保持打开状态，不需要重新建立和关闭连接。无连接的本质是每个请求/响应对话都是独立的，强调的是独立。
+HTTP Requests
+HTTP请求是客户端发送给服务端的请求，包含以下内容：
+
+
+The Request-line（请求行）
+The analysis of source IP address, proxy and port（源信息）
+The analysis of destination IP address, protocol, port and host（目标信息）
+The Requested URI (Uniform Resource Identifier)（链接）
+The Request method and Content（方法和内容）
+The User-Agent header（请求头）
+The Connection control header（请求头）
+The Cache control header（请求头）
+
+可以在浏览器中通过F12开发者工具，查看HTTP请求信息。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000001-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%807%E4%B8%AAweb%E6%9C%AF%E8%AF%AD%E8%A7%A3%E6%9E%90/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000001-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%807%E4%B8%AAweb%E6%9C%AF%E8%AF%AD%E8%A7%A3%E6%9E%90/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000001-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%807%E4%B8%AAweb%E6%9C%AF%E8%AF%AD%E8%A7%A3%E6%9E%90/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JavaWeb开发基础7个Web术语解析">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+7个Web术语 Website: static vs dynamic
+HTTP
+HTTP Requests
+GET vs POST
+Servlet Container
+Server: Web vs Application
+Content Type
+Website: static vs dynamic 网站内容包括文本、图片、音频、视频，通过URL来访问。网站分为静态网站和动态网站。
+静态网站
+静态网站是用HTML编写的，所有内容都包含在网页内，就像是打印出来的一样。
+动态网站
+动态网站分为客户端和服务端，内容是可以动态变化的，可以根据用户请求动态更新网页内容。服务端语言有Servlet、ASP.NET等。
+HTTP HTTP是Hypertext Transfer Protocol缩写，超文本传输协议，位于OSI网络分层模型的应用层（第七层）。
+超文本（Hypertext）是一种文本形式，它不仅包含普通的文本内容，还包含了可以链接到其他文本或资源的元素。这些链接通常称为“超链接”（Hyperlinks）。超文本的概念由Ted Nelson在1960年代提出，并在万维网（World Wide Web）的发展中得到了广泛应用。
+HTTP具有以下特点：
+media independent：支持任何类型的媒体内容
+connectionless：无连接，客户端发送请求后，就断开了连接
+stateless：无状态，服务端不会保留客户端请求的状态，不知道谁是谁
+HTTP是基于TCP/IP协议的，通过TCP建立可靠连接。为什么说HTTP是无连接的，但又是基于TCP可靠连接的？如果想要可靠地传输数据，那么就必须要有稳定可靠的连接，保证数据不丢失，这个连接就是TCP连接。HTTP正是通过TCP连接来发送和接收数据的。
+在HTTP/1.0中，每次请求都会建立一个新的TCP连接，完成请求后立即关闭连接。在HTTP/1.1中，引入了持久连接，允许多个请求/响应在同一个TCP连接上进行，但每个请求/响应对话仍然是独立的。HTTP/1.1是持久连接，那么还能叫做无连接吗？是的，仍然是无连接。持久连接是通过 Connection: keep-alive 头部实现的，允许连接在一段时间内保持打开状态，不需要重新建立和关闭连接。无连接的本质是每个请求/响应对话都是独立的，强调的是独立。
+HTTP Requests HTTP请求是客户端发送给服务端的请求，包含以下内容：
+The Request-line（请求行） The analysis of source IP address, proxy and port（源信息） The analysis of destination IP address, protocol, port and host（目标信息） The Requested URI (Uniform Resource Identifier)（链接） The Request method and Content（方法和内容） The User-Agent header（请求头） The Connection control header（请求头） The Cache control header（请求头） 可以在浏览器中通过F12开发者工具，查看HTTP请求信息。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:tag" content="JavaWeb开发">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JavaWeb开发基础7个Web术语解析">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+7个Web术语 Website: static vs dynamic
+HTTP
+HTTP Requests
+GET vs POST
+Servlet Container
+Server: Web vs Application
+Content Type
+Website: static vs dynamic 网站内容包括文本、图片、音频、视频，通过URL来访问。网站分为静态网站和动态网站。
+静态网站
+静态网站是用HTML编写的，所有内容都包含在网页内，就像是打印出来的一样。
+动态网站
+动态网站分为客户端和服务端，内容是可以动态变化的，可以根据用户请求动态更新网页内容。服务端语言有Servlet、ASP.NET等。
+HTTP HTTP是Hypertext Transfer Protocol缩写，超文本传输协议，位于OSI网络分层模型的应用层（第七层）。
+超文本（Hypertext）是一种文本形式，它不仅包含普通的文本内容，还包含了可以链接到其他文本或资源的元素。这些链接通常称为“超链接”（Hyperlinks）。超文本的概念由Ted Nelson在1960年代提出，并在万维网（World Wide Web）的发展中得到了广泛应用。
+HTTP具有以下特点：
+media independent：支持任何类型的媒体内容
+connectionless：无连接，客户端发送请求后，就断开了连接
+stateless：无状态，服务端不会保留客户端请求的状态，不知道谁是谁
+HTTP是基于TCP/IP协议的，通过TCP建立可靠连接。为什么说HTTP是无连接的，但又是基于TCP可靠连接的？如果想要可靠地传输数据，那么就必须要有稳定可靠的连接，保证数据不丢失，这个连接就是TCP连接。HTTP正是通过TCP连接来发送和接收数据的。
+在HTTP/1.0中，每次请求都会建立一个新的TCP连接，完成请求后立即关闭连接。在HTTP/1.1中，引入了持久连接，允许多个请求/响应在同一个TCP连接上进行，但每个请求/响应对话仍然是独立的。HTTP/1.1是持久连接，那么还能叫做无连接吗？是的，仍然是无连接。持久连接是通过 Connection: keep-alive 头部实现的，允许连接在一段时间内保持打开状态，不需要重新建立和关闭连接。无连接的本质是每个请求/响应对话都是独立的，强调的是独立。
+HTTP Requests HTTP请求是客户端发送给服务端的请求，包含以下内容：
+The Request-line（请求行） The analysis of source IP address, proxy and port（源信息） The analysis of destination IP address, protocol, port and host（目标信息） The Requested URI (Uniform Resource Identifier)（链接） The Request method and Content（方法和内容） The User-Agent header（请求头） The Connection control header（请求头） The Cache control header（请求头） 可以在浏览器中通过F12开发者工具，查看HTTP请求信息。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JavaWeb开发基础7个Web术语解析",
+      "item": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000001-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%807%E4%B8%AAweb%E6%9C%AF%E8%AF%AD%E8%A7%A3%E6%9E%90/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JavaWeb开发基础7个Web术语解析",
+  "name": "JavaWeb开发基础7个Web术语解析",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n7个Web术语 Website: static vs dynamic\nHTTP\nHTTP Requests\nGET vs POST\nServlet Container\nServer: Web vs Application\nContent Type\nWebsite: static vs dynamic 网站内容包括文本、图片、音频、视频，通过URL来访问。网站分为静态网站和动态网站。\n静态网站\n静态网站是用HTML编写的，所有内容都包含在网页内，就像是打印出来的一样。\n动态网站\n动态网站分为客户端和服务端，内容是可以动态变化的，可以根据用户请求动态更新网页内容。服务端语言有Servlet、ASP.NET等。\nHTTP HTTP是Hypertext Transfer Protocol缩写，超文本传输协议，位于OSI网络分层模型的应用层（第七层）。\n超文本（Hypertext）是一种文本形式，它不仅包含普通的文本内容，还包含了可以链接到其他文本或资源的元素。这些链接通常称为“超链接”（Hyperlinks）。超文本的概念由Ted Nelson在1960年代提出，并在万维网（World Wide Web）的发展中得到了广泛应用。\nHTTP具有以下特点：\nmedia independent：支持任何类型的媒体内容\nconnectionless：无连接，客户端发送请求后，就断开了连接\nstateless：无状态，服务端不会保留客户端请求的状态，不知道谁是谁\nHTTP是基于TCP/IP协议的，通过TCP建立可靠连接。为什么说HTTP是无连接的，但又是基于TCP可靠连接的？如果想要可靠地传输数据，那么就必须要有稳定可靠的连接，保证数据不丢失，这个连接就是TCP连接。HTTP正是通过TCP连接来发送和接收数据的。\n在HTTP/1.0中，每次请求都会建立一个新的TCP连接，完成请求后立即关闭连接。在HTTP/1.1中，引入了持久连接，允许多个请求/响应在同一个TCP连接上进行，但每个请求/响应对话仍然是独立的。HTTP/1.1是持久连接，那么还能叫做无连接吗？是的，仍然是无连接。持久连接是通过 Connection: keep-alive 头部实现的，允许连接在一段时间内保持打开状态，不需要重新建立和关闭连接。无连接的本质是每个请求/响应对话都是独立的，强调的是独立。\nHTTP Requests HTTP请求是客户端发送给服务端的请求，包含以下内容：\nThe Request-line（请求行） The analysis of source IP address, proxy and port（源信息） The analysis of destination IP address, protocol, port and host（目标信息） The Requested URI (Uniform Resource Identifier)（链接） The Request method and Content（方法和内容） The User-Agent header（请求头） The Connection control header（请求头） The Cache control header（请求头） 可以在浏览器中通过F12开发者工具，查看HTTP请求信息。\n",
+  "keywords": [
+    "JavaWeb开发"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n7个Web术语 Website: static vs dynamic\nHTTP\nHTTP Requests\nGET vs POST\nServlet Container\nServer: Web vs Application\nContent Type\nWebsite: static vs dynamic 网站内容包括文本、图片、音频、视频，通过URL来访问。网站分为静态网站和动态网站。\n静态网站\n静态网站是用HTML编写的，所有内容都包含在网页内，就像是打印出来的一样。\n动态网站\n动态网站分为客户端和服务端，内容是可以动态变化的，可以根据用户请求动态更新网页内容。服务端语言有Servlet、ASP.NET等。\nHTTP HTTP是Hypertext Transfer Protocol缩写，超文本传输协议，位于OSI网络分层模型的应用层（第七层）。\n超文本（Hypertext）是一种文本形式，它不仅包含普通的文本内容，还包含了可以链接到其他文本或资源的元素。这些链接通常称为“超链接”（Hyperlinks）。超文本的概念由Ted Nelson在1960年代提出，并在万维网（World Wide Web）的发展中得到了广泛应用。\nHTTP具有以下特点：\nmedia independent：支持任何类型的媒体内容\nconnectionless：无连接，客户端发送请求后，就断开了连接\nstateless：无状态，服务端不会保留客户端请求的状态，不知道谁是谁\nHTTP是基于TCP/IP协议的，通过TCP建立可靠连接。为什么说HTTP是无连接的，但又是基于TCP可靠连接的？如果想要可靠地传输数据，那么就必须要有稳定可靠的连接，保证数据不丢失，这个连接就是TCP连接。HTTP正是通过TCP连接来发送和接收数据的。\n在HTTP/1.0中，每次请求都会建立一个新的TCP连接，完成请求后立即关闭连接。在HTTP/1.1中，引入了持久连接，允许多个请求/响应在同一个TCP连接上进行，但每个请求/响应对话仍然是独立的。HTTP/1.1是持久连接，那么还能叫做无连接吗？是的，仍然是无连接。持久连接是通过 Connection: keep-alive 头部实现的，允许连接在一段时间内保持打开状态，不需要重新建立和关闭连接。无连接的本质是每个请求/响应对话都是独立的，强调的是独立。\nHTTP Requests HTTP请求是客户端发送给服务端的请求，包含以下内容：\nThe Request-line（请求行） The analysis of source IP address, proxy and port（源信息） The analysis of destination IP address, protocol, port and host（目标信息） The Requested URI (Uniform Resource Identifier)（链接） The Request method and Content（方法和内容） The User-Agent header（请求头） The Connection control header（请求头） The Cache control header（请求头） 可以在浏览器中通过F12开发者工具，查看HTTP请求信息。\nGET vs POST GET和POST是HTTP请求的2个主要方法，它们的区别如下：\n数据传输方式 GET：将请求参数附加在URL的查询字符串中，数据通过URL传输。例如：http://example.com/page?param1=value1\u0026param2=value2 POST：将请求参数包含在请求体中，数据通过请求体传输，不会显示在URL中 安全性 GET：由于参数显示在URL中，敏感信息容易被暴露在浏览器历史记录、日志文件等地方，因此不适合传输敏感数据 POST：参数在请求体中传输，相对来说更安全，但并不意味着完全安全，仍需使用 HTTPS 来加密数据 数据长度限制 GET：由于URL长度限制（通常为2048字符），GET请求传输的数据量有限 POST：没有明显的数据长度限制，可以传输大量数据 幂等性 GET：幂等的，即多次相同的GET请求应该产生相同的结果，不会对服务器资源产生副作用 POST：非幂等的，即多次相同的POST请求可能会产生不同的结果，通常用于提交数据或触发服务器上的操作 缓存 GET：可以被浏览器缓存，适合用于获取不变的数据 POST：默认情况下不会被缓存，适合用于提交数据或执行操作 用途 GET：主要用于请求数据，例如获取网页内容、查询信息等 POST：主要用于提交数据，例如提交表单、上传文件等 Servlet Container Servlet容器（Servlet Container）是一个运行环境，用于管理和执行Java Servlet。它属于Java EE，负责处理客户端请求、管理Servlet生命周期以及提供各种服务（如安全性、并发性、资源管理等）。\nServlet容器是Web服务器（Web Server）的一部分，我们常说的Apache Tomcat，既是一个Web服务器（内置HTTP Server），也是一个Servlet容器。它能够处理静态内容和动态内容，提供了一个完整的运行环境来开发和部署Java Web应用。\nServer: Web vs Application Web服务器主要处理静态内容和HTTP请求，而应用服务器主要处理动态内容和业务逻辑。\n传统的Web服务器：\nApache HTTP Server：一个开源的Web服务器，广泛用于托管静态网站和动态Web应用 Nginx：一个高性能的Web服务器，特别擅长处理大量并发连接，常用于反向代理和负载均衡 现代的Web服务器：\nNode.js：一个基于Chrome V8引擎的JavaScript运行时环境，使用事件驱动、非阻塞I/O模型，使其非常适合构建高性能、可扩展的网络应用 Caddy：一个现代的Web服务器，默认支持HTTPS，配置简单，支持自动TLS证书管理 应用服务器：\nApache Tomcat：虽然主要是一个Servlet容器，但也可以作为一个轻量级的应用服务器 GlassFish：一个完整的Java EE应用服务器，支持所有Java EE规范 JBoss/WildFly：一个开源的Java EE应用服务器，提供全面的企业级功能 WebLogic：Oracle提供的企业级应用服务器，支持广泛的企业功能 WebSphere：IBM提供的企业级应用服务器，广泛用于大型企业应用 在实际应用中，Web服务器和应用服务器通常会一起使用，比如：\nNginx作为前端Web服务器，处理静态内容，将动态请求转发给后端的Tomcat应用服务器处理\nNginx作为反向代理，接收所有请求，并根据请求类型进行处理或转发，给后端的应用服务器Tomcat，同时可以实现负载均衡\nServlet容器既可以是Web服务器的一部分，例如，Apache Tomcat就是一个既包含Web服务器功能又包含Servlet容器功能的服务器。Tomcat能够处理静态内容（如HTML、CSS、JavaScript文件）和动态内容（如通过Servlet生成的内容）。\nServlet容器也可以是应用服务器的一部分，例如，在企业级应用服务器（如GlassFish、JBoss/WildFly）中，应用服务器不仅包含Servlet容器，还提供了许多其他企业级功能，如事务管理、消息队列、EJB（Enterprise JavaBeans）支持等。\n+----------------------+ +----------------------+ | Web Server | | Application Server | | | | | | +------------------+ | | +------------------+ | | | Servlet Container| | | | Servlet Container| | | | (Tomcat) | | | | (GlassFish, | | | +------------------+ | | | JBoss/WildFly) | | | | | +------------------+ | +----------------------+ | | | +------------------+ | | | Other Enterprise | | | | Features (EJB, | | | | Transactions, | | | | Messaging, etc.) | | | +------------------+ | +----------------------+ Content Type Content-Type是HTTP协议中的一个Header字段，用于指示发送给接收者的数据的媒体类型（MIME类型）。它告诉客户端或服务器如何解释和处理请求或响应中的数据。Content-Type在HTTP请求和响应中都可以使用。\n常见Content-Type如下：\n文本类型：\ntext/html：HTML文档 text/plain：纯文本 text/css：CSS样式表 text/javascript：JavaScript代码 应用类型：\napplication/json：JSON格式的数据 application/xml：XML格式的数据 application/x-www-form-urlencoded：表单数据，通常用于POST请求 application/octet-stream：二进制数据流，通常用于文件下载 多部分类型：\nmultipart/form-data：用于表单文件上传，表单数据可以包含文件 multipart/byteranges：表示响应包含多个部分，每个部分是一个字节范围 图像类型：\nimage/jpeg：JPEG图像 image/png：PNG图像 image/gif：GIF图像 音频和视频类型：\naudio/mpeg：MPEG音频文件 video/mp4：MP4视频文件 参考资料：\nhttps://www.javatpoint.com/web-terminology\nChatGPT\n",
+  "wordCount" : "273",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-01T00:00:00Z",
+  "dateModified": "2026-01-01T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000001-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%807%E4%B8%AAweb%E6%9C%AF%E8%AF%AD%E8%A7%A3%E6%9E%90/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      JavaWeb开发基础7个Web术语解析
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-01T00:00:00+00:00'>2026-01-01</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>273 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/javaweb%E5%BC%80%E5%8F%91/'>#JavaWeb开发</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="7个web术语">7个Web术语<a hidden class="anchor" aria-hidden="true" href="#7个web术语">#</a></h1>
+<ol>
+<li>
+<p>Website: static vs dynamic</p>
+</li>
+<li>
+<p>HTTP</p>
+</li>
+<li>
+<p>HTTP Requests</p>
+</li>
+<li>
+<p>GET vs POST</p>
+</li>
+<li>
+<p>Servlet Container</p>
+</li>
+<li>
+<p>Server: Web vs Application</p>
+</li>
+<li>
+<p>Content Type</p>
+</li>
+</ol>
+<h1 id="website-static-vs-dynamic">Website: static vs dynamic<a hidden class="anchor" aria-hidden="true" href="#website-static-vs-dynamic">#</a></h1>
+<p>网站内容包括文本、图片、音频、视频，通过URL来访问。网站分为静态网站和动态网站。</p>
+<p><strong>静态网站</strong></p>
+<p><img loading="lazy" src="../assets/4049c3055e7c4b94b82e2f3045900890.png"></p>
+<p>静态网站是用HTML编写的，所有内容都包含在网页内，就像是打印出来的一样。</p>
+<p><strong>动态网站</strong></p>
+<p><img loading="lazy" src="../assets/80e2b03f34184141a0339afca10a6a11.png"></p>
+<p>动态网站分为客户端和服务端，内容是可以动态变化的，可以根据用户请求动态更新网页内容。服务端语言有Servlet、ASP.NET等。</p>
+<h1 id="http">HTTP<a hidden class="anchor" aria-hidden="true" href="#http">#</a></h1>
+<p><img loading="lazy" src="../assets/4ba063afa32541c18a4e3a5faf113c7e.png"></p>
+<p>HTTP是Hypertext Transfer Protocol缩写，超文本传输协议，位于OSI网络分层模型的应用层（第七层）。</p>
+<blockquote>
+<p>超文本（Hypertext）是一种文本形式，它不仅包含普通的文本内容，还包含了可以链接到其他文本或资源的元素。这些链接通常称为“超链接”（Hyperlinks）。超文本的概念由Ted Nelson在1960年代提出，并在万维网（World Wide Web）的发展中得到了广泛应用。</p>
+</blockquote>
+<p>HTTP具有以下特点：</p>
+<ul>
+<li>
+<p>media independent：支持任何类型的媒体内容</p>
+</li>
+<li>
+<p>connectionless：无连接，客户端发送请求后，就断开了连接</p>
+</li>
+<li>
+<p>stateless：无状态，服务端不会保留客户端请求的状态，不知道谁是谁</p>
+</li>
+</ul>
+<p>HTTP是基于TCP/IP协议的，通过TCP建立可靠连接。为什么说HTTP是无连接的，但又是基于TCP可靠连接的？如果想要可靠地传输数据，那么就必须要有稳定可靠的连接，保证数据不丢失，这个连接就是TCP连接。HTTP正是通过TCP连接来发送和接收数据的。</p>
+<p>在HTTP/1.0中，每次请求都会建立一个新的TCP连接，完成请求后立即关闭连接。在HTTP/1.1中，引入了持久连接，允许多个请求/响应在同一个TCP连接上进行，但每个请求/响应对话仍然是独立的。HTTP/1.1是持久连接，那么还能叫做无连接吗？是的，仍然是无连接。持久连接是通过 <code>Connection: keep-alive</code> 头部实现的，允许连接在一段时间内保持打开状态，不需要重新建立和关闭连接。无连接的本质是每个请求/响应对话都是独立的，强调的是独立。</p>
+<h1 id="http-requests">HTTP Requests<a hidden class="anchor" aria-hidden="true" href="#http-requests">#</a></h1>
+<p>HTTP请求是客户端发送给服务端的请求，包含以下内容：</p>
+<p><img loading="lazy" src="../assets/95b4f7c92d7f4276964b9da3397867d0.png"></p>
+<ul>
+<li>The Request-line（请求行）</li>
+<li>The analysis of source IP address, proxy and port（源信息）</li>
+<li>The analysis of destination IP address, protocol, port and host（目标信息）</li>
+<li>The Requested URI (Uniform Resource Identifier)（链接）</li>
+<li>The Request method and Content（方法和内容）</li>
+<li>The User-Agent header（请求头）</li>
+<li>The Connection control header（请求头）</li>
+<li>The Cache control header（请求头）</li>
+</ul>
+<p>可以在浏览器中通过F12开发者工具，查看HTTP请求信息。</p>
+<h1 id="get-vs-post">GET vs POST<a hidden class="anchor" aria-hidden="true" href="#get-vs-post">#</a></h1>
+<p>GET和POST是HTTP请求的2个主要方法，它们的区别如下：</p>
+<ol>
+<li>数据传输方式</li>
+</ol>
+<ul>
+<li>GET：将请求参数附加在URL的查询字符串中，数据通过URL传输。例如：<code>http://example.com/page?param1=value1&amp;param2=value2</code></li>
+<li>POST：将请求参数包含在请求体中，数据通过请求体传输，不会显示在URL中</li>
+</ul>
+<ol start="2">
+<li>安全性</li>
+</ol>
+<ul>
+<li>GET：由于参数显示在URL中，敏感信息容易被暴露在浏览器历史记录、日志文件等地方，因此不适合传输敏感数据</li>
+<li>POST：参数在请求体中传输，相对来说更安全，但并不意味着完全安全，仍需使用 HTTPS 来加密数据</li>
+</ul>
+<ol start="3">
+<li>数据长度限制</li>
+</ol>
+<ul>
+<li>GET：由于URL长度限制（通常为2048字符），GET请求传输的数据量有限</li>
+<li>POST：没有明显的数据长度限制，可以传输大量数据</li>
+</ul>
+<ol start="4">
+<li>幂等性</li>
+</ol>
+<ul>
+<li>GET：幂等的，即多次相同的GET请求应该产生相同的结果，不会对服务器资源产生副作用</li>
+<li>POST：非幂等的，即多次相同的POST请求可能会产生不同的结果，通常用于提交数据或触发服务器上的操作</li>
+</ul>
+<ol start="5">
+<li>缓存</li>
+</ol>
+<ul>
+<li>GET：可以被浏览器缓存，适合用于获取不变的数据</li>
+<li>POST：默认情况下不会被缓存，适合用于提交数据或执行操作</li>
+</ul>
+<ol start="6">
+<li>用途</li>
+</ol>
+<ul>
+<li>GET：主要用于请求数据，例如获取网页内容、查询信息等</li>
+<li>POST：主要用于提交数据，例如提交表单、上传文件等</li>
+</ul>
+<h1 id="servlet-container">Servlet Container<a hidden class="anchor" aria-hidden="true" href="#servlet-container">#</a></h1>
+<p><img loading="lazy" src="../assets/d37934107d8f496bb1016637a64afda5.png"></p>
+<p>Servlet容器（Servlet Container）是一个运行环境，用于管理和执行Java Servlet。它属于Java EE，负责处理客户端请求、管理Servlet生命周期以及提供各种服务（如安全性、并发性、资源管理等）。</p>
+<p>Servlet容器是Web服务器（Web Server）的一部分，我们常说的Apache Tomcat，既是一个Web服务器（内置HTTP Server），也是一个Servlet容器。它能够处理静态内容和动态内容，提供了一个完整的运行环境来开发和部署Java Web应用。</p>
+<h1 id="server-web-vs-application">Server: Web vs Application<a hidden class="anchor" aria-hidden="true" href="#server-web-vs-application">#</a></h1>
+<p>Web服务器主要处理静态内容和HTTP请求，而应用服务器主要处理动态内容和业务逻辑。</p>
+<p>传统的Web服务器：</p>
+<ul>
+<li>Apache HTTP Server：一个开源的Web服务器，广泛用于托管静态网站和动态Web应用</li>
+<li>Nginx：一个高性能的Web服务器，特别擅长处理大量并发连接，常用于反向代理和负载均衡</li>
+</ul>
+<p>现代的Web服务器：</p>
+<ul>
+<li>Node.js：一个基于Chrome V8引擎的JavaScript运行时环境，使用事件驱动、非阻塞I/O模型，使其非常适合构建高性能、可扩展的网络应用</li>
+<li>Caddy：一个现代的Web服务器，默认支持HTTPS，配置简单，支持自动TLS证书管理</li>
+</ul>
+<p>应用服务器：</p>
+<ul>
+<li>Apache Tomcat：虽然主要是一个Servlet容器，但也可以作为一个轻量级的应用服务器</li>
+<li>GlassFish：一个完整的Java EE应用服务器，支持所有Java EE规范</li>
+<li>JBoss/WildFly：一个开源的Java EE应用服务器，提供全面的企业级功能</li>
+<li>WebLogic：Oracle提供的企业级应用服务器，支持广泛的企业功能</li>
+<li>WebSphere：IBM提供的企业级应用服务器，广泛用于大型企业应用</li>
+</ul>
+<p>在实际应用中，Web服务器和应用服务器通常会一起使用，比如：</p>
+<ul>
+<li>
+<p>Nginx作为前端Web服务器，处理静态内容，将动态请求转发给后端的Tomcat应用服务器处理</p>
+</li>
+<li>
+<p>Nginx作为反向代理，接收所有请求，并根据请求类型进行处理或转发，给后端的应用服务器Tomcat，同时可以实现负载均衡</p>
+</li>
+</ul>
+<p>Servlet容器既可以是Web服务器的一部分，例如，Apache Tomcat就是一个既包含Web服务器功能又包含Servlet容器功能的服务器。Tomcat能够处理静态内容（如HTML、CSS、JavaScript文件）和动态内容（如通过Servlet生成的内容）。</p>
+<p>Servlet容器也可以是应用服务器的一部分，例如，在企业级应用服务器（如GlassFish、JBoss/WildFly）中，应用服务器不仅包含Servlet容器，还提供了许多其他企业级功能，如事务管理、消息队列、EJB（Enterprise JavaBeans）支持等。</p>
+<pre tabindex="0"><code>+----------------------+       +----------------------+
+| Web Server           |       | Application Server   |
+|                      |       |                      |
+| +------------------+ |       | +------------------+ |
+| | Servlet Container| |       | | Servlet Container| |
+| | (Tomcat)         | |       | | (GlassFish,      | |
+| +------------------+ |       | |  JBoss/WildFly)  | |
+|                      |       | +------------------+ |
++----------------------+       |                      |
+                               | +------------------+ |
+                               | | Other Enterprise | |
+                               | | Features (EJB,   | |
+                               | | Transactions,    | |
+                               | | Messaging, etc.) | |
+                               | +------------------+ |
+                               +----------------------+
+</code></pre><h1 id="content-type">Content Type<a hidden class="anchor" aria-hidden="true" href="#content-type">#</a></h1>
+<p>Content-Type是HTTP协议中的一个Header字段，用于指示发送给接收者的数据的媒体类型（MIME类型）。它告诉客户端或服务器如何解释和处理请求或响应中的数据。Content-Type在HTTP请求和响应中都可以使用。</p>
+<p>常见Content-Type如下：</p>
+<ol>
+<li>
+<p>文本类型：</p>
+<ul>
+<li><code>text/html</code>：HTML文档</li>
+<li><code>text/plain</code>：纯文本</li>
+<li><code>text/css</code>：CSS样式表</li>
+<li><code>text/javascript</code>：JavaScript代码</li>
+</ul>
+</li>
+<li>
+<p>应用类型：</p>
+<ul>
+<li><code>application/json</code>：JSON格式的数据</li>
+<li><code>application/xml</code>：XML格式的数据</li>
+<li><code>application/x-www-form-urlencoded</code>：表单数据，通常用于POST请求</li>
+<li><code>application/octet-stream</code>：二进制数据流，通常用于文件下载</li>
+</ul>
+</li>
+<li>
+<p>多部分类型：</p>
+<ul>
+<li><code>multipart/form-data</code>：用于表单文件上传，表单数据可以包含文件</li>
+<li><code>multipart/byteranges</code>：表示响应包含多个部分，每个部分是一个字节范围</li>
+</ul>
+</li>
+<li>
+<p>图像类型：</p>
+<ul>
+<li><code>image/jpeg</code>：JPEG图像</li>
+<li><code>image/png</code>：PNG图像</li>
+<li><code>image/gif</code>：GIF图像</li>
+</ul>
+</li>
+<li>
+<p>音频和视频类型：</p>
+<ul>
+<li><code>audio/mpeg</code>：MPEG音频文件</li>
+<li><code>video/mp4</code>：MP4视频文件</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.javatpoint.com/web-terminology">https://www.javatpoint.com/web-terminology</a></p>
+<p>ChatGPT</p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/javaweb%E5%BC%80%E5%8F%91/">JavaWeb开发</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%A7%BB%E5%8A%A8%E7%AB%AF/000001-java&#43;appium&#43;%E5%AE%89%E5%8D%93%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%AE%9E%E7%8E%B0app%E8%87%AA%E5%8A%A8%E5%8C%96demo/">
+    <span class="title">« 上一页</span>
+    <span>java&#43;appium&#43;安卓模拟器实现app自动化Demo</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000001-junitjava%E6%96%B0%E4%B8%80%E4%BB%A3%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6junit5%E9%80%9F%E8%A7%88/">
+    <span class="title">下一页 »</span>
+    <span>Java新一代单元测试框架JUnit5速览</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#7个web术语">7个Web术语</a></li>
+    <li><a href="#website-static-vs-dynamic">Website: static vs dynamic</a></li>
+    <li><a href="#http">HTTP</a></li>
+    <li><a href="#http-requests">HTTP Requests</a></li>
+    <li><a href="#get-vs-post">GET vs POST</a></li>
+    <li><a href="#servlet-container">Servlet Container</a></li>
+    <li><a href="#server-web-vs-application">Server: Web vs Application</a></li>
+    <li><a href="#content-type">Content Type</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

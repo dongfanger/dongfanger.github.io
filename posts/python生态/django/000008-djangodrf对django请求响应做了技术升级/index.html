@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>DRF对Django请求响应做了技术升级 | 测试开发刚哥</title>
+<meta name="keywords" content="Django">
+<meta name="description" content="Django视图是用来处理请求和响应的，Django默认是按Form和Template来设计的，如果要处理以JSON格式为主的RESTful API，那么就需要对Django请求和响应的处理代码进行优化改造，本文就来介绍DRF在这一部分的技术升级。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000008-djangodrf%E5%AF%B9django%E8%AF%B7%E6%B1%82%E5%93%8D%E5%BA%94%E5%81%9A%E4%BA%86%E6%8A%80%E6%9C%AF%E5%8D%87%E7%BA%A7/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000008-djangodrf%E5%AF%B9django%E8%AF%B7%E6%B1%82%E5%93%8D%E5%BA%94%E5%81%9A%E4%BA%86%E6%8A%80%E6%9C%AF%E5%8D%87%E7%BA%A7/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000008-djangodrf%E5%AF%B9django%E8%AF%B7%E6%B1%82%E5%93%8D%E5%BA%94%E5%81%9A%E4%BA%86%E6%8A%80%E6%9C%AF%E5%8D%87%E7%BA%A7/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="DRF对Django请求响应做了技术升级">
+  <meta property="og:description" content="Django视图是用来处理请求和响应的，Django默认是按Form和Template来设计的，如果要处理以JSON格式为主的RESTful API，那么就需要对Django请求和响应的处理代码进行优化改造，本文就来介绍DRF在这一部分的技术升级。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-08T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-08T00:00:00+00:00">
+    <meta property="article:tag" content="Django">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="DRF对Django请求响应做了技术升级">
+  <meta name="twitter:description" content="Django视图是用来处理请求和响应的，Django默认是按Form和Template来设计的，如果要处理以JSON格式为主的RESTful API，那么就需要对Django请求和响应的处理代码进行优化改造，本文就来介绍DRF在这一部分的技术升级。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "DRF对Django请求响应做了技术升级",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000008-djangodrf%E5%AF%B9django%E8%AF%B7%E6%B1%82%E5%93%8D%E5%BA%94%E5%81%9A%E4%BA%86%E6%8A%80%E6%9C%AF%E5%8D%87%E7%BA%A7/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "DRF对Django请求响应做了技术升级",
+  "name": "DRF对Django请求响应做了技术升级",
+  "description": "Django视图是用来处理请求和响应的，Django默认是按Form和Template来设计的，如果要处理以JSON格式为主的RESTful API，那么就需要对Django请求和响应的处理代码进行优化改造，本文就来介绍DRF在这一部分的技术升级。",
+  "keywords": [
+    "Django"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nDjango视图是用来处理请求和响应的，Django默认是按Form和Template来设计的，如果要处理以JSON格式为主的RESTful API，那么就需要对Django请求和响应的处理代码进行优化改造，本文就来介绍DRF在这一部分的技术升级。\nRequest DRF把Django的HttpRequest扩展成了Request：\n其中最核心的属性是request.data，它和request.POST的区别如下：\nrequest.POST # 只处理表单（Form）数据，只支持POST方法 request.data # 处理任何数据，支持POST、PUT、PATCH方法 Response DRF的Response继承自Django的django.template.response.SimpleTemplateResponse：\nResponse可以根据客户端的请求render合适的content type：\nreturn Response(data) 我摘取了rendered_content()函数的代码：\n@property def rendered_content(self): renderer = getattr(self, 'accepted_renderer', None) accepted_media_type = getattr(self, 'accepted_media_type', None) context = getattr(self, 'renderer_context', None) assert renderer, \".accepted_renderer not set on Response\" assert accepted_media_type, \".accepted_media_type not set on Response\" assert context is not None, \".renderer_context not set on Response\" context['response'] = self media_type = renderer.media_type charset = renderer.charset content_type = self.content_type if content_type is None and charset is not None: content_type = \"{}; charset={}\".format(media_type, charset) elif content_type is None: content_type = media_type self['Content-Type'] = content_type ret = renderer.render(self.data, accepted_media_type, context) if isinstance(ret, str): assert charset, ( 'renderer returned unicode, and did not specify ' 'a charset value.' ) return ret.encode(charset) if not ret: del self['Content-Type'] return ret Status codes 如果在代码中直接写数字形式的状态码如400，是不容易阅读的，于是DRF提供了标识符如HTTP_400_BAD_REQUEST来替代。我列一些常见的状态码标识符：\nHTTP_200_OK = 200 HTTP_201_CREATED = 201 HTTP_204_NO_CONTENT = 204 HTTP_400_BAD_REQUEST = 400 HTTP_401_UNAUTHORIZED = 401 HTTP_403_FORBIDDEN = 403 HTTP_404_NOT_FOUND = 404 HTTP_405_METHOD_NOT_ALLOWED = 405 HTTP_500_INTERNAL_SERVER_ERROR = 500 HTTP_502_BAD_GATEWAY = 502 HTTP_503_SERVICE_UNAVAILABLE = 503 HTTP_504_GATEWAY_TIMEOUT = 504 全部的状态码标识符可以在rest_framework.status模块中看到。\n@api_view和APIView DRF对API视图做了2个封装：\n@api_view用于函数视图。 APIView用于类视图。 它们提供了一些新功能，比如：\n检查请求是Request对象 添加上下文到Response对象 返回请求错误如405 Method Not Allowed 当request.data格式有误时，抛出ParseError异常 改造views.py 接着就用上面这几个新实现对我们之前写的snippets/views.py进行改造：\nfrom rest_framework import status from rest_framework.decorators import api_view from rest_framework.response import Response from snippets.models import Snippet from snippets.serializers import SnippetSerializer @api_view(['GET', 'POST']) def snippet_list(request): \"\"\" List all code snippets, or create a new snippet. \"\"\" if request.method == 'GET': snippets = Snippet.objects.all() serializer = SnippetSerializer(snippets, many=True) return Response(serializer.data) elif request.method == 'POST': serializer = SnippetSerializer(data=request.data) if serializer.is_valid(): serializer.save() return Response(serializer.data, status=status.HTTP_201_CREATED) return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) @api_view(['GET', 'PUT', 'DELETE']) def snippet_detail(request, pk): \"\"\" Retrieve, update or delete a code snippet. \"\"\" try: snippet = Snippet.objects.get(pk=pk) except Snippet.DoesNotExist: return Response(status=status.HTTP_404_NOT_FOUND) if request.method == 'GET': serializer = SnippetSerializer(snippet) return Response(serializer.data) elif request.method == 'PUT': serializer = SnippetSerializer(snippet, data=request.data) if serializer.is_valid(): serializer.save() return Response(serializer.data) return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) elif request.method == 'DELETE': snippet.delete() return Response(status=status.HTTP_204_NO_CONTENT) 改动点有这些，添加了@api_view，如：\n@api_view(['GET', 'POST']) 使用了状态码标识符，如：\nstatus.HTTP_404_NOT_FOUND 使用request.data替代了 data = JSONParser().parse(request)，如：\nserializer = SnippetSerializer(data=request.data) 使用Response()替代了JsonResponse()，如：\nreturn Response(serializer.data, status=status.HTTP_201_CREATED) request.data和Response()能根据请求的JSON自动处理content type。\n添加后缀格式（可选） 既然DRF能自动处理content type，那么也可以给URL指定具体的后缀格式，比如http://example.com/api/items/4.json。具体添加步骤是，先给view增加1个可选参数format：\ndef snippet_list(request, format=None): def snippet_detail(request, pk, format=None): 再更新snippets/urls.py，添加format_suffix_patterns：\nfrom django.urls import path from rest_framework.urlpatterns import format_suffix_patterns from snippets import views urlpatterns = [ path('snippets/', views.snippet_list), path('snippets/', views.snippet_detail), ] urlpatterns = format_suffix_patterns(urlpatterns) 这并不是必须的，实际上也无需这么做。\n测试API http http://127.0.0.1:8000/snippets/ HTTP/1.1 200 OK ... [ { \"id\": 1, \"title\": \"\", \"code\": \"foo = \\\"bar\\\"\\n\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\" }, { \"id\": 2, \"title\": \"\", \"code\": \"print(\\\"hello, world\\\")\\n\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\" } ] 跟之前的结果一样。再分别用form和json试试：\n## POST using form data http --form POST http://127.0.0.1:8000/snippets/ code=\"print(123)\" { \"id\": 3, \"title\": \"\", \"code\": \"print(123)\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\" } ## POST using JSON http --json POST http://127.0.0.1:8000/snippets/ code=\"print(456)\" { \"id\": 4, \"title\": \"\", \"code\": \"print(456)\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\" } API文档 DRF提供了可视化的API HTML文档，把API URL在浏览器中打开即可看到：\n小结 技术要依托于业务，让技术落地，在业务中发挥技术的价值，产生从业务到技术，从技术到业务的良好循环。当然，会技术是个大前提，对技术的学习不能停，比如Django REST framework。\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/2-requests-and-responses/\n",
+  "wordCount" : "453",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-08T00:00:00Z",
+  "dateModified": "2026-01-08T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000008-djangodrf%E5%AF%B9django%E8%AF%B7%E6%B1%82%E5%93%8D%E5%BA%94%E5%81%9A%E4%BA%86%E6%8A%80%E6%9C%AF%E5%8D%87%E7%BA%A7/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      DRF对Django请求响应做了技术升级
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-08T00:00:00+00:00'>2026-01-08</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>453 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/django/'>#Django</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>Django视图是用来处理请求和响应的，Django默认是按Form和Template来设计的，如果要处理以JSON格式为主的RESTful API，那么就需要对Django请求和响应的处理代码进行优化改造，本文就来介绍DRF在这一部分的技术升级。</p>
+<h1 id="request">Request<a hidden class="anchor" aria-hidden="true" href="#request">#</a></h1>
+<p>DRF把Django的<code>HttpRequest</code>扩展成了<code>Request</code>：</p>
+<p><img loading="lazy" src="../assets/79c5acec4a0a4af2839794e726b05170.png"></p>
+<p>其中最核心的属性是<code>request.data</code>，它和<code>request.POST</code>的区别如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>request<span style="color:#0550ae">.</span>POST  <span style="color:#57606a"># 只处理表单（Form）数据，只支持POST方法</span>
+</span></span><span style="display:flex;"><span>request<span style="color:#0550ae">.</span>data  <span style="color:#57606a"># 处理任何数据，支持POST、PUT、PATCH方法</span>
+</span></span></code></pre></div><h1 id="response">Response<a hidden class="anchor" aria-hidden="true" href="#response">#</a></h1>
+<p>DRF的<code>Response</code>继承自Django的<code>django.template.response.SimpleTemplateResponse</code>：</p>
+<p><img loading="lazy" src="../assets/4e52c4fc2039444ba36874d33a2c5ec8.png"></p>
+<p><code>Response</code>可以根据客户端的请求render合适的content type：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>data<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>我摘取了<code>rendered_content()</code>函数的代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@property</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">rendered_content</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    renderer <span style="color:#0550ae">=</span> <span style="color:#6639ba">getattr</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;accepted_renderer&#39;</span><span style="color:#1f2328">,</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    accepted_media_type <span style="color:#0550ae">=</span> <span style="color:#6639ba">getattr</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;accepted_media_type&#39;</span><span style="color:#1f2328">,</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    context <span style="color:#0550ae">=</span> <span style="color:#6639ba">getattr</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;renderer_context&#39;</span><span style="color:#1f2328">,</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> renderer<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.accepted_renderer not set on Response&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> accepted_media_type<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.accepted_media_type not set on Response&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> context <span style="color:#0550ae">is</span> <span style="color:#0550ae">not</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.renderer_context not set on Response&#34;</span>
+</span></span><span style="display:flex;"><span>    context<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;response&#39;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    media_type <span style="color:#0550ae">=</span> renderer<span style="color:#0550ae">.</span>media_type
+</span></span><span style="display:flex;"><span>    charset <span style="color:#0550ae">=</span> renderer<span style="color:#0550ae">.</span>charset
+</span></span><span style="display:flex;"><span>    content_type <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>content_type
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> content_type <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span> <span style="color:#0550ae">and</span> charset <span style="color:#0550ae">is</span> <span style="color:#0550ae">not</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        content_type <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;</span><span style="color:#0a3069">{}</span><span style="color:#0a3069">; charset=</span><span style="color:#0a3069">{}</span><span style="color:#0a3069">&#34;</span><span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>media_type<span style="color:#1f2328">,</span> charset<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">elif</span> content_type <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        content_type <span style="color:#0550ae">=</span> media_type
+</span></span><span style="display:flex;"><span>    <span style="color:#6a737d">self</span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;Content-Type&#39;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> content_type
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ret <span style="color:#0550ae">=</span> renderer<span style="color:#0550ae">.</span>render<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>data<span style="color:#1f2328">,</span> accepted_media_type<span style="color:#1f2328">,</span> context<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>ret<span style="color:#1f2328">,</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">assert</span> charset<span style="color:#1f2328">,</span> <span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#39;renderer returned unicode, and did not specify &#39;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#39;a charset value.&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> ret<span style="color:#0550ae">.</span>encode<span style="color:#1f2328">(</span>charset<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> ret<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">del</span> <span style="color:#6a737d">self</span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;Content-Type&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> ret
+</span></span></code></pre></div><h1 id="status-codes">Status codes<a hidden class="anchor" aria-hidden="true" href="#status-codes">#</a></h1>
+<p>如果在代码中直接写数字形式的状态码如<code>400</code>，是不容易阅读的，于是DRF提供了标识符如<code>HTTP_400_BAD_REQUEST</code>来替代。我列一些常见的状态码标识符：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>HTTP_200_OK <span style="color:#0550ae">=</span> <span style="color:#0550ae">200</span>
+</span></span><span style="display:flex;"><span>HTTP_201_CREATED <span style="color:#0550ae">=</span> <span style="color:#0550ae">201</span>
+</span></span><span style="display:flex;"><span>HTTP_204_NO_CONTENT <span style="color:#0550ae">=</span> <span style="color:#0550ae">204</span>
+</span></span><span style="display:flex;"><span>HTTP_400_BAD_REQUEST <span style="color:#0550ae">=</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>HTTP_401_UNAUTHORIZED <span style="color:#0550ae">=</span> <span style="color:#0550ae">401</span>
+</span></span><span style="display:flex;"><span>HTTP_403_FORBIDDEN <span style="color:#0550ae">=</span> <span style="color:#0550ae">403</span>
+</span></span><span style="display:flex;"><span>HTTP_404_NOT_FOUND <span style="color:#0550ae">=</span> <span style="color:#0550ae">404</span>
+</span></span><span style="display:flex;"><span>HTTP_405_METHOD_NOT_ALLOWED <span style="color:#0550ae">=</span> <span style="color:#0550ae">405</span>
+</span></span><span style="display:flex;"><span>HTTP_500_INTERNAL_SERVER_ERROR <span style="color:#0550ae">=</span> <span style="color:#0550ae">500</span>
+</span></span><span style="display:flex;"><span>HTTP_502_BAD_GATEWAY <span style="color:#0550ae">=</span> <span style="color:#0550ae">502</span>
+</span></span><span style="display:flex;"><span>HTTP_503_SERVICE_UNAVAILABLE <span style="color:#0550ae">=</span> <span style="color:#0550ae">503</span>
+</span></span><span style="display:flex;"><span>HTTP_504_GATEWAY_TIMEOUT <span style="color:#0550ae">=</span> <span style="color:#0550ae">504</span>
+</span></span></code></pre></div><p>全部的状态码标识符可以在<code>rest_framework.status</code>模块中看到。</p>
+<h1 id="api_view和apiview">@api_view和APIView<a hidden class="anchor" aria-hidden="true" href="#api_view和apiview">#</a></h1>
+<p>DRF对API视图做了2个封装：</p>
+<ol>
+<li><code>@api_view</code>用于函数视图。</li>
+<li><code>APIView</code>用于类视图。</li>
+</ol>
+<p>它们提供了一些新功能，比如：</p>
+<ul>
+<li>检查请求是<code>Request</code>对象</li>
+<li>添加上下文到<code>Response</code>对象</li>
+<li>返回请求错误如<code>405 Method Not Allowed</code></li>
+<li>当<code>request.data</code>格式有误时，抛出<code>ParseError</code>异常</li>
+</ul>
+<h1 id="改造viewspy">改造views.py<a hidden class="anchor" aria-hidden="true" href="#改造viewspy">#</a></h1>
+<p>接着就用上面这几个新实现对我们之前写的<code>snippets/views.py</code>进行改造：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework</span> <span style="color:#cf222e">import</span> status
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework.decorators</span> <span style="color:#cf222e">import</span> api_view
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework.response</span> <span style="color:#cf222e">import</span> Response
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">snippets.models</span> <span style="color:#cf222e">import</span> Snippet
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">snippets.serializers</span> <span style="color:#cf222e">import</span> SnippetSerializer
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@api_view</span><span style="color:#1f2328">([</span><span style="color:#0a3069">&#39;GET&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;POST&#39;</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">snippet_list</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    List all code snippets, or create a new snippet.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> request<span style="color:#0550ae">.</span>method <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;GET&#39;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        snippets <span style="color:#0550ae">=</span> Snippet<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>all<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        serializer <span style="color:#0550ae">=</span> SnippetSerializer<span style="color:#1f2328">(</span>snippets<span style="color:#1f2328">,</span> many<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">elif</span> request<span style="color:#0550ae">.</span>method <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;POST&#39;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        serializer <span style="color:#0550ae">=</span> SnippetSerializer<span style="color:#1f2328">(</span>data<span style="color:#0550ae">=</span>request<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> serializer<span style="color:#0550ae">.</span>is_valid<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            serializer<span style="color:#0550ae">.</span>save<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">,</span> status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_201_CREATED<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>errors<span style="color:#1f2328">,</span> status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_400_BAD_REQUEST<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@api_view</span><span style="color:#1f2328">([</span><span style="color:#0a3069">&#39;GET&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;PUT&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;DELETE&#39;</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">snippet_detail</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> pk<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Retrieve, update or delete a code snippet.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        snippet <span style="color:#0550ae">=</span> Snippet<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span>pk<span style="color:#0550ae">=</span>pk<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">except</span> Snippet<span style="color:#0550ae">.</span>DoesNotExist<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_404_NOT_FOUND<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> request<span style="color:#0550ae">.</span>method <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;GET&#39;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        serializer <span style="color:#0550ae">=</span> SnippetSerializer<span style="color:#1f2328">(</span>snippet<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">elif</span> request<span style="color:#0550ae">.</span>method <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;PUT&#39;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        serializer <span style="color:#0550ae">=</span> SnippetSerializer<span style="color:#1f2328">(</span>snippet<span style="color:#1f2328">,</span> data<span style="color:#0550ae">=</span>request<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> serializer<span style="color:#0550ae">.</span>is_valid<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            serializer<span style="color:#0550ae">.</span>save<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>errors<span style="color:#1f2328">,</span> status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_400_BAD_REQUEST<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">elif</span> request<span style="color:#0550ae">.</span>method <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;DELETE&#39;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        snippet<span style="color:#0550ae">.</span>delete<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_204_NO_CONTENT<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>改动点有这些，添加了<code>@api_view</code>，如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@api_view</span><span style="color:#1f2328">([</span><span style="color:#0a3069">&#39;GET&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;POST&#39;</span><span style="color:#1f2328">])</span>
+</span></span></code></pre></div><p>使用了状态码标识符，如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>status<span style="color:#0550ae">.</span>HTTP_404_NOT_FOUND
+</span></span></code></pre></div><p>使用<code>request.data</code>替代了<code> data = JSONParser().parse(request)</code>，如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span> serializer <span style="color:#0550ae">=</span> SnippetSerializer<span style="color:#1f2328">(</span>data<span style="color:#0550ae">=</span>request<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>使用<code>Response()</code>替代了<code>JsonResponse()</code>，如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">,</span> status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_201_CREATED<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><blockquote>
+<p><code>request.data</code>和<code>Response()</code>能根据请求的JSON自动处理content type。</p>
+</blockquote>
+<h1 id="添加后缀格式可选">添加后缀格式（可选）<a hidden class="anchor" aria-hidden="true" href="#添加后缀格式可选">#</a></h1>
+<p>既然DRF能自动处理content type，那么也可以给URL指定具体的后缀格式，比如<code>http://example.com/api/items/4.json</code>。具体添加步骤是，先给view增加1个可选参数<code>format</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">snippet_list</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#6639ba">format</span><span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">snippet_detail</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> pk<span style="color:#1f2328">,</span> <span style="color:#6639ba">format</span><span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span></code></pre></div><p>再更新<code>snippets/urls.py</code>，添加<code>format_suffix_patterns</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.urls</span> <span style="color:#cf222e">import</span> path
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework.urlpatterns</span> <span style="color:#cf222e">import</span> format_suffix_patterns
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">snippets</span> <span style="color:#cf222e">import</span> views
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>urlpatterns <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;snippets/&#39;</span><span style="color:#1f2328">,</span> views<span style="color:#0550ae">.</span>snippet_list<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;snippets/&lt;int:pk&gt;&#39;</span><span style="color:#1f2328">,</span> views<span style="color:#0550ae">.</span>snippet_detail<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>urlpatterns <span style="color:#0550ae">=</span> format_suffix_patterns<span style="color:#1f2328">(</span>urlpatterns<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><blockquote>
+<p>这并不是必须的，实际上也无需这么做。</p>
+</blockquote>
+<h1 id="测试api">测试API<a hidden class="anchor" aria-hidden="true" href="#测试api">#</a></h1>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>http http<span style="color:#1f2328">:</span><span style="color:#0550ae">//</span><span style="color:#0550ae">127.0.0.1</span><span style="color:#1f2328">:</span><span style="color:#0550ae">8000</span><span style="color:#0550ae">/</span>snippets<span style="color:#0550ae">/</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>HTTP<span style="color:#0550ae">/</span><span style="color:#0550ae">1.1</span> <span style="color:#0550ae">200</span> OK
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;id&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;title&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;code&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;foo = </span><span style="color:#0a3069">\&#34;</span><span style="color:#0a3069">bar</span><span style="color:#0a3069">\&#34;\n</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;linenos&#34;</span><span style="color:#1f2328">:</span> false<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;language&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;python&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;style&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;friendly&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;id&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">2</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;title&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;code&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;print(</span><span style="color:#0a3069">\&#34;</span><span style="color:#0a3069">hello, world</span><span style="color:#0a3069">\&#34;</span><span style="color:#0a3069">)</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;linenos&#34;</span><span style="color:#1f2328">:</span> false<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;language&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;python&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;style&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;friendly&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>跟之前的结果一样。再分别用form和json试试：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## POST using form data</span>
+</span></span><span style="display:flex;"><span>http <span style="color:#0550ae">--</span>form POST http<span style="color:#1f2328">:</span><span style="color:#0550ae">//</span><span style="color:#0550ae">127.0.0.1</span><span style="color:#1f2328">:</span><span style="color:#0550ae">8000</span><span style="color:#0550ae">/</span>snippets<span style="color:#0550ae">/</span> code<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;print(123)&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;id&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">3</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;title&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;code&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;print(123)&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;linenos&#34;</span><span style="color:#1f2328">:</span> false<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;language&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;python&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;style&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;friendly&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## POST using JSON</span>
+</span></span><span style="display:flex;"><span>http <span style="color:#0550ae">--</span>json POST http<span style="color:#1f2328">:</span><span style="color:#0550ae">//</span><span style="color:#0550ae">127.0.0.1</span><span style="color:#1f2328">:</span><span style="color:#0550ae">8000</span><span style="color:#0550ae">/</span>snippets<span style="color:#0550ae">/</span> code<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;print(456)&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;id&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">4</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;title&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;code&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;print(456)&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;linenos&#34;</span><span style="color:#1f2328">:</span> false<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;language&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;python&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;style&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;friendly&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></div><h1 id="api文档">API文档<a hidden class="anchor" aria-hidden="true" href="#api文档">#</a></h1>
+<p>DRF提供了可视化的API HTML文档，把API URL在浏览器中打开即可看到：</p>
+<p><img loading="lazy" src="../assets/846c2bc15df1438099527a7155d63b43.png"></p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>技术要依托于业务，让技术落地，在业务中发挥技术的价值，产生从业务到技术，从技术到业务的良好循环。当然，会技术是个大前提，对技术的学习不能停，比如Django REST framework。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.django-rest-framework.org/tutorial/2-requests-and-responses/">https://www.django-rest-framework.org/tutorial/2-requests-and-responses/</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/django/">Django</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000009-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98%E6%98%AF%E4%B8%AA%E4%BC%AA%E5%91%BD%E9%A2%98/">
+    <span class="title">« 上一页</span>
+    <span>自动化用例依赖问题，是个伪命题</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000008-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E4%BA%8B%E4%BB%B6%E5%92%8C%E7%9B%91%E5%90%AC%E5%99%A8/">
+    <span class="title">下一页 »</span>
+    <span>JavaWeb开发基础Servlet事件和监听器</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#request">Request</a></li>
+    <li><a href="#response">Response</a></li>
+    <li><a href="#status-codes">Status codes</a></li>
+    <li><a href="#api_view和apiview">@api_view和APIView</a></li>
+    <li><a href="#改造viewspy">改造views.py</a></li>
+    <li><a href="#添加后缀格式可选">添加后缀格式（可选）</a></li>
+    <li><a href="#测试api">测试API</a></li>
+    <li><a href="#api文档">API文档</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

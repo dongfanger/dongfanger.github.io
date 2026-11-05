@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>AI网关 | 测试开发刚哥</title>
+<meta name="keywords" content="AI开发, AI白皮书">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+6.1 网关的演进历程
+是什么在推动软件架构的演进呢？业务规模。业务从互联网、移动互联网以及即将到来的万物互联，其规模仍然在高速增长，也就意味着软件架构的复杂度也会越来越高，网关的特性也会越来越多。越来越复杂、越来越智能。
+
+6.1.1 流量网关
+代表软件是Nginx，将客户请求分配到不同的服务器上，从而实现流量负债均衡，避免单点故障，确保服务的稳定性和连续性。
+6.1.2 ESB网关
+ESB，企业服务总线，通过集中管理消息路由、转换和安全，实现服务的快速部署和高效运作。
+6.1.3 微服务网关
+微服务网关可以实现负载均衡、限流、熔断、降级、身份验证等功能，通过统一入口管理和优化各微服务间的交互。Spring Cloud Gateway是一个广泛应用的微服务网关。
+6.1.4 云原生网关
+云原生网关是伴随K8S的广泛应用而诞生的一种创新网关。既能有流量网关的特性来处理海量请求，又具备微服务网关的特性来做服务发现与服务治理，同时要求网关也具备弹性扩缩容能力解决容量调度问题。
+6.1.5 AI网关
+之前的几种类型网关处理的流量基本是以HTTP、RPC为主，多采用长连接，长连接采用request-response模式。AI采用的协议以SSE/Websocket为主，虽然也是长连接，但跟request-response模式相比，Server可以主动发送数据给Client，Websocket更是一种全双工协议，主要在语音类的实时通讯场景中使用。
+
+AI场景对网关有新诉求，比如：多模型代理、智能路由、模型增强、安全防护、流式传输、无损变更等。
+
+Higress网关已经在阿里云内部大规模生产落地，可以访问项目地址了解：https://higress.ai/
+6.1.6 API网关
+从流量网关，再到AI网关，都是API网关在不同软件架构下的网关形态。HTTP/gRPC/Dubbo/Websocket都可以称之为API，MCP、A2A也可以称之为API。
+6.2 AI网关的定义、特点与应用场景
+AI网关是提供多模型流量调度，MCP和Agent管理，智能路由和AI治理的下一代网关。AI网关不仅完整继承了API网关的通用能力，如安全认证、路由转发、流量控制等，也演进出了大模型Fallback、大模型负载均衡、Token级别的精细化流量管控、语义化缓存、内容安全、联网搜索、MCP协议转化和管理、工具精选和搜索效果优化等面向AI场景的能力。
+6.2.1 AI应用的流量特征
+
+
+高延时
+
+
+大带宽与流式传输
+
+
+长连接
+
+
+API驱动
+
+
+6.2.2 AI网关的应用场景
+1、模型服务提供商（MaaS）的接入层
+2、AI应用的开发网关
+3、企业内部的中央AI网关
+4、MCP工具生态的统一入口
+5、构建企业AI能力货币化的统一开放平台
+
+6.3 AI网关的核心能力和最佳实践
+6.3.1 核心能力
+
+1、多模型代理
+2、多模型回退/容灾
+3、消费者认证
+4、内容安全防护
+5、Token限流
+6、语义缓存
+7、可观测性
+8、MCP代理
+9、工具的动态组装
+10、工具的智能路由
+6.3.2 最佳实践
+AI网关的原子能力可以总结为面向LLM、Agent、MCP和AI开放平台四大类，这里总结了8类常见的实践，多模型代理、消费者认证、内容安全与防护、Token限流、语义缓存、多模型容灾、多模型可观测和AI开放平台。
+1、多模型代理
+需求场景：
+
+
+文本、图像、音频、3D等多模态业务场景。
+
+
+企业不同垂直领域，需要调用专用模型。
+
+
+任务需要多个模型分工协作。
+
+
+医疗机构，处理患者数据使用私有模型，其他和患者无关使用通用模型。
+
+">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005006-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E7%BD%91%E5%85%B3/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005006-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E7%BD%91%E5%85%B3/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005006-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E7%BD%91%E5%85%B3/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="AI网关">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+6.1 网关的演进历程 是什么在推动软件架构的演进呢？业务规模。业务从互联网、移动互联网以及即将到来的万物互联，其规模仍然在高速增长，也就意味着软件架构的复杂度也会越来越高，网关的特性也会越来越多。越来越复杂、越来越智能。
+6.1.1 流量网关 代表软件是Nginx，将客户请求分配到不同的服务器上，从而实现流量负债均衡，避免单点故障，确保服务的稳定性和连续性。
+6.1.2 ESB网关 ESB，企业服务总线，通过集中管理消息路由、转换和安全，实现服务的快速部署和高效运作。
+6.1.3 微服务网关 微服务网关可以实现负载均衡、限流、熔断、降级、身份验证等功能，通过统一入口管理和优化各微服务间的交互。Spring Cloud Gateway是一个广泛应用的微服务网关。
+6.1.4 云原生网关 云原生网关是伴随K8S的广泛应用而诞生的一种创新网关。既能有流量网关的特性来处理海量请求，又具备微服务网关的特性来做服务发现与服务治理，同时要求网关也具备弹性扩缩容能力解决容量调度问题。
+6.1.5 AI网关 之前的几种类型网关处理的流量基本是以HTTP、RPC为主，多采用长连接，长连接采用request-response模式。AI采用的协议以SSE/Websocket为主，虽然也是长连接，但跟request-response模式相比，Server可以主动发送数据给Client，Websocket更是一种全双工协议，主要在语音类的实时通讯场景中使用。
+AI场景对网关有新诉求，比如：多模型代理、智能路由、模型增强、安全防护、流式传输、无损变更等。
+Higress网关已经在阿里云内部大规模生产落地，可以访问项目地址了解：https://higress.ai/
+6.1.6 API网关 从流量网关，再到AI网关，都是API网关在不同软件架构下的网关形态。HTTP/gRPC/Dubbo/Websocket都可以称之为API，MCP、A2A也可以称之为API。
+6.2 AI网关的定义、特点与应用场景 AI网关是提供多模型流量调度，MCP和Agent管理，智能路由和AI治理的下一代网关。AI网关不仅完整继承了API网关的通用能力，如安全认证、路由转发、流量控制等，也演进出了大模型Fallback、大模型负载均衡、Token级别的精细化流量管控、语义化缓存、内容安全、联网搜索、MCP协议转化和管理、工具精选和搜索效果优化等面向AI场景的能力。
+6.2.1 AI应用的流量特征 高延时
+大带宽与流式传输
+长连接
+API驱动
+6.2.2 AI网关的应用场景 1、模型服务提供商（MaaS）的接入层
+2、AI应用的开发网关
+3、企业内部的中央AI网关
+4、MCP工具生态的统一入口
+5、构建企业AI能力货币化的统一开放平台
+6.3 AI网关的核心能力和最佳实践 6.3.1 核心能力 1、多模型代理
+2、多模型回退/容灾
+3、消费者认证
+4、内容安全防护
+5、Token限流
+6、语义缓存
+7、可观测性
+8、MCP代理
+9、工具的动态组装
+10、工具的智能路由
+6.3.2 最佳实践 AI网关的原子能力可以总结为面向LLM、Agent、MCP和AI开放平台四大类，这里总结了8类常见的实践，多模型代理、消费者认证、内容安全与防护、Token限流、语义缓存、多模型容灾、多模型可观测和AI开放平台。
+1、多模型代理
+需求场景：
+文本、图像、音频、3D等多模态业务场景。
+企业不同垂直领域，需要调用专用模型。
+任务需要多个模型分工协作。
+医疗机构，处理患者数据使用私有模型，其他和患者无关使用通用模型。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-10T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-10T00:00:00+00:00">
+    <meta property="article:tag" content="AI开发">
+    <meta property="article:tag" content="AI白皮书">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AI网关">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+6.1 网关的演进历程 是什么在推动软件架构的演进呢？业务规模。业务从互联网、移动互联网以及即将到来的万物互联，其规模仍然在高速增长，也就意味着软件架构的复杂度也会越来越高，网关的特性也会越来越多。越来越复杂、越来越智能。
+6.1.1 流量网关 代表软件是Nginx，将客户请求分配到不同的服务器上，从而实现流量负债均衡，避免单点故障，确保服务的稳定性和连续性。
+6.1.2 ESB网关 ESB，企业服务总线，通过集中管理消息路由、转换和安全，实现服务的快速部署和高效运作。
+6.1.3 微服务网关 微服务网关可以实现负载均衡、限流、熔断、降级、身份验证等功能，通过统一入口管理和优化各微服务间的交互。Spring Cloud Gateway是一个广泛应用的微服务网关。
+6.1.4 云原生网关 云原生网关是伴随K8S的广泛应用而诞生的一种创新网关。既能有流量网关的特性来处理海量请求，又具备微服务网关的特性来做服务发现与服务治理，同时要求网关也具备弹性扩缩容能力解决容量调度问题。
+6.1.5 AI网关 之前的几种类型网关处理的流量基本是以HTTP、RPC为主，多采用长连接，长连接采用request-response模式。AI采用的协议以SSE/Websocket为主，虽然也是长连接，但跟request-response模式相比，Server可以主动发送数据给Client，Websocket更是一种全双工协议，主要在语音类的实时通讯场景中使用。
+AI场景对网关有新诉求，比如：多模型代理、智能路由、模型增强、安全防护、流式传输、无损变更等。
+Higress网关已经在阿里云内部大规模生产落地，可以访问项目地址了解：https://higress.ai/
+6.1.6 API网关 从流量网关，再到AI网关，都是API网关在不同软件架构下的网关形态。HTTP/gRPC/Dubbo/Websocket都可以称之为API，MCP、A2A也可以称之为API。
+6.2 AI网关的定义、特点与应用场景 AI网关是提供多模型流量调度，MCP和Agent管理，智能路由和AI治理的下一代网关。AI网关不仅完整继承了API网关的通用能力，如安全认证、路由转发、流量控制等，也演进出了大模型Fallback、大模型负载均衡、Token级别的精细化流量管控、语义化缓存、内容安全、联网搜索、MCP协议转化和管理、工具精选和搜索效果优化等面向AI场景的能力。
+6.2.1 AI应用的流量特征 高延时
+大带宽与流式传输
+长连接
+API驱动
+6.2.2 AI网关的应用场景 1、模型服务提供商（MaaS）的接入层
+2、AI应用的开发网关
+3、企业内部的中央AI网关
+4、MCP工具生态的统一入口
+5、构建企业AI能力货币化的统一开放平台
+6.3 AI网关的核心能力和最佳实践 6.3.1 核心能力 1、多模型代理
+2、多模型回退/容灾
+3、消费者认证
+4、内容安全防护
+5、Token限流
+6、语义缓存
+7、可观测性
+8、MCP代理
+9、工具的动态组装
+10、工具的智能路由
+6.3.2 最佳实践 AI网关的原子能力可以总结为面向LLM、Agent、MCP和AI开放平台四大类，这里总结了8类常见的实践，多模型代理、消费者认证、内容安全与防护、Token限流、语义缓存、多模型容灾、多模型可观测和AI开放平台。
+1、多模型代理
+需求场景：
+文本、图像、音频、3D等多模态业务场景。
+企业不同垂直领域，需要调用专用模型。
+任务需要多个模型分工协作。
+医疗机构，处理患者数据使用私有模型，其他和患者无关使用通用模型。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "AI网关",
+      "item": "https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005006-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E7%BD%91%E5%85%B3/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI网关",
+  "name": "AI网关",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n6.1 网关的演进历程 是什么在推动软件架构的演进呢？业务规模。业务从互联网、移动互联网以及即将到来的万物互联，其规模仍然在高速增长，也就意味着软件架构的复杂度也会越来越高，网关的特性也会越来越多。越来越复杂、越来越智能。\n6.1.1 流量网关 代表软件是Nginx，将客户请求分配到不同的服务器上，从而实现流量负债均衡，避免单点故障，确保服务的稳定性和连续性。\n6.1.2 ESB网关 ESB，企业服务总线，通过集中管理消息路由、转换和安全，实现服务的快速部署和高效运作。\n6.1.3 微服务网关 微服务网关可以实现负载均衡、限流、熔断、降级、身份验证等功能，通过统一入口管理和优化各微服务间的交互。Spring Cloud Gateway是一个广泛应用的微服务网关。\n6.1.4 云原生网关 云原生网关是伴随K8S的广泛应用而诞生的一种创新网关。既能有流量网关的特性来处理海量请求，又具备微服务网关的特性来做服务发现与服务治理，同时要求网关也具备弹性扩缩容能力解决容量调度问题。\n6.1.5 AI网关 之前的几种类型网关处理的流量基本是以HTTP、RPC为主，多采用长连接，长连接采用request-response模式。AI采用的协议以SSE/Websocket为主，虽然也是长连接，但跟request-response模式相比，Server可以主动发送数据给Client，Websocket更是一种全双工协议，主要在语音类的实时通讯场景中使用。\nAI场景对网关有新诉求，比如：多模型代理、智能路由、模型增强、安全防护、流式传输、无损变更等。\nHigress网关已经在阿里云内部大规模生产落地，可以访问项目地址了解：https://higress.ai/\n6.1.6 API网关 从流量网关，再到AI网关，都是API网关在不同软件架构下的网关形态。HTTP/gRPC/Dubbo/Websocket都可以称之为API，MCP、A2A也可以称之为API。\n6.2 AI网关的定义、特点与应用场景 AI网关是提供多模型流量调度，MCP和Agent管理，智能路由和AI治理的下一代网关。AI网关不仅完整继承了API网关的通用能力，如安全认证、路由转发、流量控制等，也演进出了大模型Fallback、大模型负载均衡、Token级别的精细化流量管控、语义化缓存、内容安全、联网搜索、MCP协议转化和管理、工具精选和搜索效果优化等面向AI场景的能力。\n6.2.1 AI应用的流量特征 高延时\n大带宽与流式传输\n长连接\nAPI驱动\n6.2.2 AI网关的应用场景 1、模型服务提供商（MaaS）的接入层\n2、AI应用的开发网关\n3、企业内部的中央AI网关\n4、MCP工具生态的统一入口\n5、构建企业AI能力货币化的统一开放平台\n6.3 AI网关的核心能力和最佳实践 6.3.1 核心能力 1、多模型代理\n2、多模型回退/容灾\n3、消费者认证\n4、内容安全防护\n5、Token限流\n6、语义缓存\n7、可观测性\n8、MCP代理\n9、工具的动态组装\n10、工具的智能路由\n6.3.2 最佳实践 AI网关的原子能力可以总结为面向LLM、Agent、MCP和AI开放平台四大类，这里总结了8类常见的实践，多模型代理、消费者认证、内容安全与防护、Token限流、语义缓存、多模型容灾、多模型可观测和AI开放平台。\n1、多模型代理\n需求场景：\n文本、图像、音频、3D等多模态业务场景。\n企业不同垂直领域，需要调用专用模型。\n任务需要多个模型分工协作。\n医疗机构，处理患者数据使用私有模型，其他和患者无关使用通用模型。\n",
+  "keywords": [
+    "AI开发", "AI白皮书"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n6.1 网关的演进历程 是什么在推动软件架构的演进呢？业务规模。业务从互联网、移动互联网以及即将到来的万物互联，其规模仍然在高速增长，也就意味着软件架构的复杂度也会越来越高，网关的特性也会越来越多。越来越复杂、越来越智能。\n6.1.1 流量网关 代表软件是Nginx，将客户请求分配到不同的服务器上，从而实现流量负债均衡，避免单点故障，确保服务的稳定性和连续性。\n6.1.2 ESB网关 ESB，企业服务总线，通过集中管理消息路由、转换和安全，实现服务的快速部署和高效运作。\n6.1.3 微服务网关 微服务网关可以实现负载均衡、限流、熔断、降级、身份验证等功能，通过统一入口管理和优化各微服务间的交互。Spring Cloud Gateway是一个广泛应用的微服务网关。\n6.1.4 云原生网关 云原生网关是伴随K8S的广泛应用而诞生的一种创新网关。既能有流量网关的特性来处理海量请求，又具备微服务网关的特性来做服务发现与服务治理，同时要求网关也具备弹性扩缩容能力解决容量调度问题。\n6.1.5 AI网关 之前的几种类型网关处理的流量基本是以HTTP、RPC为主，多采用长连接，长连接采用request-response模式。AI采用的协议以SSE/Websocket为主，虽然也是长连接，但跟request-response模式相比，Server可以主动发送数据给Client，Websocket更是一种全双工协议，主要在语音类的实时通讯场景中使用。\nAI场景对网关有新诉求，比如：多模型代理、智能路由、模型增强、安全防护、流式传输、无损变更等。\nHigress网关已经在阿里云内部大规模生产落地，可以访问项目地址了解：https://higress.ai/\n6.1.6 API网关 从流量网关，再到AI网关，都是API网关在不同软件架构下的网关形态。HTTP/gRPC/Dubbo/Websocket都可以称之为API，MCP、A2A也可以称之为API。\n6.2 AI网关的定义、特点与应用场景 AI网关是提供多模型流量调度，MCP和Agent管理，智能路由和AI治理的下一代网关。AI网关不仅完整继承了API网关的通用能力，如安全认证、路由转发、流量控制等，也演进出了大模型Fallback、大模型负载均衡、Token级别的精细化流量管控、语义化缓存、内容安全、联网搜索、MCP协议转化和管理、工具精选和搜索效果优化等面向AI场景的能力。\n6.2.1 AI应用的流量特征 高延时\n大带宽与流式传输\n长连接\nAPI驱动\n6.2.2 AI网关的应用场景 1、模型服务提供商（MaaS）的接入层\n2、AI应用的开发网关\n3、企业内部的中央AI网关\n4、MCP工具生态的统一入口\n5、构建企业AI能力货币化的统一开放平台\n6.3 AI网关的核心能力和最佳实践 6.3.1 核心能力 1、多模型代理\n2、多模型回退/容灾\n3、消费者认证\n4、内容安全防护\n5、Token限流\n6、语义缓存\n7、可观测性\n8、MCP代理\n9、工具的动态组装\n10、工具的智能路由\n6.3.2 最佳实践 AI网关的原子能力可以总结为面向LLM、Agent、MCP和AI开放平台四大类，这里总结了8类常见的实践，多模型代理、消费者认证、内容安全与防护、Token限流、语义缓存、多模型容灾、多模型可观测和AI开放平台。\n1、多模型代理\n需求场景：\n文本、图像、音频、3D等多模态业务场景。\n企业不同垂直领域，需要调用专用模型。\n任务需要多个模型分工协作。\n医疗机构，处理患者数据使用私有模型，其他和患者无关使用通用模型。\n核心价值：\n业务需求适配：根据业务复杂性或性能要求选择不同模型。\n数据隐私与合规性：在处理敏感数据时，可能需要切换到符合特定法规的模型，确保数据处理的安全性。\n性能优化：根据实时性能需求，可能会切换到更快的模型以减少延迟。\n成本与性能平衡：根据预算动态选择性价比最优的模型。\n领域特定需求：针对特定领域（如法律、医学），可能需要切换到在相关领域微调过的模型，以提高推理准确性。\n容灾与故障转移：主模型服务异常时快速切换备用模型。\n2、消费者认证\n需求场景：\n企业为不同部门提供共享的大模型服务时，通过API Key区分租户，确保数据隔离和权限管控。\n企业内部不同角色差异化访问模型能力，比如金融企业限制风险评估模型仅限风控部门调用。\n核心价值：\n身份可信：确保请求方为注册/授权用户或系统。\n风险拦截：防止恶意攻击、非法调用与资源滥用。\n合规保障：满足数据安全法规及企业审计要求。\n成本控制：基于鉴权实现精准计费与API配额管理。\n3、内容安全防护\n需求场景：\n金融行业审核用户输入的金融交易指令、投资咨询内容。\n医疗行业电子病历生成内容防止泄露患者隐私。\n社交媒体实时审核用户发布的内容拦截涉黄、暴恐、虚假信息。\n政务服务审核公众提交的政务咨询内容防止恶意攻击或敏感信息传播。\n电商直播审核商品描述、直播弹幕内容拦截虚假宣传、违禁品信息。\n核心价值：\n防止攻击：验证输入可以阻止恶意提示注入，防止模型生成有害内容。\n维护模型完整性：避免输入操纵模型，导致错误或偏见输出。\n用户安全：确保输出没有有害或误导性内容，保护用户免受不良影响。\n内容适度：过滤掉不适当的内容，如仇恨言论或不雅语言，特别是在公共应用中。\n法律法规：确保输出符合法律和伦理标准，尤其在医疗或金融领域。\n4、Token限流\n需求场景：10000人企业，只需要配置7000人硬件资源，超出部分进行限流。限制Token数量来减少垃圾请求或攻击，以免受到资损。\n核心价值：\n成本管理：LLM的费用通常基于Token数量计算，限流帮助用户避免超支。例如，服务提供商可能按Token使用量提供不同定价层。\n资源管理：LLM需要大量计算资源，限流防止系统过载，确保所有用户都能获得稳定性能，尤其在高峰期。\n用户分层：可以基于ConsumerId或者API Key进行Token限流。\n防止恶意使用：通过限制Token数量来减少垃圾请求或攻击。\n5、语义缓存\n需求场景：\n客服系统、智能助手等，用户常提出重复问题，缓存常见问题的回答。\n法律文件分析、教育教材解析，需对通一长文本多次提问，缓存上下文。\n数据分析与生成场景，对相同数据集的多次分析结果缓存。\nRAG缓存知识库检索结果。\n核心价值：\n提高效率：如果相同的输入反复出现，缓存可以避免重复运行模型，从而加快响应速度，特别是在处理常见问题时。\n降低成本：减少模型调用次数可以节省计算资源，尤其对大型模型来说成本较高。\n保持一致性：缓存确保相同输入产生相同输出，有助于测试和合规性场景。\n6、多模型容灾\n需求场景：\n大模型生成不稳定。\n使用者请求参数有误导致连接超时或中断。\n请求频次过高触发限流。\n依赖服务故障。\n核心价值：\n当主LLM服务因为各种原因出现异常，不能提供服务时，网关侧可以快速将请求Fallback到配置的其他LLM服务，虽然可能推理质量有所下降，但是保证了业务的连续性，争取了排查LLM服务的时间。 7、多模型可观测\n需求场景：成本控制和稳定性场景。\n核心价值：AI网关通过支持在应用、网关、后端LLM服务上开启OT服务来进行全链路的跟踪，通过TracId来串联各个地方的日志、请求参数等信息。除了提供QPS、RT、错误率等传统观测指标，AI网关还能集成更多元化的监控指标：\n基于Consumer的Token消耗统计。\n基于模型的Token消耗统计。\n限流指标：每单位时间内有多少次请求因为限流被拦截，限流消费者统计（是哪些消费者在被限流）。\n缓存命中情况。\n安全统计：风险类统计、风险消费者统计。\n8、AI开放平台\n需求场景：工具提供方、Agent开发者、安全合规、财务运营等角色各自为政，产生了能力目录分散、上架流程不一致、权限与配额难统一、成本难计量与分摊、内容安全也难以落实到每一次调用等一系列问题。\n核心价值：\nAI开放平台管理后台（for管理者/运营）：在这里将底层的模型服务、MCP Server、Agent等多样化的AI能力，以API的形式轻松打包成标准化的“AI产品”，并配上完善的文档、示例，最终一键发布到门户。\nAI开放平台门户（for开发者）：门户是面向内外开发者的“店面”。开发者可以在此完成开发者注册、创建消费者、获取凭证、浏览和订阅AI产品、在线测试，并清晰地监控自己的调用状态和成本。\nAI网关：作为Higress AI社区的子项目，Higress AI网关承载所有AI调用的认证、安全、流控、协议转换以及可观测性等能力。\nNacos：Nacos作为MCP Registry为门户提供全面的MCP Server元信息托管，版本管理，服务发现，密钥托管等能力。通过动态服务发现和动态配置变更实现系统灵活扩展和变更，通过Nacos MCP Router智能路由简化多MCP服务管理和调用。在日常开发测试的场景中，通过动态Prompt变更实现高效的MCP服务调试，在生成环境中通过多版本管理实现灰度发布，通过加密存储和动态配置变更提升安全能力。\n6.4 使用AI网关快速构建AI应用 本文基于Higress、通义千问以及ChatGPT-Next-Web，演示如何逐步搭建一个体系完整的AI应用。\n架构图：\n6.4.1 AI代理插件 应用架构\n首先，通过网关快速部署一个可以进行对话的聊天应用。\n架构如下：\nLLM服务使用通义千问，服务类型为DNS：\n插件配置\n插件效果\n6.4.2 AI可观测插件 应用架构\n网关提供了对Token的观测机制，包含路由级、服务级、模型级的Token用量观测。\n插件配置\n插件效果\n6.4.3 AI内容安全插件 应用架构\n插件配置\n在网关配置内容安全的服务：\n开启内容安全插件，选择对LLM路由生效：\n插件效果\n6.4.4 AI Token限流插件 应用架构\n创建一个Redis服务并且在网关进行配置：\n插件配置\n插件效果\n6.5.4 AI缓存 应用架构\n插件配置\n插件效果\n6.4.6 AI RAG 应用架构\n插件配置\n插件效果\n6.4.7 其他 Prompt工程相关插件\nPrompt模版，定义模版指定参数进行访问\nPrompt装饰器，在请求之前和之后插入message\nAI请求/响应智能转换\n插件配置\n插件效果\n6.5 API和Agent的货币化 AI应用正在越过“聊天即产品”的早期阶段，进入以任务完成为目标的Agent时代。\n6.5.1 AI开放平台 AI网关负责抽象并统一上游推理与下游工具，提供稳定的路由、编排与策略面；协议层对工具与资源进行自描述，收敛参数、错误与权限语义，消弭供应商差异；在此基础上，以API货币化为抓手，构建可计量、可计费、可分成、可审计的商业框架，最终形成Agent开放平台或Agent市场，建立“供给-分发-变现-治理”的闭环。\n开源项目HiMarket AI开放平台：\nhttps://github.com/higress-group/himarket\n6.5.2 AI网关 AI网关是AI开放平台的底层基础设施。\n6.5.3 API货币化 首先让一切可被度量，随后基于这些指标设计价格计划。\n6.5.4 API开发者门户 面向开发者提供自助式上架到变现的全链路体验。\n6.5.5 Agent市场 API和Agent的货币化绝不是“加个计费按钮”，而是一套以AI网关为中枢、以协议为通用语言、以市场为分发载体的系统工程。\n参考资料：\nhttps://developer.aliyun.com/ebook/8479\n",
+  "wordCount" : "217",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-10T00:00:00Z",
+  "dateModified": "2026-01-10T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005006-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E7%BD%91%E5%85%B3/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      AI网关
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-10T00:00:00+00:00'>2026-01-10</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>217 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/ai%E6%8A%80%E6%9C%AF/'>AI技术</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/ai%E5%BC%80%E5%8F%91/'>#AI开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/'>#AI白皮书</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="61-网关的演进历程">6.1 网关的演进历程<a hidden class="anchor" aria-hidden="true" href="#61-网关的演进历程">#</a></h1>
+<p>是什么在推动软件架构的演进呢？业务规模。业务从互联网、移动互联网以及即将到来的万物互联，其规模仍然在高速增长，也就意味着软件架构的复杂度也会越来越高，网关的特性也会越来越多。越来越复杂、越来越智能。</p>
+<p><img loading="lazy" src="../assets/5bf22b56b5b4464f8a6277cc8c17edd9.png"></p>
+<h2 id="611-流量网关">6.1.1 流量网关<a hidden class="anchor" aria-hidden="true" href="#611-流量网关">#</a></h2>
+<p>代表软件是Nginx，将客户请求分配到不同的服务器上，从而实现流量负债均衡，避免单点故障，确保服务的稳定性和连续性。</p>
+<h2 id="612-esb网关">6.1.2 ESB网关<a hidden class="anchor" aria-hidden="true" href="#612-esb网关">#</a></h2>
+<p>ESB，企业服务总线，通过集中管理消息路由、转换和安全，实现服务的快速部署和高效运作。</p>
+<h2 id="613-微服务网关">6.1.3 微服务网关<a hidden class="anchor" aria-hidden="true" href="#613-微服务网关">#</a></h2>
+<p>微服务网关可以实现负载均衡、限流、熔断、降级、身份验证等功能，通过统一入口管理和优化各微服务间的交互。Spring Cloud Gateway是一个广泛应用的微服务网关。</p>
+<h2 id="614-云原生网关">6.1.4 云原生网关<a hidden class="anchor" aria-hidden="true" href="#614-云原生网关">#</a></h2>
+<p>云原生网关是伴随K8S的广泛应用而诞生的一种创新网关。既能有流量网关的特性来处理海量请求，又具备微服务网关的特性来做服务发现与服务治理，同时要求网关也具备弹性扩缩容能力解决容量调度问题。</p>
+<h2 id="615-ai网关">6.1.5 AI网关<a hidden class="anchor" aria-hidden="true" href="#615-ai网关">#</a></h2>
+<p>之前的几种类型网关处理的流量基本是以HTTP、RPC为主，多采用长连接，长连接采用request-response模式。AI采用的协议以SSE/Websocket为主，虽然也是长连接，但跟request-response模式相比，Server可以主动发送数据给Client，Websocket更是一种全双工协议，主要在语音类的实时通讯场景中使用。</p>
+<p><img loading="lazy" src="../assets/10f08f06650847409694087017f7f9c0.png"></p>
+<p>AI场景对网关有新诉求，比如：多模型代理、智能路由、模型增强、安全防护、流式传输、无损变更等。</p>
+<p><img loading="lazy" src="../assets/ca7cb41081da44c7a5342061aebe0352.png"></p>
+<p>Higress网关已经在阿里云内部大规模生产落地，可以访问项目地址了解：https://higress.ai/</p>
+<h2 id="616-api网关">6.1.6 API网关<a hidden class="anchor" aria-hidden="true" href="#616-api网关">#</a></h2>
+<p>从流量网关，再到AI网关，都是API网关在不同软件架构下的网关形态。HTTP/gRPC/Dubbo/Websocket都可以称之为API，MCP、A2A也可以称之为API。</p>
+<h1 id="62-ai网关的定义特点与应用场景">6.2 AI网关的定义、特点与应用场景<a hidden class="anchor" aria-hidden="true" href="#62-ai网关的定义特点与应用场景">#</a></h1>
+<p>AI网关是提供多模型流量调度，MCP和Agent管理，智能路由和AI治理的下一代网关。AI网关不仅完整继承了API网关的通用能力，如安全认证、路由转发、流量控制等，也演进出了大模型Fallback、大模型负载均衡、Token级别的精细化流量管控、语义化缓存、内容安全、联网搜索、MCP协议转化和管理、工具精选和搜索效果优化等面向AI场景的能力。</p>
+<h2 id="621-ai应用的流量特征">6.2.1 AI应用的流量特征<a hidden class="anchor" aria-hidden="true" href="#621-ai应用的流量特征">#</a></h2>
+<ul>
+<li>
+<p>高延时</p>
+</li>
+<li>
+<p>大带宽与流式传输</p>
+</li>
+<li>
+<p>长连接</p>
+</li>
+<li>
+<p>API驱动</p>
+</li>
+</ul>
+<h2 id="622-ai网关的应用场景">6.2.2 AI网关的应用场景<a hidden class="anchor" aria-hidden="true" href="#622-ai网关的应用场景">#</a></h2>
+<p>1、模型服务提供商（MaaS）的接入层</p>
+<p>2、AI应用的开发网关</p>
+<p>3、企业内部的中央AI网关</p>
+<p>4、MCP工具生态的统一入口</p>
+<p>5、构建企业AI能力货币化的统一开放平台</p>
+<p><img loading="lazy" src="../assets/af7c740bb4d94809a6e3f28a6efdbaa8.png"></p>
+<h1 id="63-ai网关的核心能力和最佳实践">6.3 AI网关的核心能力和最佳实践<a hidden class="anchor" aria-hidden="true" href="#63-ai网关的核心能力和最佳实践">#</a></h1>
+<h2 id="631-核心能力">6.3.1 核心能力<a hidden class="anchor" aria-hidden="true" href="#631-核心能力">#</a></h2>
+<p><img loading="lazy" src="../assets/6a9d044807414b7cac37a40da5ada5a3.png"></p>
+<p>1、多模型代理</p>
+<p>2、多模型回退/容灾</p>
+<p>3、消费者认证</p>
+<p>4、内容安全防护</p>
+<p>5、Token限流</p>
+<p>6、语义缓存</p>
+<p>7、可观测性</p>
+<p>8、MCP代理</p>
+<p>9、工具的动态组装</p>
+<p>10、工具的智能路由</p>
+<h2 id="632-最佳实践">6.3.2 最佳实践<a hidden class="anchor" aria-hidden="true" href="#632-最佳实践">#</a></h2>
+<p>AI网关的原子能力可以总结为面向LLM、Agent、MCP和AI开放平台四大类，这里总结了8类常见的实践，多模型代理、消费者认证、内容安全与防护、Token限流、语义缓存、多模型容灾、多模型可观测和AI开放平台。</p>
+<p><strong>1、多模型代理</strong></p>
+<p>需求场景：</p>
+<ul>
+<li>
+<p>文本、图像、音频、3D等多模态业务场景。</p>
+</li>
+<li>
+<p>企业不同垂直领域，需要调用专用模型。</p>
+</li>
+<li>
+<p>任务需要多个模型分工协作。</p>
+</li>
+<li>
+<p>医疗机构，处理患者数据使用私有模型，其他和患者无关使用通用模型。</p>
+</li>
+</ul>
+<p>核心价值：</p>
+<ul>
+<li>
+<p>业务需求适配：根据业务复杂性或性能要求选择不同模型。</p>
+</li>
+<li>
+<p>数据隐私与合规性：在处理敏感数据时，可能需要切换到符合特定法规的模型，确保数据处理的安全性。</p>
+</li>
+<li>
+<p>性能优化：根据实时性能需求，可能会切换到更快的模型以减少延迟。</p>
+</li>
+<li>
+<p>成本与性能平衡：根据预算动态选择性价比最优的模型。</p>
+</li>
+<li>
+<p>领域特定需求：针对特定领域（如法律、医学），可能需要切换到在相关领域微调过的模型，以提高推理准确性。</p>
+</li>
+<li>
+<p>容灾与故障转移：主模型服务异常时快速切换备用模型。</p>
+</li>
+</ul>
+<p><strong>2、消费者认证</strong></p>
+<p>需求场景：</p>
+<ul>
+<li>
+<p>企业为不同部门提供共享的大模型服务时，通过API Key区分租户，确保数据隔离和权限管控。</p>
+</li>
+<li>
+<p>企业内部不同角色差异化访问模型能力，比如金融企业限制风险评估模型仅限风控部门调用。</p>
+</li>
+</ul>
+<p>核心价值：</p>
+<ul>
+<li>
+<p>身份可信：确保请求方为注册/授权用户或系统。</p>
+</li>
+<li>
+<p>风险拦截：防止恶意攻击、非法调用与资源滥用。</p>
+</li>
+<li>
+<p>合规保障：满足数据安全法规及企业审计要求。</p>
+</li>
+<li>
+<p>成本控制：基于鉴权实现精准计费与API配额管理。</p>
+</li>
+</ul>
+<p><strong>3、内容安全防护</strong></p>
+<p>需求场景：</p>
+<ul>
+<li>
+<p>金融行业审核用户输入的金融交易指令、投资咨询内容。</p>
+</li>
+<li>
+<p>医疗行业电子病历生成内容防止泄露患者隐私。</p>
+</li>
+<li>
+<p>社交媒体实时审核用户发布的内容拦截涉黄、暴恐、虚假信息。</p>
+</li>
+<li>
+<p>政务服务审核公众提交的政务咨询内容防止恶意攻击或敏感信息传播。</p>
+</li>
+<li>
+<p>电商直播审核商品描述、直播弹幕内容拦截虚假宣传、违禁品信息。</p>
+</li>
+</ul>
+<p>核心价值：</p>
+<ul>
+<li>
+<p>防止攻击：验证输入可以阻止恶意提示注入，防止模型生成有害内容。</p>
+</li>
+<li>
+<p>维护模型完整性：避免输入操纵模型，导致错误或偏见输出。</p>
+</li>
+<li>
+<p>用户安全：确保输出没有有害或误导性内容，保护用户免受不良影响。</p>
+</li>
+<li>
+<p>内容适度：过滤掉不适当的内容，如仇恨言论或不雅语言，特别是在公共应用中。</p>
+</li>
+<li>
+<p>法律法规：确保输出符合法律和伦理标准，尤其在医疗或金融领域。</p>
+</li>
+</ul>
+<p><strong>4、Token限流</strong></p>
+<p>需求场景：10000人企业，只需要配置7000人硬件资源，超出部分进行限流。限制Token数量来减少垃圾请求或攻击，以免受到资损。</p>
+<p>核心价值：</p>
+<ul>
+<li>
+<p>成本管理：LLM的费用通常基于Token数量计算，限流帮助用户避免超支。例如，服务提供商可能按Token使用量提供不同定价层。</p>
+</li>
+<li>
+<p>资源管理：LLM需要大量计算资源，限流防止系统过载，确保所有用户都能获得稳定性能，尤其在高峰期。</p>
+</li>
+<li>
+<p>用户分层：可以基于ConsumerId或者API Key进行Token限流。</p>
+</li>
+<li>
+<p>防止恶意使用：通过限制Token数量来减少垃圾请求或攻击。</p>
+</li>
+</ul>
+<p><strong>5、语义缓存</strong></p>
+<p>需求场景：</p>
+<ul>
+<li>
+<p>客服系统、智能助手等，用户常提出重复问题，缓存常见问题的回答。</p>
+</li>
+<li>
+<p>法律文件分析、教育教材解析，需对通一长文本多次提问，缓存上下文。</p>
+</li>
+<li>
+<p>数据分析与生成场景，对相同数据集的多次分析结果缓存。</p>
+</li>
+<li>
+<p>RAG缓存知识库检索结果。</p>
+</li>
+</ul>
+<p>核心价值：</p>
+<ul>
+<li>
+<p>提高效率：如果相同的输入反复出现，缓存可以避免重复运行模型，从而加快响应速度，特别是在处理常见问题时。</p>
+</li>
+<li>
+<p>降低成本：减少模型调用次数可以节省计算资源，尤其对大型模型来说成本较高。</p>
+</li>
+<li>
+<p>保持一致性：缓存确保相同输入产生相同输出，有助于测试和合规性场景。</p>
+</li>
+</ul>
+<p><strong>6、多模型容灾</strong></p>
+<p>需求场景：</p>
+<ul>
+<li>
+<p>大模型生成不稳定。</p>
+</li>
+<li>
+<p>使用者请求参数有误导致连接超时或中断。</p>
+</li>
+<li>
+<p>请求频次过高触发限流。</p>
+</li>
+<li>
+<p>依赖服务故障。</p>
+</li>
+</ul>
+<p>核心价值：</p>
+<ul>
+<li>当主LLM服务因为各种原因出现异常，不能提供服务时，网关侧可以快速将请求Fallback到配置的其他LLM服务，虽然可能推理质量有所下降，但是保证了业务的连续性，争取了排查LLM服务的时间。</li>
+</ul>
+<p><strong>7、多模型可观测</strong></p>
+<p>需求场景：成本控制和稳定性场景。</p>
+<p>核心价值：AI网关通过支持在应用、网关、后端LLM服务上开启OT服务来进行全链路的跟踪，通过TracId来串联各个地方的日志、请求参数等信息。除了提供QPS、RT、错误率等传统观测指标，AI网关还能集成更多元化的监控指标：</p>
+<ul>
+<li>
+<p>基于Consumer的Token消耗统计。</p>
+</li>
+<li>
+<p>基于模型的Token消耗统计。</p>
+</li>
+<li>
+<p>限流指标：每单位时间内有多少次请求因为限流被拦截，限流消费者统计（是哪些消费者在被限流）。</p>
+</li>
+<li>
+<p>缓存命中情况。</p>
+</li>
+<li>
+<p>安全统计：风险类统计、风险消费者统计。</p>
+</li>
+</ul>
+<p><strong>8、AI开放平台</strong></p>
+<p>需求场景：工具提供方、Agent开发者、安全合规、财务运营等角色各自为政，产生了能力目录分散、上架流程不一致、权限与配额难统一、成本难计量与分摊、内容安全也难以落实到每一次调用等一系列问题。</p>
+<p>核心价值：</p>
+<ul>
+<li>
+<p>AI开放平台管理后台（for管理者/运营）：在这里将底层的模型服务、MCP Server、Agent等多样化的AI能力，以API的形式轻松打包成标准化的“AI产品”，并配上完善的文档、示例，最终一键发布到门户。</p>
+</li>
+<li>
+<p>AI开放平台门户（for开发者）：门户是面向内外开发者的“店面”。开发者可以在此完成开发者注册、创建消费者、获取凭证、浏览和订阅AI产品、在线测试，并清晰地监控自己的调用状态和成本。</p>
+</li>
+<li>
+<p>AI网关：作为Higress AI社区的子项目，Higress AI网关承载所有AI调用的认证、安全、流控、协议转换以及可观测性等能力。</p>
+</li>
+<li>
+<p>Nacos：Nacos作为MCP Registry为门户提供全面的MCP Server元信息托管，版本管理，服务发现，密钥托管等能力。通过动态服务发现和动态配置变更实现系统灵活扩展和变更，通过Nacos MCP Router智能路由简化多MCP服务管理和调用。在日常开发测试的场景中，通过动态Prompt变更实现高效的MCP服务调试，在生成环境中通过多版本管理实现灰度发布，通过加密存储和动态配置变更提升安全能力。</p>
+</li>
+</ul>
+<h1 id="64-使用ai网关快速构建ai应用">6.4 使用AI网关快速构建AI应用<a hidden class="anchor" aria-hidden="true" href="#64-使用ai网关快速构建ai应用">#</a></h1>
+<p>本文基于Higress、通义千问以及ChatGPT-Next-Web，演示如何逐步搭建一个体系完整的AI应用。</p>
+<p>架构图：</p>
+<p><img loading="lazy" src="../assets/35822dba65ad4e2088f5e1ba5483931e.png"></p>
+<h2 id="641-ai代理插件">6.4.1 AI代理插件<a hidden class="anchor" aria-hidden="true" href="#641-ai代理插件">#</a></h2>
+<p><strong>应用架构</strong></p>
+<p>首先，通过网关快速部署一个可以进行对话的聊天应用。</p>
+<p>架构如下：</p>
+<p><img loading="lazy" src="../assets/d374b3d52da24ac592ddf5eb6c78235a.png"></p>
+<p>LLM服务使用通义千问，服务类型为DNS：</p>
+<p><img loading="lazy" src="../assets/93cb10e977a0487fa0012579c7ed75f7.png"></p>
+<p><strong>插件配置</strong></p>
+<p><img loading="lazy" src="../assets/8b08a0db71294a04b36cee04cab24661.png"></p>
+<p><strong>插件效果</strong></p>
+<p><img loading="lazy" src="../assets/3ae9d914530c432fb69fd013980d2953.png"></p>
+<h2 id="642-ai可观测插件">6.4.2 AI可观测插件<a hidden class="anchor" aria-hidden="true" href="#642-ai可观测插件">#</a></h2>
+<p><strong>应用架构</strong></p>
+<p>网关提供了对Token的观测机制，包含路由级、服务级、模型级的Token用量观测。</p>
+<p><img loading="lazy" src="../assets/a6ea854e495c4a9182d43d22bcedfe91.png"></p>
+<p><strong>插件配置</strong></p>
+<p><img loading="lazy" src="../assets/2f649bc2bc984390aa581255a00e0193.png"></p>
+<p><strong>插件效果</strong></p>
+<p><img loading="lazy" src="../assets/24bec7b196a648a687f184e42a5a6858.png"></p>
+<h2 id="643-ai内容安全插件">6.4.3 AI内容安全插件<a hidden class="anchor" aria-hidden="true" href="#643-ai内容安全插件">#</a></h2>
+<p><strong>应用架构</strong></p>
+<p><img loading="lazy" src="../assets/ca14d6148123402da58863487e271eff.png"></p>
+<p><img loading="lazy" src="../assets/cab14bbd803d48f8922d3d835d3d8cba.png"></p>
+<p><strong>插件配置</strong></p>
+<p>在网关配置内容安全的服务：</p>
+<p><img loading="lazy" src="../assets/bfe013e9b2d34cbca110252889d6dac1.png"></p>
+<p>开启内容安全插件，选择对LLM路由生效：</p>
+<p><img loading="lazy" src="../assets/2f4b3e4b2e434fcc94123274b7709549.png"></p>
+<p><strong>插件效果</strong></p>
+<p><img loading="lazy" src="../assets/249a6bbd07ed4b73ad399a4ff7f98e3c.png"></p>
+<p><img loading="lazy" src="../assets/c6ee1314e0694dcbba20f37171f481ec.png"></p>
+<h2 id="644-ai-token限流插件">6.4.4 AI Token限流插件<a hidden class="anchor" aria-hidden="true" href="#644-ai-token限流插件">#</a></h2>
+<p><strong>应用架构</strong></p>
+<p><img loading="lazy" src="../assets/2c21ccfe96a949a6b762bf16ee391983.png"></p>
+<p>创建一个Redis服务并且在网关进行配置：</p>
+<p><img loading="lazy" src="../assets/993852cfb12648eeb103535d1053091f.png"></p>
+<p><img loading="lazy" src="../assets/f7b4947d6f174fdfabec4a6705fd8e07.png"></p>
+<p><strong>插件配置</strong></p>
+<p><img loading="lazy" src="../assets/70970c95437f4af0b5bf93716905ba68.png"></p>
+<p><strong>插件效果</strong></p>
+<p><img loading="lazy" src="../assets/0f2a5c077cda49a18b5bf46b1e60e8c5.png"></p>
+<h2 id="654-ai缓存">6.5.4 AI缓存<a hidden class="anchor" aria-hidden="true" href="#654-ai缓存">#</a></h2>
+<p><strong>应用架构</strong></p>
+<p><img loading="lazy" src="../assets/e15c04fb13b04949b373c58f068a5ff7.png"></p>
+<p><strong>插件配置</strong></p>
+<p><img loading="lazy" src="../assets/99e9540d684b401b9c71a25892c9bf55.png"></p>
+<p><strong>插件效果</strong></p>
+<p><img loading="lazy" src="../assets/e3346ae9ab7a4d4f80c9a00eb96a6e67.png"></p>
+<h2 id="646-ai-rag">6.4.6 AI RAG<a hidden class="anchor" aria-hidden="true" href="#646-ai-rag">#</a></h2>
+<p><strong>应用架构</strong></p>
+<p><img loading="lazy" src="../assets/cac36e4da62c472db847337240ae4473.png"></p>
+<p><img loading="lazy" src="../assets/85cf72310b924cb1a8959e55ae003112.png"></p>
+<p><strong>插件配置</strong></p>
+<p><img loading="lazy" src="../assets/5a25d6fa42d149e599d6b1705c20310d.png"></p>
+<p><strong>插件效果</strong></p>
+<p><img loading="lazy" src="../assets/9bedb0eb9b3f4ad38694ab080d1ef9c4.png"></p>
+<h2 id="647-其他">6.4.7 其他<a hidden class="anchor" aria-hidden="true" href="#647-其他">#</a></h2>
+<p><strong>Prompt工程相关插件</strong></p>
+<ul>
+<li>
+<p>Prompt模版，定义模版指定参数进行访问</p>
+<p><img loading="lazy" src="../assets/ec51680d52854c908effb1eb5b557409.png"></p>
+<p><img loading="lazy" src="../assets/dc7281142f014c788e720d443dd3bd43.png"></p>
+</li>
+<li>
+<p>Prompt装饰器，在请求之前和之后插入message</p>
+<p><img loading="lazy" src="../assets/c2a2d7d118cd4d838625eeb402d11279.png"></p>
+</li>
+</ul>
+<p><strong>AI请求/响应智能转换</strong></p>
+<p><img loading="lazy" src="../assets/1938f8a7b0994fba9ea98fdd5f9232c2.png"></p>
+<p>插件配置</p>
+<p><img loading="lazy" src="../assets/9a07399c99384ee189f6e557af6f5888.png"></p>
+<p>插件效果</p>
+<p><img loading="lazy" src="../assets/5e0c5d84691246239020d812e8fa8205.png"></p>
+<p><img loading="lazy" src="../assets/32954dd8b5cc43678a9de9e247349039.png"></p>
+<h1 id="65-api和agent的货币化">6.5 API和Agent的货币化<a hidden class="anchor" aria-hidden="true" href="#65-api和agent的货币化">#</a></h1>
+<p>AI应用正在越过“聊天即产品”的早期阶段，进入以任务完成为目标的Agent时代。</p>
+<h2 id="651-ai开放平台">6.5.1 AI开放平台<a hidden class="anchor" aria-hidden="true" href="#651-ai开放平台">#</a></h2>
+<p>AI网关负责抽象并统一上游推理与下游工具，提供稳定的路由、编排与策略面；协议层对工具与资源进行自描述，收敛参数、错误与权限语义，消弭供应商差异；在此基础上，以API货币化为抓手，构建可计量、可计费、可分成、可审计的商业框架，最终形成Agent开放平台或Agent市场，建立“供给-分发-变现-治理”的闭环。</p>
+<p>开源项目HiMarket AI开放平台：</p>
+<p><a href="https://github.com/higress-group/himarket">https://github.com/higress-group/himarket</a></p>
+<p><img loading="lazy" src="../assets/693c8e1d577f48dc87f7c0ff1be709d5.png"></p>
+<h2 id="652-ai网关">6.5.2 AI网关<a hidden class="anchor" aria-hidden="true" href="#652-ai网关">#</a></h2>
+<p>AI网关是AI开放平台的底层基础设施。</p>
+<h2 id="653-api货币化">6.5.3 API货币化<a hidden class="anchor" aria-hidden="true" href="#653-api货币化">#</a></h2>
+<p>首先让一切可被度量，随后基于这些指标设计价格计划。</p>
+<h2 id="654-api开发者门户">6.5.4 API开发者门户<a hidden class="anchor" aria-hidden="true" href="#654-api开发者门户">#</a></h2>
+<p><img loading="lazy" src="../assets/f379fcacba3e4e74a8b192c663fa083e.png"></p>
+<p>面向开发者提供自助式上架到变现的全链路体验。</p>
+<h2 id="655-agent市场">6.5.5 Agent市场<a hidden class="anchor" aria-hidden="true" href="#655-agent市场">#</a></h2>
+<p>API和Agent的货币化绝不是“加个计费按钮”，而是一套以AI网关为中枢、以协议为通用语言、以市场为分发载体的系统工程。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://developer.aliyun.com/ebook/8479">https://developer.aliyun.com/ebook/8479</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/ai%E5%BC%80%E5%8F%91/">AI开发</a></li>
+      <li><a href="https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/">AI白皮书</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000011-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%97%B6%E4%BB%A3%E6%B5%8B%E8%AF%95%E5%B7%A5%E4%BD%9C%E4%BC%9A%E6%9C%89%E4%BB%80%E4%B9%88%E5%8F%98%E5%8C%96/">
+    <span class="title">« 上一页</span>
+    <span>大模型时代，测试工作会有什么变化</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000010-djangodrf%E6%AF%94django%E7%9A%84%E8%AE%A4%E8%AF%81%E5%92%8C%E6%9D%83%E9%99%90%E9%AB%98%E5%9C%A8%E5%93%AA%E9%87%8C/">
+    <span class="title">下一页 »</span>
+    <span>DRF比Django的认证和权限高在哪里</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#61-网关的演进历程">6.1 网关的演进历程</a>
+      <ul>
+        <li><a href="#611-流量网关">6.1.1 流量网关</a></li>
+        <li><a href="#612-esb网关">6.1.2 ESB网关</a></li>
+        <li><a href="#613-微服务网关">6.1.3 微服务网关</a></li>
+        <li><a href="#614-云原生网关">6.1.4 云原生网关</a></li>
+        <li><a href="#615-ai网关">6.1.5 AI网关</a></li>
+        <li><a href="#616-api网关">6.1.6 API网关</a></li>
+      </ul>
+    </li>
+    <li><a href="#62-ai网关的定义特点与应用场景">6.2 AI网关的定义、特点与应用场景</a>
+      <ul>
+        <li><a href="#621-ai应用的流量特征">6.2.1 AI应用的流量特征</a></li>
+        <li><a href="#622-ai网关的应用场景">6.2.2 AI网关的应用场景</a></li>
+      </ul>
+    </li>
+    <li><a href="#63-ai网关的核心能力和最佳实践">6.3 AI网关的核心能力和最佳实践</a>
+      <ul>
+        <li><a href="#631-核心能力">6.3.1 核心能力</a></li>
+        <li><a href="#632-最佳实践">6.3.2 最佳实践</a></li>
+      </ul>
+    </li>
+    <li><a href="#64-使用ai网关快速构建ai应用">6.4 使用AI网关快速构建AI应用</a>
+      <ul>
+        <li><a href="#641-ai代理插件">6.4.1 AI代理插件</a></li>
+        <li><a href="#642-ai可观测插件">6.4.2 AI可观测插件</a></li>
+        <li><a href="#643-ai内容安全插件">6.4.3 AI内容安全插件</a></li>
+        <li><a href="#644-ai-token限流插件">6.4.4 AI Token限流插件</a></li>
+        <li><a href="#654-ai缓存">6.5.4 AI缓存</a></li>
+        <li><a href="#646-ai-rag">6.4.6 AI RAG</a></li>
+        <li><a href="#647-其他">6.4.7 其他</a></li>
+      </ul>
+    </li>
+    <li><a href="#65-api和agent的货币化">6.5 API和Agent的货币化</a>
+      <ul>
+        <li><a href="#651-ai开放平台">6.5.1 AI开放平台</a></li>
+        <li><a href="#652-ai网关">6.5.2 AI网关</a></li>
+        <li><a href="#653-api货币化">6.5.3 API货币化</a></li>
+        <li><a href="#654-api开发者门户">6.5.4 API开发者门户</a></li>
+        <li><a href="#655-agent市场">6.5.5 Agent市场</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

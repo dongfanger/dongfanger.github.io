@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>SpringBoot接入JaCoCo实践教程 | 测试开发刚哥</title>
+<meta name="keywords" content="白盒测试, JaCoCo">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+静态接入和动态接入
+SpingBoot可以通过2种方式接入JaCoCo：Maven和Agent。Maven方式是静态接入，在编译时计算代码覆盖率。Agent方式是动态接入，服务启起来以后，能实时根据代码命中情况计算代码覆盖率。
+教程代码已上传开源项目：https://github.com/dongfanger/mini
+Maven
+pom.xml添加依赖：
+&lt;dependency&gt;
+    &lt;groupId&gt;org.jacoco&lt;/groupId&gt;
+    &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;0.8.7&lt;/version&gt;
+&lt;/dependency&gt;
+添加配置：
+&lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;${project.parent.version}&lt;/version&gt;
+            &lt;/plugin&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.jacoco&lt;/groupId&gt;
+                &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;0.8.7&lt;/version&gt;
+                &lt;executions&gt;
+                    &lt;execution&gt;
+                        &lt;id&gt;default-prepare-agent&lt;/id&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;prepare-agent&lt;/goal&gt;
+                        &lt;/goals&gt;
+                    &lt;/execution&gt;
+                    &lt;execution&gt;
+                        &lt;id&gt;default-report&lt;/id&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;report&lt;/goal&gt;
+                        &lt;/goals&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+点击maven的install：
+
+target/site/jacoco目录下就生成了覆盖率报告：
+
+
+Agent
+下载jacoco文件后解压，提取2个文件：
+
+使用命令启动SpringBoot，启动参数添加-javaagent：
+java -javaagent:jacoco/jacocoagent.jar -jar target/mini-0.0.1-SNAPSHOT.jar
+此时会生成1个jacoco.exec文件，这个文件就是覆盖率数据文件，采用以下命令根据数据文件生成HTML报告：
+java -jar jacoco/jacococli.jar report jacoco.exec --classfiles ./target/classes/ --sourcefiles ./src/main/java/ --html ./report
+
+
+接下来就来验证动态特性。把report目录和jacoco.exec都删了，因为jacoco每次部署只能分析一次。把服务停掉后，重新启动。这一次不直接分析，而是先用postman调一下接口：
+
+然后再分析一把：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000004-jacocospringboot%E6%8E%A5%E5%85%A5jacoco%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000004-jacocospringboot%E6%8E%A5%E5%85%A5jacoco%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000004-jacocospringboot%E6%8E%A5%E5%85%A5jacoco%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="SpringBoot接入JaCoCo实践教程">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+静态接入和动态接入 SpingBoot可以通过2种方式接入JaCoCo：Maven和Agent。Maven方式是静态接入，在编译时计算代码覆盖率。Agent方式是动态接入，服务启起来以后，能实时根据代码命中情况计算代码覆盖率。
+教程代码已上传开源项目：https://github.com/dongfanger/mini
+Maven pom.xml添加依赖：
+&lt;dependency&gt; &lt;groupId&gt;org.jacoco&lt;/groupId&gt; &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt; &lt;version&gt;0.8.7&lt;/version&gt; &lt;/dependency&gt; 添加配置：
+&lt;build&gt; &lt;plugins&gt; &lt;plugin&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt; &lt;version&gt;${project.parent.version}&lt;/version&gt; &lt;/plugin&gt; &lt;plugin&gt; &lt;groupId&gt;org.jacoco&lt;/groupId&gt; &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt; &lt;version&gt;0.8.7&lt;/version&gt; &lt;executions&gt; &lt;execution&gt; &lt;id&gt;default-prepare-agent&lt;/id&gt; &lt;goals&gt; &lt;goal&gt;prepare-agent&lt;/goal&gt; &lt;/goals&gt; &lt;/execution&gt; &lt;execution&gt; &lt;id&gt;default-report&lt;/id&gt; &lt;goals&gt; &lt;goal&gt;report&lt;/goal&gt; &lt;/goals&gt; &lt;/execution&gt; &lt;/executions&gt; &lt;/plugin&gt; &lt;/plugins&gt; &lt;/build&gt; 点击maven的install：
+target/site/jacoco目录下就生成了覆盖率报告：
+Agent 下载jacoco文件后解压，提取2个文件：
+使用命令启动SpringBoot，启动参数添加-javaagent：
+java -javaagent:jacoco/jacocoagent.jar -jar target/mini-0.0.1-SNAPSHOT.jar 此时会生成1个jacoco.exec文件，这个文件就是覆盖率数据文件，采用以下命令根据数据文件生成HTML报告：
+java -jar jacoco/jacococli.jar report jacoco.exec --classfiles ./target/classes/ --sourcefiles ./src/main/java/ --html ./report 接下来就来验证动态特性。把report目录和jacoco.exec都删了，因为jacoco每次部署只能分析一次。把服务停掉后，重新启动。这一次不直接分析，而是先用postman调一下接口：
+然后再分析一把：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:tag" content="白盒测试">
+    <meta property="article:tag" content="JaCoCo">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="SpringBoot接入JaCoCo实践教程">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+静态接入和动态接入 SpingBoot可以通过2种方式接入JaCoCo：Maven和Agent。Maven方式是静态接入，在编译时计算代码覆盖率。Agent方式是动态接入，服务启起来以后，能实时根据代码命中情况计算代码覆盖率。
+教程代码已上传开源项目：https://github.com/dongfanger/mini
+Maven pom.xml添加依赖：
+&lt;dependency&gt; &lt;groupId&gt;org.jacoco&lt;/groupId&gt; &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt; &lt;version&gt;0.8.7&lt;/version&gt; &lt;/dependency&gt; 添加配置：
+&lt;build&gt; &lt;plugins&gt; &lt;plugin&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt; &lt;version&gt;${project.parent.version}&lt;/version&gt; &lt;/plugin&gt; &lt;plugin&gt; &lt;groupId&gt;org.jacoco&lt;/groupId&gt; &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt; &lt;version&gt;0.8.7&lt;/version&gt; &lt;executions&gt; &lt;execution&gt; &lt;id&gt;default-prepare-agent&lt;/id&gt; &lt;goals&gt; &lt;goal&gt;prepare-agent&lt;/goal&gt; &lt;/goals&gt; &lt;/execution&gt; &lt;execution&gt; &lt;id&gt;default-report&lt;/id&gt; &lt;goals&gt; &lt;goal&gt;report&lt;/goal&gt; &lt;/goals&gt; &lt;/execution&gt; &lt;/executions&gt; &lt;/plugin&gt; &lt;/plugins&gt; &lt;/build&gt; 点击maven的install：
+target/site/jacoco目录下就生成了覆盖率报告：
+Agent 下载jacoco文件后解压，提取2个文件：
+使用命令启动SpringBoot，启动参数添加-javaagent：
+java -javaagent:jacoco/jacocoagent.jar -jar target/mini-0.0.1-SNAPSHOT.jar 此时会生成1个jacoco.exec文件，这个文件就是覆盖率数据文件，采用以下命令根据数据文件生成HTML报告：
+java -jar jacoco/jacococli.jar report jacoco.exec --classfiles ./target/classes/ --sourcefiles ./src/main/java/ --html ./report 接下来就来验证动态特性。把report目录和jacoco.exec都删了，因为jacoco每次部署只能分析一次。把服务停掉后，重新启动。这一次不直接分析，而是先用postman调一下接口：
+然后再分析一把：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "SpringBoot接入JaCoCo实践教程",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000004-jacocospringboot%E6%8E%A5%E5%85%A5jacoco%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SpringBoot接入JaCoCo实践教程",
+  "name": "SpringBoot接入JaCoCo实践教程",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n静态接入和动态接入 SpingBoot可以通过2种方式接入JaCoCo：Maven和Agent。Maven方式是静态接入，在编译时计算代码覆盖率。Agent方式是动态接入，服务启起来以后，能实时根据代码命中情况计算代码覆盖率。\n教程代码已上传开源项目：https://github.com/dongfanger/mini\nMaven pom.xml添加依赖：\n\u0026lt;dependency\u0026gt; \u0026lt;groupId\u0026gt;org.jacoco\u0026lt;/groupId\u0026gt; \u0026lt;artifactId\u0026gt;jacoco-maven-plugin\u0026lt;/artifactId\u0026gt; \u0026lt;version\u0026gt;0.8.7\u0026lt;/version\u0026gt; \u0026lt;/dependency\u0026gt; 添加配置：\n\u0026lt;build\u0026gt; \u0026lt;plugins\u0026gt; \u0026lt;plugin\u0026gt; \u0026lt;groupId\u0026gt;org.springframework.boot\u0026lt;/groupId\u0026gt; \u0026lt;artifactId\u0026gt;spring-boot-maven-plugin\u0026lt;/artifactId\u0026gt; \u0026lt;version\u0026gt;${project.parent.version}\u0026lt;/version\u0026gt; \u0026lt;/plugin\u0026gt; \u0026lt;plugin\u0026gt; \u0026lt;groupId\u0026gt;org.jacoco\u0026lt;/groupId\u0026gt; \u0026lt;artifactId\u0026gt;jacoco-maven-plugin\u0026lt;/artifactId\u0026gt; \u0026lt;version\u0026gt;0.8.7\u0026lt;/version\u0026gt; \u0026lt;executions\u0026gt; \u0026lt;execution\u0026gt; \u0026lt;id\u0026gt;default-prepare-agent\u0026lt;/id\u0026gt; \u0026lt;goals\u0026gt; \u0026lt;goal\u0026gt;prepare-agent\u0026lt;/goal\u0026gt; \u0026lt;/goals\u0026gt; \u0026lt;/execution\u0026gt; \u0026lt;execution\u0026gt; \u0026lt;id\u0026gt;default-report\u0026lt;/id\u0026gt; \u0026lt;goals\u0026gt; \u0026lt;goal\u0026gt;report\u0026lt;/goal\u0026gt; \u0026lt;/goals\u0026gt; \u0026lt;/execution\u0026gt; \u0026lt;/executions\u0026gt; \u0026lt;/plugin\u0026gt; \u0026lt;/plugins\u0026gt; \u0026lt;/build\u0026gt; 点击maven的install：\ntarget/site/jacoco目录下就生成了覆盖率报告：\nAgent 下载jacoco文件后解压，提取2个文件：\n使用命令启动SpringBoot，启动参数添加-javaagent：\njava -javaagent:jacoco/jacocoagent.jar -jar target/mini-0.0.1-SNAPSHOT.jar 此时会生成1个jacoco.exec文件，这个文件就是覆盖率数据文件，采用以下命令根据数据文件生成HTML报告：\njava -jar jacoco/jacococli.jar report jacoco.exec --classfiles ./target/classes/ --sourcefiles ./src/main/java/ --html ./report 接下来就来验证动态特性。把report目录和jacoco.exec都删了，因为jacoco每次部署只能分析一次。把服务停掉后，重新启动。这一次不直接分析，而是先用postman调一下接口：\n然后再分析一把：\n",
+  "keywords": [
+    "白盒测试", "JaCoCo"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n静态接入和动态接入 SpingBoot可以通过2种方式接入JaCoCo：Maven和Agent。Maven方式是静态接入，在编译时计算代码覆盖率。Agent方式是动态接入，服务启起来以后，能实时根据代码命中情况计算代码覆盖率。\n教程代码已上传开源项目：https://github.com/dongfanger/mini\nMaven pom.xml添加依赖：\norg.jacoco jacoco-maven-plugin 0.8.7 添加配置：\norg.springframework.boot spring-boot-maven-plugin ${project.parent.version} org.jacoco jacoco-maven-plugin 0.8.7 default-prepare-agent prepare-agent default-report report 点击maven的install：\ntarget/site/jacoco目录下就生成了覆盖率报告：\nAgent 下载jacoco文件后解压，提取2个文件：\n使用命令启动SpringBoot，启动参数添加-javaagent：\njava -javaagent:jacoco/jacocoagent.jar -jar target/mini-0.0.1-SNAPSHOT.jar 此时会生成1个jacoco.exec文件，这个文件就是覆盖率数据文件，采用以下命令根据数据文件生成HTML报告：\njava -jar jacoco/jacococli.jar report jacoco.exec --classfiles ./target/classes/ --sourcefiles ./src/main/java/ --html ./report 接下来就来验证动态特性。把report目录和jacoco.exec都删了，因为jacoco每次部署只能分析一次。把服务停掉后，重新启动。这一次不直接分析，而是先用postman调一下接口：\n然后再分析一把：\n可以看到覆盖率变成100%，说明postman调接口这个操作，命中了代码，被jacoco统计到了。javaagent相当于是个代理，在服务运行期间，所有调用都会经过javagent，这样就能实时统计代码覆盖率。换句话说，只要服务运行起来以后，只要你能命中代码，无论是跑单元测试还是调接口，或者是手工测试，都能生成代码覆盖率数据。\n",
+  "wordCount" : "64",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-04T00:00:00Z",
+  "dateModified": "2026-01-04T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000004-jacocospringboot%E6%8E%A5%E5%85%A5jacoco%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      SpringBoot接入JaCoCo实践教程
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-04T00:00:00+00:00'>2026-01-04</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>64 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/'>#白盒测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jacoco/'>#JaCoCo</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h2 id="静态接入和动态接入">静态接入和动态接入<a hidden class="anchor" aria-hidden="true" href="#静态接入和动态接入">#</a></h2>
+<p>SpingBoot可以通过2种方式接入JaCoCo：Maven和Agent。<strong>Maven方式是静态接入</strong>，在编译时计算代码覆盖率。<strong>Agent方式是动态接入</strong>，服务启起来以后，能实时根据代码命中情况计算代码覆盖率。</p>
+<p>教程代码已上传开源项目：https://github.com/dongfanger/mini</p>
+<h2 id="maven">Maven<a hidden class="anchor" aria-hidden="true" href="#maven">#</a></h2>
+<p>pom.xml添加依赖：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;groupId&gt;</span>org.jacoco<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;artifactId&gt;</span>jacoco-maven-plugin<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;version&gt;</span>0.8.7<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/dependency&gt;</span>
+</span></span></code></pre></div><p>添加配置：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;build&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;plugins&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;plugin&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;artifactId&gt;</span>spring-boot-maven-plugin<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;version&gt;</span>${project.parent.version}<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;/plugin&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;plugin&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;groupId&gt;</span>org.jacoco<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;artifactId&gt;</span>jacoco-maven-plugin<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;version&gt;</span>0.8.7<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;executions&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0550ae">&lt;execution&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;id&gt;</span>default-prepare-agent<span style="color:#0550ae">&lt;/id&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;goals&gt;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#0550ae">&lt;goal&gt;</span>prepare-agent<span style="color:#0550ae">&lt;/goal&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;/goals&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0550ae">&lt;/execution&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0550ae">&lt;execution&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;id&gt;</span>default-report<span style="color:#0550ae">&lt;/id&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;goals&gt;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#0550ae">&lt;goal&gt;</span>report<span style="color:#0550ae">&lt;/goal&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;/goals&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0550ae">&lt;/execution&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;/executions&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;/plugin&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;/plugins&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/build&gt;</span>
+</span></span></code></pre></div><p>点击maven的install：</p>
+<p><img loading="lazy" src="../assets/cf4e615a5587484c82882989c814b72d.png"></p>
+<p><code>target/site/jacoco</code>目录下就生成了覆盖率报告：</p>
+<p><img loading="lazy" src="../assets/796fd3dead8d4d18aed6fe21d54b3584.png"></p>
+<p><img loading="lazy" src="../assets/2ab44387da96478f88ba4ce10204be14.png"></p>
+<h2 id="agent">Agent<a hidden class="anchor" aria-hidden="true" href="#agent">#</a></h2>
+<p>下载jacoco文件后解压，提取2个文件：</p>
+<p><img loading="lazy" src="../assets/ad7eed0bddcf4841ae0472bf2d6843e3.png"></p>
+<p>使用命令启动SpringBoot，启动参数添加<code>-javaagent</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>java -javaagent:jacoco/jacocoagent.jar -jar target/mini-0.0.1-SNAPSHOT.jar
+</span></span></code></pre></div><p>此时会生成1个<code>jacoco.exec</code>文件，这个文件就是覆盖率数据文件，采用以下命令根据数据文件生成HTML报告：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>java -jar jacoco/jacococli.jar report jacoco.exec --classfiles ./target/classes/ --sourcefiles ./src/main/java/ --html ./report
+</span></span></code></pre></div><p><img loading="lazy" src="../assets/6eb9a090cf014a16895a3b7472aef243.png"></p>
+<p><img loading="lazy" src="../assets/617ef96e107e478dbf3e8f7b93a667a8.png"></p>
+<p>接下来就来验证动态特性。把report目录和<code>jacoco.exec</code>都删了，因为<strong>jacoco每次部署只能分析一次</strong>。把服务停掉后，重新启动。这一次不直接分析，而是先用postman调一下接口：</p>
+<p><img loading="lazy" src="../assets/02799720006d4855bd8b9a4dd8be63d3.png"></p>
+<p>然后再分析一把：</p>
+<p><img loading="lazy" src="../assets/3ad09a70179d4c6abe18c778e4a97e7b.png"></p>
+<p>可以看到覆盖率变成100%，说明postman调接口这个操作，命中了代码，被jacoco统计到了。javaagent相当于是个代理，在服务运行期间，所有调用都会经过javagent，这样就能实时统计代码覆盖率。<strong>换句话说，只要服务运行起来以后，只要你能命中代码，无论是跑单元测试还是调接口，或者是手工测试，都能生成代码覆盖率数据。</strong></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/">白盒测试</a></li>
+      <li><a href="https://dongfanger.github.io/tags/jacoco/">JaCoCo</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000004-springspringboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B01%E5%85%A5%E9%97%A8/">
+    <span class="title">« 上一页</span>
+    <span>SpringBoot官方笔记1入门</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/teprunner/000004-%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E5%89%8D%E7%BD%AE%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/">
+    <span class="title">下一页 »</span>
+    <span>teprunner测试平台用例前置模块开发</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#静态接入和动态接入">静态接入和动态接入</a></li>
+        <li><a href="#maven">Maven</a></li>
+        <li><a href="#agent">Agent</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

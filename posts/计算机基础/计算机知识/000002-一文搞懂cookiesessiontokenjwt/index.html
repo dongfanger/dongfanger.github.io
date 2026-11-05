@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>一文搞懂Cookie,Session,Token,JWT | 测试开发刚哥</title>
+<meta name="keywords" content="计算机知识">
+<meta name="description" content="HTTP协议是无状态的，无状态意味着，服务器无法给不同的客户端响应不同的信息。这样一些交互业务就无法支撑了。Cookie应运而生。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000002-%E4%B8%80%E6%96%87%E6%90%9E%E6%87%82cookiesessiontokenjwt/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000002-%E4%B8%80%E6%96%87%E6%90%9E%E6%87%82cookiesessiontokenjwt/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000002-%E4%B8%80%E6%96%87%E6%90%9E%E6%87%82cookiesessiontokenjwt/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="一文搞懂Cookie,Session,Token,JWT">
+  <meta property="og:description" content="HTTP协议是无状态的，无状态意味着，服务器无法给不同的客户端响应不同的信息。这样一些交互业务就无法支撑了。Cookie应运而生。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-02T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-02T00:00:00+00:00">
+    <meta property="article:tag" content="计算机知识">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="一文搞懂Cookie,Session,Token,JWT">
+  <meta name="twitter:description" content="HTTP协议是无状态的，无状态意味着，服务器无法给不同的客户端响应不同的信息。这样一些交互业务就无法支撑了。Cookie应运而生。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "一文搞懂Cookie,Session,Token,JWT",
+      "item": "https://dongfanger.github.io/posts/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000002-%E4%B8%80%E6%96%87%E6%90%9E%E6%87%82cookiesessiontokenjwt/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "一文搞懂Cookie,Session,Token,JWT",
+  "name": "一文搞懂Cookie,Session,Token,JWT",
+  "description": "HTTP协议是无状态的，无状态意味着，服务器无法给不同的客户端响应不同的信息。这样一些交互业务就无法支撑了。Cookie应运而生。",
+  "keywords": [
+    "计算机知识"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nHTTP协议是无状态的，无状态意味着，服务器无法给不同的客户端响应不同的信息。这样一些交互业务就无法支撑了。Cookie应运而生。\nCookie 通过F12开发者工具，先瞅瞅Cookie的颜值\n从图中可以看到Cookie包括这些内容：Name，Value，Domain，Path，Expires / Max-Age，Size，HttpOnly，Secure，SameSite，Priority。\nCookie的传递会经历这4步\nClient发送HTTP请求给Server Server响应，并附带Set-Cookie的头部信息 Client保存Cookie，之后请求Server会附带Cookie的头部信息 Server从Cookie知道Client是谁了，返回相应的响应 Cookie的英文翻译是甜品，使用Cookie可以自动填写用户名、记住密码等，是给用户的一点甜头。\nServer拿到Cookie后，通过什么信息才能判断是哪个Client呢？服务器的SessionID。\nSession 如果把用户名、密码等重要隐私都存到客户端的Cookie中，还是有泄密风险。为了更安全，把机密信息保存到服务器上，这就是Session。Session是服务器上维护的客户档案，可以理解为服务器端数据库中有一张user表，里面存放了客户端的用户信息。SessionID就是这张表的主键ID。\nCookie中保存SessionID\nSession信息存到服务器，必然占用内存。用户多了以后，开销必然增大。为了提高效率，需要做分布式，做负载均衡。因为认证的信息保存在内存中，用户访问哪台服务器，下次还得访问相同这台服务器才能拿到授权信息，这就限制了负载均衡的能力。而且SeesionID存在Cookie，还是有暴露的风险，比如CSRF（Cross-Site Request Forgery，跨站请求伪造）。\n如何解决这些问题呢？基于Token令牌鉴权。\nToken 首先，Token不需要再存储用户信息，节约了内存。其次，由于不存储信息，客户端访问不同的服务器也能进行鉴权，增强了扩展能力。然后，Token可以采用不同的加密方式进行签名，提高了安全性。\nToken就是一段字符串\nToken传递的过程跟Cookie类似，只是传递对象变成了Token。用户使用用户名、密码请求服务器后，服务器就生成Token，在响应中返给客户端，客户端再次请求时附带上Token，服务器就用这个Token进行认证鉴权。\nToken虽然很好的解决了Session的问题，但仍然不够完美。服务器在认证Token的时候，仍然需要去数据库查询认证信息做校验。为了不查库，直接认证，JWT出现了。\nJWT JWT的英文全称是JSON Web Token。JWT把所有信息都存在自己身上了，包括用户名密码、加密信息等，且以JSON对象存储的。\nJWT长相是xxxxx.yyyyy.zzzzz，极具艺术感。包括三部分内容\nHeader\n包括token类型和加密算法（HMAC SHA256 RSA）。\n{ \"alg\": \"HS256\", \"typ\": \"JWT\" } Payload\n传输内容。\n{ \"sub\": \"1234567890\", \"name\": \"John Doe\", \"admin\": true } Signature\n签名，把header和payload用base64编码后\".“拼接，加盐secret（服务器私钥）。\nHMACSHA256( base64UrlEncode(header) + \".\" + base64UrlEncode(payload), secret) 再画个妆，漂亮\n可以到https://jwt.io/#debugger-io这个网址卸妆哦\n给Token穿个外套\nAuthorization: Bearer 这就是我们在请求Header里面看到的内容格式了。\n简要回顾 本文简单介绍了Cookie、Session、Token、JWT的概念，以及为什么需要这些技术。至于更深入的原理和代码使用，就请读者自行研究了哦。至少这篇文章能让你搞懂，看到不会觉得陌生了。哈哈哈。\n参考资料\nhttps://jwt.io/introduction/\njwt-handbook-v0_14_1\n",
+  "wordCount" : "73",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-02T00:00:00Z",
+  "dateModified": "2026-01-02T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/000002-%E4%B8%80%E6%96%87%E6%90%9E%E6%87%82cookiesessiontokenjwt/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      一文搞懂Cookie,Session,Token,JWT
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-02T00:00:00+00:00'>2026-01-02</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>73 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/'>计算机基础</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/'>#计算机知识</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>HTTP协议是无状态的，无状态意味着，服务器无法给不同的客户端响应不同的信息。这样一些交互业务就无法支撑了。Cookie应运而生。</p>
+<h1 id="cookie">Cookie<a hidden class="anchor" aria-hidden="true" href="#cookie">#</a></h1>
+<p>通过F12开发者工具，先瞅瞅Cookie的颜值</p>
+<p><img loading="lazy" src="../assets/82798aa19b7b4af1ad7a93b5cade756a.png"></p>
+<p>从图中可以看到Cookie包括这些内容：Name，Value，Domain，Path，Expires / Max-Age，Size，HttpOnly，Secure，SameSite，Priority。</p>
+<p>Cookie的传递会经历这4步</p>
+<ol>
+<li>Client发送HTTP请求给Server</li>
+<li>Server响应，并附带Set-Cookie的头部信息</li>
+<li>Client保存Cookie，之后请求Server会附带Cookie的头部信息</li>
+<li>Server从Cookie知道Client是谁了，返回相应的响应</li>
+</ol>
+<p><img loading="lazy" src="../assets/b85573887fcb4d759e0a5905c7cd2978.png"></p>
+<p>Cookie的英文翻译是甜品，使用Cookie可以自动填写用户名、记住密码等，是给用户的一点甜头。</p>
+<p>Server拿到Cookie后，通过什么信息才能判断是哪个Client呢？服务器的SessionID。</p>
+<h1 id="session">Session<a hidden class="anchor" aria-hidden="true" href="#session">#</a></h1>
+<p>如果把用户名、密码等重要隐私都存到客户端的Cookie中，还是有泄密风险。为了更安全，把机密信息保存到服务器上，这就是Session。Session是服务器上维护的客户档案，可以理解为服务器端数据库中有一张user表，里面存放了客户端的用户信息。SessionID就是这张表的主键ID。</p>
+<p>Cookie中保存SessionID</p>
+<p><img loading="lazy" src="../assets/747f48927a4b45ef816229cfd54e9802.png"></p>
+<p>Session信息存到服务器，必然占用内存。用户多了以后，开销必然增大。为了提高效率，需要做分布式，做负载均衡。因为认证的信息保存在内存中，用户访问哪台服务器，下次还得访问相同这台服务器才能拿到授权信息，这就限制了负载均衡的能力。而且SeesionID存在Cookie，还是有暴露的风险，比如CSRF（Cross-Site Request Forgery，跨站请求伪造）。</p>
+<p>如何解决这些问题呢？基于Token令牌鉴权。</p>
+<h1 id="token">Token<a hidden class="anchor" aria-hidden="true" href="#token">#</a></h1>
+<p>首先，Token不需要再存储用户信息，节约了内存。其次，由于不存储信息，客户端访问不同的服务器也能进行鉴权，增强了扩展能力。然后，Token可以采用不同的加密方式进行签名，提高了安全性。</p>
+<p>Token就是一段字符串</p>
+<p><img loading="lazy" src="../assets/c6469cebc09f48a89245de469296f720.jpg"></p>
+<p>Token传递的过程跟Cookie类似，只是传递对象变成了Token。用户使用用户名、密码请求服务器后，服务器就生成Token，在响应中返给客户端，客户端再次请求时附带上Token，服务器就用这个Token进行认证鉴权。</p>
+<p>Token虽然很好的解决了Session的问题，但仍然不够完美。服务器在认证Token的时候，仍然需要去数据库查询认证信息做校验。为了不查库，直接认证，JWT出现了。</p>
+<h1 id="jwt">JWT<a hidden class="anchor" aria-hidden="true" href="#jwt">#</a></h1>
+<p>JWT的英文全称是JSON Web Token。JWT把所有信息都存在自己身上了，包括用户名密码、加密信息等，且以JSON对象存储的。</p>
+<p>JWT长相是<code>xxxxx.yyyyy.zzzzz</code>，极具艺术感。包括三部分内容</p>
+<ul>
+<li>
+<p>Header</p>
+<p>包括token类型和加密算法（HMAC SHA256 RSA）。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0550ae">&#34;alg&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;HS256&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0550ae">&#34;typ&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;JWT&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></div></li>
+<li>
+<p>Payload</p>
+<p>传输内容。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0550ae">&#34;sub&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;1234567890&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0550ae">&#34;name&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;John Doe&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0550ae">&#34;admin&#34;</span><span style="color:#1f2328">:</span> <span style="color:#cf222e">true</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></div></li>
+<li>
+<p>Signature</p>
+<p>签名，把header和payload用base64编码后&quot;.&ldquo;拼接，加盐secret（服务器私钥）。</p>
+<pre tabindex="0"><code>HMACSHA256(
+  base64UrlEncode(header) + &#34;.&#34; +
+  base64UrlEncode(payload),
+  secret)
+</code></pre></li>
+</ul>
+<p>再画个妆，漂亮</p>
+<p><img loading="lazy" src="../assets/9c16dab3d5cd4028b4dc4fbd6b5766d5.png"></p>
+<p>可以到https://jwt.io/#debugger-io这个网址卸妆哦</p>
+<p><img loading="lazy" src="../assets/d6c6ee56e729420bacb21665a2a5d5d8.png"></p>
+<p>给Token穿个外套</p>
+<pre tabindex="0"><code>Authorization: Bearer &lt;token&gt;
+</code></pre><p>这就是我们在请求Header里面看到的内容格式了。</p>
+<h1 id="简要回顾">简要回顾<a hidden class="anchor" aria-hidden="true" href="#简要回顾">#</a></h1>
+<p>本文简单介绍了Cookie、Session、Token、JWT的概念，以及为什么需要这些技术。至于更深入的原理和代码使用，就请读者自行研究了哦。至少这篇文章能让你搞懂，看到不会觉得陌生了。哈哈哈。</p>
+<blockquote>
+<p><em>参考资料</em></p>
+<p><a href="https://jwt.io/introduction/">https://jwt.io/introduction/</a></p>
+<p>jwt-handbook-v0_14_1</p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9F%A5%E8%AF%86/">计算机知识</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/teprunner/000002-%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0%E5%AD%A6%E4%B9%A0%E7%89%88pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E4%B8%87%E5%AD%97%E9%95%BF%E6%96%87%E5%85%A5%E9%97%A8%E7%AF%87/">
+    <span class="title">« 上一页</span>
+    <span>学习版pytest内核测试平台开发万字长文入门篇</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000002-python%E7%9C%9F%E9%A6%99%E7%90%86%E8%A7%A3%E8%AE%B0%E5%BF%86%E6%B3%95%E5%AD%A6%E4%B9%A0python%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95/">
+    <span class="title">下一页 »</span>
+    <span>真香，理解记忆法学习Python基础语法</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#cookie">Cookie</a></li>
+    <li><a href="#session">Session</a></li>
+    <li><a href="#token">Token</a></li>
+    <li><a href="#jwt">JWT</a></li>
+    <li><a href="#简要回顾">简要回顾</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

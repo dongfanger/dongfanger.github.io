@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>把RPC包进事务的暗坑 | 测试开发刚哥</title>
+<meta name="keywords" content="后端测试">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+# 方式：把判断放进 SQL，一条语句的原子性
+rows = db.execute(&#34;&#34;&#34;
+    UPDATE pay_record SET status = &#39;PAID&#39;
+    WHERE order_no = ? AND status = &#39;INIT&#39;
+&#34;&#34;&#34;, order_no)
+
+if rows == 0:
+    return &#34;已处理&#34;          # 别人改过了，我不是第一个
+
+grant_coupon(order_no)       # 只有改成功的那个才发券
+return &#34;success&#34;
+grant_coupon失败会发生什么？
+券永久丢失，该发没发，资损。
+第一次请求：
+UPDATE status: INIT → PAID   ✅ 已提交，改不回去了
+grant_coupon(order_no)        ❌ 抛异常 / 超时 / 下游挂了
+第二次请求：
+rows = db.execute(&#34;UPDATE ... WHERE status = &#39;INIT&#39;&#34;)  # status已是PAID
+# rows == 0
+return &#34;已处理&#34;   # ← 被自己的幂等逻辑拦住，不会执行grant_coupon
+包进一个事务能解决吗
+把update和grant_coupon这两个操作，包进一个事务里，要么同时执行，要么同时回滚，是不是就解决了？">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000004-%E6%8A%8Arpc%E5%8C%85%E8%BF%9B%E4%BA%8B%E5%8A%A1%E7%9A%84%E6%9A%97%E5%9D%91/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000004-%E6%8A%8Arpc%E5%8C%85%E8%BF%9B%E4%BA%8B%E5%8A%A1%E7%9A%84%E6%9A%97%E5%9D%91/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000004-%E6%8A%8Arpc%E5%8C%85%E8%BF%9B%E4%BA%8B%E5%8A%A1%E7%9A%84%E6%9A%97%E5%9D%91/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="把RPC包进事务的暗坑">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+# 方式：把判断放进 SQL，一条语句的原子性 rows = db.execute(&#34;&#34;&#34; UPDATE pay_record SET status = &#39;PAID&#39; WHERE order_no = ? AND status = &#39;INIT&#39; &#34;&#34;&#34;, order_no) if rows == 0: return &#34;已处理&#34; # 别人改过了，我不是第一个 grant_coupon(order_no) # 只有改成功的那个才发券 return &#34;success&#34; grant_coupon失败会发生什么？
+券永久丢失，该发没发，资损。
+第一次请求：
+UPDATE status: INIT → PAID ✅ 已提交，改不回去了 grant_coupon(order_no) ❌ 抛异常 / 超时 / 下游挂了 第二次请求：
+rows = db.execute(&#34;UPDATE ... WHERE status = &#39;INIT&#39;&#34;) # status已是PAID # rows == 0 return &#34;已处理&#34; # ← 被自己的幂等逻辑拦住，不会执行grant_coupon 包进一个事务能解决吗 把update和grant_coupon这两个操作，包进一个事务里，要么同时执行，要么同时回滚，是不是就解决了？">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:tag" content="后端测试">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="把RPC包进事务的暗坑">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+# 方式：把判断放进 SQL，一条语句的原子性 rows = db.execute(&#34;&#34;&#34; UPDATE pay_record SET status = &#39;PAID&#39; WHERE order_no = ? AND status = &#39;INIT&#39; &#34;&#34;&#34;, order_no) if rows == 0: return &#34;已处理&#34; # 别人改过了，我不是第一个 grant_coupon(order_no) # 只有改成功的那个才发券 return &#34;success&#34; grant_coupon失败会发生什么？
+券永久丢失，该发没发，资损。
+第一次请求：
+UPDATE status: INIT → PAID ✅ 已提交，改不回去了 grant_coupon(order_no) ❌ 抛异常 / 超时 / 下游挂了 第二次请求：
+rows = db.execute(&#34;UPDATE ... WHERE status = &#39;INIT&#39;&#34;) # status已是PAID # rows == 0 return &#34;已处理&#34; # ← 被自己的幂等逻辑拦住，不会执行grant_coupon 包进一个事务能解决吗 把update和grant_coupon这两个操作，包进一个事务里，要么同时执行，要么同时回滚，是不是就解决了？">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "把RPC包进事务的暗坑",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000004-%E6%8A%8Arpc%E5%8C%85%E8%BF%9B%E4%BA%8B%E5%8A%A1%E7%9A%84%E6%9A%97%E5%9D%91/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "把RPC包进事务的暗坑",
+  "name": "把RPC包进事务的暗坑",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n# 方式：把判断放进 SQL，一条语句的原子性 rows = db.execute(\u0026#34;\u0026#34;\u0026#34; UPDATE pay_record SET status = \u0026#39;PAID\u0026#39; WHERE order_no = ? AND status = \u0026#39;INIT\u0026#39; \u0026#34;\u0026#34;\u0026#34;, order_no) if rows == 0: return \u0026#34;已处理\u0026#34; # 别人改过了，我不是第一个 grant_coupon(order_no) # 只有改成功的那个才发券 return \u0026#34;success\u0026#34; grant_coupon失败会发生什么？\n券永久丢失，该发没发，资损。\n第一次请求：\nUPDATE status: INIT → PAID ✅ 已提交，改不回去了 grant_coupon(order_no) ❌ 抛异常 / 超时 / 下游挂了 第二次请求：\nrows = db.execute(\u0026#34;UPDATE ... WHERE status = \u0026#39;INIT\u0026#39;\u0026#34;) # status已是PAID # rows == 0 return \u0026#34;已处理\u0026#34; # ← 被自己的幂等逻辑拦住，不会执行grant_coupon 包进一个事务能解决吗 把update和grant_coupon这两个操作，包进一个事务里，要么同时执行，要么同时回滚，是不是就解决了？\n",
+  "keywords": [
+    "后端测试"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n# 方式：把判断放进 SQL，一条语句的原子性 rows = db.execute(\"\"\" UPDATE pay_record SET status = 'PAID' WHERE order_no = ? AND status = 'INIT' \"\"\", order_no) if rows == 0: return \"已处理\" # 别人改过了，我不是第一个 grant_coupon(order_no) # 只有改成功的那个才发券 return \"success\" grant_coupon失败会发生什么？\n券永久丢失，该发没发，资损。\n第一次请求：\nUPDATE status: INIT → PAID ✅ 已提交，改不回去了 grant_coupon(order_no) ❌ 抛异常 / 超时 / 下游挂了 第二次请求：\nrows = db.execute(\"UPDATE ... WHERE status = 'INIT'\") # status已是PAID # rows == 0 return \"已处理\" # ← 被自己的幂等逻辑拦住，不会执行grant_coupon 包进一个事务能解决吗 把update和grant_coupon这两个操作，包进一个事务里，要么同时执行，要么同时回滚，是不是就解决了？\n无法解决，因为grant_coupon一般是RPC操作，数据库事务管不了。\nRPC真的失败，DB回滚 —— 没问题 RPC超时(实际发券了)，DB回滚 —— 重试，券重复发 RPC成功，但commit失败 —— 回滚，重试后券重复发 包进一个事务虽然能解决“券不发”的问题，但是会出现“券超发”的新问题。\n解决方案 问题根因：status字段有两个职责，一是“支付幂等锁”，二是“发券进度标记”，发券失败时，这两个职责就冲突了。\n核心思路：在本地事务里，把“要发券”持久化成一条记录，RPC交给可以重试的异步任务。\n表设计\n-- 已有:支付记录,status 只管\"支付是否已处理\" pay_record(order_no, status, ...) -- 新增:发券任务表,单独管\"发券进度\" CREATE TABLE coupon_task ( id BIGINT PRIMARY KEY AUTO_INCREMENT, order_no VARCHAR(64) NOT NULL, status TINYINT NOT NULL DEFAULT 0, -- 0=待发 1=已发 2=终态失败 retry_count INT NOT NULL DEFAULT 0, next_retry_at DATETIME, UNIQUE KEY uk_order_no (order_no) -- 防止重复插任务 ); 第一步，同一个事务处理状态管理和“要发券”\ndef on_pay_callback(order_no): with db.transaction(): # 本地事务:两条都是本地库操作 rows = db.execute(\"\"\" UPDATE pay_record SET status = 'PAID' WHERE order_no = ? AND status = 'INIT' \"\"\", order_no) if rows == 0: return\"已处理\" # 幂等:别人已处理过 # 关键:同一事务里记下\"要发券\" db.execute(\"\"\" INSERT INTO coupon_task (order_no, status, next_retry_at) VALUES (?, 0, NOW()) \"\"\", order_no) # 事务提交:状态改动 和 “要发券” 要么都成、要么都不成 try_grant(order_no) # 快路径:立即试发一次 return\"success\" update和insert是同一个库的数据库操作，InnoDB能保证它们的原子性。\ncoupon_task记录了“要发券”，就永远不会丢。\n第二步，发券幂等，标记完成\ndef try_grant(order_no): try: grant_coupon(order_no) # 必须幂等!靠 order_no 去重 db.execute(\"\"\" UPDATE coupon_task SET status = 1 WHERE order_no = ? AND status = 0 \"\"\", order_no) except Exception: # 失败要推进退避,否则 next_retry_at 不变,兜底任务扫到就一直撞 db.execute(\"\"\" UPDATE coupon_task SET retry_count = retry_count + 1, next_retry_at = DATE_ADD(NOW(), INTERVAL POW(2, retry_count) MINUTE), status = IF(retry_count + 1 \u003e= 5, 2, 0) -- 超阈值置终态失败 WHERE order_no = ? AND status = 0 \"\"\", order_no) 第三步，定时扫描，兜底重试\ndef retry_pending(): tasks = db.query(\"\"\" SELECT order_no FROM coupon_task WHERE status = 0 AND next_retry_at \u003c= NOW() AND retry_count \u003c 5 LIMIT 100 \"\"\") for t in tasks: try_grant(t.order_no) # 复用同一发券逻辑 # retry_count 超阈值 → status=2 终态失败,告警人工介入 再看幂等的重要性 发券的幂等是用order_no来做的，发过券的订单不再重复发。\n如果没有幂等，看这个场景：\ngrant_coupon(order_no) ✅ 券发出去了 UPDATE coupon_task SET status = 1 ❌ 这一步 DB 抖动,失败了 由于加了兜底重试，更新失败的记录，会再次被扫到执行，就又会调一次grant_coupon，重复发券。\n有重试的地方，必须要考虑幂等。\n总结 数据库事务只能保证本地数据库的原子性，管不了RPC。\n所以不能硬把RPC塞到事务里。可以通过本地消息表或RocketMQ事务消息来解决。\n",
+  "wordCount" : "323",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-04T00:00:00Z",
+  "dateModified": "2026-01-04T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000004-%E6%8A%8Arpc%E5%8C%85%E8%BF%9B%E4%BA%8B%E5%8A%A1%E7%9A%84%E6%9A%97%E5%9D%91/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      把RPC包进事务的暗坑
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-04T00:00:00+00:00'>2026-01-04</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>323 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/'>#后端测试</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a"># 方式：把判断放进 SQL，一条语句的原子性</span>
+</span></span><span style="display:flex;"><span>rows <span style="color:#0550ae">=</span> db<span style="color:#0550ae">.</span>execute<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    UPDATE pay_record SET status = &#39;PAID&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    WHERE order_no = ? AND status = &#39;INIT&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span><span style="color:#1f2328">,</span> order_no<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span> rows <span style="color:#0550ae">==</span> <span style="color:#0550ae">0</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;已处理&#34;</span>          <span style="color:#57606a"># 别人改过了，我不是第一个</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>grant_coupon<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span>       <span style="color:#57606a"># 只有改成功的那个才发券</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;success&#34;</span>
+</span></span></code></pre></div><p>grant_coupon失败会发生什么？</p>
+<p>券永久丢失，该发没发，资损。</p>
+<p>第一次请求：</p>
+<pre tabindex="0"><code>UPDATE status: INIT → PAID   ✅ 已提交，改不回去了
+grant_coupon(order_no)        ❌ 抛异常 / 超时 / 下游挂了
+</code></pre><p>第二次请求：</p>
+<pre tabindex="0"><code>rows = db.execute(&#34;UPDATE ... WHERE status = &#39;INIT&#39;&#34;)  # status已是PAID
+# rows == 0
+return &#34;已处理&#34;   # ← 被自己的幂等逻辑拦住，不会执行grant_coupon
+</code></pre><h1 id="包进一个事务能解决吗">包进一个事务能解决吗<a hidden class="anchor" aria-hidden="true" href="#包进一个事务能解决吗">#</a></h1>
+<p>把update和grant_coupon这两个操作，包进一个事务里，要么同时执行，要么同时回滚，是不是就解决了？</p>
+<p>无法解决，因为grant_coupon一般是RPC操作，数据库事务管不了。</p>
+<ul>
+<li>RPC真的失败，DB回滚 —— 没问题</li>
+<li>RPC超时(实际发券了)，DB回滚 —— 重试，券重复发</li>
+<li>RPC成功，但commit失败 —— 回滚，重试后券重复发</li>
+</ul>
+<p>包进一个事务虽然能解决“券不发”的问题，但是会出现“券超发”的新问题。</p>
+<h1 id="解决方案">解决方案<a hidden class="anchor" aria-hidden="true" href="#解决方案">#</a></h1>
+<p>问题根因：status字段有两个职责，一是“支付幂等锁”，二是“发券进度标记”，发券失败时，这两个职责就冲突了。</p>
+<p>核心思路：在本地事务里，把“要发券”持久化成一条记录，RPC交给可以重试的异步任务。</p>
+<p>表设计</p>
+<pre tabindex="0"><code>-- 已有:支付记录,status 只管&#34;支付是否已处理&#34;
+pay_record(order_no, status, ...)
+
+-- 新增:发券任务表,单独管&#34;发券进度&#34;
+CREATE TABLE coupon_task (
+    id            BIGINT PRIMARY KEY AUTO_INCREMENT,
+    order_no      VARCHAR(64) NOT NULL,
+    status        TINYINT NOT NULL DEFAULT 0,  -- 0=待发 1=已发 2=终态失败
+    retry_count   INT NOT NULL DEFAULT 0,
+    next_retry_at DATETIME,
+    UNIQUE KEY uk_order_no (order_no)          -- 防止重复插任务
+);
+</code></pre><p>第一步，同一个事务处理状态管理和“要发券”</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">on_pay_callback</span><span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">with</span> db<span style="color:#0550ae">.</span>transaction<span style="color:#1f2328">():</span>                      <span style="color:#57606a"># 本地事务:两条都是本地库操作</span>
+</span></span><span style="display:flex;"><span>        rows <span style="color:#0550ae">=</span> db<span style="color:#0550ae">.</span>execute<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">            UPDATE pay_record SET status = &#39;PAID&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">            WHERE order_no = ? AND status = &#39;INIT&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &#34;&#34;&#34;</span><span style="color:#1f2328">,</span> order_no<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> rows <span style="color:#0550ae">==</span> <span style="color:#0550ae">0</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span><span style="color:#0a3069">&#34;已处理&#34;</span>                       <span style="color:#57606a"># 幂等:别人已处理过</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># 关键:同一事务里记下&#34;要发券&#34;</span>
+</span></span><span style="display:flex;"><span>        db<span style="color:#0550ae">.</span>execute<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;&#34;                            
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">            INSERT INTO coupon_task (order_no, status, next_retry_at)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">            VALUES (?, 0, NOW()) 
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &#34;&#34;&#34;</span><span style="color:#1f2328">,</span> order_no<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 事务提交:状态改动 和 “要发券” 要么都成、要么都不成</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    try_grant<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span>                          <span style="color:#57606a"># 快路径:立即试发一次</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span><span style="color:#0a3069">&#34;success&#34;</span>
+</span></span></code></pre></div><p>update和insert是同一个库的数据库操作，InnoDB能保证它们的原子性。</p>
+<p>coupon_task记录了“要发券”，就永远不会丢。</p>
+<p>第二步，发券幂等，标记完成</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">try_grant</span><span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        grant_coupon<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span>                   <span style="color:#57606a"># 必须幂等!靠 order_no 去重</span>
+</span></span><span style="display:flex;"><span>        db<span style="color:#0550ae">.</span>execute<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">            UPDATE coupon_task SET status = 1
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">            WHERE order_no = ? AND status = 0
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &#34;&#34;&#34;</span><span style="color:#1f2328">,</span> order_no<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">except</span> Exception<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># 失败要推进退避,否则 next_retry_at 不变,兜底任务扫到就一直撞</span>
+</span></span><span style="display:flex;"><span>        db<span style="color:#0550ae">.</span>execute<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">            UPDATE coupon_task
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">            SET retry_count = retry_count + 1,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                next_retry_at = DATE_ADD(NOW(), INTERVAL POW(2, retry_count) MINUTE),
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                status = IF(retry_count + 1 &gt;= 5, 2, 0)   -- 超阈值置终态失败
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">            WHERE order_no = ? AND status = 0
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &#34;&#34;&#34;</span><span style="color:#1f2328">,</span> order_no<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>第三步，定时扫描，兜底重试</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">retry_pending</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    tasks <span style="color:#0550ae">=</span> db<span style="color:#0550ae">.</span>query<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        SELECT order_no FROM coupon_task
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        WHERE status = 0 AND next_retry_at &lt;= NOW() AND retry_count &lt; 5
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        LIMIT 100
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> t <span style="color:#0550ae">in</span> tasks<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        try_grant<span style="color:#1f2328">(</span>t<span style="color:#0550ae">.</span>order_no<span style="color:#1f2328">)</span>                    <span style="color:#57606a"># 复用同一发券逻辑</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># retry_count 超阈值 → status=2 终态失败,告警人工介入</span>
+</span></span></code></pre></div><h1 id="再看幂等的重要性">再看幂等的重要性<a hidden class="anchor" aria-hidden="true" href="#再看幂等的重要性">#</a></h1>
+<p>发券的幂等是用order_no来做的，发过券的订单不再重复发。</p>
+<p>如果没有幂等，看这个场景：</p>
+<pre tabindex="0"><code>grant_coupon(order_no)                 ✅ 券发出去了
+UPDATE coupon_task SET status = 1      ❌ 这一步 DB 抖动,失败了
+</code></pre><p>由于加了兜底重试，更新失败的记录，会再次被扫到执行，就又会调一次grant_coupon，重复发券。</p>
+<p>有重试的地方，必须要考虑幂等。</p>
+<h1 id="总结">总结<a hidden class="anchor" aria-hidden="true" href="#总结">#</a></h1>
+<p>数据库事务只能保证本地数据库的原子性，管不了RPC。</p>
+<p>所以不能硬把RPC塞到事务里。可以通过本地消息表或RocketMQ事务消息来解决。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/">后端测试</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/teprunner/000004-%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E5%89%8D%E7%BD%AE%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/">
+    <span class="title">« 上一页</span>
+    <span>teprunner测试平台用例前置模块开发</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000004-%E5%B7%A5%E4%BD%9C%E4%BB%A5%E5%90%8E%E6%8D%A2%E7%A7%8D%E6%96%B9%E5%BC%8F%E5%AD%A6%E4%B9%A0/">
+    <span class="title">下一页 »</span>
+    <span>工作以后，换种方式学习</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#包进一个事务能解决吗">包进一个事务能解决吗</a></li>
+    <li><a href="#解决方案">解决方案</a></li>
+    <li><a href="#再看幂等的重要性">再看幂等的重要性</a></li>
+    <li><a href="#总结">总结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

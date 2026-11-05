@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>白盒测试 on 测试开发刚哥</title>
+    <link>https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/</link>
+    <description>Recent content in 白盒测试 on 测试开发刚哥</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 05 Jan 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>JaCoCo增量覆盖率的基本实现原理</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000005-jacocojacoco%E5%A2%9E%E9%87%8F%E8%A6%86%E7%9B%96%E7%8E%87%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</link>
+      <pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000005-jacocojacoco%E5%A2%9E%E9%87%8F%E8%A6%86%E7%9B%96%E7%8E%87%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;什么是增量覆盖率&#34;&gt;什么是增量覆盖率&lt;/h2&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/fd75a2d267c34c9f9e5e1344e30f39de.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;如图所示，在master分支提交了HelloController，然后从master拉了个新分支test；提交了第1次代码，增加了WorldController；提交了第2次代码，增加了DonController。增量的获取方式有两种：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;版本对比：在分支上，第2次提交和第1次提交版本对比的增量代码，就是DonController；第2次提交和刚从master拉取分支时版本对比的增量代码，除了DonController还有WorldController；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;分支对比：把test分支和master分支进行对比，增量代码就是DonController和WorldController；&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;增量，就是通过版本对比或分支对比，多出来的新增加的那部分代码。覆盖率是指程序运行以后，有多少代码被执行到了，除以总的代码数算出来的，即&lt;code&gt;覆盖率=执行代码行数/总代码行数&lt;/code&gt;。增量覆盖率是针对增量代码来计算的，也就是&lt;code&gt;增量覆盖率=执行代码行数/增量代码行数&lt;/code&gt;。&lt;/p&gt;
+&lt;h2 id=&#34;基本实现原理&#34;&gt;基本实现原理&lt;/h2&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/d4e75938a47841e2a138fe08e79f3e4e.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;使用JaCoCo的On-the-fly模式，以tcpserver方式启动，将远程机器的覆盖率数据通过TCP通信dump到本地jacoco.exec文件，二次开发JaCoCo源码，实现增量覆盖率分析和输出HTML报告。&lt;/p&gt;
+&lt;h2 id=&#34;jacoco默认覆盖率&#34;&gt;JaCoCo默认覆盖率&lt;/h2&gt;
+&lt;p&gt;JaCoCo是一个开源的覆盖率工具，它的On-the-fly模式，无须侵入应用启动脚本，只需在JVM中通过-javaagent参数指定jar文件启动的代理程序，代理程序在ClassLoader装载一个class前判断是否需要注入class文件，将统计代码插入class，覆盖率分析就可以在JVM执行的过程中完成。&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/83fa0888fb0149e88af6400b6c1b367a.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;启动脚本示例：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;java -javaagent:jacocoagent.jar -jar target/app.jar
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;默认情况下，&lt;strong&gt;JaCoCo会在JVM停掉以后，生成覆盖率数据&lt;/strong&gt;，一个jacoco.exec文件。&lt;/p&gt;
+&lt;p&gt;官方手册也有相关说明：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/b149f503647f4fc0ac34516cb7015989.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;output默认为file：At VM termination execution data is written to the file specified in the &lt;code&gt;destfile&lt;/code&gt; attribute。这种方式有2个局限，一是必须停掉应用；二是只能把覆盖率数据生成到本地文件。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;output还有另外一个选项，tcpserver&lt;/strong&gt;：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;java -javaagent:jacocoagent.jar=output=tcpserver,address=0.0.0.0,port=2014 -jar target/app.jar
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;address：服务端地址；&lt;/p&gt;
+&lt;p&gt;port：服务端端口；&lt;/p&gt;
+&lt;p&gt;通过这种方式启动后，会同时启动一个TCP服务端，使用&lt;code&gt;lsof -i :2014&lt;/code&gt;命令查看端口进程：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/a0182f7309474db987e11467d47be108.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;然后就能通过TCP通信，来获取覆盖率数据，也就是所谓的”&lt;strong&gt;dump&lt;/strong&gt;“。&lt;/p&gt;
+&lt;p&gt;代码片段：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;@Override&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;    &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;public&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;void&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#6639ba&#34;&gt;dump&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;String&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;dumpPath&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;String&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;ip&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;int&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;port&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;throws&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;IOException&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;dumpPath&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;FileUtil&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;getAbsolutePath&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;dumpPath&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;!&lt;/span&gt;FileUtil&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;exist&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;dumpPath&lt;span style=&#34;color:#1f2328&#34;&gt;))&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;FileUtil&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;mkdir&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;dumpPath&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;FileOutputStream&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;localFile&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;new&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;FileOutputStream&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;dumpPath&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;File&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;separator&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;jacoco.exec&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;ExecutionDataWriter&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;localWriter&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;new&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;ExecutionDataWriter&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;localFile&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;SocketAddress&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;socketAddress&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;new&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;InetSocketAddress&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;ip&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;port&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;Socket&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;socket&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;new&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;Socket&lt;span style=&#34;color:#1f2328&#34;&gt;();&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;try&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;socket&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;connect&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;socketAddress&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;10000&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;RemoteControlWriter&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;writer&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;new&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;RemoteControlWriter&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;socket&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;getOutputStream&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;());&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;RemoteControlReader&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;reader&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;new&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;RemoteControlReader&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;socket&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;getInputStream&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;());&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;reader&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;setSessionInfoVisitor&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;localWriter&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;reader&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;setExecutionDataVisitor&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;localWriter&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;log&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;info&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;开始dump:{} {}&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;ip&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;port&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;writer&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;visitDumpCommand&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;true&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;false&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;!&lt;/span&gt;reader&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;read&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;())&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;                &lt;/span&gt;log&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;error&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;Socket closed unexpectedly&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;                &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;throw&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;new&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;IOException&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;Socket closed unexpectedly.&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;log&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;info&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;dump完成:{} {}&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;ip&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;port&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;catch&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;Exception&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;e&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;log&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;info&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;dump失败:{}&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;e&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;getMessage&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;());&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;finally&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;socket&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;close&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;();&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;            &lt;/span&gt;localFile&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;close&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;();&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;    &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;dump经过TCP通信，将远程机器的覆盖率数据取到本地后，生成jacoco.exec文件，然后可以使用jacococli.jar生成HTML报告：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>SpringBoot接入JaCoCo实践教程</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000004-jacocospringboot%E6%8E%A5%E5%85%A5jacoco%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B/</link>
+      <pubDate>Sun, 04 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000004-jacocospringboot%E6%8E%A5%E5%85%A5jacoco%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;静态接入和动态接入&#34;&gt;静态接入和动态接入&lt;/h2&gt;
+&lt;p&gt;SpingBoot可以通过2种方式接入JaCoCo：Maven和Agent。&lt;strong&gt;Maven方式是静态接入&lt;/strong&gt;，在编译时计算代码覆盖率。&lt;strong&gt;Agent方式是动态接入&lt;/strong&gt;，服务启起来以后，能实时根据代码命中情况计算代码覆盖率。&lt;/p&gt;
+&lt;p&gt;教程代码已上传开源项目：https://github.com/dongfanger/mini&lt;/p&gt;
+&lt;h2 id=&#34;maven&#34;&gt;Maven&lt;/h2&gt;
+&lt;p&gt;pom.xml添加依赖：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.jacoco&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;jacoco-maven-plugin&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.8.7&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;添加配置：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;build&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;plugins&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;plugin&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-maven-plugin&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;${project.parent.version}&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/plugin&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;plugin&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.jacoco&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;jacoco-maven-plugin&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.8.7&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;executions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;execution&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;id&amp;gt;&lt;/span&gt;default-prepare-agent&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/id&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;goals&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;goal&amp;gt;&lt;/span&gt;prepare-agent&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/goal&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/goals&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/execution&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;execution&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;id&amp;gt;&lt;/span&gt;default-report&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/id&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;goals&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;goal&amp;gt;&lt;/span&gt;report&lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/goal&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/goals&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/execution&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/executions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/plugin&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/plugins&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;/build&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;点击maven的install：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/cf4e615a5587484c82882989c814b72d.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;target/site/jacoco&lt;/code&gt;目录下就生成了覆盖率报告：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/796fd3dead8d4d18aed6fe21d54b3584.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/2ab44387da96478f88ba4ce10204be14.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;agent&#34;&gt;Agent&lt;/h2&gt;
+&lt;p&gt;下载jacoco文件后解压，提取2个文件：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/ad7eed0bddcf4841ae0472bf2d6843e3.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;使用命令启动SpringBoot，启动参数添加&lt;code&gt;-javaagent&lt;/code&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;java -javaagent:jacoco/jacocoagent.jar -jar target/mini-0.0.1-SNAPSHOT.jar
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;此时会生成1个&lt;code&gt;jacoco.exec&lt;/code&gt;文件，这个文件就是覆盖率数据文件，采用以下命令根据数据文件生成HTML报告：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;java -jar jacoco/jacococli.jar report jacoco.exec --classfiles ./target/classes/ --sourcefiles ./src/main/java/ --html ./report
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/6eb9a090cf014a16895a3b7472aef243.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/617ef96e107e478dbf3e8f7b93a667a8.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;接下来就来验证动态特性。把report目录和&lt;code&gt;jacoco.exec&lt;/code&gt;都删了，因为&lt;strong&gt;jacoco每次部署只能分析一次&lt;/strong&gt;。把服务停掉后，重新启动。这一次不直接分析，而是先用postman调一下接口：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/02799720006d4855bd8b9a4dd8be63d3.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;然后再分析一把：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>代码覆盖率从0到100的入门实践</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000003-jacoco%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87%E4%BB%8E0%E5%88%B0100%E7%9A%84%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5/</link>
+      <pubDate>Sat, 03 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000003-jacoco%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87%E4%BB%8E0%E5%88%B0100%E7%9A%84%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5/</guid>
+      <description>JaCoCo全称是&lt;strong&gt;Ja&lt;/strong&gt;va &lt;strong&gt;Co&lt;/strong&gt;de &lt;strong&gt;Co&lt;/strong&gt;verage，Java代码覆盖率，广泛运用于各种测试平台对Java代码的全量覆盖率和增量覆盖率进行统计，分析代码行差异，度量单元测试效果。Jacoco也是精准测试的技术实现手段之一。</description>
+    </item>
+    <item>
+      <title>代码评审，揭示黑盒背后的真相</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000002-%E4%BB%A3%E7%A0%81%E8%AF%84%E5%AE%A1%E6%8F%AD%E7%A4%BA%E9%BB%91%E7%9B%92%E8%83%8C%E5%90%8E%E7%9A%84%E7%9C%9F%E7%9B%B8/</link>
+      <pubDate>Fri, 02 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000002-%E4%BB%A3%E7%A0%81%E8%AF%84%E5%AE%A1%E6%8F%AD%E7%A4%BA%E9%BB%91%E7%9B%92%E8%83%8C%E5%90%8E%E7%9A%84%E7%9C%9F%E7%9B%B8/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;一引言&#34;&gt;一、引言&lt;/h1&gt;
+&lt;p&gt;黑盒测试犹如案发现场，只能根据表象推断事件经过。&lt;/p&gt;
+&lt;p&gt;代码评审即深入调查，挖掘蛛丝马迹的线索，揭示背后的真相。&lt;/p&gt;
+&lt;p&gt;&amp;ldquo;They think I am hiding in the shadows, but I am the shadows.&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/4ff9ff50f1044666a546f23760a2e663.png&#34;&gt;&lt;/p&gt;
+&lt;h1 id=&#34;二黑盒测试与白盒测试的区别&#34;&gt;二、黑盒测试与白盒测试的区别&lt;/h1&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/f8d7e7c0dd1d46c2874552514624fed8.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;黑盒测试存在一些局限性：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;可能无法发现与系统实现相关的问题&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;可能无法覆盖所有的测试场景&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;测试效率较低，比如准备物料、模拟场景&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;强依赖需求文档，如果文档不全，测试会漏&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;对于测试人员来说，可以在代码评审阶段，通过白盒测试改进测试的质量和效率。&lt;/p&gt;
+&lt;h1 id=&#34;三代码评审的定义和意义&#34;&gt;三、代码评审的定义和意义&lt;/h1&gt;
+&lt;p&gt;代码评审，Code Review（CR），是一种通过检查代码来提高代码质量的过程。&lt;/p&gt;
+&lt;p&gt;对于测试人员来说，参与代码评审，可以尽量提前发现问题，减少修复代价，提高效能。&lt;/p&gt;
+&lt;h1 id=&#34;四代码评审的形式&#34;&gt;四、代码评审的形式&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;多人讨论&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;组织会议，研发牵头讲解代码，架构和测试参与，讨论交流。这是最普遍的一种形式。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Code Diff&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;查看Code Diff，可以借助Gitlab或IDEA，比较分支差异或版本差异。&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/b9ae62348bf4455c93d6a0e2f42f8bd8.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;对比时机：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;提测前和测试中，自行走查代码&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;发现缺陷，定位代码原因&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;修复缺陷后，评估影响范围&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;上线前，是否夹带代码&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;精准测试&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;评估测试用例的代码覆盖率，查漏补缺，Jacoco的on-the-fly模式支持动态收集代码覆盖率数据。&lt;/p&gt;
+&lt;h1 id=&#34;五代码评审的方法&#34;&gt;五、代码评审的方法&lt;/h1&gt;
+&lt;p&gt;面向业务，面向业务，面向业务。重要的事情说三遍。&lt;/p&gt;
+&lt;p&gt;刚开始做代码评审，很容易把注意力集中在找代码规范问题上面，比如命名不规范、注释不清楚、代码实现冗长等。这些问题不是测试人员关注的重点，需要由研发团队或代码扫描工具来解决。&lt;/p&gt;
+&lt;p&gt;在做Code Diff时，也没必要把每个文件、每行代码的意思搞懂，比如研发对代码结构做了调整，在diff时要梳理清楚的话，ROI会非常低，因为既消耗时间，又发现不了问题。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;那该怎么做代码评审呢？&lt;/strong&gt; 关注业务：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;跟需求文档比较，哪些需求是遗漏的，哪些代码是补充的，哪些代码是夹带的&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;关注核心业务代码逻辑，使用条件覆盖、路径覆盖等方法设计测试用例&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;优化测试用例，针对代码实现考虑异常、边界、幂等、并发等场景&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;代码评审要求测试人员具备代码能力，理解编程语言，掌握软件设计，熟悉代码结构和架构，多与开发同学交流，共同优化代码质量。&lt;/p&gt;
+&lt;h1 id=&#34;六代码评审的实际案例&#34;&gt;六、代码评审的实际案例&lt;/h1&gt;
+&lt;p&gt;1、空指针异常&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#24292e&#34;&gt;org.mybatis.spring.SqlSessionTemplate&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;;&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#24292e&#34;&gt;org.springframework.beans.factory.annotation.Autowired&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;;&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#24292e&#34;&gt;org.springframework.stereotype.Service&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;;&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;@Service&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;public&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;UserService&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;    &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;private&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;final&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;SqlSessionTemplate&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;sqlSessionTemplate&lt;span style=&#34;color:#1f2328&#34;&gt;;&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;    &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;@Autowired&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;    &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;public&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#6639ba&#34;&gt;UserService&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;SqlSessionTemplate&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;sqlSessionTemplate&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;this&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;sqlSessionTemplate&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;sqlSessionTemplate&lt;span style=&#34;color:#1f2328&#34;&gt;;&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;    &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;    &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;public&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;void&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#6639ba&#34;&gt;getUserById&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;String&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;userId&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;User&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;user&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;sqlSessionTemplate&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;selectOne&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;com.example.mapper.UserMapper.getUserById&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;userId&lt;span style=&#34;color:#1f2328&#34;&gt;);&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;        &lt;/span&gt;System&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;out&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;println&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;user&lt;span style=&#34;color:#1f2328&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;getName&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;());&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;// 可能导致空指针异常&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#fff&#34;&gt;    &lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果取到的 &lt;code&gt;user&lt;/code&gt; 对象为空，就会导致空指针异常。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CodeReview技巧和规范</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000001-codereview%E6%8A%80%E5%B7%A7%E5%92%8C%E8%A7%84%E8%8C%83/</link>
+      <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000001-codereview%E6%8A%80%E5%B7%A7%E5%92%8C%E8%A7%84%E8%8C%83/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;what-什么是codereview&#34;&gt;What-什么是CodeReview？&lt;/h1&gt;
+&lt;p&gt;CodeReview，即代码评审，是白盒测试中，静态测试的一种方法，通过阅读代码，提出代码层面的缺陷。&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/58e1d84948084828a44a609553cbbe3f.png&#34;&gt;&lt;/p&gt;
+&lt;h1 id=&#34;why-为什么做codereview&#34;&gt;Why-为什么做CodeReview？&lt;/h1&gt;
+&lt;p&gt;测试左移：在测试前就发现代码缺陷。&lt;/p&gt;
+&lt;p&gt;明确测试范围：根据需求文档和代码，对齐测试范围，防止研发夹带本次需求范围外的代码上线。&lt;/p&gt;
+&lt;p&gt;提升代码能力：学习研发优秀的编程技术。&lt;/p&gt;
+&lt;p&gt;深入原理：了解系统内部结构及实现。&lt;/p&gt;
+&lt;p&gt;发现隐藏缺陷：能发现某些极端场景下的问题或概率性问题。&lt;/p&gt;
+&lt;p&gt;减少测试研发周期占比：节省用例执行个数，尤其多个同类异常梳理，不用执行类似用例，CodeReview一行代码即可。&lt;/p&gt;
+&lt;h1 id=&#34;who-谁适合做codereview&#34;&gt;Who-谁适合做CodeReview？&lt;/h1&gt;
+&lt;p&gt;CodeReview需要三大门槛：&lt;/p&gt;
+&lt;p&gt;①熟悉编程语言，Java/Python/Go等。&lt;/p&gt;
+&lt;p&gt;②熟悉编程规范，《阿里巴巴XXX编码规范》、《华为XXX编码规范》、《京东XXX编码规范》。&lt;/p&gt;
+&lt;p&gt;③了解需求、架构和设计，需求文档/架构图/设计文档。&lt;/p&gt;
+&lt;p&gt;达到门槛才适合做CodeReview。&lt;/p&gt;
+&lt;h1 id=&#34;when-什么时候做codereview&#34;&gt;When-什么时候做CodeReview？&lt;/h1&gt;
+&lt;p&gt;提测前，通过Code Diff Review，自己走读代码或者参与研发代码评审会议均可，&lt;/p&gt;
+&lt;p&gt;发现功能缺陷时，通过走查代码定位代码原因，并分析是否有关联缺陷。&lt;/p&gt;
+&lt;p&gt;修复缺陷时，阅读研发commit记录，检查是否引入新缺陷。&lt;/p&gt;
+&lt;p&gt;上线前，通过merge范围检查是否有夹带代码，为了测试改动的临时代码是否恢复。&lt;/p&gt;
+&lt;h1 id=&#34;where-在哪里做codereview&#34;&gt;Where-在哪里做CodeReview？&lt;/h1&gt;
+&lt;p&gt;线上仓库（如Gitlab），适合于修改点单一，不需要查看上下文信息就能找到缺陷。直接在网页端评审代码且发表comment。&lt;/p&gt;
+&lt;p&gt;本地仓库（如IDEA），适合于修改点较多，需要查看上下文信息（变量或方法跳转到定义或使用之处）。在本地找到缺陷后在线上发表comment。&lt;/p&gt;
+&lt;h1 id=&#34;how-codereview如何上手&#34;&gt;How-CodeReview如何上手？&lt;/h1&gt;
+&lt;p&gt;准备：了解需求、架构和设计；学习编程语言；学习代码规范；&lt;/p&gt;
+&lt;p&gt;实践：坚持CodeReview，记录缺陷，定期总结。如果看代码找缺陷比较困难，可以先从发现功能缺陷后，定位代码原因入手。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;常见CR缺陷：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;除数为0、整数溢出、精度损失；&lt;/p&gt;
+&lt;p&gt;可能死循环；&lt;/p&gt;
+&lt;p&gt;在finally程序块中关闭或者释放资源；&lt;/p&gt;
+&lt;p&gt;异常未处理或提示不明确（没有catch异常，集合等没有判空和长度为0）；&lt;/p&gt;
+&lt;p&gt;公式计算错误；&lt;/p&gt;
+&lt;p&gt;字符串对比不能用==，使用equals；&lt;/p&gt;
+&lt;p&gt;数组可能越界；&lt;/p&gt;
+&lt;p&gt;传递引用错误；&lt;/p&gt;
+&lt;p&gt;类型转换错误；&lt;/p&gt;
+&lt;p&gt;条件范围选择错误；&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;重点检查项：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;一致性检查：是否需求相关；是否和方案设计一致；代码风格、日志规范、异常处理等是否和统一规范一致；&lt;/p&gt;
+&lt;p&gt;完整性检查：服务层是否包含了所有业务功能；数据层是否包含所有需要的数据和操作；&lt;/p&gt;
+&lt;p&gt;正确性检查：计算逻辑等业务逻辑是否正确；变量是否被正确定义和使用；代码是否符合制定的标准；&lt;/p&gt;
+&lt;p&gt;可修改性检查：代码涉及到常量是否易于修改，比如使用配置，定义为常量类等；建议业务方法只有一个出口和一个入口（异常处理除外）；重要公共方法是否有交叉注释说明；重要的对外方法修改后影响多个下游接口；&lt;/p&gt;
+&lt;p&gt;可预测性检查：变量初始化；方法稳定性；代码是否存在死循环；代码无穷递归检查；&lt;/p&gt;
+&lt;p&gt;健壮性检查：代码是否采取措施避免运行时错误（如数组边界溢出、被零除、值越界、堆栈溢出等）&lt;/p&gt;
+&lt;p&gt;高可用性检查：是否有预案（降级开发、限流配置、兜底策略）；补偿方案是否合理；&lt;/p&gt;
+&lt;p&gt;结构性检查：程序的每个功能是否都作为一个可辨识的代码块存在；&lt;/p&gt;
+&lt;p&gt;可理解性检查：是否使用到不明确或不必要的复杂代码；代码中的算法是否符合开发文档中描述的数学模型；每个变量都定义了合法的取值范围；&lt;/p&gt;
+&lt;p&gt;可验证性检查：代码功能是否便于测试；单元测试覆盖度是否足够；&lt;/p&gt;
+&lt;p&gt;可追溯性检查：代码是否包括一个修订历史记录，记录中对代码的修改和原因都有记录；&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;编码规范：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;《阿里巴巴Java开发手册》&lt;/p&gt;
+&lt;p&gt;最新版本：黄山版（2022.2.3发布）&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/alibaba/p3c&#34;&gt;https://github.com/alibaba/p3c&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/3d60395eb6974806aabce4480055cbd8.png&#34;&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

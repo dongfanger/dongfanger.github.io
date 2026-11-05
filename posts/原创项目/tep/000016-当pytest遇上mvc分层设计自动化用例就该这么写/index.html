@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>当Pytest遇上MVC分层设计自动化用例就该这么写 | 测试开发刚哥</title>
+<meta name="keywords" content="tep">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+引子
+数据写在代码里，追求快速编写用例，是我设计tep的一个特点，这在个人编写时是一种非常良好的体验。但相比于HttpRunner、JMeter等来说，总觉得还差点意思。思考良久，总结为三个字：工程化。工程化是我近一年在学习Java并参与了2个测试平台模块开发，和写了几个小工具后，感受到的一种编程思想。而其中最明显的就是Spring的MVC分层设计。为了让tep更工程化，后续版本将以MVC模块编写用例为准，同时会兼容之前的脚本式快速编写。
+示例
+目录结构
+测试用例都放在一个文件夹下：
+
+test_case：用例主程序；
+steps：测试步骤；
+data：纯粹的json；
+测试用例
+test_case.py是测试用例，包含的只有测试步骤：
+import allure
+
+from examples.tests.LoginToPayFlow.steps.step_add_cart import step_add_cart
+from examples.tests.LoginToPayFlow.steps.step_order import step_order
+from examples.tests.LoginToPayFlow.steps.step_pay import step_pay
+from examples.tests.LoginToPayFlow.steps.step_search_sku import step_search_sku
+from utils.cache import TepCache
+from utils.step import Step
+
+&#34;&#34;&#34;
+测试登录到下单流程，需要先运行utils/fastapi_mock.py
+&#34;&#34;&#34;
+
+
+@allure.title(&#34;从登录到下单支付&#34;)
+def test(login, env_vars, case_vars):
+    case_vars.put(&#34;token&#34;, login[&#34;token&#34;])
+    cache = TepCache(env_vars=env_vars, case_vars=case_vars)
+
+    Step(&#34;搜索商品&#34;, step_search_sku, cache)
+    Step(&#34;添加购物车&#34;, step_add_cart, cache)
+    Step(&#34;下单&#34;, step_order, cache)
+    Step(&#34;支付&#34;, step_pay, cache)
+TepCache是“缓存”，包括global_vars、env_vars、case_vars三个级别的变量池。
+Step是一个泛化调用类，作用是打日志，调用第二个参数对应的步骤函数。
+测试步骤
+from utils.cache import TepCache
+from utils.func import data
+from utils.http_client import request
+
+
+def step_search_sku(cache: TepCache):
+    url = cache.env_vars[&#34;domain&#34;] &#43; &#34;/searchSku&#34;
+    headers = {&#34;token&#34;: cache.case_vars.get(&#34;token&#34;)}
+    body = data(&#34;查询SKU.json&#34;)
+
+    response = request(&#34;get&#34;, url=url, headers=headers, params=body)
+    assert response.status_code &lt; 400
+
+    cache.case_vars.put(&#34;skuId&#34;, response.jsonpath(&#34;$.skuId&#34;))
+    cache.case_vars.put(&#34;skuPrice&#34;, response.jsonpath(&#34;$.price&#34;))
+from utils.cache import TepCache
+from utils.func import data
+from utils.http_client import request
+
+
+def step_add_cart(cache: TepCache):
+    url = cache.env_vars[&#34;domain&#34;] &#43; &#34;/addCart&#34;
+    headers = {&#34;token&#34;: cache.case_vars.get(&#34;token&#34;)}
+    body = data(&#34;添加购物车.json&#34;)
+    body[&#34;skuId&#34;] = cache.case_vars.get(&#34;skuId&#34;)
+
+    response = request(&#34;post&#34;, url=url, headers=headers, json=body)
+    assert response.status_code &lt; 400
+
+    cache.case_vars.put(&#34;skuNum&#34;, response.jsonpath(&#34;$.skuNum&#34;))
+    cache.case_vars.put(&#34;totalPrice&#34;, response.jsonpath(&#34;$.totalPrice&#34;))
+步骤函数以step开头，尤其注意的是cache借助Python Typing提示，可以在编写下面代码时，获得PyCharm语法提示，所以一定不要忘了加上: TepCache：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000016-%E5%BD%93pytest%E9%81%87%E4%B8%8Amvc%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E5%B0%B1%E8%AF%A5%E8%BF%99%E4%B9%88%E5%86%99/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000016-%E5%BD%93pytest%E9%81%87%E4%B8%8Amvc%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E5%B0%B1%E8%AF%A5%E8%BF%99%E4%B9%88%E5%86%99/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000016-%E5%BD%93pytest%E9%81%87%E4%B8%8Amvc%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E5%B0%B1%E8%AF%A5%E8%BF%99%E4%B9%88%E5%86%99/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="当Pytest遇上MVC分层设计自动化用例就该这么写">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+引子 数据写在代码里，追求快速编写用例，是我设计tep的一个特点，这在个人编写时是一种非常良好的体验。但相比于HttpRunner、JMeter等来说，总觉得还差点意思。思考良久，总结为三个字：工程化。工程化是我近一年在学习Java并参与了2个测试平台模块开发，和写了几个小工具后，感受到的一种编程思想。而其中最明显的就是Spring的MVC分层设计。为了让tep更工程化，后续版本将以MVC模块编写用例为准，同时会兼容之前的脚本式快速编写。
+示例 目录结构 测试用例都放在一个文件夹下：
+test_case：用例主程序；
+steps：测试步骤；
+data：纯粹的json；
+测试用例 test_case.py是测试用例，包含的只有测试步骤：
+import allure from examples.tests.LoginToPayFlow.steps.step_add_cart import step_add_cart from examples.tests.LoginToPayFlow.steps.step_order import step_order from examples.tests.LoginToPayFlow.steps.step_pay import step_pay from examples.tests.LoginToPayFlow.steps.step_search_sku import step_search_sku from utils.cache import TepCache from utils.step import Step &#34;&#34;&#34; 测试登录到下单流程，需要先运行utils/fastapi_mock.py &#34;&#34;&#34; @allure.title(&#34;从登录到下单支付&#34;) def test(login, env_vars, case_vars): case_vars.put(&#34;token&#34;, login[&#34;token&#34;]) cache = TepCache(env_vars=env_vars, case_vars=case_vars) Step(&#34;搜索商品&#34;, step_search_sku, cache) Step(&#34;添加购物车&#34;, step_add_cart, cache) Step(&#34;下单&#34;, step_order, cache) Step(&#34;支付&#34;, step_pay, cache) TepCache是“缓存”，包括global_vars、env_vars、case_vars三个级别的变量池。
+Step是一个泛化调用类，作用是打日志，调用第二个参数对应的步骤函数。
+测试步骤 from utils.cache import TepCache from utils.func import data from utils.http_client import request def step_search_sku(cache: TepCache): url = cache.env_vars[&#34;domain&#34;] &#43; &#34;/searchSku&#34; headers = {&#34;token&#34;: cache.case_vars.get(&#34;token&#34;)} body = data(&#34;查询SKU.json&#34;) response = request(&#34;get&#34;, url=url, headers=headers, params=body) assert response.status_code &lt; 400 cache.case_vars.put(&#34;skuId&#34;, response.jsonpath(&#34;$.skuId&#34;)) cache.case_vars.put(&#34;skuPrice&#34;, response.jsonpath(&#34;$.price&#34;)) from utils.cache import TepCache from utils.func import data from utils.http_client import request def step_add_cart(cache: TepCache): url = cache.env_vars[&#34;domain&#34;] &#43; &#34;/addCart&#34; headers = {&#34;token&#34;: cache.case_vars.get(&#34;token&#34;)} body = data(&#34;添加购物车.json&#34;) body[&#34;skuId&#34;] = cache.case_vars.get(&#34;skuId&#34;) response = request(&#34;post&#34;, url=url, headers=headers, json=body) assert response.status_code &lt; 400 cache.case_vars.put(&#34;skuNum&#34;, response.jsonpath(&#34;$.skuNum&#34;)) cache.case_vars.put(&#34;totalPrice&#34;, response.jsonpath(&#34;$.totalPrice&#34;)) 步骤函数以step开头，尤其注意的是cache借助Python Typing提示，可以在编写下面代码时，获得PyCharm语法提示，所以一定不要忘了加上: TepCache：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-16T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-16T00:00:00+00:00">
+    <meta property="article:tag" content="Tep">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="当Pytest遇上MVC分层设计自动化用例就该这么写">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+引子 数据写在代码里，追求快速编写用例，是我设计tep的一个特点，这在个人编写时是一种非常良好的体验。但相比于HttpRunner、JMeter等来说，总觉得还差点意思。思考良久，总结为三个字：工程化。工程化是我近一年在学习Java并参与了2个测试平台模块开发，和写了几个小工具后，感受到的一种编程思想。而其中最明显的就是Spring的MVC分层设计。为了让tep更工程化，后续版本将以MVC模块编写用例为准，同时会兼容之前的脚本式快速编写。
+示例 目录结构 测试用例都放在一个文件夹下：
+test_case：用例主程序；
+steps：测试步骤；
+data：纯粹的json；
+测试用例 test_case.py是测试用例，包含的只有测试步骤：
+import allure from examples.tests.LoginToPayFlow.steps.step_add_cart import step_add_cart from examples.tests.LoginToPayFlow.steps.step_order import step_order from examples.tests.LoginToPayFlow.steps.step_pay import step_pay from examples.tests.LoginToPayFlow.steps.step_search_sku import step_search_sku from utils.cache import TepCache from utils.step import Step &#34;&#34;&#34; 测试登录到下单流程，需要先运行utils/fastapi_mock.py &#34;&#34;&#34; @allure.title(&#34;从登录到下单支付&#34;) def test(login, env_vars, case_vars): case_vars.put(&#34;token&#34;, login[&#34;token&#34;]) cache = TepCache(env_vars=env_vars, case_vars=case_vars) Step(&#34;搜索商品&#34;, step_search_sku, cache) Step(&#34;添加购物车&#34;, step_add_cart, cache) Step(&#34;下单&#34;, step_order, cache) Step(&#34;支付&#34;, step_pay, cache) TepCache是“缓存”，包括global_vars、env_vars、case_vars三个级别的变量池。
+Step是一个泛化调用类，作用是打日志，调用第二个参数对应的步骤函数。
+测试步骤 from utils.cache import TepCache from utils.func import data from utils.http_client import request def step_search_sku(cache: TepCache): url = cache.env_vars[&#34;domain&#34;] &#43; &#34;/searchSku&#34; headers = {&#34;token&#34;: cache.case_vars.get(&#34;token&#34;)} body = data(&#34;查询SKU.json&#34;) response = request(&#34;get&#34;, url=url, headers=headers, params=body) assert response.status_code &lt; 400 cache.case_vars.put(&#34;skuId&#34;, response.jsonpath(&#34;$.skuId&#34;)) cache.case_vars.put(&#34;skuPrice&#34;, response.jsonpath(&#34;$.price&#34;)) from utils.cache import TepCache from utils.func import data from utils.http_client import request def step_add_cart(cache: TepCache): url = cache.env_vars[&#34;domain&#34;] &#43; &#34;/addCart&#34; headers = {&#34;token&#34;: cache.case_vars.get(&#34;token&#34;)} body = data(&#34;添加购物车.json&#34;) body[&#34;skuId&#34;] = cache.case_vars.get(&#34;skuId&#34;) response = request(&#34;post&#34;, url=url, headers=headers, json=body) assert response.status_code &lt; 400 cache.case_vars.put(&#34;skuNum&#34;, response.jsonpath(&#34;$.skuNum&#34;)) cache.case_vars.put(&#34;totalPrice&#34;, response.jsonpath(&#34;$.totalPrice&#34;)) 步骤函数以step开头，尤其注意的是cache借助Python Typing提示，可以在编写下面代码时，获得PyCharm语法提示，所以一定不要忘了加上: TepCache：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "当Pytest遇上MVC分层设计自动化用例就该这么写",
+      "item": "https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000016-%E5%BD%93pytest%E9%81%87%E4%B8%8Amvc%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E5%B0%B1%E8%AF%A5%E8%BF%99%E4%B9%88%E5%86%99/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "当Pytest遇上MVC分层设计自动化用例就该这么写",
+  "name": "当Pytest遇上MVC分层设计自动化用例就该这么写",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n引子 数据写在代码里，追求快速编写用例，是我设计tep的一个特点，这在个人编写时是一种非常良好的体验。但相比于HttpRunner、JMeter等来说，总觉得还差点意思。思考良久，总结为三个字：工程化。工程化是我近一年在学习Java并参与了2个测试平台模块开发，和写了几个小工具后，感受到的一种编程思想。而其中最明显的就是Spring的MVC分层设计。为了让tep更工程化，后续版本将以MVC模块编写用例为准，同时会兼容之前的脚本式快速编写。\n示例 目录结构 测试用例都放在一个文件夹下：\ntest_case：用例主程序；\nsteps：测试步骤；\ndata：纯粹的json；\n测试用例 test_case.py是测试用例，包含的只有测试步骤：\nimport allure from examples.tests.LoginToPayFlow.steps.step_add_cart import step_add_cart from examples.tests.LoginToPayFlow.steps.step_order import step_order from examples.tests.LoginToPayFlow.steps.step_pay import step_pay from examples.tests.LoginToPayFlow.steps.step_search_sku import step_search_sku from utils.cache import TepCache from utils.step import Step \u0026#34;\u0026#34;\u0026#34; 测试登录到下单流程，需要先运行utils/fastapi_mock.py \u0026#34;\u0026#34;\u0026#34; @allure.title(\u0026#34;从登录到下单支付\u0026#34;) def test(login, env_vars, case_vars): case_vars.put(\u0026#34;token\u0026#34;, login[\u0026#34;token\u0026#34;]) cache = TepCache(env_vars=env_vars, case_vars=case_vars) Step(\u0026#34;搜索商品\u0026#34;, step_search_sku, cache) Step(\u0026#34;添加购物车\u0026#34;, step_add_cart, cache) Step(\u0026#34;下单\u0026#34;, step_order, cache) Step(\u0026#34;支付\u0026#34;, step_pay, cache) TepCache是“缓存”，包括global_vars、env_vars、case_vars三个级别的变量池。\nStep是一个泛化调用类，作用是打日志，调用第二个参数对应的步骤函数。\n测试步骤 from utils.cache import TepCache from utils.func import data from utils.http_client import request def step_search_sku(cache: TepCache): url = cache.env_vars[\u0026#34;domain\u0026#34;] + \u0026#34;/searchSku\u0026#34; headers = {\u0026#34;token\u0026#34;: cache.case_vars.get(\u0026#34;token\u0026#34;)} body = data(\u0026#34;查询SKU.json\u0026#34;) response = request(\u0026#34;get\u0026#34;, url=url, headers=headers, params=body) assert response.status_code \u0026lt; 400 cache.case_vars.put(\u0026#34;skuId\u0026#34;, response.jsonpath(\u0026#34;$.skuId\u0026#34;)) cache.case_vars.put(\u0026#34;skuPrice\u0026#34;, response.jsonpath(\u0026#34;$.price\u0026#34;)) from utils.cache import TepCache from utils.func import data from utils.http_client import request def step_add_cart(cache: TepCache): url = cache.env_vars[\u0026#34;domain\u0026#34;] + \u0026#34;/addCart\u0026#34; headers = {\u0026#34;token\u0026#34;: cache.case_vars.get(\u0026#34;token\u0026#34;)} body = data(\u0026#34;添加购物车.json\u0026#34;) body[\u0026#34;skuId\u0026#34;] = cache.case_vars.get(\u0026#34;skuId\u0026#34;) response = request(\u0026#34;post\u0026#34;, url=url, headers=headers, json=body) assert response.status_code \u0026lt; 400 cache.case_vars.put(\u0026#34;skuNum\u0026#34;, response.jsonpath(\u0026#34;$.skuNum\u0026#34;)) cache.case_vars.put(\u0026#34;totalPrice\u0026#34;, response.jsonpath(\u0026#34;$.totalPrice\u0026#34;)) 步骤函数以step开头，尤其注意的是cache借助Python Typing提示，可以在编写下面代码时，获得PyCharm语法提示，所以一定不要忘了加上: TepCache：\n",
+  "keywords": [
+    "tep"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n引子 数据写在代码里，追求快速编写用例，是我设计tep的一个特点，这在个人编写时是一种非常良好的体验。但相比于HttpRunner、JMeter等来说，总觉得还差点意思。思考良久，总结为三个字：工程化。工程化是我近一年在学习Java并参与了2个测试平台模块开发，和写了几个小工具后，感受到的一种编程思想。而其中最明显的就是Spring的MVC分层设计。为了让tep更工程化，后续版本将以MVC模块编写用例为准，同时会兼容之前的脚本式快速编写。\n示例 目录结构 测试用例都放在一个文件夹下：\ntest_case：用例主程序；\nsteps：测试步骤；\ndata：纯粹的json；\n测试用例 test_case.py是测试用例，包含的只有测试步骤：\nimport allure from examples.tests.LoginToPayFlow.steps.step_add_cart import step_add_cart from examples.tests.LoginToPayFlow.steps.step_order import step_order from examples.tests.LoginToPayFlow.steps.step_pay import step_pay from examples.tests.LoginToPayFlow.steps.step_search_sku import step_search_sku from utils.cache import TepCache from utils.step import Step \"\"\" 测试登录到下单流程，需要先运行utils/fastapi_mock.py \"\"\" @allure.title(\"从登录到下单支付\") def test(login, env_vars, case_vars): case_vars.put(\"token\", login[\"token\"]) cache = TepCache(env_vars=env_vars, case_vars=case_vars) Step(\"搜索商品\", step_search_sku, cache) Step(\"添加购物车\", step_add_cart, cache) Step(\"下单\", step_order, cache) Step(\"支付\", step_pay, cache) TepCache是“缓存”，包括global_vars、env_vars、case_vars三个级别的变量池。\nStep是一个泛化调用类，作用是打日志，调用第二个参数对应的步骤函数。\n测试步骤 from utils.cache import TepCache from utils.func import data from utils.http_client import request def step_search_sku(cache: TepCache): url = cache.env_vars[\"domain\"] + \"/searchSku\" headers = {\"token\": cache.case_vars.get(\"token\")} body = data(\"查询SKU.json\") response = request(\"get\", url=url, headers=headers, params=body) assert response.status_code \u003c 400 cache.case_vars.put(\"skuId\", response.jsonpath(\"$.skuId\")) cache.case_vars.put(\"skuPrice\", response.jsonpath(\"$.price\")) from utils.cache import TepCache from utils.func import data from utils.http_client import request def step_add_cart(cache: TepCache): url = cache.env_vars[\"domain\"] + \"/addCart\" headers = {\"token\": cache.case_vars.get(\"token\")} body = data(\"添加购物车.json\") body[\"skuId\"] = cache.case_vars.get(\"skuId\") response = request(\"post\", url=url, headers=headers, json=body) assert response.status_code \u003c 400 cache.case_vars.put(\"skuNum\", response.jsonpath(\"$.skuNum\")) cache.case_vars.put(\"totalPrice\", response.jsonpath(\"$.totalPrice\")) 步骤函数以step开头，尤其注意的是cache借助Python Typing提示，可以在编写下面代码时，获得PyCharm语法提示，所以一定不要忘了加上: TepCache：\n步骤函数里面由基本信息（url、headers、body），数据初始化，请求，断言，数据提取几个部分组织，从上往下顺序编写。\n测试数据 数据代码分离，在MVC分层设计中这点就特别重要，在data目录下存放的不做任何参数化的纯粹json：\n参数化都放在步骤函数里面来写。数据代码分离的好处是，比如现在写的用例是买3件商品，假如你想改成买10件，只改json的数据就可以了，不需要改动任何代码。你可能会想，把这个数字放在代码里，不也是只改个值吗？确实如此，但这不符合MVC分层设计了。\n以SpringMVC作为参照：\ntestcase.py相当于controller，steps相当于service，data相当于pojo，各层只做自己的事，多写点代码，换来的是可读性强、维护性高、层次分明的“工程化资产”。\n日志输出 原理 Step泛化调用：\nfrom loguru import logger from utils.cache import TepCache class Step: \"\"\" 测试步骤，泛化调用 \"\"\" def __init__(self, name: str, action, cache: TepCache): logger.info(\"----------------\" + name + \"----------------\") action(cache) TepCache缓存：\nclass TepCache: \"\"\" 提供缓存服务，包括全局变量、环境变量、用例变量 \"\"\" def __init__(self, global_vars=None, env_vars=None, case_vars=None): self.global_vars = global_vars self.env_vars = env_vars self.case_vars = case_vars fixture实现的变量池：\n@pytest.fixture(scope=\"session\") def global_vars(): \"\"\" 全局变量，读取resources/global_vars.yaml，返回字典 \"\"\" with open(os.path.join(Config.project_root_dir, \"resources\", \"global_vars.yaml\")) as f: return yaml.load(f.read(), Loader=yaml.FullLoader) @pytest.fixture(scope=\"session\") def env_vars(): \"\"\" 环境变量，读取resources/env_vars下的变量模板，返回字典 \"\"\" env_active = tep_config()['env'][\"active\"] env_filename = f\"env_vars_{env_active}.yaml\" with open(os.path.join(Config.project_root_dir, \"resources\", \"env_vars\", env_filename)) as f: return yaml.load(f.read(), Loader=yaml.FullLoader) @pytest.fixture(scope=\"session\") def case_vars(): \"\"\" 测试用例的动态变量，1条测试用例1个实例，彼此隔离 \"\"\" class CaseVars: def __init__(self): self.dict_in_memory = {} def put(self, key, value): self.dict_in_memory[key] = value def get(self, key): value = \"\" try: value = self.dict_in_memory[key] except KeyError: logger.error(f\"获取用例变量的key不存在，返回空串: {key}\") return value return CaseVars() 登录fixture：\nimport pytest from loguru import logger from utils.http_client import request @pytest.fixture(scope=\"session\") def login(tep_context_manager, env_vars): \"\"\" tep_context_manager是为了兼容pytest-xdist分布式执行的上下文管理器 该login只会在整个运行期间执行一次 \"\"\" def produce_expensive_data(variable): logger.info(\"----------------开始登录----------------\") response = request( \"post\", url=variable[\"domain\"] + \"/login\", headers={\"Content-Type\": \"application/json\"}, json={\"username\": \"dongfanger\", \"password\": \"123456\"} ) assert response.status_code \u003c 400 logger.info(\"----------------登录成功----------------\") return response.json() return tep_context_manager(produce_expensive_data, env_vars) TepResponse支持response.jsonpath写法：\ndef request(method, url, **kwargs): template = \"\"\"\\n Request URL: {} Request Method: {} Request Headers: {} Request Payload: {} Status Code: {} Response: {} Elapsed: {} \"\"\" start = time.process_time() response = requests.request(method, url, **kwargs) # requests.request原生用法 end = time.process_time() elapsed = str(decimal.Decimal(\"%.3f\" % float(end - start))) + \"s\" headers = kwargs.get(\"headers\", {}) kwargs.pop(\"headers\") payload = kwargs log = template.format(url, method, json.dumps(headers), json.dumps(payload), response.status_code, response.text, elapsed) logger.info(log) allure.attach(log, f'request \u0026 response', allure.attachment_type.TEXT) return TepResponse(response) class TepResponse(Response): \"\"\" 二次封装requests.Response，添加额外方法 \"\"\" def __init__(self, response): super().__init__() for k, v in response.__dict__.items(): self.__dict__[k] = v def jsonpath(self, expr): \"\"\" 此处强制取第一个值，便于简单取值 如果复杂取值，建议直接jsonpath原生用法 \"\"\" return jsonpath.jsonpath(self.json(), expr)[0] 读取数据文件：\ndef data(relative_path: str) -\u003e dict: \"\"\" 与steps同层级的data目录+传入的相对路径 \"\"\" caller = inspect.stack()[1] steps_path = os.path.dirname(caller.filename) data_path = os.path.join(os.path.dirname(steps_path), \"data\", relative_path) if os.path.exists(data_path): with open(data_path, encoding=\"utf8\") as f: return json.load(f) logger.error(\"数据文件不存在\") return {} 体验 本次设计的编写方法，跟我公司的测试平台的体验很类似，因为习惯了平台操作，用这种方式写代码竟然出奇的习惯，基本上没有卡点或特别绕的感觉，在PyCharm中也能体验到测试平台的顺畅感。大家也可以试一下。\n第一步，添加用例：\n第二步，添加步骤：\nStep这一行，从左到右顺序录入，步骤名称，步骤函数，cache，特别顺手。\n第三步，添加步骤函数，直接复制这里的函数名，到steps包下面新建文件：\n然后输入函数定义：\n这里一定要记得输入TepCache的Typing提示，以获得PyCharm语法提示：\n接着顺序输入url、headers、body：\n第四步，在data目录下新建数据文件：\n第五步，回到步骤函数，做参数化、请求、断言、数据提取等：\n第六步，再回到测试用例，导入步骤函数：\n其他步骤以此类推。tep后续将以MVC分层设计编写方式为主，老用例仍然会兼容，可以不修改，新用例可以在tep正式发布后，尝试下。\ntep-template加了几个新库可能需要安装下：\npip install jsonpath pip install filelock pip install pytest-xdist 目前代码已经上传到预览版，欢迎加我或进群交流。\n参考资料：\ntep预览版 https://gitee.com/dongfanger/tep-template\n",
+  "wordCount" : "492",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-16T00:00:00Z",
+  "dateModified": "2026-01-16T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000016-%E5%BD%93pytest%E9%81%87%E4%B8%8Amvc%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E5%B0%B1%E8%AF%A5%E8%BF%99%E4%B9%88%E5%86%99/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      当Pytest遇上MVC分层设计自动化用例就该这么写
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-16T00:00:00+00:00'>2026-01-16</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>492 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/'>原创项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/tep/'>#Tep</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="引子">引子<a hidden class="anchor" aria-hidden="true" href="#引子">#</a></h1>
+<p>数据写在代码里，追求快速编写用例，是我设计tep的一个特点，这在个人编写时是一种非常良好的体验。但相比于HttpRunner、JMeter等来说，总觉得还差点意思。思考良久，总结为三个字：<strong>工程化</strong>。工程化是我近一年在学习Java并参与了2个测试平台模块开发，和写了几个小工具后，感受到的一种编程思想。而其中最明显的就是Spring的MVC分层设计。为了让tep更工程化，后续版本将以MVC模块编写用例为准，同时会兼容之前的脚本式快速编写。</p>
+<h1 id="示例">示例<a hidden class="anchor" aria-hidden="true" href="#示例">#</a></h1>
+<h2 id="目录结构">目录结构<a hidden class="anchor" aria-hidden="true" href="#目录结构">#</a></h2>
+<p>测试用例都放在一个文件夹下：</p>
+<p><img loading="lazy" src="../assets/5487a3073adf417c82931654f233f508.png"></p>
+<p>test_case：用例主程序；</p>
+<p>steps：测试步骤；</p>
+<p>data：纯粹的json；</p>
+<h2 id="测试用例">测试用例<a hidden class="anchor" aria-hidden="true" href="#测试用例">#</a></h2>
+<p><code>test_case.py</code>是测试用例，包含的只有测试步骤：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">allure</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">examples.tests.LoginToPayFlow.steps.step_add_cart</span> <span style="color:#cf222e">import</span> step_add_cart
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">examples.tests.LoginToPayFlow.steps.step_order</span> <span style="color:#cf222e">import</span> step_order
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">examples.tests.LoginToPayFlow.steps.step_pay</span> <span style="color:#cf222e">import</span> step_pay
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">examples.tests.LoginToPayFlow.steps.step_search_sku</span> <span style="color:#cf222e">import</span> step_search_sku
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">utils.cache</span> <span style="color:#cf222e">import</span> TepCache
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">utils.step</span> <span style="color:#cf222e">import</span> Step
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">测试登录到下单流程，需要先运行utils/fastapi_mock.py
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@allure.title</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;从登录到下单支付&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">(</span>login<span style="color:#1f2328">,</span> env_vars<span style="color:#1f2328">,</span> case_vars<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    case_vars<span style="color:#0550ae">.</span>put<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">,</span> login<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span>    cache <span style="color:#0550ae">=</span> TepCache<span style="color:#1f2328">(</span>env_vars<span style="color:#0550ae">=</span>env_vars<span style="color:#1f2328">,</span> case_vars<span style="color:#0550ae">=</span>case_vars<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Step<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;搜索商品&#34;</span><span style="color:#1f2328">,</span> step_search_sku<span style="color:#1f2328">,</span> cache<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    Step<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;添加购物车&#34;</span><span style="color:#1f2328">,</span> step_add_cart<span style="color:#1f2328">,</span> cache<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    Step<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;下单&#34;</span><span style="color:#1f2328">,</span> step_order<span style="color:#1f2328">,</span> cache<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    Step<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;支付&#34;</span><span style="color:#1f2328">,</span> step_pay<span style="color:#1f2328">,</span> cache<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>TepCache是“缓存”，包括global_vars、env_vars、case_vars三个级别的变量池。</p>
+<p>Step是一个泛化调用类，作用是打日志，调用第二个参数对应的步骤函数。</p>
+<h2 id="测试步骤">测试步骤<a hidden class="anchor" aria-hidden="true" href="#测试步骤">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">utils.cache</span> <span style="color:#cf222e">import</span> TepCache
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">utils.func</span> <span style="color:#cf222e">import</span> data
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">utils.http_client</span> <span style="color:#cf222e">import</span> request
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">step_search_sku</span><span style="color:#1f2328">(</span>cache<span style="color:#1f2328">:</span> TepCache<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    url <span style="color:#0550ae">=</span> cache<span style="color:#0550ae">.</span>env_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/searchSku&#34;</span>
+</span></span><span style="display:flex;"><span>    headers <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> cache<span style="color:#0550ae">.</span>case_vars<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">)}</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> data<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;查询SKU.json&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;get&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>headers<span style="color:#1f2328">,</span> params<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    cache<span style="color:#0550ae">.</span>case_vars<span style="color:#0550ae">.</span>put<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.skuId&#34;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    cache<span style="color:#0550ae">.</span>case_vars<span style="color:#0550ae">.</span>put<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;skuPrice&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.price&#34;</span><span style="color:#1f2328">))</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">utils.cache</span> <span style="color:#cf222e">import</span> TepCache
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">utils.func</span> <span style="color:#cf222e">import</span> data
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">utils.http_client</span> <span style="color:#cf222e">import</span> request
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">step_add_cart</span><span style="color:#1f2328">(</span>cache<span style="color:#1f2328">:</span> TepCache<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    url <span style="color:#0550ae">=</span> cache<span style="color:#0550ae">.</span>env_vars<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/addCart&#34;</span>
+</span></span><span style="display:flex;"><span>    headers <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> cache<span style="color:#0550ae">.</span>case_vars<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">)}</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> data<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;添加购物车.json&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> cache<span style="color:#0550ae">.</span>case_vars<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>headers<span style="color:#1f2328">,</span> json<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    cache<span style="color:#0550ae">.</span>case_vars<span style="color:#0550ae">.</span>put<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.skuNum&#34;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    cache<span style="color:#0550ae">.</span>case_vars<span style="color:#0550ae">.</span>put<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.totalPrice&#34;</span><span style="color:#1f2328">))</span>
+</span></span></code></pre></div><p>步骤函数以step开头，尤其注意的是cache借助Python Typing提示，可以在编写下面代码时，获得PyCharm语法提示，所以一定不要忘了加上<code>: TepCache</code>：</p>
+<p><img loading="lazy" src="../assets/bdf427ee64a344a58082e93d554a36d5.png"></p>
+<p>步骤函数里面由<strong>基本信息（url、headers、body），数据初始化，请求，断言，数据提取</strong>几个部分组织，<strong>从上往下顺序编写</strong>。</p>
+<h2 id="测试数据">测试数据<a hidden class="anchor" aria-hidden="true" href="#测试数据">#</a></h2>
+<p><strong>数据代码分离</strong>，在MVC分层设计中这点就特别重要，在data目录下存放的不做任何参数化的纯粹json：</p>
+<p><img loading="lazy" src="../assets/b8f4d0a6b68b4ff78ef383c8f7c3b1d8.png"></p>
+<p>参数化都放在步骤函数里面来写。数据代码分离的好处是，比如现在写的用例是买3件商品，假如你想改成买10件，只改json的数据就可以了，不需要改动任何代码。你可能会想，把这个数字放在代码里，不也是只改个值吗？确实如此，但这不符合MVC分层设计了。</p>
+<p>以SpringMVC作为参照：</p>
+<p><img loading="lazy" src="../assets/d27974ca463547ba8b9bb1911a69b775.png"></p>
+<p>testcase.py相当于controller，steps相当于service，data相当于pojo，各层只做自己的事，多写点代码，换来的是可读性强、维护性高、层次分明的“工程化资产”。</p>
+<h2 id="日志输出">日志输出<a hidden class="anchor" aria-hidden="true" href="#日志输出">#</a></h2>
+<p><img loading="lazy" src="../assets/5bde50ea73214c6c8928622428ddff2a.png"></p>
+<h1 id="原理">原理<a hidden class="anchor" aria-hidden="true" href="#原理">#</a></h1>
+<p>Step泛化调用：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">loguru</span> <span style="color:#cf222e">import</span> logger
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">utils.cache</span> <span style="color:#cf222e">import</span> TepCache
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Step</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    测试步骤，泛化调用
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> name<span style="color:#1f2328">:</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">,</span> action<span style="color:#1f2328">,</span> cache<span style="color:#1f2328">:</span> TepCache<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;----------------&#34;</span> <span style="color:#0550ae">+</span> name <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;----------------&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        action<span style="color:#1f2328">(</span>cache<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>TepCache缓存：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TepCache</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    提供缓存服务，包括全局变量、环境变量、用例变量
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> global_vars<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> env_vars<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> case_vars<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>global_vars <span style="color:#0550ae">=</span> global_vars
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>env_vars <span style="color:#0550ae">=</span> env_vars
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>case_vars <span style="color:#0550ae">=</span> case_vars
+</span></span></code></pre></div><p>fixture实现的变量池：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;session&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">global_vars</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    全局变量，读取resources/global_vars.yaml，返回字典
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">with</span> <span style="color:#6639ba">open</span><span style="color:#1f2328">(</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>Config<span style="color:#0550ae">.</span>project_root_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;resources&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;global_vars.yaml&#34;</span><span style="color:#1f2328">))</span> <span style="color:#cf222e">as</span> f<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> yaml<span style="color:#0550ae">.</span>load<span style="color:#1f2328">(</span>f<span style="color:#0550ae">.</span>read<span style="color:#1f2328">(),</span> Loader<span style="color:#0550ae">=</span>yaml<span style="color:#0550ae">.</span>FullLoader<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;session&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">env_vars</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    环境变量，读取resources/env_vars下的变量模板，返回字典
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    env_active <span style="color:#0550ae">=</span> tep_config<span style="color:#1f2328">()[</span><span style="color:#0a3069">&#39;env&#39;</span><span style="color:#1f2328">][</span><span style="color:#0a3069">&#34;active&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    env_filename <span style="color:#0550ae">=</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;env_vars_</span><span style="color:#0a3069">{</span>env_active<span style="color:#0a3069">}</span><span style="color:#0a3069">.yaml&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">with</span> <span style="color:#6639ba">open</span><span style="color:#1f2328">(</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>Config<span style="color:#0550ae">.</span>project_root_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;resources&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;env_vars&#34;</span><span style="color:#1f2328">,</span> env_filename<span style="color:#1f2328">))</span> <span style="color:#cf222e">as</span> f<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> yaml<span style="color:#0550ae">.</span>load<span style="color:#1f2328">(</span>f<span style="color:#0550ae">.</span>read<span style="color:#1f2328">(),</span> Loader<span style="color:#0550ae">=</span>yaml<span style="color:#0550ae">.</span>FullLoader<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;session&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">case_vars</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    测试用例的动态变量，1条测试用例1个实例，彼此隔离
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">class</span> <span style="color:#1f2328">CaseVars</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>dict_in_memory <span style="color:#0550ae">=</span> <span style="color:#1f2328">{}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">def</span> <span style="color:#6639ba">put</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> key<span style="color:#1f2328">,</span> value<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>dict_in_memory<span style="color:#1f2328">[</span>key<span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> value
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">def</span> <span style="color:#6639ba">get</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> key<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            value <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                value <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>dict_in_memory<span style="color:#1f2328">[</span>key<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">except</span> KeyError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                logger<span style="color:#0550ae">.</span>error<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;获取用例变量的key不存在，返回空串: </span><span style="color:#0a3069">{</span>key<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> value
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> CaseVars<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>登录fixture：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">loguru</span> <span style="color:#cf222e">import</span> logger
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">utils.http_client</span> <span style="color:#cf222e">import</span> request
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;session&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">login</span><span style="color:#1f2328">(</span>tep_context_manager<span style="color:#1f2328">,</span> env_vars<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    tep_context_manager是为了兼容pytest-xdist分布式执行的上下文管理器
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    该login只会在整个运行期间执行一次
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">produce_expensive_data</span><span style="color:#1f2328">(</span>variable<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;----------------开始登录----------------&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            url<span style="color:#0550ae">=</span>variable<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/login&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            headers<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>            json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;dongfanger&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;123456&#34;</span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>        logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;----------------登录成功----------------&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> tep_context_manager<span style="color:#1f2328">(</span>produce_expensive_data<span style="color:#1f2328">,</span> env_vars<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>TepResponse支持response.jsonpath写法：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">request</span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">,</span> url<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    template <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;&#34;&#34;</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">Request URL: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">Request Method: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">Request Headers: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">Request Payload: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">Status Code: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">Response: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">Elapsed: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    start <span style="color:#0550ae">=</span> time<span style="color:#0550ae">.</span>process_time<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> requests<span style="color:#0550ae">.</span>request<span style="color:#1f2328">(</span>method<span style="color:#1f2328">,</span> url<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>  <span style="color:#57606a"># requests.request原生用法</span>
+</span></span><span style="display:flex;"><span>    end <span style="color:#0550ae">=</span> time<span style="color:#0550ae">.</span>process_time<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    elapsed <span style="color:#0550ae">=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>decimal<span style="color:#0550ae">.</span>Decimal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">%.3f</span><span style="color:#0a3069">&#34;</span> <span style="color:#0550ae">%</span> <span style="color:#6639ba">float</span><span style="color:#1f2328">(</span>end <span style="color:#0550ae">-</span> start<span style="color:#1f2328">)))</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;s&#34;</span>
+</span></span><span style="display:flex;"><span>    headers <span style="color:#0550ae">=</span> kwargs<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;headers&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">{})</span>
+</span></span><span style="display:flex;"><span>    kwargs<span style="color:#0550ae">.</span>pop<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;headers&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    payload <span style="color:#0550ae">=</span> kwargs
+</span></span><span style="display:flex;"><span>    log <span style="color:#0550ae">=</span> template<span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>url<span style="color:#1f2328">,</span> method<span style="color:#1f2328">,</span> json<span style="color:#0550ae">.</span>dumps<span style="color:#1f2328">(</span>headers<span style="color:#1f2328">),</span> json<span style="color:#0550ae">.</span>dumps<span style="color:#1f2328">(</span>payload<span style="color:#1f2328">),</span> response<span style="color:#0550ae">.</span>status_code<span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>text<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                          elapsed<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span>log<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    allure<span style="color:#0550ae">.</span>attach<span style="color:#1f2328">(</span>log<span style="color:#1f2328">,</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#39;request &amp; response&#39;</span><span style="color:#1f2328">,</span> allure<span style="color:#0550ae">.</span>attachment_type<span style="color:#0550ae">.</span>TEXT<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> TepResponse<span style="color:#1f2328">(</span>response<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TepResponse</span><span style="color:#1f2328">(</span>Response<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    二次封装requests.Response，添加额外方法
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> response<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">super</span><span style="color:#1f2328">()</span><span style="color:#0550ae">.</span><span style="color:#6639ba">__init__</span><span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> k<span style="color:#1f2328">,</span> v <span style="color:#0550ae">in</span> response<span style="color:#0550ae">.</span><span style="color:#953800">__dict__</span><span style="color:#0550ae">.</span>items<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span><span style="color:#953800">__dict__</span><span style="color:#1f2328">[</span>k<span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> v
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">jsonpath</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> expr<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        此处强制取第一个值，便于简单取值
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        如果复杂取值，建议直接jsonpath原生用法
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> jsonpath<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>json<span style="color:#1f2328">(),</span> expr<span style="color:#1f2328">)[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>读取数据文件：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">data</span><span style="color:#1f2328">(</span>relative_path<span style="color:#1f2328">:</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">-&gt;</span> <span style="color:#6639ba">dict</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    与steps同层级的data目录+传入的相对路径
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    caller <span style="color:#0550ae">=</span> inspect<span style="color:#0550ae">.</span>stack<span style="color:#1f2328">()[</span><span style="color:#0550ae">1</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    steps_path <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>dirname<span style="color:#1f2328">(</span>caller<span style="color:#0550ae">.</span>filename<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    data_path <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>dirname<span style="color:#1f2328">(</span>steps_path<span style="color:#1f2328">),</span> <span style="color:#0a3069">&#34;data&#34;</span><span style="color:#1f2328">,</span> relative_path<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>exists<span style="color:#1f2328">(</span>data_path<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">with</span> <span style="color:#6639ba">open</span><span style="color:#1f2328">(</span>data_path<span style="color:#1f2328">,</span> encoding<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;utf8&#34;</span><span style="color:#1f2328">)</span> <span style="color:#cf222e">as</span> f<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> json<span style="color:#0550ae">.</span>load<span style="color:#1f2328">(</span>f<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    logger<span style="color:#0550ae">.</span>error<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;数据文件不存在&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#1f2328">{}</span>
+</span></span></code></pre></div><h2 id="体验">体验<a hidden class="anchor" aria-hidden="true" href="#体验">#</a></h2>
+<p>本次设计的编写方法，跟我公司的测试平台的体验很类似，因为习惯了平台操作，用这种方式写代码竟然出奇的习惯，基本上没有卡点或特别绕的感觉，在PyCharm中也能体验到测试平台的顺畅感。大家也可以试一下。</p>
+<p>第一步，添加用例：</p>
+<p><img loading="lazy" src="../assets/988aaf34285545419f3ac0c9a99ab2ed.png"></p>
+<p>第二步，添加步骤：</p>
+<p><img loading="lazy" src="../assets/d02e869759814817b3e42f4146fff9dc.png"></p>
+<p>Step这一行，从左到右顺序录入，步骤名称，步骤函数，cache，特别顺手。</p>
+<p>第三步，添加步骤函数，直接复制这里的函数名，到steps包下面新建文件：</p>
+<p><img loading="lazy" src="../assets/5c450ea79fcf4301acb7553c340267ae.png"></p>
+<p>然后输入函数定义：</p>
+<p><img loading="lazy" src="../assets/bd0bfb7fc3f84c879acfc65bb11bbc32.png"></p>
+<p>这里一定要记得输入TepCache的Typing提示，以获得PyCharm语法提示：</p>
+<p><img loading="lazy" src="../assets/8f8129cd7b844ed58a6c78c38d8ec9cc.png"></p>
+<p>接着顺序输入url、headers、body：</p>
+<p><img loading="lazy" src="../assets/c5cce097c738474b89d36314236a26e4.png"></p>
+<p>第四步，在data目录下新建数据文件：</p>
+<p><img loading="lazy" src="../assets/5f057af0dc4d4b56a293e039a16ed794.png"></p>
+<p>第五步，回到步骤函数，做参数化、请求、断言、数据提取等：</p>
+<p><img loading="lazy" src="../assets/cedd0efaba8c46b5af213380c9ae9db9.png"></p>
+<p>第六步，再回到测试用例，导入步骤函数：</p>
+<p><img loading="lazy" src="../assets/a13906b4fb624ed893d89116756dd4c6.png"></p>
+<p>其他步骤以此类推。tep后续将以MVC分层设计编写方式为主，老用例仍然会兼容，可以不修改，新用例可以在tep正式发布后，尝试下。</p>
+<p>tep-template加了几个新库可能需要安装下：</p>
+<pre tabindex="0"><code>pip install jsonpath
+pip install filelock
+pip install pytest-xdist
+</code></pre><p>目前代码已经上传到预览版，欢迎加我或进群交流。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>tep预览版 <a href="https://gitee.com/dongfanger/tep-template">https://gitee.com/dongfanger/tep-template</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/tep/">Tep</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000016-locustpython%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7locust%E5%85%A5%E9%97%A8/">
+    <span class="title">« 上一页</span>
+    <span>Python技术栈性能测试工具Locust入门</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000016-%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E8%B4%A8%E9%87%8F%E7%9A%84%E6%80%9D%E8%80%83v2.0/">
+    <span class="title">下一页 »</span>
+    <span>关于版本质量的思考V2.0</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#引子">引子</a></li>
+    <li><a href="#示例">示例</a>
+      <ul>
+        <li><a href="#目录结构">目录结构</a></li>
+        <li><a href="#测试用例">测试用例</a></li>
+        <li><a href="#测试步骤">测试步骤</a></li>
+        <li><a href="#测试数据">测试数据</a></li>
+        <li><a href="#日志输出">日志输出</a></li>
+      </ul>
+    </li>
+    <li><a href="#原理">原理</a>
+      <ul>
+        <li><a href="#体验">体验</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

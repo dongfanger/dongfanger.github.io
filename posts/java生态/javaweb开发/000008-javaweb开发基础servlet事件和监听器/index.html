@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JavaWeb开发基础Servlet事件和监听器 | 测试开发刚哥</title>
+<meta name="keywords" content="JavaWeb开发">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+事件和监听器
+事件是指在程序运行过程中发生的特定动作或情况。比如：
+
+
+用户操作，如点击按钮、输入文本
+
+
+系统操作，如文件读取完成、网络连接断开
+
+
+应用程序内部的状态变化，如对象属性改变、方法调用
+
+
+监听器是一个接口或类，用于定义在特定事件发生时要执行的操作。监听器会“监听”特定的事件，当事件发生时，监听器中的相应方法会被调用，从而执行预定义的操作。
+事件和监听器是相辅相成的，它们的工作原理如下：
+
+
+事件源：触发事件的来源。例如，按钮是事件源，点击按钮会触发点击事件
+事件对象：当事件发生时，事件源会创建一个事件对象，包含有关事件的信息
+注册监听器：监听器需要注册到事件源，以便监听特定的事件。注册后，事件源会在事件发生时通知监听器
+事件处理：当事件发生时，事件源会调用监听器中的相应方法，传递事件对象，从而执行预定义的操作
+
+Servlet Event Class
+事件（Event）是一个类，封装了与特定事件相关的信息。
+基本是构造方法和get方法：
+
+
+ServletRequestEvent
+public class ServletRequestEvent extends EventObject {
+    private static final long serialVersionUID = 1L;
+    private final ServletRequest request;
+
+    public ServletRequestEvent(ServletContext sc, ServletRequest request) {
+        super(sc);
+        this.request = request;
+    }
+
+    public ServletRequest getServletRequest() {
+        return this.request;
+    }
+
+    public ServletContext getServletContext() {
+        return (ServletContext) super.getSource();
+    }
+}
+
+
+ServletRequestAttributeEvent
+public class ServletRequestAttributeEvent extends ServletRequestEvent {
+    private static final long serialVersionUID = 1L;
+    private final String name;
+    private final Object value;
+
+    public ServletRequestAttributeEvent(ServletContext sc, ServletRequest request, String name, Object value) {
+        super(sc, request);
+        this.name = name;
+        this.value = value;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Object getValue() {
+        return this.value;
+    }
+}
+
+
+ServletContextEvent
+public class ServletContextEvent extends EventObject {
+    private static final long serialVersionUID = 1L;
+
+    public ServletContextEvent(ServletContext source) {
+        super(source);
+    }
+
+    public ServletContext getServletContext() {
+        return (ServletContext) super.getSource();
+    }
+}
+
+
+ServletContextAttributeEvent
+public class ServletContextAttributeEvent extends ServletContextEvent {
+    private static final long serialVersionUID = 1L;
+    private final String name;
+    private final Object value;
+
+    public ServletContextAttributeEvent(ServletContext source, String name, Object value) {
+        super(source);
+        this.name = name;
+        this.value = value;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Object getValue() {
+        return this.value;
+    }
+}
+
+
+HttpSessionEvent
+public class HttpSessionEvent extends EventObject {
+    private static final long serialVersionUID = 1L;
+
+    public HttpSessionEvent(HttpSession source) {
+        super(source);
+    }
+
+    public HttpSession getSession() {
+        return (HttpSession) super.getSource();
+    }
+}
+
+
+HttpSessionBindingEvent
+public class HttpSessionBindingEvent extends HttpSessionEvent {
+    private static final long serialVersionUID = 1L;
+    private final String name;
+    private final Object value;
+
+    public HttpSessionBindingEvent(HttpSession session, String name, Object value) {
+        super(session);
+        this.name = name;
+        this.value = value;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Object getValue() {
+        return this.value;
+    }
+}
+
+">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000008-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E4%BA%8B%E4%BB%B6%E5%92%8C%E7%9B%91%E5%90%AC%E5%99%A8/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000008-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E4%BA%8B%E4%BB%B6%E5%92%8C%E7%9B%91%E5%90%AC%E5%99%A8/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000008-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E4%BA%8B%E4%BB%B6%E5%92%8C%E7%9B%91%E5%90%AC%E5%99%A8/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JavaWeb开发基础Servlet事件和监听器">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+事件和监听器 事件是指在程序运行过程中发生的特定动作或情况。比如：
+用户操作，如点击按钮、输入文本
+系统操作，如文件读取完成、网络连接断开
+应用程序内部的状态变化，如对象属性改变、方法调用
+监听器是一个接口或类，用于定义在特定事件发生时要执行的操作。监听器会“监听”特定的事件，当事件发生时，监听器中的相应方法会被调用，从而执行预定义的操作。
+事件和监听器是相辅相成的，它们的工作原理如下：
+事件源：触发事件的来源。例如，按钮是事件源，点击按钮会触发点击事件 事件对象：当事件发生时，事件源会创建一个事件对象，包含有关事件的信息 注册监听器：监听器需要注册到事件源，以便监听特定的事件。注册后，事件源会在事件发生时通知监听器 事件处理：当事件发生时，事件源会调用监听器中的相应方法，传递事件对象，从而执行预定义的操作 Servlet Event Class 事件（Event）是一个类，封装了与特定事件相关的信息。
+基本是构造方法和get方法：
+ServletRequestEvent
+public class ServletRequestEvent extends EventObject { private static final long serialVersionUID = 1L; private final ServletRequest request; public ServletRequestEvent(ServletContext sc, ServletRequest request) { super(sc); this.request = request; } public ServletRequest getServletRequest() { return this.request; } public ServletContext getServletContext() { return (ServletContext) super.getSource(); } } ServletRequestAttributeEvent
+public class ServletRequestAttributeEvent extends ServletRequestEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public ServletRequestAttributeEvent(ServletContext sc, ServletRequest request, String name, Object value) { super(sc, request); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } } ServletContextEvent
+public class ServletContextEvent extends EventObject { private static final long serialVersionUID = 1L; public ServletContextEvent(ServletContext source) { super(source); } public ServletContext getServletContext() { return (ServletContext) super.getSource(); } } ServletContextAttributeEvent
+public class ServletContextAttributeEvent extends ServletContextEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public ServletContextAttributeEvent(ServletContext source, String name, Object value) { super(source); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } } HttpSessionEvent
+public class HttpSessionEvent extends EventObject { private static final long serialVersionUID = 1L; public HttpSessionEvent(HttpSession source) { super(source); } public HttpSession getSession() { return (HttpSession) super.getSource(); } } HttpSessionBindingEvent
+public class HttpSessionBindingEvent extends HttpSessionEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public HttpSessionBindingEvent(HttpSession session, String name, Object value) { super(session); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } }">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-08T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-08T00:00:00+00:00">
+    <meta property="article:tag" content="JavaWeb开发">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JavaWeb开发基础Servlet事件和监听器">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+事件和监听器 事件是指在程序运行过程中发生的特定动作或情况。比如：
+用户操作，如点击按钮、输入文本
+系统操作，如文件读取完成、网络连接断开
+应用程序内部的状态变化，如对象属性改变、方法调用
+监听器是一个接口或类，用于定义在特定事件发生时要执行的操作。监听器会“监听”特定的事件，当事件发生时，监听器中的相应方法会被调用，从而执行预定义的操作。
+事件和监听器是相辅相成的，它们的工作原理如下：
+事件源：触发事件的来源。例如，按钮是事件源，点击按钮会触发点击事件 事件对象：当事件发生时，事件源会创建一个事件对象，包含有关事件的信息 注册监听器：监听器需要注册到事件源，以便监听特定的事件。注册后，事件源会在事件发生时通知监听器 事件处理：当事件发生时，事件源会调用监听器中的相应方法，传递事件对象，从而执行预定义的操作 Servlet Event Class 事件（Event）是一个类，封装了与特定事件相关的信息。
+基本是构造方法和get方法：
+ServletRequestEvent
+public class ServletRequestEvent extends EventObject { private static final long serialVersionUID = 1L; private final ServletRequest request; public ServletRequestEvent(ServletContext sc, ServletRequest request) { super(sc); this.request = request; } public ServletRequest getServletRequest() { return this.request; } public ServletContext getServletContext() { return (ServletContext) super.getSource(); } } ServletRequestAttributeEvent
+public class ServletRequestAttributeEvent extends ServletRequestEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public ServletRequestAttributeEvent(ServletContext sc, ServletRequest request, String name, Object value) { super(sc, request); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } } ServletContextEvent
+public class ServletContextEvent extends EventObject { private static final long serialVersionUID = 1L; public ServletContextEvent(ServletContext source) { super(source); } public ServletContext getServletContext() { return (ServletContext) super.getSource(); } } ServletContextAttributeEvent
+public class ServletContextAttributeEvent extends ServletContextEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public ServletContextAttributeEvent(ServletContext source, String name, Object value) { super(source); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } } HttpSessionEvent
+public class HttpSessionEvent extends EventObject { private static final long serialVersionUID = 1L; public HttpSessionEvent(HttpSession source) { super(source); } public HttpSession getSession() { return (HttpSession) super.getSource(); } } HttpSessionBindingEvent
+public class HttpSessionBindingEvent extends HttpSessionEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public HttpSessionBindingEvent(HttpSession session, String name, Object value) { super(session); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } }">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JavaWeb开发基础Servlet事件和监听器",
+      "item": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000008-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E4%BA%8B%E4%BB%B6%E5%92%8C%E7%9B%91%E5%90%AC%E5%99%A8/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JavaWeb开发基础Servlet事件和监听器",
+  "name": "JavaWeb开发基础Servlet事件和监听器",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n事件和监听器 事件是指在程序运行过程中发生的特定动作或情况。比如：\n用户操作，如点击按钮、输入文本\n系统操作，如文件读取完成、网络连接断开\n应用程序内部的状态变化，如对象属性改变、方法调用\n监听器是一个接口或类，用于定义在特定事件发生时要执行的操作。监听器会“监听”特定的事件，当事件发生时，监听器中的相应方法会被调用，从而执行预定义的操作。\n事件和监听器是相辅相成的，它们的工作原理如下：\n事件源：触发事件的来源。例如，按钮是事件源，点击按钮会触发点击事件 事件对象：当事件发生时，事件源会创建一个事件对象，包含有关事件的信息 注册监听器：监听器需要注册到事件源，以便监听特定的事件。注册后，事件源会在事件发生时通知监听器 事件处理：当事件发生时，事件源会调用监听器中的相应方法，传递事件对象，从而执行预定义的操作 Servlet Event Class 事件（Event）是一个类，封装了与特定事件相关的信息。\n基本是构造方法和get方法：\nServletRequestEvent\npublic class ServletRequestEvent extends EventObject { private static final long serialVersionUID = 1L; private final ServletRequest request; public ServletRequestEvent(ServletContext sc, ServletRequest request) { super(sc); this.request = request; } public ServletRequest getServletRequest() { return this.request; } public ServletContext getServletContext() { return (ServletContext) super.getSource(); } } ServletRequestAttributeEvent\npublic class ServletRequestAttributeEvent extends ServletRequestEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public ServletRequestAttributeEvent(ServletContext sc, ServletRequest request, String name, Object value) { super(sc, request); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } } ServletContextEvent\npublic class ServletContextEvent extends EventObject { private static final long serialVersionUID = 1L; public ServletContextEvent(ServletContext source) { super(source); } public ServletContext getServletContext() { return (ServletContext) super.getSource(); } } ServletContextAttributeEvent\npublic class ServletContextAttributeEvent extends ServletContextEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public ServletContextAttributeEvent(ServletContext source, String name, Object value) { super(source); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } } HttpSessionEvent\npublic class HttpSessionEvent extends EventObject { private static final long serialVersionUID = 1L; public HttpSessionEvent(HttpSession source) { super(source); } public HttpSession getSession() { return (HttpSession) super.getSource(); } } HttpSessionBindingEvent\npublic class HttpSessionBindingEvent extends HttpSessionEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public HttpSessionBindingEvent(HttpSession session, String name, Object value) { super(session); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } } ",
+  "keywords": [
+    "JavaWeb开发"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n事件和监听器 事件是指在程序运行过程中发生的特定动作或情况。比如：\n用户操作，如点击按钮、输入文本\n系统操作，如文件读取完成、网络连接断开\n应用程序内部的状态变化，如对象属性改变、方法调用\n监听器是一个接口或类，用于定义在特定事件发生时要执行的操作。监听器会“监听”特定的事件，当事件发生时，监听器中的相应方法会被调用，从而执行预定义的操作。\n事件和监听器是相辅相成的，它们的工作原理如下：\n事件源：触发事件的来源。例如，按钮是事件源，点击按钮会触发点击事件 事件对象：当事件发生时，事件源会创建一个事件对象，包含有关事件的信息 注册监听器：监听器需要注册到事件源，以便监听特定的事件。注册后，事件源会在事件发生时通知监听器 事件处理：当事件发生时，事件源会调用监听器中的相应方法，传递事件对象，从而执行预定义的操作 Servlet Event Class 事件（Event）是一个类，封装了与特定事件相关的信息。\n基本是构造方法和get方法：\nServletRequestEvent\npublic class ServletRequestEvent extends EventObject { private static final long serialVersionUID = 1L; private final ServletRequest request; public ServletRequestEvent(ServletContext sc, ServletRequest request) { super(sc); this.request = request; } public ServletRequest getServletRequest() { return this.request; } public ServletContext getServletContext() { return (ServletContext) super.getSource(); } } ServletRequestAttributeEvent\npublic class ServletRequestAttributeEvent extends ServletRequestEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public ServletRequestAttributeEvent(ServletContext sc, ServletRequest request, String name, Object value) { super(sc, request); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } } ServletContextEvent\npublic class ServletContextEvent extends EventObject { private static final long serialVersionUID = 1L; public ServletContextEvent(ServletContext source) { super(source); } public ServletContext getServletContext() { return (ServletContext) super.getSource(); } } ServletContextAttributeEvent\npublic class ServletContextAttributeEvent extends ServletContextEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public ServletContextAttributeEvent(ServletContext source, String name, Object value) { super(source); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } } HttpSessionEvent\npublic class HttpSessionEvent extends EventObject { private static final long serialVersionUID = 1L; public HttpSessionEvent(HttpSession source) { super(source); } public HttpSession getSession() { return (HttpSession) super.getSource(); } } HttpSessionBindingEvent\npublic class HttpSessionBindingEvent extends HttpSessionEvent { private static final long serialVersionUID = 1L; private final String name; private final Object value; public HttpSessionBindingEvent(HttpSession session, String name, Object value) { super(session); this.name = name; this.value = value; } public String getName() { return this.name; } public Object getValue() { return this.value; } } Servlet Listener Interface 监听器（Listener）是一个接口，定义了处理这些事件的方法。\nServletRequestListener\npublic interface ServletRequestListener extends EventListener { void requestDestroyed(ServletRequestEvent sre); void requestInitialized(ServletRequestEvent sre); } ServletRequestAttributeListener\npublic interface ServletRequestAttributeListener extends EventListener { void attributeAdded(ServletRequestAttributeEvent srae); void attributeRemoved(ServletRequestAttributeEvent srae); void attributeReplaced(ServletRequestAttributeEvent srae); } ServletContextListener\npublic interface ServletContextListener extends EventListener { void contextInitialized(ServletContextEvent sce); void contextDestroyed(ServletContextEvent sce); } ServletContextAttributeListener\npublic interface ServletContextAttributeListener extends EventListener { void attributeAdded(ServletContextAttributeEvent scae); void attributeRemoved(ServletContextAttributeEvent scae); void attributeReplaced(ServletContextAttributeEvent scae); } HttpSessionListener\npublic interface HttpSessionListener extends EventListener { void sessionCreated(HttpSessionEvent se); void sessionDestroyed(HttpSessionEvent se); } HttpSessionBindingListener\npublic interface HttpSessionBindingListener { void valueBound(HttpSessionBindingEvent event); void valueUnbound(HttpSessionBindingEvent event); } HttpSessionActivationListener\npublic interface HttpSessionActivationListener { void sessionWillPassivate(HttpSessionEvent se); void sessionDidActivate(HttpSessionEvent se); } HttpSessionAttributeListener\npublic interface HttpSessionAttributeListener extends EventListener { void attributeAdded(HttpSessionBindingEvent se); void attributeRemoved(HttpSessionBindingEvent se); void attributeReplaced(HttpSessionBindingEvent se); } Event与Listener 一个事件可以对应多个监听器，它们是怎么关联的？查看ServletRequestListener源码：\npackage javax.servlet; import java.util.EventListener; public interface ServletRequestListener extends EventListener { void requestDestroyed(ServletRequestEvent var1); // 入参是ServletRequestEvent void requestInitialized(ServletRequestEvent var1); } ServletRequestListener接口的方法入参是ServletRequestEvent类型，也就是说，在调用监听器ServletRequestListener的requestInitialized方法时，会传入事件对象ServletRequestEvent。\n每种类型的事件都有对应的监听器接口，Servlet容器会根据事件类型调用相应的监听器方法。以下是一个简化的示例，展示了Servlet容器如何根据事件类型调用相应的监听器方法：\n1.定义事件和监听器\nimport java.util.EventListener; import java.util.EventObject; // 定义ServletRequestEvent类 public class ServletRequestEvent extends EventObject { private static final long serialVersionUID = 1L; private final ServletRequest request; public ServletRequestEvent(ServletContext sc, ServletRequest request) { super(sc); this.request = request; } public ServletRequest getServletRequest() { return this.request; } public ServletContext getServletContext() { return (ServletContext) super.getSource(); } } // 定义ServletRequestListener接口 public interface ServletRequestListener extends EventListener { void requestDestroyed(ServletRequestEvent sre); void requestInitialized(ServletRequestEvent sre); } 2.定义ServletContext和ServletRequest\npublic class ServletContext { // 简化的ServletContext实现 } public class ServletRequest { // 简化的ServletRequest实现 } 3.定义Servlet容器\nimport java.util.ArrayList; import java.util.List; public class SimpleServletContainer { private List\u003cServletRequestListener\u003e requestListeners = new ArrayList\u003c\u003e(); // 注册监听器 public void addServletRequestListener(ServletRequestListener listener) { requestListeners.add(listener); } // 模拟请求初始化 public void initializeRequest(ServletRequest request, ServletContext context) { // 创建事件对象 ServletRequestEvent event = new ServletRequestEvent(context, request); // 遍历监听器，调用方法，传入事件对象 for (ServletRequestListener listener : requestListeners) { listener.requestInitialized(event); } } // 模拟请求销毁 public void destroyRequest(ServletRequest request, ServletContext context) { ServletRequestEvent event = new ServletRequestEvent(context, request); for (ServletRequestListener listener : requestListeners) { listener.requestDestroyed(event); } } } 4.实现监听器\n@WebListener public class MyServletRequestListener implements ServletRequestListener { @Override public void requestInitialized(ServletRequestEvent sre) { System.out.println(\"Request initialized: \" + sre.getServletRequest()); } @Override public void requestDestroyed(ServletRequestEvent sre) { System.out.println(\"Request destroyed: \" + sre.getServletRequest()); } } 监听器可以通过注解@WebListener或在web.xml中进行配置：\n使用注解：\n@WebListener public class MyServletRequestListener implements ServletRequestListener { // 实现接口方法 } 在web.xml中配置：\ncom.example.MyServletRequestListener 5.测试代码\npublic class Main { public static void main(String[] args) { // 创建Servlet容器 SimpleServletContainer container = new SimpleServletContainer(); // 创建ServletContext和ServletRequest ServletContext context = new ServletContext(); ServletRequest request = new ServletRequest(); // 注册监听器 container.addServletRequestListener(new MyServletRequestListener()); // 模拟请求初始化和销毁 container.initializeRequest(request, context); container.destroyRequest(request, context); } } 运行结果：\nRequest initialized: ServletRequest@1a2b3c4d Request destroyed: ServletRequest@1a2b3c4d 解释：\n事件创建：\n当请求初始化时，容器创建一个ServletRequestEvent对象，并将ServletContext和ServletRequest作为参数传递给事件对象的构造函数 同样，当请求销毁时，容器再次创建一个ServletRequestEvent对象 事件通知：\n容器遍历所有注册的监听器，检查它们是否实现了ServletRequestListener接口 对于实现了ServletRequestListener接口的监听器，容器调用它们的requestInitialized或requestDestroyed方法，并传递ServletRequestEvent对象 在实际的Servlet容器（如Tomcat、Jetty等）中，事件的触发和监听器的调用是由容器内部的代码实现的。容器会在特定事件发生时创建相应的事件对象，并调用注册的监听器方法。通过这种机制，开发者可以在特定事件发生时执行自定义逻辑，从而实现更灵活和强大的功能。换句话说，这些监听器的工作方式类似于钩子函数（Hook），通过实现这些监听器接口，我们可以在Servlet生命周期的不同阶段，自定义处理逻辑。\n参考资料：\nhttps://www.javatpoint.com/Event-and-Listener-in-Servlet\nChatGPT\n",
+  "wordCount" : "693",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-08T00:00:00Z",
+  "dateModified": "2026-01-08T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000008-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E4%BA%8B%E4%BB%B6%E5%92%8C%E7%9B%91%E5%90%AC%E5%99%A8/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      JavaWeb开发基础Servlet事件和监听器
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-08T00:00:00+00:00'>2026-01-08</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>693 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/javaweb%E5%BC%80%E5%8F%91/'>#JavaWeb开发</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="事件和监听器">事件和监听器<a hidden class="anchor" aria-hidden="true" href="#事件和监听器">#</a></h1>
+<p><strong>事件</strong>是指在程序运行过程中发生的特定动作或情况。比如：</p>
+<ul>
+<li>
+<p>用户操作，如点击按钮、输入文本</p>
+</li>
+<li>
+<p>系统操作，如文件读取完成、网络连接断开</p>
+</li>
+<li>
+<p>应用程序内部的状态变化，如对象属性改变、方法调用</p>
+</li>
+</ul>
+<p><strong>监听器</strong>是一个接口或类，用于定义在特定事件发生时要执行的操作。监听器会“监听”特定的事件，当事件发生时，监听器中的相应方法会被调用，从而执行预定义的操作。</p>
+<p>事件和监听器是相辅相成的，它们的工作原理如下：</p>
+<p><img loading="lazy" src="../assets/02ea64d9e6d741fe9f105fbf8cf9a112.png"></p>
+<ol>
+<li>事件源：触发事件的来源。例如，按钮是事件源，点击按钮会触发点击事件</li>
+<li>事件对象：当事件发生时，事件源会创建一个事件对象，包含有关事件的信息</li>
+<li>注册监听器：监听器需要注册到事件源，以便监听特定的事件。注册后，事件源会在事件发生时通知监听器</li>
+<li>事件处理：当事件发生时，事件源会调用监听器中的相应方法，传递事件对象，从而执行预定义的操作</li>
+</ol>
+<h1 id="servlet-event-class">Servlet Event Class<a hidden class="anchor" aria-hidden="true" href="#servlet-event-class">#</a></h1>
+<p>事件（Event）是一个类，封装了与特定事件相关的信息。</p>
+<p>基本是构造方法和get方法：</p>
+<ol>
+<li>
+<p>ServletRequestEvent</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ServletRequestEvent</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventObject<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>serialVersionUID<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1L<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>ServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">ServletRequestEvent</span><span style="color:#1f2328">(</span>ServletContext<span style="color:#fff"> </span>sc<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">super</span><span style="color:#1f2328">(</span>sc<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">request</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>ServletRequest<span style="color:#fff"> </span><span style="color:#6639ba">getServletRequest</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">request</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>ServletContext<span style="color:#fff"> </span><span style="color:#6639ba">getServletContext</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>ServletContext<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">super</span><span style="color:#1f2328">.</span><span style="color:#1f2328">getSource</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>ServletRequestAttributeEvent</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ServletRequestAttributeEvent</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>ServletRequestEvent<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>serialVersionUID<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1L<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>name<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span>value<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">ServletRequestAttributeEvent</span><span style="color:#1f2328">(</span>ServletContext<span style="color:#fff"> </span>sc<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>name<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span>value<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">super</span><span style="color:#1f2328">(</span>sc<span style="color:#1f2328">,</span><span style="color:#fff"> </span>request<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">name</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>name<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">value</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>value<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span><span style="color:#6639ba">getName</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">name</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span><span style="color:#6639ba">getValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">value</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>ServletContextEvent</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ServletContextEvent</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventObject<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>serialVersionUID<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1L<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">ServletContextEvent</span><span style="color:#1f2328">(</span>ServletContext<span style="color:#fff"> </span>source<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">super</span><span style="color:#1f2328">(</span>source<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>ServletContext<span style="color:#fff"> </span><span style="color:#6639ba">getServletContext</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>ServletContext<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">super</span><span style="color:#1f2328">.</span><span style="color:#1f2328">getSource</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>ServletContextAttributeEvent</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ServletContextAttributeEvent</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>ServletContextEvent<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>serialVersionUID<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1L<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>name<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span>value<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">ServletContextAttributeEvent</span><span style="color:#1f2328">(</span>ServletContext<span style="color:#fff"> </span>source<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>name<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span>value<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">super</span><span style="color:#1f2328">(</span>source<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">name</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>name<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">value</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>value<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span><span style="color:#6639ba">getName</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">name</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span><span style="color:#6639ba">getValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">value</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>HttpSessionEvent</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">HttpSessionEvent</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventObject<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>serialVersionUID<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1L<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">HttpSessionEvent</span><span style="color:#1f2328">(</span>HttpSession<span style="color:#fff"> </span>source<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">super</span><span style="color:#1f2328">(</span>source<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>HttpSession<span style="color:#fff"> </span><span style="color:#6639ba">getSession</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>HttpSession<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">super</span><span style="color:#1f2328">.</span><span style="color:#1f2328">getSource</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>HttpSessionBindingEvent</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">HttpSessionBindingEvent</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>HttpSessionEvent<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>serialVersionUID<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1L<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>name<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span>value<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">HttpSessionBindingEvent</span><span style="color:#1f2328">(</span>HttpSession<span style="color:#fff"> </span>session<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>name<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span>value<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">super</span><span style="color:#1f2328">(</span>session<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">name</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>name<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">value</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>value<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span><span style="color:#6639ba">getName</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">name</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span><span style="color:#6639ba">getValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">value</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+</ol>
+<h1 id="servlet-listener-interface">Servlet Listener Interface<a hidden class="anchor" aria-hidden="true" href="#servlet-listener-interface">#</a></h1>
+<p>监听器（Listener）是一个接口，定义了处理这些事件的方法。</p>
+<ol>
+<li>
+<p>ServletRequestListener</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">ServletRequestListener</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventListener<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">requestDestroyed</span><span style="color:#1f2328">(</span>ServletRequestEvent<span style="color:#fff"> </span>sre<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">requestInitialized</span><span style="color:#1f2328">(</span>ServletRequestEvent<span style="color:#fff"> </span>sre<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>ServletRequestAttributeListener</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">ServletRequestAttributeListener</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventListener<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">attributeAdded</span><span style="color:#1f2328">(</span>ServletRequestAttributeEvent<span style="color:#fff"> </span>srae<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">attributeRemoved</span><span style="color:#1f2328">(</span>ServletRequestAttributeEvent<span style="color:#fff"> </span>srae<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">attributeReplaced</span><span style="color:#1f2328">(</span>ServletRequestAttributeEvent<span style="color:#fff"> </span>srae<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>ServletContextListener</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">ServletContextListener</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventListener<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">contextInitialized</span><span style="color:#1f2328">(</span>ServletContextEvent<span style="color:#fff"> </span>sce<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">contextDestroyed</span><span style="color:#1f2328">(</span>ServletContextEvent<span style="color:#fff"> </span>sce<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>ServletContextAttributeListener</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">ServletContextAttributeListener</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventListener<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">attributeAdded</span><span style="color:#1f2328">(</span>ServletContextAttributeEvent<span style="color:#fff"> </span>scae<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">attributeRemoved</span><span style="color:#1f2328">(</span>ServletContextAttributeEvent<span style="color:#fff"> </span>scae<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">attributeReplaced</span><span style="color:#1f2328">(</span>ServletContextAttributeEvent<span style="color:#fff"> </span>scae<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>HttpSessionListener</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">HttpSessionListener</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventListener<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">sessionCreated</span><span style="color:#1f2328">(</span>HttpSessionEvent<span style="color:#fff"> </span>se<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">sessionDestroyed</span><span style="color:#1f2328">(</span>HttpSessionEvent<span style="color:#fff"> </span>se<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>HttpSessionBindingListener</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">HttpSessionBindingListener</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">valueBound</span><span style="color:#1f2328">(</span>HttpSessionBindingEvent<span style="color:#fff"> </span>event<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">valueUnbound</span><span style="color:#1f2328">(</span>HttpSessionBindingEvent<span style="color:#fff"> </span>event<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>HttpSessionActivationListener</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">HttpSessionActivationListener</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">sessionWillPassivate</span><span style="color:#1f2328">(</span>HttpSessionEvent<span style="color:#fff"> </span>se<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">sessionDidActivate</span><span style="color:#1f2328">(</span>HttpSessionEvent<span style="color:#fff"> </span>se<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>HttpSessionAttributeListener</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">HttpSessionAttributeListener</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventListener<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">attributeAdded</span><span style="color:#1f2328">(</span>HttpSessionBindingEvent<span style="color:#fff"> </span>se<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">attributeRemoved</span><span style="color:#1f2328">(</span>HttpSessionBindingEvent<span style="color:#fff"> </span>se<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">attributeReplaced</span><span style="color:#1f2328">(</span>HttpSessionBindingEvent<span style="color:#fff"> </span>se<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+</ol>
+<h1 id="event与listener">Event与Listener<a hidden class="anchor" aria-hidden="true" href="#event与listener">#</a></h1>
+<p>一个事件可以对应多个监听器，它们是怎么关联的？查看ServletRequestListener源码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">package</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.util.EventListener</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">ServletRequestListener</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventListener<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">requestDestroyed</span><span style="color:#1f2328">(</span>ServletRequestEvent<span style="color:#fff"> </span>var1<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// 入参是ServletRequestEvent</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">requestInitialized</span><span style="color:#1f2328">(</span>ServletRequestEvent<span style="color:#fff"> </span>var1<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>ServletRequestListener接口的方法入参是ServletRequestEvent类型，也就是说，在调用监听器ServletRequestListener的requestInitialized方法时，会传入事件对象ServletRequestEvent。</p>
+<p>每种类型的事件都有对应的监听器接口，Servlet容器会根据事件类型调用相应的监听器方法。以下是一个简化的示例，展示了Servlet容器如何根据事件类型调用相应的监听器方法：</p>
+<p>1.定义事件和监听器</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.util.EventListener</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.util.EventObject</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// 定义ServletRequestEvent类</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ServletRequestEvent</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventObject<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>serialVersionUID<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1L<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>ServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">ServletRequestEvent</span><span style="color:#1f2328">(</span>ServletContext<span style="color:#fff"> </span>sc<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">super</span><span style="color:#1f2328">(</span>sc<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">request</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>ServletRequest<span style="color:#fff"> </span><span style="color:#6639ba">getServletRequest</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">request</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>ServletContext<span style="color:#fff"> </span><span style="color:#6639ba">getServletContext</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>ServletContext<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">super</span><span style="color:#1f2328">.</span><span style="color:#1f2328">getSource</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// 定义ServletRequestListener接口</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">ServletRequestListener</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>EventListener<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">requestDestroyed</span><span style="color:#1f2328">(</span>ServletRequestEvent<span style="color:#fff"> </span>sre<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">requestInitialized</span><span style="color:#1f2328">(</span>ServletRequestEvent<span style="color:#fff"> </span>sre<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>2.定义ServletContext和ServletRequest</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ServletContext</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// 简化的ServletContext实现</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ServletRequest</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// 简化的ServletRequest实现</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>3.定义Servlet容器</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.util.ArrayList</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.util.List</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">SimpleServletContainer</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span>List<span style="color:#0550ae">&lt;</span>ServletRequestListener<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>requestListeners<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// 注册监听器</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">addServletRequestListener</span><span style="color:#1f2328">(</span>ServletRequestListener<span style="color:#fff"> </span>listener<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>requestListeners<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>listener<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// 模拟请求初始化</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">initializeRequest</span><span style="color:#1f2328">(</span>ServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletContext<span style="color:#fff"> </span>context<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// 创建事件对象</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>ServletRequestEvent<span style="color:#fff"> </span>event<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ServletRequestEvent<span style="color:#1f2328">(</span>context<span style="color:#1f2328">,</span><span style="color:#fff"> </span>request<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// 遍历监听器，调用方法，传入事件对象</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>ServletRequestListener<span style="color:#fff"> </span>listener<span style="color:#fff"> </span><span style="color:#1f2328">:</span><span style="color:#fff"> </span>requestListeners<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>listener<span style="color:#1f2328">.</span><span style="color:#1f2328">requestInitialized</span><span style="color:#1f2328">(</span>event<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// 模拟请求销毁</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">destroyRequest</span><span style="color:#1f2328">(</span>ServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletContext<span style="color:#fff"> </span>context<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>ServletRequestEvent<span style="color:#fff"> </span>event<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ServletRequestEvent<span style="color:#1f2328">(</span>context<span style="color:#1f2328">,</span><span style="color:#fff"> </span>request<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>ServletRequestListener<span style="color:#fff"> </span>listener<span style="color:#fff"> </span><span style="color:#1f2328">:</span><span style="color:#fff"> </span>requestListeners<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>listener<span style="color:#1f2328">.</span><span style="color:#1f2328">requestDestroyed</span><span style="color:#1f2328">(</span>event<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>4.实现监听器</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@WebListener</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyServletRequestListener</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>ServletRequestListener<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">requestInitialized</span><span style="color:#1f2328">(</span>ServletRequestEvent<span style="color:#fff"> </span>sre<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Request initialized: &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>sre<span style="color:#1f2328">.</span><span style="color:#1f2328">getServletRequest</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">requestDestroyed</span><span style="color:#1f2328">(</span>ServletRequestEvent<span style="color:#fff"> </span>sre<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Request destroyed: &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>sre<span style="color:#1f2328">.</span><span style="color:#1f2328">getServletRequest</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>监听器可以通过注解<code>@WebListener</code>或在<code>web.xml</code>中进行配置：</p>
+<ul>
+<li>
+<p>使用注解：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@WebListener</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyServletRequestListener</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>ServletRequestListener<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// 实现接口方法</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p>在web.xml中配置：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;listener&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;listener-class&gt;</span>com.example.MyServletRequestListener<span style="color:#0550ae">&lt;/listener-class&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/listener&gt;</span>
+</span></span></code></pre></div></li>
+</ul>
+<p>5.测试代码</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Main</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">main</span><span style="color:#1f2328">(</span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>args<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// 创建Servlet容器</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>SimpleServletContainer<span style="color:#fff"> </span>container<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>SimpleServletContainer<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// 创建ServletContext和ServletRequest</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>ServletContext<span style="color:#fff"> </span>context<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ServletContext<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>ServletRequest<span style="color:#fff"> </span>request<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ServletRequest<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// 注册监听器</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>container<span style="color:#1f2328">.</span><span style="color:#1f2328">addServletRequestListener</span><span style="color:#1f2328">(</span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>MyServletRequestListener<span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// 模拟请求初始化和销毁</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>container<span style="color:#1f2328">.</span><span style="color:#1f2328">initializeRequest</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>context<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>container<span style="color:#1f2328">.</span><span style="color:#1f2328">destroyRequest</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>context<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>运行结果：</p>
+<pre tabindex="0"><code>Request initialized: ServletRequest@1a2b3c4d
+Request destroyed: ServletRequest@1a2b3c4d
+</code></pre><p>解释：</p>
+<ol>
+<li>
+<p>事件创建：</p>
+<ul>
+<li>当请求初始化时，容器创建一个<code>ServletRequestEvent</code>对象，并将<code>ServletContext</code>和<code>ServletRequest</code>作为参数传递给事件对象的构造函数</li>
+<li>同样，当请求销毁时，容器再次创建一个<code>ServletRequestEvent</code>对象</li>
+</ul>
+</li>
+<li>
+<p>事件通知：</p>
+<ul>
+<li>容器遍历所有注册的监听器，检查它们是否实现了<code>ServletRequestListener</code>接口</li>
+<li>对于实现了<code>ServletRequestListener</code>接口的监听器，容器调用它们的<code>requestInitialized</code>或<code>requestDestroyed</code>方法，并传递<code>ServletRequestEvent</code>对象</li>
+</ul>
+</li>
+</ol>
+<p>在实际的Servlet容器（如Tomcat、Jetty等）中，事件的触发和监听器的调用是由容器内部的代码实现的。容器会在特定事件发生时创建相应的事件对象，并调用注册的监听器方法。通过这种机制，开发者可以在特定事件发生时执行自定义逻辑，从而实现更灵活和强大的功能。换句话说，这些监听器的工作方式类似于钩子函数（Hook），通过实现这些监听器接口，我们可以在Servlet生命周期的不同阶段，自定义处理逻辑。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.javatpoint.com/Event-and-Listener-in-Servlet">https://www.javatpoint.com/Event-and-Listener-in-Servlet</a></p>
+<p>ChatGPT</p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/javaweb%E5%BC%80%E5%8F%91/">JavaWeb开发</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000008-djangodrf%E5%AF%B9django%E8%AF%B7%E6%B1%82%E5%93%8D%E5%BA%94%E5%81%9A%E4%BA%86%E6%8A%80%E6%9C%AF%E5%8D%87%E7%BA%A7/">
+    <span class="title">« 上一页</span>
+    <span>DRF对Django请求响应做了技术升级</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000008-mockitojava%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95mock%E6%A1%86%E6%9E%B6mockito%E5%85%A5%E9%97%A8%E4%BB%8B%E7%BB%8D/">
+    <span class="title">下一页 »</span>
+    <span>Java单元测试Mock框架Mockito入门介绍</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#事件和监听器">事件和监听器</a></li>
+    <li><a href="#servlet-event-class">Servlet Event Class</a></li>
+    <li><a href="#servlet-listener-interface">Servlet Listener Interface</a></li>
+    <li><a href="#event与listener">Event与Listener</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

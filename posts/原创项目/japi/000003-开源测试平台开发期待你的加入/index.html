@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>开源测试平台开发期待你的加入 | 测试开发刚哥</title>
+<meta name="keywords" content="japi">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+背景
+在2022年7月6日我曾组织过一次开源测试平台开发报名，有50&#43;人报名，到2023年1月28日项目暂停，如大家在Gittee看到的，除我以外，只有1个人真正提交了代码：奉孝。
+原因如其中一位同学所说：“感觉我们大部份还是缺少从0到1的经验，负责的内容有时候不要知道从哪下手，又少了点积极性”。描述得很贴切，可能刚开始动力很足，但因为缺少经验，不够积极，最后实践不了。说的很好，就是做不到。也很无奈。
+二次启动，分为2个阶段，第一个阶段是学习阶段，我带着大家一起把teprunner平台从0到1开发一遍，把需要掌握的知识先学一遍，保证有一定基础，挑战能够独立完成模块开发。第二个阶段是开发阶段，共同完成EasyPytest测试平台开发，学以致用，加深对前后端分离项目开发的理解，具有真实的平台开发实践。
+学习阶段
+你都不维护了，我为什么还要学teprunner？Django没意思？我想学FastAPI？
+teprunner有一套完整教程，包括前后端源码、11篇电子书教程、2小时视频讲解，虽然我因为工作原因没有继续维护teprunner，但是它仍然非常适合初学者入门学习测试开发，掌握里面的知识，对于后续学习其他技术，都有很大帮助。我的技术提升除了二刷《流畅的Python》和编写了tep开源工具，最大的提升就是完成了teprunner测试平台开发，如果你也能自己动手完成一遍，一定有极大提升。
+Django、Flask、FastAPI、SpringBoot，我认为从入门者角度来说，Django是最适合的，它属于开箱即用的框架，很多东西都给你准备好了，你用就行，避免刚开始就陷入环境搭建，三方库拼装、数据库维护的麻烦中，降低理解门槛和操作难度。学会了Django，再学其他的，也很简单，一通百通。刚开始学习，学哪个不是最重要的，最重要的是先学会一个，迈出第一步。以我的经验来说，学习成熟框架Django是个正确选择。
+开发阶段
+EasyPytest的后端把Django切换为了FastAPI，掌握了Django，再对比FastAPI，就能对后端开发框架有更深入的理解。就像我学Python和Java一样，只学一门百思不得其解，对比一看，豁然开朗。目前已经完成了登录、首页、用户管理的开发，Gitee也有相应源码。未来的规划，是做teprunner的升级版，实现pytest平台化，80%工作本地开发脚本，20%工作交给平台编排运行。
+报名方式
+添加微信cekaigang，备注参加平台开发，进群。
+现开启学习阶段报名：
+按需选择，10元/节，录播&#43;直播集中答疑。报名后会获得一份录播&#43;一次集中答疑直播&#43;一个每节课源码。每节课源码跟GitHub上源码不同，只会包含当前这节课进度的源码，一步一步的看到测试平台是如何开发出来的。
+课表链接： https://eqgvpqzl6c.feishu.cn/mindnotes/bmncndM8oei2B0MIFE1RMrGuKjd
+开发阶段报名需至少参与一节学习课程，从优秀学员或积极学员中选择，时间另行通知。
+当然，如果你已经具备奉孝这样的技术能力和积极性，欢迎直接与我联系，请提供你的开源项目地址或在Gitee提交Pull Requests，以证明能够独立完成模块开发，直接参与EP平台共建。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/japi/000003-%E5%BC%80%E6%BA%90%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%9C%9F%E5%BE%85%E4%BD%A0%E7%9A%84%E5%8A%A0%E5%85%A5/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/japi/000003-%E5%BC%80%E6%BA%90%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%9C%9F%E5%BE%85%E4%BD%A0%E7%9A%84%E5%8A%A0%E5%85%A5/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/japi/000003-%E5%BC%80%E6%BA%90%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%9C%9F%E5%BE%85%E4%BD%A0%E7%9A%84%E5%8A%A0%E5%85%A5/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="开源测试平台开发期待你的加入">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+背景 在2022年7月6日我曾组织过一次开源测试平台开发报名，有50&#43;人报名，到2023年1月28日项目暂停，如大家在Gittee看到的，除我以外，只有1个人真正提交了代码：奉孝。
+原因如其中一位同学所说：“感觉我们大部份还是缺少从0到1的经验，负责的内容有时候不要知道从哪下手，又少了点积极性”。描述得很贴切，可能刚开始动力很足，但因为缺少经验，不够积极，最后实践不了。说的很好，就是做不到。也很无奈。
+二次启动，分为2个阶段，第一个阶段是学习阶段，我带着大家一起把teprunner平台从0到1开发一遍，把需要掌握的知识先学一遍，保证有一定基础，挑战能够独立完成模块开发。第二个阶段是开发阶段，共同完成EasyPytest测试平台开发，学以致用，加深对前后端分离项目开发的理解，具有真实的平台开发实践。
+学习阶段 你都不维护了，我为什么还要学teprunner？Django没意思？我想学FastAPI？
+teprunner有一套完整教程，包括前后端源码、11篇电子书教程、2小时视频讲解，虽然我因为工作原因没有继续维护teprunner，但是它仍然非常适合初学者入门学习测试开发，掌握里面的知识，对于后续学习其他技术，都有很大帮助。我的技术提升除了二刷《流畅的Python》和编写了tep开源工具，最大的提升就是完成了teprunner测试平台开发，如果你也能自己动手完成一遍，一定有极大提升。
+Django、Flask、FastAPI、SpringBoot，我认为从入门者角度来说，Django是最适合的，它属于开箱即用的框架，很多东西都给你准备好了，你用就行，避免刚开始就陷入环境搭建，三方库拼装、数据库维护的麻烦中，降低理解门槛和操作难度。学会了Django，再学其他的，也很简单，一通百通。刚开始学习，学哪个不是最重要的，最重要的是先学会一个，迈出第一步。以我的经验来说，学习成熟框架Django是个正确选择。
+开发阶段 EasyPytest的后端把Django切换为了FastAPI，掌握了Django，再对比FastAPI，就能对后端开发框架有更深入的理解。就像我学Python和Java一样，只学一门百思不得其解，对比一看，豁然开朗。目前已经完成了登录、首页、用户管理的开发，Gitee也有相应源码。未来的规划，是做teprunner的升级版，实现pytest平台化，80%工作本地开发脚本，20%工作交给平台编排运行。
+报名方式 添加微信cekaigang，备注参加平台开发，进群。
+现开启学习阶段报名：
+按需选择，10元/节，录播&#43;直播集中答疑。报名后会获得一份录播&#43;一次集中答疑直播&#43;一个每节课源码。每节课源码跟GitHub上源码不同，只会包含当前这节课进度的源码，一步一步的看到测试平台是如何开发出来的。
+课表链接： https://eqgvpqzl6c.feishu.cn/mindnotes/bmncndM8oei2B0MIFE1RMrGuKjd
+开发阶段报名需至少参与一节学习课程，从优秀学员或积极学员中选择，时间另行通知。
+当然，如果你已经具备奉孝这样的技术能力和积极性，欢迎直接与我联系，请提供你的开源项目地址或在Gitee提交Pull Requests，以证明能够独立完成模块开发，直接参与EP平台共建。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:tag" content="Japi">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="开源测试平台开发期待你的加入">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+背景 在2022年7月6日我曾组织过一次开源测试平台开发报名，有50&#43;人报名，到2023年1月28日项目暂停，如大家在Gittee看到的，除我以外，只有1个人真正提交了代码：奉孝。
+原因如其中一位同学所说：“感觉我们大部份还是缺少从0到1的经验，负责的内容有时候不要知道从哪下手，又少了点积极性”。描述得很贴切，可能刚开始动力很足，但因为缺少经验，不够积极，最后实践不了。说的很好，就是做不到。也很无奈。
+二次启动，分为2个阶段，第一个阶段是学习阶段，我带着大家一起把teprunner平台从0到1开发一遍，把需要掌握的知识先学一遍，保证有一定基础，挑战能够独立完成模块开发。第二个阶段是开发阶段，共同完成EasyPytest测试平台开发，学以致用，加深对前后端分离项目开发的理解，具有真实的平台开发实践。
+学习阶段 你都不维护了，我为什么还要学teprunner？Django没意思？我想学FastAPI？
+teprunner有一套完整教程，包括前后端源码、11篇电子书教程、2小时视频讲解，虽然我因为工作原因没有继续维护teprunner，但是它仍然非常适合初学者入门学习测试开发，掌握里面的知识，对于后续学习其他技术，都有很大帮助。我的技术提升除了二刷《流畅的Python》和编写了tep开源工具，最大的提升就是完成了teprunner测试平台开发，如果你也能自己动手完成一遍，一定有极大提升。
+Django、Flask、FastAPI、SpringBoot，我认为从入门者角度来说，Django是最适合的，它属于开箱即用的框架，很多东西都给你准备好了，你用就行，避免刚开始就陷入环境搭建，三方库拼装、数据库维护的麻烦中，降低理解门槛和操作难度。学会了Django，再学其他的，也很简单，一通百通。刚开始学习，学哪个不是最重要的，最重要的是先学会一个，迈出第一步。以我的经验来说，学习成熟框架Django是个正确选择。
+开发阶段 EasyPytest的后端把Django切换为了FastAPI，掌握了Django，再对比FastAPI，就能对后端开发框架有更深入的理解。就像我学Python和Java一样，只学一门百思不得其解，对比一看，豁然开朗。目前已经完成了登录、首页、用户管理的开发，Gitee也有相应源码。未来的规划，是做teprunner的升级版，实现pytest平台化，80%工作本地开发脚本，20%工作交给平台编排运行。
+报名方式 添加微信cekaigang，备注参加平台开发，进群。
+现开启学习阶段报名：
+按需选择，10元/节，录播&#43;直播集中答疑。报名后会获得一份录播&#43;一次集中答疑直播&#43;一个每节课源码。每节课源码跟GitHub上源码不同，只会包含当前这节课进度的源码，一步一步的看到测试平台是如何开发出来的。
+课表链接： https://eqgvpqzl6c.feishu.cn/mindnotes/bmncndM8oei2B0MIFE1RMrGuKjd
+开发阶段报名需至少参与一节学习课程，从优秀学员或积极学员中选择，时间另行通知。
+当然，如果你已经具备奉孝这样的技术能力和积极性，欢迎直接与我联系，请提供你的开源项目地址或在Gitee提交Pull Requests，以证明能够独立完成模块开发，直接参与EP平台共建。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "开源测试平台开发期待你的加入",
+      "item": "https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/japi/000003-%E5%BC%80%E6%BA%90%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%9C%9F%E5%BE%85%E4%BD%A0%E7%9A%84%E5%8A%A0%E5%85%A5/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "开源测试平台开发期待你的加入",
+  "name": "开源测试平台开发期待你的加入",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n背景 在2022年7月6日我曾组织过一次开源测试平台开发报名，有50+人报名，到2023年1月28日项目暂停，如大家在Gittee看到的，除我以外，只有1个人真正提交了代码：奉孝。\n原因如其中一位同学所说：“感觉我们大部份还是缺少从0到1的经验，负责的内容有时候不要知道从哪下手，又少了点积极性”。描述得很贴切，可能刚开始动力很足，但因为缺少经验，不够积极，最后实践不了。说的很好，就是做不到。也很无奈。\n二次启动，分为2个阶段，第一个阶段是学习阶段，我带着大家一起把teprunner平台从0到1开发一遍，把需要掌握的知识先学一遍，保证有一定基础，挑战能够独立完成模块开发。第二个阶段是开发阶段，共同完成EasyPytest测试平台开发，学以致用，加深对前后端分离项目开发的理解，具有真实的平台开发实践。\n学习阶段 你都不维护了，我为什么还要学teprunner？Django没意思？我想学FastAPI？\nteprunner有一套完整教程，包括前后端源码、11篇电子书教程、2小时视频讲解，虽然我因为工作原因没有继续维护teprunner，但是它仍然非常适合初学者入门学习测试开发，掌握里面的知识，对于后续学习其他技术，都有很大帮助。我的技术提升除了二刷《流畅的Python》和编写了tep开源工具，最大的提升就是完成了teprunner测试平台开发，如果你也能自己动手完成一遍，一定有极大提升。\nDjango、Flask、FastAPI、SpringBoot，我认为从入门者角度来说，Django是最适合的，它属于开箱即用的框架，很多东西都给你准备好了，你用就行，避免刚开始就陷入环境搭建，三方库拼装、数据库维护的麻烦中，降低理解门槛和操作难度。学会了Django，再学其他的，也很简单，一通百通。刚开始学习，学哪个不是最重要的，最重要的是先学会一个，迈出第一步。以我的经验来说，学习成熟框架Django是个正确选择。\n开发阶段 EasyPytest的后端把Django切换为了FastAPI，掌握了Django，再对比FastAPI，就能对后端开发框架有更深入的理解。就像我学Python和Java一样，只学一门百思不得其解，对比一看，豁然开朗。目前已经完成了登录、首页、用户管理的开发，Gitee也有相应源码。未来的规划，是做teprunner的升级版，实现pytest平台化，80%工作本地开发脚本，20%工作交给平台编排运行。\n报名方式 添加微信cekaigang，备注参加平台开发，进群。\n现开启学习阶段报名：\n按需选择，10元/节，录播+直播集中答疑。报名后会获得一份录播+一次集中答疑直播+一个每节课源码。每节课源码跟GitHub上源码不同，只会包含当前这节课进度的源码，一步一步的看到测试平台是如何开发出来的。\n课表链接： https://eqgvpqzl6c.feishu.cn/mindnotes/bmncndM8oei2B0MIFE1RMrGuKjd\n开发阶段报名需至少参与一节学习课程，从优秀学员或积极学员中选择，时间另行通知。\n当然，如果你已经具备奉孝这样的技术能力和积极性，欢迎直接与我联系，请提供你的开源项目地址或在Gitee提交Pull Requests，以证明能够独立完成模块开发，直接参与EP平台共建。\n",
+  "keywords": [
+    "japi"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n背景 在2022年7月6日我曾组织过一次开源测试平台开发报名，有50+人报名，到2023年1月28日项目暂停，如大家在Gittee看到的，除我以外，只有1个人真正提交了代码：奉孝。\n原因如其中一位同学所说：“感觉我们大部份还是缺少从0到1的经验，负责的内容有时候不要知道从哪下手，又少了点积极性”。描述得很贴切，可能刚开始动力很足，但因为缺少经验，不够积极，最后实践不了。说的很好，就是做不到。也很无奈。\n二次启动，分为2个阶段，第一个阶段是学习阶段，我带着大家一起把teprunner平台从0到1开发一遍，把需要掌握的知识先学一遍，保证有一定基础，挑战能够独立完成模块开发。第二个阶段是开发阶段，共同完成EasyPytest测试平台开发，学以致用，加深对前后端分离项目开发的理解，具有真实的平台开发实践。\n学习阶段 你都不维护了，我为什么还要学teprunner？Django没意思？我想学FastAPI？\nteprunner有一套完整教程，包括前后端源码、11篇电子书教程、2小时视频讲解，虽然我因为工作原因没有继续维护teprunner，但是它仍然非常适合初学者入门学习测试开发，掌握里面的知识，对于后续学习其他技术，都有很大帮助。我的技术提升除了二刷《流畅的Python》和编写了tep开源工具，最大的提升就是完成了teprunner测试平台开发，如果你也能自己动手完成一遍，一定有极大提升。\nDjango、Flask、FastAPI、SpringBoot，我认为从入门者角度来说，Django是最适合的，它属于开箱即用的框架，很多东西都给你准备好了，你用就行，避免刚开始就陷入环境搭建，三方库拼装、数据库维护的麻烦中，降低理解门槛和操作难度。学会了Django，再学其他的，也很简单，一通百通。刚开始学习，学哪个不是最重要的，最重要的是先学会一个，迈出第一步。以我的经验来说，学习成熟框架Django是个正确选择。\n开发阶段 EasyPytest的后端把Django切换为了FastAPI，掌握了Django，再对比FastAPI，就能对后端开发框架有更深入的理解。就像我学Python和Java一样，只学一门百思不得其解，对比一看，豁然开朗。目前已经完成了登录、首页、用户管理的开发，Gitee也有相应源码。未来的规划，是做teprunner的升级版，实现pytest平台化，80%工作本地开发脚本，20%工作交给平台编排运行。\n报名方式 添加微信cekaigang，备注参加平台开发，进群。\n现开启学习阶段报名：\n按需选择，10元/节，录播+直播集中答疑。报名后会获得一份录播+一次集中答疑直播+一个每节课源码。每节课源码跟GitHub上源码不同，只会包含当前这节课进度的源码，一步一步的看到测试平台是如何开发出来的。\n课表链接： https://eqgvpqzl6c.feishu.cn/mindnotes/bmncndM8oei2B0MIFE1RMrGuKjd\n开发阶段报名需至少参与一节学习课程，从优秀学员或积极学员中选择，时间另行通知。\n当然，如果你已经具备奉孝这样的技术能力和积极性，欢迎直接与我联系，请提供你的开源项目地址或在Gitee提交Pull Requests，以证明能够独立完成模块开发，直接参与EP平台共建。\n",
+  "wordCount" : "20",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-03T00:00:00Z",
+  "dateModified": "2026-01-03T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/japi/000003-%E5%BC%80%E6%BA%90%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%9C%9F%E5%BE%85%E4%BD%A0%E7%9A%84%E5%8A%A0%E5%85%A5/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      开源测试平台开发期待你的加入
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-03T00:00:00+00:00'>2026-01-03</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>20 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/'>原创项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/japi/'>#Japi</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="背景">背景<a hidden class="anchor" aria-hidden="true" href="#背景">#</a></h1>
+<p>在2022年7月6日我曾组织过一次开源测试平台开发报名，有50+人报名，到2023年1月28日项目暂停，如大家在Gittee看到的，除我以外，只有1个人真正提交了代码：奉孝。</p>
+<p>原因如其中一位同学所说：“感觉我们大部份还是缺少从0到1的经验，负责的内容有时候不要知道从哪下手，又少了点积极性”。描述得很贴切，可能刚开始动力很足，但因为缺少经验，不够积极，最后实践不了。说的很好，就是做不到。也很无奈。</p>
+<p>二次启动，分为2个阶段，第一个阶段是学习阶段，我带着大家一起把teprunner平台从0到1开发一遍，把需要掌握的知识先学一遍，保证有一定基础，挑战能够独立完成模块开发。第二个阶段是开发阶段，共同完成EasyPytest测试平台开发，学以致用，加深对前后端分离项目开发的理解，具有真实的平台开发实践。</p>
+<h1 id="学习阶段">学习阶段<a hidden class="anchor" aria-hidden="true" href="#学习阶段">#</a></h1>
+<p>你都不维护了，我为什么还要学teprunner？Django没意思？我想学FastAPI？</p>
+<p>teprunner有一套完整教程，包括前后端源码、11篇电子书教程、2小时视频讲解，虽然我因为工作原因没有继续维护teprunner，但是它仍然非常适合初学者入门学习测试开发，掌握里面的知识，对于后续学习其他技术，都有很大帮助。我的技术提升除了二刷《流畅的Python》和编写了tep开源工具，最大的提升就是完成了teprunner测试平台开发，如果你也能自己动手完成一遍，一定有极大提升。</p>
+<p>Django、Flask、FastAPI、SpringBoot，我认为从入门者角度来说，Django是最适合的，它属于开箱即用的框架，很多东西都给你准备好了，你用就行，避免刚开始就陷入环境搭建，三方库拼装、数据库维护的麻烦中，降低理解门槛和操作难度。学会了Django，再学其他的，也很简单，一通百通。刚开始学习，学哪个不是最重要的，最重要的是先学会一个，迈出第一步。以我的经验来说，学习成熟框架Django是个正确选择。</p>
+<h1 id="开发阶段">开发阶段<a hidden class="anchor" aria-hidden="true" href="#开发阶段">#</a></h1>
+<p>EasyPytest的后端把Django切换为了FastAPI，掌握了Django，再对比FastAPI，就能对后端开发框架有更深入的理解。就像我学Python和Java一样，只学一门百思不得其解，对比一看，豁然开朗。目前已经完成了登录、首页、用户管理的开发，Gitee也有相应源码。未来的规划，是做teprunner的升级版，实现pytest平台化，80%工作本地开发脚本，20%工作交给平台编排运行。</p>
+<h1 id="报名方式">报名方式<a hidden class="anchor" aria-hidden="true" href="#报名方式">#</a></h1>
+<p>添加微信<strong>cekaigang</strong>，备注参加平台开发，进群。</p>
+<p>现开启<strong>学习阶段</strong>报名：</p>
+<p>按需选择，10元/节，录播+直播集中答疑。报名后会获得一份录播+一次集中答疑直播+一个每节课源码。每节课源码跟GitHub上源码不同，只会包含当前这节课进度的源码，一步一步的看到测试平台是如何开发出来的。</p>
+<p>课表链接： <a href="https://eqgvpqzl6c.feishu.cn/mindnotes/bmncndM8oei2B0MIFE1RMrGuKjd">https://eqgvpqzl6c.feishu.cn/mindnotes/bmncndM8oei2B0MIFE1RMrGuKjd</a></p>
+<p>开发阶段报名需至少参与一节学习课程，从优秀学员或积极学员中选择，时间另行通知。</p>
+<p>当然，如果你已经具备奉孝这样的技术能力和积极性，欢迎直接与我联系，请提供你的开源项目地址或在Gitee提交Pull Requests，以证明能够独立完成模块开发，直接参与EP平台共建。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/japi/">Japi</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000003-%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1%E6%BC%AB%E8%B0%88v1.0/">
+    <span class="title">« 上一页</span>
+    <span>接口自动化框架设计漫谈V1.0</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000003-%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E6%A1%86%E6%9E%B6v2.0.0%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97/">
+    <span class="title">下一页 »</span>
+    <span>框架V2.0.0开发指南</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#背景">背景</a></li>
+    <li><a href="#学习阶段">学习阶段</a></li>
+    <li><a href="#开发阶段">开发阶段</a></li>
+    <li><a href="#报名方式">报名方式</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

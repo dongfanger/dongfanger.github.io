@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>录制回放 on 测试开发刚哥</title>
+    <link>https://dongfanger.github.io/tags/%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE/</link>
+    <description>Recent content in 录制回放 on 测试开发刚哥</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 03 Jan 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://dongfanger.github.io/tags/%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>基于HAR包的流量录制回放</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE/000003-%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE%E5%9F%BA%E4%BA%8Ehar%E5%8C%85%E7%9A%84%E6%B5%81%E9%87%8F%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE/</link>
+      <pubDate>Sat, 03 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE/000003-%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE%E5%9F%BA%E4%BA%8Ehar%E5%8C%85%E7%9A%84%E6%B5%81%E9%87%8F%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;什么是har包&#34;&gt;什么是HAR包？&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;HAR（HTTP Archive format）&lt;/code&gt;，是一种&lt;code&gt;JSON&lt;/code&gt;格式的存档格式文件，通用扩展名为 &lt;code&gt;.har&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/8f720806d7c44e50810f54a676360e7d.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;HAR包是JSON格式的，打开后，重点关注&lt;code&gt;entries&lt;/code&gt;里面的&lt;code&gt;request&lt;/code&gt;和&lt;code&gt;response&lt;/code&gt;，包含了请求和响应信息。&lt;/p&gt;
+&lt;h2 id=&#34;流量录制&#34;&gt;流量录制&lt;/h2&gt;
+&lt;p&gt;怎么获取HAR包呢？可以网上搜索方法，浏览器F12、抓包工具（Charles、Proxyman等）都可以将HTTP请求导出为HAR包。&lt;/p&gt;
+&lt;p&gt;生产级别的流量录制很复杂，想要了解的话可以参考阿里开源项目：https://github.com/alibaba/jvm-sandbox-repeater&lt;/p&gt;
+&lt;h2 id=&#34;回放对比&#34;&gt;回放对比&lt;/h2&gt;
+&lt;p&gt;本文重点介绍在导出HAR包后，怎么通过Python来实现回放对比。&lt;/p&gt;
+&lt;h3 id=&#34;使用介绍&#34;&gt;使用介绍&lt;/h3&gt;
+&lt;p&gt;一、将HAR包转换为pytest用例&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/fa6977fdad54413b91359c8a37fc111a.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;har_file为har包路径，profile配置开启回放，调用Har.har2case()方法将HAR包转换为pytest用例。&lt;/p&gt;
+&lt;p&gt;转换后会生成：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;demo_test.py 与HAR同名的pytest用例文件&lt;/li&gt;
+&lt;li&gt;demo-replay-diff 对比结果目录，暂时为空&lt;/li&gt;
+&lt;li&gt;sqlite.db 存储HAR包响应数据，标记为expect&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;二、执行pytest用例&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;tep.libraries.Diff&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; Diff
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;tep.libraries.Sqlite&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; Sqlite
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;test&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;HTTPRequestKeyword&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; BodyKeyword&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    var &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;caseId&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;023f387db398504889e0afb8dd1bc99d&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;requestOrder&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;diffDir&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;/Users/wanggang424/Desktop/PycharmProjects/tep/tests/demo/case/har/demo-replay-diff&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    url &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;https://postman-echo.com/get?foo1=HDnY8&amp;amp;foo2=34.5&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    headers &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Host&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;postman-echo.com&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;User-Agent&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;HttpRunnerPlus&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Accept-Encoding&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;gzip&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ro &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; HTTPRequestKeyword&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;get&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#57606a&#34;&gt;# user_defined_var = ro.response.jsonpath(&amp;#34;$.jsonpath&amp;#34;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; ro&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;400&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Sqlite&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;record_actual&lt;span style=&#34;color:#1f2328&#34;&gt;((&lt;/span&gt;ro&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;text&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; var&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;caseId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;],&lt;/span&gt; var&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;requestOrder&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;],&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;GET&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;https://postman-echo.com/get?foo1=HDnY8&amp;amp;foo2=34.5&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;),&lt;/span&gt; var&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    url &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;https://postman-echo.com/post&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    headers &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Host&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;postman-echo.com&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;User-Agent&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Go-http-client/1.1&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Content-Length&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;28&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Content-Type&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;application/json; charset=UTF-8&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Cookie&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;sails.sid=s%3Az_LpglkKxTvJ_eHVUH6V67drKp0AGWW-.PidabaXOnatLRP47hVyqqepl6BdrpEQzRlJQXtbIiwk&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Accept-Encoding&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;gzip&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;sails.sid&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;s%3Az_LpglkKxTvJ_eHVUH6V67drKp0AGWW-.PidabaXOnatLRP47hVyqqepl6BdrpEQzRlJQXtbIiwk&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;r&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;{&amp;#34;foo1&amp;#34;:&amp;#34;HDnY8&amp;#34;,&amp;#34;foo2&amp;#34;:12.3}&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ro &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; BodyKeyword&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;body&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#57606a&#34;&gt;# ro = BodyKeyword(body, {&amp;#34;$.jsonpath&amp;#34;: &amp;#34;value&amp;#34;})&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; ro&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;data
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ro &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; HTTPRequestKeyword&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;post&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; json&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;body&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#57606a&#34;&gt;# user_defined_var = ro.response.jsonpath(&amp;#34;$.jsonpath&amp;#34;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; ro&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;400&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Sqlite&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;record_actual&lt;span style=&#34;color:#1f2328&#34;&gt;((&lt;/span&gt;ro&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;text&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; var&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;caseId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;],&lt;/span&gt; var&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;requestOrder&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;],&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;POST&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;https://postman-echo.com/post&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;),&lt;/span&gt; var&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    url &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;https://postman-echo.com/post&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    headers &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Host&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;postman-echo.com&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;User-Agent&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Go-http-client/1.1&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Content-Length&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;20&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Content-Type&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;application/x-www-form-urlencoded; charset=UTF-8&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Cookie&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;sails.sid=s%3AS5e7w0zQ0xAsCwh9L8T6R7QLYCO7_gtD.r8%2B2w9IWqEIfuVkrZjnxzm2xADIk34zKAWXRPapr&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;%2F&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;Aw&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Accept-Encoding&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;gzip&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;sails.sid&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;s%3AS5e7w0zQ0xAsCwh9L8T6R7QLYCO7_gtD.r8%2B2w9IWqEIfuVkrZjnxzm2xADIk34zKAWXRPapr&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;%2F&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;Aw&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ro &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; HTTPRequestKeyword&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;post&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; data&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;body&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#57606a&#34;&gt;# user_defined_var = ro.response.jsonpath(&amp;#34;$.jsonpath&amp;#34;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; ro&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;400&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Sqlite&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;record_actual&lt;span style=&#34;color:#1f2328&#34;&gt;((&lt;/span&gt;ro&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;text&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; var&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;caseId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;],&lt;/span&gt; var&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;requestOrder&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;],&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;POST&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;https://postman-echo.com/post&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;),&lt;/span&gt; var&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Diff&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;make&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;var&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;caseId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;],&lt;/span&gt; var&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;diffDir&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;])&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;执行时会记录实际请求响应，存入sqlite数据库，标记为actual。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Postman竟然还能录制流量</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE/000002-%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BEpostman%E7%AB%9F%E7%84%B6%E8%BF%98%E8%83%BD%E5%BD%95%E5%88%B6%E6%B5%81%E9%87%8F/</link>
+      <pubDate>Fri, 02 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE/000002-%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BEpostman%E7%AB%9F%E7%84%B6%E8%BF%98%E8%83%BD%E5%BD%95%E5%88%B6%E6%B5%81%E9%87%8F/</guid>
+      <description>大家好，我是刚哥。</description>
+    </item>
+    <item>
+      <title>从零开始学mitmproxy抓包工具</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE/000001-%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AD%A6mitmproxy%E6%8A%93%E5%8C%85%E5%B7%A5%E5%85%B7/</link>
+      <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%B5%81%E9%87%8F%E5%9B%9E%E6%94%BE/000001-%E5%BD%95%E5%88%B6%E5%9B%9E%E6%94%BE%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AD%A6mitmproxy%E6%8A%93%E5%8C%85%E5%B7%A5%E5%85%B7/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;man-in-the-middle&#34;&gt;Man In The Middle&lt;/h2&gt;
+&lt;p&gt;mitm是Man In The Middle的首字母缩写，意思是位于中间的人，表明mitmproxy是一个代理，可以拦截请求，实现网络抓包。知名的网络抓包工具有Fiddler、Charles、HttpWatch、WireShark、BurpSuite和Postman等，mitmproxy相对来说，没有这么高的知名度，它相比于以上工具的独特优势是，它提供了Python API，可以编写Python代码对网络请求进行流量录制，从而收集接口信息以及转化为接口自动化用例等。mitmproxy官方文档不但有mitmproxy工具使用介绍，还有代理实现原理，对我们学习掌握网络知识有很大帮助。&lt;/p&gt;
+&lt;h2 id=&#34;安装与使用&#34;&gt;安装与使用&lt;/h2&gt;
+&lt;h3 id=&#34;pip安装&#34;&gt;pip安装&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;pip install mitmproxy
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;mitmproxy是Python开发的，用pip就能安装成功。官方给出了二进制安装包等方法，我觉得作为一款用Python开发的工具，用pip直接安装是更Pythonic的。&lt;/p&gt;
+&lt;h3 id=&#34;命令启动&#34;&gt;命令启动&lt;/h3&gt;
+&lt;p&gt;可以通过3种命令启动mitmproxy：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;mitmproxy 控制台&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/98b5387530e44e849f29b5e0a8d4aee3.png&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;mitmweb 网页&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/758ae8bcd1b54468a460577672942bc9.png&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;mitmdump 命令行&lt;/strong&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;它们的内容都是一样的，只是UI不一样而已。&lt;/p&gt;
+&lt;h3 id=&#34;手动设置代理&#34;&gt;手动设置代理&lt;/h3&gt;
+&lt;p&gt;打开以后mitmproxy默认会监听http://localhost:8080，需要设置下代理，把代理服务器设置为这个地址。&lt;/p&gt;
+&lt;p&gt;Windows可以这样设置：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/aa92b1c024054923928528b49e0a1c0e.png&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;设置后一定要记得点击保存按钮，否则代理不会生效。&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;实际上，Charles等网络抓包工具会自动配置代理，而mitmproxy需要手动设置代理，开发团队的解释是因为浏览器版本和配置经常会变化，所以他们建议在网上根据环境搜索方法手动设置。&lt;/p&gt;
+&lt;h3 id=&#34;下载证书&#34;&gt;下载证书&lt;/h3&gt;
+&lt;p&gt;访问http://mitm.it/，如果代理配置没有生效，打开后会是这个界面：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/1831e54315fe4f3cb85c6237debc66ad.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;正常的话，会出现证书下载页面：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/ad280b644a554e4a9c6f284078953a2d.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;根据平台选择相应证书安装就OK了。&lt;/p&gt;
+&lt;h3 id=&#34;使用&#34;&gt;使用&lt;/h3&gt;
+&lt;p&gt;mitmproxy更其他抓包工具用法类似。&lt;/p&gt;
+&lt;p&gt;官方用视频演示了mitmproxy如何使用：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://docs.mitmproxy.org/stable/mitmproxytutorial-userinterface/&#34;&gt;https://docs.mitmproxy.org/stable/mitmproxytutorial-userinterface/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;并且介绍了5种运行模式：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://docs.mitmproxy.org/stable/concepts-modes/&#34;&gt;https://docs.mitmproxy.org/stable/concepts-modes/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;读者可以自行阅读下。&lt;/p&gt;
+&lt;h2 id=&#34;mitmproxy工作原理&#34;&gt;mitmproxy工作原理&lt;/h2&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/957972d2254347bea38454fb160acede.png&#34;&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;客户端（本机）连接代理服务器（http://127.0.0.1:8080），代理服务器连接服务器。&lt;/li&gt;
+&lt;li&gt;客户端给代理服务器发请求，代理服务器把请求发送到服务器。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;所有请求经过mitmproxy，就可以实现请求拦截。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;对于HTTP来说，直接借助mitmproxy传递请求就可以。而对于HTTPS来说，有个SSL/TLS安全认证，必须安装证书，服务器才会认为mitmproxy的请求是可信任的，请求才会成功传递。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/41c173ac4307449f9273157e08c6e0c7.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;HTTPS的代理过程就要复杂很多，客户端先跟mitmproxy建立连接（1&lt;del&gt;2步），然后进行安全认证（3&lt;/del&gt;6步），最后传递请求（7~8步）。&lt;/p&gt;
+&lt;h2 id=&#34;反向代理&#34;&gt;反向代理&lt;/h2&gt;
+&lt;p&gt;假设在本机使用FastAPI启动了个Mock服务，地址为http://127.0.0.1:5000，通过Postman调接口，怎么使用mitmproxy来拦截请求呢？这就需要用到反向代理。&lt;/p&gt;
+&lt;p&gt;首先以反向代理模式运行mitmproxy，服务器端口为5000，监听端口为8000：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;mitmproxy --mode reverse:http://127.0.0.1:5000 --listen-host 127.0.0.1 --listen-port 8000
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后把请求http://127.0.0.1:5000/login里面的5000端口改成8000，访问：&lt;/p&gt;
+&lt;p&gt;http://127.0.0.1:8000/login&lt;/p&gt;
+&lt;p&gt;就能在mitmproxy看到抓到请求了：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/4f0e6351ff2d4e7fb7f3c70233918664.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;这样就能在本地使用Mock服务来调试拦截请求的Python代码了。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;反向代理，不需要在本机手动设置代理。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;python-api&#34;&gt;Python API&lt;/h2&gt;
+&lt;p&gt;Python API是mitmproxy的特色功能：&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

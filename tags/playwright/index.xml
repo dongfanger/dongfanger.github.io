@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Playwright on 测试开发刚哥</title>
+    <link>https://dongfanger.github.io/tags/playwright/</link>
+    <description>Recent content in Playwright on 测试开发刚哥</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 05 Jan 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://dongfanger.github.io/tags/playwright/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>端到端自动化的开源框架</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000005-playwright%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9A%84%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/</link>
+      <pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E8%87%AA%E5%8A%A8%E5%8C%96/000005-playwright%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9A%84%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;什么是playwright&#34;&gt;什么是Playwright？&lt;/h1&gt;
+&lt;p&gt;Playwright是一个开源框架，用于对Web应用进行端到端测试。&lt;/p&gt;
+&lt;h1 id=&#34;什么是端到端测试&#34;&gt;什么是端到端测试？&lt;/h1&gt;
+&lt;p&gt;这里的“端”，不是指A模块或B模块，而是可以理解为从前端到后端。举个例子，对于登录功能来说，如果只测前端，那么测试范围就是前端页面，可能会对后端接口进行mock。如果只测后端，那么测试范围就是后端接口等。而端到端呢，就是前端输入用户名密码，点击登录，与后端交互，查询数据库，鉴权，后端返回登录成功，前端进行页面跳转。端到端测试，可以理解为全流程测试，也可以理解为模拟用户场景测试。&lt;/p&gt;
+&lt;h1 id=&#34;playwright框架特点&#34;&gt;Playwright框架特点&lt;/h1&gt;
+&lt;p&gt;官方网站首页：&lt;a href=&#34;https://playwright.dev/python/&#34;&gt;https://playwright.dev/python/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;总结下重点，一是跨浏览器、跨平台、跨语言；二是自动等待；三是多用户场景测试；四是只需要一次登录；五是可以录制脚本。&lt;/p&gt;
+&lt;h1 id=&#34;快速入门&#34;&gt;快速入门&lt;/h1&gt;
+&lt;p&gt;在官网的顶部菜单可以切换不同编程语言的教程：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/24bbbd01c6594bc08a753059ab61356f.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;本文及后续文章均选择Python。&lt;/p&gt;
+&lt;h2 id=&#34;安装&#34;&gt;安装&lt;/h2&gt;
+&lt;p&gt;安装Python的Playwright，这里结合了pytest：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;pip install pytest-playwright
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;成功后安装浏览器：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;playwright install
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这里也可以不安装浏览器，而是在脚本里面指定现有浏览器路径。&lt;/p&gt;
+&lt;h2 id=&#34;示例&#34;&gt;示例&lt;/h2&gt;
+&lt;p&gt;test_example.py&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;import re
+from playwright.sync_api import Page, expect
+
+def test_has_title(page: Page):
+    page.goto(&amp;#34;https://playwright.dev/&amp;#34;)
+
+    # Expect a title &amp;#34;to contain&amp;#34; a substring.
+    expect(page).to_have_title(re.compile(&amp;#34;Playwright&amp;#34;))
+
+def test_get_started_link(page: Page):
+    page.goto(&amp;#34;https://playwright.dev/&amp;#34;)
+
+    # Click the get started link.
+    page.get_by_role(&amp;#34;link&amp;#34;, name=&amp;#34;Get started&amp;#34;).click()
+
+    # Expects page to have a heading with the name of Installation.
+    expect(page.get_by_role(&amp;#34;heading&amp;#34;, name=&amp;#34;Installation&amp;#34;)).to_be_visible()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;执行pytest后默认会选择chrome在headless模式下运行，可以通过日志观察运行过程。&lt;/p&gt;
+&lt;p&gt;更新命令：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;pip install pytest-playwright playwright -U
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;编写测试&#34;&gt;编写测试&lt;/h2&gt;
+&lt;p&gt;访问url：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>录制脚本与元素定位</title>
+      <link>https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/playwright/000001-playwright%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/</link>
+      <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/playwright/000001-playwright%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/</guid>
+      <description>UI自动化最麻烦的就是定位元素，好在Playwright支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JSON转SQL小工具源码分享 | 测试开发刚哥</title>
+<meta name="keywords" content="小工具">
+<meta name="description" content="将key-value的JSON数据，转换为insert的SQL语句，进而实现网页数据存储到数据库。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/%E5%B0%8F%E5%B7%A5%E5%85%B7/000001-json%E8%BD%ACsql%E5%B0%8F%E5%B7%A5%E5%85%B7%E6%BA%90%E7%A0%81%E5%88%86%E4%BA%AB/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/%E5%B0%8F%E5%B7%A5%E5%85%B7/000001-json%E8%BD%ACsql%E5%B0%8F%E5%B7%A5%E5%85%B7%E6%BA%90%E7%A0%81%E5%88%86%E4%BA%AB/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/%E5%B0%8F%E5%B7%A5%E5%85%B7/000001-json%E8%BD%ACsql%E5%B0%8F%E5%B7%A5%E5%85%B7%E6%BA%90%E7%A0%81%E5%88%86%E4%BA%AB/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JSON转SQL小工具源码分享">
+  <meta property="og:description" content="将key-value的JSON数据，转换为insert的SQL语句，进而实现网页数据存储到数据库。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:tag" content="小工具">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JSON转SQL小工具源码分享">
+  <meta name="twitter:description" content="将key-value的JSON数据，转换为insert的SQL语句，进而实现网页数据存储到数据库。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JSON转SQL小工具源码分享",
+      "item": "https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/%E5%B0%8F%E5%B7%A5%E5%85%B7/000001-json%E8%BD%ACsql%E5%B0%8F%E5%B7%A5%E5%85%B7%E6%BA%90%E7%A0%81%E5%88%86%E4%BA%AB/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JSON转SQL小工具源码分享",
+  "name": "JSON转SQL小工具源码分享",
+  "description": "将key-value的JSON数据，转换为insert的SQL语句，进而实现网页数据存储到数据库。",
+  "keywords": [
+    "小工具"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n将key-value的JSON数据，转换为insert的SQL语句，进而实现网页数据存储到数据库。\n解析MySQL建表语句，找出“字符串”字段\n遍历JSON结构，拼接为SQL语句\n1、解析建表语句\n之所以要解析建表语句，是因为在拼接SQL时，“字符串”字段没有双引号，需要手动加上。第一步就是通过JDBC来解析表字段，根据字段类型，筛选出“字符串”字段。\npublic static Map\u003cString, String[]\u003e parseTable(String tableName) { List\u003cString\u003e stringType = new ArrayList\u003c\u003e(Arrays.asList(\"CHAR\", \"VARCHAR\", \"TEXT\", \"DATE\", \"TIME\", \"DATETIME\", \"TIMESTAMP\")); List\u003cString\u003e stringFieldList = new ArrayList\u003c\u003e(); try { DatabaseMetaData databaseMetaData = conn.getMetaData(); ResultSet specificResultSet = databaseMetaData.getColumns(null, \"%\", tableName, \"%\"); String columnName; String columnType; while (specificResultSet.next()) { columnName = specificResultSet.getString(\"COLUMN_NAME\"); columnType = specificResultSet.getString(\"TYPE_NAME\"); if (stringType.contains(columnType) \u0026\u0026 !stringFieldList.contains(columnName)) { stringFieldList.add(columnName); } } } catch (Exception e) { log.error(\"parse error \", e); } Map\u003cString, String[]\u003e map = new HashMap\u003c\u003e(); map.put(tableName, stringFieldList.toArray(new String[0])); return map; } “字符串”字段识别了类型为\"CHAR\", “VARCHAR”, “TEXT”, “DATE”, “TIME”, “DATETIME”, “TIMESTAMP”。conn是通过mysql-connector-java创建的数据库连接对象。\n2、拼接insert语句\npublic static String json2Sql(JSONObject json, String tableName) { Map\u003cString, String[]\u003e map = parseTable(tableName); ArrayList\u003cString\u003e keys = new ArrayList\u003c\u003e(); ArrayList\u003cString\u003e values = new ArrayList\u003c\u003e(); for (Map.Entry\u003cString, Object\u003e entry : json.entrySet()) { if (entry.getKey().equals(\"id\")) { continue; } keys.add(entry.getKey()); String value = entry.getValue() == null ? null : entry.getValue().toString(); if (Arrays.asList(map.get(tableName)).contains(entry.getKey())) { if (value != null) { if (value.indexOf('\"') != -1) { // 处理扩展字段包含json情况 value = String.format(\"\\\"%s\\\"\", value.replace(\"\\\"\", \"\\\\\\\"\")); } else { value = '\"' + value + '\"'; // 字符串字段给sql语句手动加上双引号 } } } values.add(value); } return String.format(\"insert into %s(%s) values (%s);\", tableName, String.join(\",\", keys), String.join(\",\", values)); } 拼接时先过滤id字段，然后判空，最后根据“字符串”字段判断是否需要手动添加双引号，注意扩展字段有可能json，也就是会出现双重双引号，需要加上转移字符。\n3、测试\n@Test void json2sql() { String json = \"{\\n\" + \" \\\"id\\\": \\\"1\\\",\\n\" + \" \\\"name\\\": \\\"gang\\\",\\n\" + \" \\\"no\\\": null,\\n\" + \" \\\"type\\\": 1,\\n\" + \" \\\"created\\\": \\\"2020-05-09 11:35:40\\\",\\n\" + \" \\\"ext\\\": \\\"{\\\\\\\"email\\\\\\\":\\\\\\\"abc@qq.com\\\\\\\"}\\\"\\n\" + \"}\"; JSONObject jsonObject = JSON.parseObject(json); String sql = DBUtil.json2Sql(jsonObject, \"my_test_table\"); log.info(sql); } 输出：\ninsert into my_test_table(ext,no,created,name,type) values (\"{\\\"email\\\":\\\"abc@qq.com\\\"}\",null,\"2020-05-09 11:35:40\",\"gang\",1); JSON转SQL，需要根据字段类型做特殊处理转换。\n",
+  "wordCount" : "244",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-01T00:00:00Z",
+  "dateModified": "2026-01-01T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/%E5%B0%8F%E5%B7%A5%E5%85%B7/000001-json%E8%BD%ACsql%E5%B0%8F%E5%B7%A5%E5%85%B7%E6%BA%90%E7%A0%81%E5%88%86%E4%BA%AB/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      JSON转SQL小工具源码分享
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-01T00:00:00+00:00'>2026-01-01</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>244 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/'>原创项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%B0%8F%E5%B7%A5%E5%85%B7/'>#小工具</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>将key-value的JSON数据，转换为insert的SQL语句，进而实现网页数据存储到数据库。</p>
+<ol>
+<li>
+<p>解析MySQL建表语句，找出“字符串”字段</p>
+</li>
+<li>
+<p>遍历JSON结构，拼接为SQL语句</p>
+</li>
+</ol>
+<p>1、解析建表语句</p>
+<p>之所以要解析建表语句，是因为在拼接SQL时，“字符串”字段没有双引号，需要手动加上。第一步就是通过JDBC来解析表字段，根据字段类型，筛选出“字符串”字段。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span>Map<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">[]&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">parseTable</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>tableName<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>stringType<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">(</span>Arrays<span style="color:#1f2328">.</span><span style="color:#1f2328">asList</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;CHAR&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;VARCHAR&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;TEXT&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;DATE&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;TIME&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;DATETIME&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;TIMESTAMP&#34;</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>stringFieldList<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">try</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>DatabaseMetaData<span style="color:#fff"> </span>databaseMetaData<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>conn<span style="color:#1f2328">.</span><span style="color:#1f2328">getMetaData</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>ResultSet<span style="color:#fff"> </span>specificResultSet<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>databaseMetaData<span style="color:#1f2328">.</span><span style="color:#1f2328">getColumns</span><span style="color:#1f2328">(</span><span style="color:#cf222e">null</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;%&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>tableName<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;%&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>columnName<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>columnType<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">while</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>specificResultSet<span style="color:#1f2328">.</span><span style="color:#1f2328">next</span><span style="color:#1f2328">())</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>columnName<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>specificResultSet<span style="color:#1f2328">.</span><span style="color:#1f2328">getString</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;COLUMN_NAME&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>columnType<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>specificResultSet<span style="color:#1f2328">.</span><span style="color:#1f2328">getString</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;TYPE_NAME&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>stringType<span style="color:#1f2328">.</span><span style="color:#1f2328">contains</span><span style="color:#1f2328">(</span>columnType<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">&amp;&amp;</span><span style="color:#fff"> </span><span style="color:#0550ae">!</span>stringFieldList<span style="color:#1f2328">.</span><span style="color:#1f2328">contains</span><span style="color:#1f2328">(</span>columnName<span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                </span>stringFieldList<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>columnName<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">catch</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Exception<span style="color:#fff"> </span>e<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>log<span style="color:#1f2328">.</span><span style="color:#1f2328">error</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;parse error &#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>e<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>Map<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">[]&gt;</span><span style="color:#fff"> </span>map<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>HashMap<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>tableName<span style="color:#1f2328">,</span><span style="color:#fff"> </span>stringFieldList<span style="color:#1f2328">.</span><span style="color:#1f2328">toArray</span><span style="color:#1f2328">(</span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>String<span style="color:#0550ae">[</span>0<span style="color:#0550ae">]</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>map<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>“字符串”字段识别了类型为&quot;CHAR&quot;, &ldquo;VARCHAR&rdquo;, &ldquo;TEXT&rdquo;, &ldquo;DATE&rdquo;, &ldquo;TIME&rdquo;, &ldquo;DATETIME&rdquo;, &ldquo;TIMESTAMP&rdquo;。conn是通过mysql-connector-java创建的数据库连接对象。</p>
+<p>2、拼接insert语句</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span><span style="color:#6639ba">json2Sql</span><span style="color:#1f2328">(</span>JSONObject<span style="color:#fff"> </span>json<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>tableName<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>Map<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">[]&gt;</span><span style="color:#fff"> </span>map<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>parseTable<span style="color:#1f2328">(</span>tableName<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>ArrayList<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>keys<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>ArrayList<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>values<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Map<span style="color:#1f2328">.</span><span style="color:#1f2328">Entry</span><span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Object<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>entry<span style="color:#fff"> </span><span style="color:#1f2328">:</span><span style="color:#fff"> </span>json<span style="color:#1f2328">.</span><span style="color:#1f2328">entrySet</span><span style="color:#1f2328">())</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>entry<span style="color:#1f2328">.</span><span style="color:#1f2328">getKey</span><span style="color:#1f2328">().</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;id&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">continue</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>keys<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>entry<span style="color:#1f2328">.</span><span style="color:#1f2328">getKey</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>value<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>entry<span style="color:#1f2328">.</span><span style="color:#1f2328">getValue</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span><span style="color:#cf222e">null</span><span style="color:#fff"> </span><span style="color:#0550ae">?</span><span style="color:#fff"> </span><span style="color:#cf222e">null</span><span style="color:#fff"> </span><span style="color:#1f2328">:</span><span style="color:#fff"> </span>entry<span style="color:#1f2328">.</span><span style="color:#1f2328">getValue</span><span style="color:#1f2328">().</span><span style="color:#1f2328">toString</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Arrays<span style="color:#1f2328">.</span><span style="color:#1f2328">asList</span><span style="color:#1f2328">(</span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">get</span><span style="color:#1f2328">(</span>tableName<span style="color:#1f2328">)).</span><span style="color:#1f2328">contains</span><span style="color:#1f2328">(</span>entry<span style="color:#1f2328">.</span><span style="color:#1f2328">getKey</span><span style="color:#1f2328">()))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>value<span style="color:#fff"> </span><span style="color:#0550ae">!=</span><span style="color:#fff"> </span><span style="color:#cf222e">null</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>value<span style="color:#1f2328">.</span><span style="color:#1f2328">indexOf</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;&#34;&#39;</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">!=</span><span style="color:#fff"> </span><span style="color:#0550ae">-</span>1<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">  </span><span style="color:#57606a">// 处理扩展字段包含json情况</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                    </span>value<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;\&#34;%s\&#34;&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">.</span><span style="color:#1f2328">replace</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;\&#34;&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;\\\&#34;&#34;</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                    </span>value<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;&#34;&#39;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>value<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;&#34;&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">  </span><span style="color:#57606a">// 字符串字段给sql语句手动加上双引号</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>values<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>value<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;insert into %s(%s) values (%s);&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>tableName<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">join</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;,&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>keys<span style="color:#1f2328">),</span><span style="color:#fff"> </span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">join</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;,&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>values<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>拼接时先过滤id字段，然后判空，最后根据“字符串”字段判断是否需要手动添加双引号，注意扩展字段有可能json，也就是会出现双重双引号，需要加上转移字符。</p>
+<p>3、测试</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">json2sql</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>json<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;{\n&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#0a3069">&#34;    \&#34;id\&#34;: \&#34;1\&#34;,\n&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#0a3069">&#34;    \&#34;name\&#34;: \&#34;gang\&#34;,\n&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#0a3069">&#34;    \&#34;no\&#34;: null,\n&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#0a3069">&#34;    \&#34;type\&#34;: 1,\n&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#0a3069">&#34;    \&#34;created\&#34;: \&#34;2020-05-09 11:35:40\&#34;,\n&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#0a3069">&#34;    \&#34;ext\&#34;: \&#34;{\\\&#34;email\\\&#34;:\\\&#34;abc@qq.com\\\&#34;}\&#34;\n&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#0a3069">&#34;}&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>JSONObject<span style="color:#fff"> </span>jsonObject<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>JSON<span style="color:#1f2328">.</span><span style="color:#1f2328">parseObject</span><span style="color:#1f2328">(</span>json<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>sql<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>DBUtil<span style="color:#1f2328">.</span><span style="color:#1f2328">json2Sql</span><span style="color:#1f2328">(</span>jsonObject<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;my_test_table&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>log<span style="color:#1f2328">.</span><span style="color:#1f2328">info</span><span style="color:#1f2328">(</span>sql<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>输出：</p>
+<pre tabindex="0"><code>insert into my_test_table(ext,no,created,name,type) values (&#34;{\&#34;email\&#34;:\&#34;abc@qq.com\&#34;}&#34;,null,&#34;2020-05-09 11:35:40&#34;,&#34;gang&#34;,1);
+</code></pre><p>JSON转SQL，需要根据字段类型做特殊处理转换。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E5%B0%8F%E5%B7%A5%E5%85%B7/">小工具</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000001-jmeterjmeter%E5%85%A8%E9%83%A8%E7%BB%84%E4%BB%B6%E6%A6%82%E8%A7%88/">
+    <span class="title">« 上一页</span>
+    <span>JMeter全部组件概览</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/pytest/000001-pytestpytest%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/">
+    <span class="title">下一页 »</span>
+    <span>pytest快速入门</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar">
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>魔法方法推开Python进阶学习大门 | 测试开发刚哥</title>
+<meta name="keywords" content="Python">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+热爱Python
+Python是Guido van Rossum设计出来的让使用者觉得如沐春风的一门编程语言。2020年11月12日，64岁的Python之父宣布由于退休生活太无聊，自己决定加入Microsoft的DevDiv Team，致力于“确保更好地使用Python”。尽管在国内有些声音在Diss着Python，认为它太简单，只是个脚本语言，但是它的发明者对Python的热情，仍然激励着我们坚持对Python的热爱。
+
+龟叔是所有编程语言发明者当中头发最多的这位。
+
+
+奇迹时刻
+collection.len()是面向对象语言的写法，len(collection)是Python语言的写法，这种风格叫做Pythonic。从前者到后者，就像变魔术一样，一瞬间让人眼前一亮。这个魔术就是Python魔法方法，或者叫双下方法，它是用双下划线开头和双下划线结尾的特殊方法，比如obj[key]，Python解释器实际上会转换成obj.__getitem__(key)来运行，但是使用者并无感知。
+__getitem__和__len__
+__getitem__用来获取数据，__len__用来返回长度，这2个魔法方法是Python基础，我们通过一副扑克牌来了解：
+import collections
+
+# 定义一副牌
+Card = collections.namedtuple(&#39;Card&#39;, [&#39;rank&#39;, &#39;suit&#39;])
+
+class FrenchDeck:
+    # 大小
+    ranks = [str(n) for n in range(2, 11)] &#43; list(&#39;JQKA&#39;)
+    # 花色
+    suits = &#39;spades diamonds clubs hearts&#39;.split()
+
+    def __init__(self):
+        # 生成一副牌
+        self._cards = [Card(rank, suit) for suit in self.suits
+                                        for rank in self.ranks]
+
+    def __len__(self):
+        return len(self._cards)
+
+    def __getitem__(self, position):
+        return self._cards[position]
+本来我们对这副牌什么都不能做，但是由于实现了__len__，可以使用len()函数查看有多少张牌：
+&gt;&gt;&gt; len(deck)
+52
+由于实现了__getitem__，可以使用中括号索引取值：
+&gt;&gt;&gt; deck[0]
+Card(rank=&#39;2&#39;, suit=&#39;spades&#39;)
+能进行切片：
+&gt;&gt;&gt; deck[:3]
+[Card(rank=&#39;2&#39;, suit=&#39;spades&#39;), Card(rank=&#39;3&#39;, suit=&#39;spades&#39;), Card(rank=&#39;4&#39;, suit=&#39;spades&#39;)]
+&gt;&gt;&gt; deck[12::13]
+[Card(rank=&#39;A&#39;, suit=&#39;spades&#39;), Card(rank=&#39;A&#39;, suit=&#39;diamonds&#39;), Card(rank=&#39;A&#39;, suit=&#39;clubs&#39;), Card(rank=&#39;A&#39;, suit=&#39;hearts&#39;)]
+能迭代：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000008-python%E9%AD%94%E6%B3%95%E6%96%B9%E6%B3%95%E6%8E%A8%E5%BC%80python%E8%BF%9B%E9%98%B6%E5%AD%A6%E4%B9%A0%E5%A4%A7%E9%97%A8/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000008-python%E9%AD%94%E6%B3%95%E6%96%B9%E6%B3%95%E6%8E%A8%E5%BC%80python%E8%BF%9B%E9%98%B6%E5%AD%A6%E4%B9%A0%E5%A4%A7%E9%97%A8/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000008-python%E9%AD%94%E6%B3%95%E6%96%B9%E6%B3%95%E6%8E%A8%E5%BC%80python%E8%BF%9B%E9%98%B6%E5%AD%A6%E4%B9%A0%E5%A4%A7%E9%97%A8/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="魔法方法推开Python进阶学习大门">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+热爱Python Python是Guido van Rossum设计出来的让使用者觉得如沐春风的一门编程语言。2020年11月12日，64岁的Python之父宣布由于退休生活太无聊，自己决定加入Microsoft的DevDiv Team，致力于“确保更好地使用Python”。尽管在国内有些声音在Diss着Python，认为它太简单，只是个脚本语言，但是它的发明者对Python的热情，仍然激励着我们坚持对Python的热爱。
+龟叔是所有编程语言发明者当中头发最多的这位。
+奇迹时刻 collection.len()是面向对象语言的写法，len(collection)是Python语言的写法，这种风格叫做Pythonic。从前者到后者，就像变魔术一样，一瞬间让人眼前一亮。这个魔术就是Python魔法方法，或者叫双下方法，它是用双下划线开头和双下划线结尾的特殊方法，比如obj[key]，Python解释器实际上会转换成obj.__getitem__(key)来运行，但是使用者并无感知。
+__getitem__和__len__ __getitem__用来获取数据，__len__用来返回长度，这2个魔法方法是Python基础，我们通过一副扑克牌来了解：
+import collections # 定义一副牌 Card = collections.namedtuple(&#39;Card&#39;, [&#39;rank&#39;, &#39;suit&#39;]) class FrenchDeck: # 大小 ranks = [str(n) for n in range(2, 11)] &#43; list(&#39;JQKA&#39;) # 花色 suits = &#39;spades diamonds clubs hearts&#39;.split() def __init__(self): # 生成一副牌 self._cards = [Card(rank, suit) for suit in self.suits for rank in self.ranks] def __len__(self): return len(self._cards) def __getitem__(self, position): return self._cards[position] 本来我们对这副牌什么都不能做，但是由于实现了__len__，可以使用len()函数查看有多少张牌：
+&gt;&gt;&gt; len(deck) 52 由于实现了__getitem__，可以使用中括号索引取值：
+&gt;&gt;&gt; deck[0] Card(rank=&#39;2&#39;, suit=&#39;spades&#39;) 能进行切片：
+&gt;&gt;&gt; deck[:3] [Card(rank=&#39;2&#39;, suit=&#39;spades&#39;), Card(rank=&#39;3&#39;, suit=&#39;spades&#39;), Card(rank=&#39;4&#39;, suit=&#39;spades&#39;)] &gt;&gt;&gt; deck[12::13] [Card(rank=&#39;A&#39;, suit=&#39;spades&#39;), Card(rank=&#39;A&#39;, suit=&#39;diamonds&#39;), Card(rank=&#39;A&#39;, suit=&#39;clubs&#39;), Card(rank=&#39;A&#39;, suit=&#39;hearts&#39;)] 能迭代：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-08T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-08T00:00:00+00:00">
+    <meta property="article:tag" content="Python">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="魔法方法推开Python进阶学习大门">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+热爱Python Python是Guido van Rossum设计出来的让使用者觉得如沐春风的一门编程语言。2020年11月12日，64岁的Python之父宣布由于退休生活太无聊，自己决定加入Microsoft的DevDiv Team，致力于“确保更好地使用Python”。尽管在国内有些声音在Diss着Python，认为它太简单，只是个脚本语言，但是它的发明者对Python的热情，仍然激励着我们坚持对Python的热爱。
+龟叔是所有编程语言发明者当中头发最多的这位。
+奇迹时刻 collection.len()是面向对象语言的写法，len(collection)是Python语言的写法，这种风格叫做Pythonic。从前者到后者，就像变魔术一样，一瞬间让人眼前一亮。这个魔术就是Python魔法方法，或者叫双下方法，它是用双下划线开头和双下划线结尾的特殊方法，比如obj[key]，Python解释器实际上会转换成obj.__getitem__(key)来运行，但是使用者并无感知。
+__getitem__和__len__ __getitem__用来获取数据，__len__用来返回长度，这2个魔法方法是Python基础，我们通过一副扑克牌来了解：
+import collections # 定义一副牌 Card = collections.namedtuple(&#39;Card&#39;, [&#39;rank&#39;, &#39;suit&#39;]) class FrenchDeck: # 大小 ranks = [str(n) for n in range(2, 11)] &#43; list(&#39;JQKA&#39;) # 花色 suits = &#39;spades diamonds clubs hearts&#39;.split() def __init__(self): # 生成一副牌 self._cards = [Card(rank, suit) for suit in self.suits for rank in self.ranks] def __len__(self): return len(self._cards) def __getitem__(self, position): return self._cards[position] 本来我们对这副牌什么都不能做，但是由于实现了__len__，可以使用len()函数查看有多少张牌：
+&gt;&gt;&gt; len(deck) 52 由于实现了__getitem__，可以使用中括号索引取值：
+&gt;&gt;&gt; deck[0] Card(rank=&#39;2&#39;, suit=&#39;spades&#39;) 能进行切片：
+&gt;&gt;&gt; deck[:3] [Card(rank=&#39;2&#39;, suit=&#39;spades&#39;), Card(rank=&#39;3&#39;, suit=&#39;spades&#39;), Card(rank=&#39;4&#39;, suit=&#39;spades&#39;)] &gt;&gt;&gt; deck[12::13] [Card(rank=&#39;A&#39;, suit=&#39;spades&#39;), Card(rank=&#39;A&#39;, suit=&#39;diamonds&#39;), Card(rank=&#39;A&#39;, suit=&#39;clubs&#39;), Card(rank=&#39;A&#39;, suit=&#39;hearts&#39;)] 能迭代：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "魔法方法推开Python进阶学习大门",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000008-python%E9%AD%94%E6%B3%95%E6%96%B9%E6%B3%95%E6%8E%A8%E5%BC%80python%E8%BF%9B%E9%98%B6%E5%AD%A6%E4%B9%A0%E5%A4%A7%E9%97%A8/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "魔法方法推开Python进阶学习大门",
+  "name": "魔法方法推开Python进阶学习大门",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n热爱Python Python是Guido van Rossum设计出来的让使用者觉得如沐春风的一门编程语言。2020年11月12日，64岁的Python之父宣布由于退休生活太无聊，自己决定加入Microsoft的DevDiv Team，致力于“确保更好地使用Python”。尽管在国内有些声音在Diss着Python，认为它太简单，只是个脚本语言，但是它的发明者对Python的热情，仍然激励着我们坚持对Python的热爱。\n龟叔是所有编程语言发明者当中头发最多的这位。\n奇迹时刻 collection.len()是面向对象语言的写法，len(collection)是Python语言的写法，这种风格叫做Pythonic。从前者到后者，就像变魔术一样，一瞬间让人眼前一亮。这个魔术就是Python魔法方法，或者叫双下方法，它是用双下划线开头和双下划线结尾的特殊方法，比如obj[key]，Python解释器实际上会转换成obj.__getitem__(key)来运行，但是使用者并无感知。\n__getitem__和__len__ __getitem__用来获取数据，__len__用来返回长度，这2个魔法方法是Python基础，我们通过一副扑克牌来了解：\nimport collections # 定义一副牌 Card = collections.namedtuple(\u0026#39;Card\u0026#39;, [\u0026#39;rank\u0026#39;, \u0026#39;suit\u0026#39;]) class FrenchDeck: # 大小 ranks = [str(n) for n in range(2, 11)] + list(\u0026#39;JQKA\u0026#39;) # 花色 suits = \u0026#39;spades diamonds clubs hearts\u0026#39;.split() def __init__(self): # 生成一副牌 self._cards = [Card(rank, suit) for suit in self.suits for rank in self.ranks] def __len__(self): return len(self._cards) def __getitem__(self, position): return self._cards[position] 本来我们对这副牌什么都不能做，但是由于实现了__len__，可以使用len()函数查看有多少张牌：\n\u0026gt;\u0026gt;\u0026gt; len(deck) 52 由于实现了__getitem__，可以使用中括号索引取值：\n\u0026gt;\u0026gt;\u0026gt; deck[0] Card(rank=\u0026#39;2\u0026#39;, suit=\u0026#39;spades\u0026#39;) 能进行切片：\n\u0026gt;\u0026gt;\u0026gt; deck[:3] [Card(rank=\u0026#39;2\u0026#39;, suit=\u0026#39;spades\u0026#39;), Card(rank=\u0026#39;3\u0026#39;, suit=\u0026#39;spades\u0026#39;), Card(rank=\u0026#39;4\u0026#39;, suit=\u0026#39;spades\u0026#39;)] \u0026gt;\u0026gt;\u0026gt; deck[12::13] [Card(rank=\u0026#39;A\u0026#39;, suit=\u0026#39;spades\u0026#39;), Card(rank=\u0026#39;A\u0026#39;, suit=\u0026#39;diamonds\u0026#39;), Card(rank=\u0026#39;A\u0026#39;, suit=\u0026#39;clubs\u0026#39;), Card(rank=\u0026#39;A\u0026#39;, suit=\u0026#39;hearts\u0026#39;)] 能迭代：\n",
+  "keywords": [
+    "Python"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n热爱Python Python是Guido van Rossum设计出来的让使用者觉得如沐春风的一门编程语言。2020年11月12日，64岁的Python之父宣布由于退休生活太无聊，自己决定加入Microsoft的DevDiv Team，致力于“确保更好地使用Python”。尽管在国内有些声音在Diss着Python，认为它太简单，只是个脚本语言，但是它的发明者对Python的热情，仍然激励着我们坚持对Python的热爱。\n龟叔是所有编程语言发明者当中头发最多的这位。\n奇迹时刻 collection.len()是面向对象语言的写法，len(collection)是Python语言的写法，这种风格叫做Pythonic。从前者到后者，就像变魔术一样，一瞬间让人眼前一亮。这个魔术就是Python魔法方法，或者叫双下方法，它是用双下划线开头和双下划线结尾的特殊方法，比如obj[key]，Python解释器实际上会转换成obj.__getitem__(key)来运行，但是使用者并无感知。\n__getitem__和__len__ __getitem__用来获取数据，__len__用来返回长度，这2个魔法方法是Python基础，我们通过一副扑克牌来了解：\nimport collections # 定义一副牌 Card = collections.namedtuple('Card', ['rank', 'suit']) class FrenchDeck: # 大小 ranks = [str(n) for n in range(2, 11)] + list('JQKA') # 花色 suits = 'spades diamonds clubs hearts'.split() def __init__(self): # 生成一副牌 self._cards = [Card(rank, suit) for suit in self.suits for rank in self.ranks] def __len__(self): return len(self._cards) def __getitem__(self, position): return self._cards[position] 本来我们对这副牌什么都不能做，但是由于实现了__len__，可以使用len()函数查看有多少张牌：\n\u003e\u003e\u003e len(deck) 52 由于实现了__getitem__，可以使用中括号索引取值：\n\u003e\u003e\u003e deck[0] Card(rank='2', suit='spades') 能进行切片：\n\u003e\u003e\u003e deck[:3] [Card(rank='2', suit='spades'), Card(rank='3', suit='spades'), Card(rank='4', suit='spades')] \u003e\u003e\u003e deck[12::13] [Card(rank='A', suit='spades'), Card(rank='A', suit='diamonds'), Card(rank='A', suit='clubs'), Card(rank='A', suit='hearts')] 能迭代：\n\u003e\u003e\u003e for card in deck: # doctest: +ELLIPSIS ... print(card) Card(rank='2', suit='spades') Card(rank='3', suit='spades') Card(rank='4', suit='spades') ... 发现没有，魔法方法是可以用来装B的！别人写个类只能get、set，你写个类还能花式炫技，666。\nPython魔法方法是给Python解释器使用的，一般不需要直接调用，Python会自己去调，比如把len(my_object)写成my_object.__len__()，就弄巧成拙了。\n魔法方法实现运算符 前面例子实现了取值和长度，接着再看一个例子，使用__repr__、__abs__、__bool__、__add__、__mul__，实现运算符：\nfrom math import hypot # 二维向量 class Vector: def __init__(self, x=0, y=0): self.x = x self.y = y # 表达式 def __repr__(self): return 'Vector(%r, %r)' % (self.x, self.y) # 绝对值 def __abs__(self): return hypot(self.x, self.y) # 布尔值 def __bool__(self): return bool(abs(self)) # 加法 def __add__(self, other): x = self.x + other.x y = self.y + other.y return Vector(x, y) #乘法 def __mul__(self, scalar): return Vector(self.x * scalar, self.y * scalar) __add__实现了加法：\n\u003e\u003e\u003e v1 = Vector(2, 4) \u003e\u003e\u003e v2 = Vector(2, 1) \u003e\u003e\u003e v1 + v2 Vector(4, 5) __abs__实现了绝对值：\n\u003e\u003e\u003e v = Vector(3, 4) \u003e\u003e\u003e abs(v) 5.0 __mul__实现了乘法：\n\u003e\u003e\u003e v * 3 Vector(9, 12) __repr__实现了对象的字符串表示：\nVector(4, 5) 否则得到的字符串可能是。\n__bool__实现了布尔值：\nif Vector(4, 5): return True 其他魔法方法 一篇文章是讲不完魔法方法的，我们会在后续文章中，继续探讨如何使用和实现它们。\nTips 本小节内容是我看《流畅的Python》第一遍时记录的知识点：\ncollections.namedtuple可以用来创建只有少数属性但没有方法的对象，比如\nbeer_card = Card('7', 'diamonds') random.choice和random.sample不一样的地方在于，sample是返回序列，choice是返回元素，当使用sample(list, 1)[0]的时候，不如直接使用choice(list)。\n特殊方法的存在是为了被Python解释器调用的。\nPyVarObject是表示内存中长度可变的内置对象的C语言结构体。list或str或bytearray的__len__实际上返回的PyVarObject.ob_size属性，这个比调用一个方法要快的多。\nlen之所以不是一个普通方法，是为了让python自带的数据结构可以走后门，abs也是同理。\n很多时候调用__init__方法的目的是，在你自己的子类的__init__方法中调用超类的构造器。\nabs，如果输入是整数或者浮点数，它返回的是输入值的绝对值；如果输入是复数，那么返回这个复数的模。\n__repr__和__str__二选一的话，__repr__更好，因为如果一个对象没有__str__函数，解释器会用__repr__作为替代。\npython对象的一个基本要求就是它得有合理的字符串表示形式，这就是数据模型中存在特殊方法__repr__和__str__的原因。\n为了判定一个值x为真还是为假，python会调用bool(x)，它的背后是调用x.__bool__()。如果不存在，就会调用x.__len__()，返回0为Flase，非0为True。\npython通过运算符重载这一模式提供了丰富的数值类型，除了内置那些，还有decimal.Decimal和fractions.Fraction。\n小结 本文是Python进阶系列开篇，参考《流畅的Python》序章改写而成。原书内容有深度有广度，我选择了其中的魔法方法知识点，作为切入，循序渐进学习。其实书中这一章节的副标题是“数据模型”，它是个什么概念呢？\n系列文章会不定期同步到在线电子书中，欢迎访问查看：\nhttps://dongfanger.gitee.io/blog/\n参考资料：\n《流畅的Python》\nhttps://docs.python.org/3/reference/datamodel.html\n",
+  "wordCount" : "260",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-08T00:00:00Z",
+  "dateModified": "2026-01-08T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000008-python%E9%AD%94%E6%B3%95%E6%96%B9%E6%B3%95%E6%8E%A8%E5%BC%80python%E8%BF%9B%E9%98%B6%E5%AD%A6%E4%B9%A0%E5%A4%A7%E9%97%A8/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      魔法方法推开Python进阶学习大门
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-08T00:00:00+00:00'>2026-01-08</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>260 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/python/'>#Python</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="热爱python">热爱Python<a hidden class="anchor" aria-hidden="true" href="#热爱python">#</a></h1>
+<p>Python是Guido van Rossum设计出来的让使用者觉得如沐春风的一门编程语言。2020年11月12日，64岁的Python之父宣布由于退休生活太无聊，自己决定加入Microsoft的DevDiv Team，致力于“确保更好地使用Python”。尽管在国内有些声音在Diss着Python，认为它太简单，只是个脚本语言，但是它的发明者对Python的热情，仍然激励着我们坚持对Python的热爱。</p>
+<blockquote>
+<p>龟叔是所有编程语言发明者当中头发最多的这位。</p>
+</blockquote>
+<p><img loading="lazy" src="../assets/1e010527d9ca4eb9b82b300e155f3f3a.jpg"></p>
+<h1 id="奇迹时刻">奇迹时刻<a hidden class="anchor" aria-hidden="true" href="#奇迹时刻">#</a></h1>
+<p><code>collection.len()</code>是面向对象语言的写法，<code>len(collection)</code>是Python语言的写法，这种风格叫做<code>Pythonic</code>。从前者到后者，就像变魔术一样，一瞬间让人眼前一亮。这个魔术就是Python魔法方法，或者叫双下方法，它是用双下划线开头和双下划线结尾的特殊方法，比如<code>obj[key]</code>，Python解释器实际上会转换成<code>obj.__getitem__(key)</code>来运行，但是使用者并无感知。</p>
+<h1 id="__getitem__和__len__"><code>__getitem__</code>和<code>__len__</code><a hidden class="anchor" aria-hidden="true" href="#__getitem__和__len__">#</a></h1>
+<p><code>__getitem__</code>用来获取数据，<code>__len__</code>用来返回长度，这2个魔法方法是Python基础，我们通过一副扑克牌来了解：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">collections</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 定义一副牌</span>
+</span></span><span style="display:flex;"><span>Card <span style="color:#0550ae">=</span> collections<span style="color:#0550ae">.</span>namedtuple<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;Card&#39;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;rank&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;suit&#39;</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">FrenchDeck</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 大小</span>
+</span></span><span style="display:flex;"><span>    ranks <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span><span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>n<span style="color:#1f2328">)</span> <span style="color:#cf222e">for</span> n <span style="color:#0550ae">in</span> <span style="color:#6639ba">range</span><span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">11</span><span style="color:#1f2328">)]</span> <span style="color:#0550ae">+</span> <span style="color:#6639ba">list</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;JQKA&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 花色</span>
+</span></span><span style="display:flex;"><span>    suits <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;spades diamonds clubs hearts&#39;</span><span style="color:#0550ae">.</span>split<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># 生成一副牌</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>_cards <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>Card<span style="color:#1f2328">(</span>rank<span style="color:#1f2328">,</span> suit<span style="color:#1f2328">)</span> <span style="color:#cf222e">for</span> suit <span style="color:#0550ae">in</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>suits
+</span></span><span style="display:flex;"><span>                                        <span style="color:#cf222e">for</span> rank <span style="color:#0550ae">in</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>ranks<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__len__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6639ba">len</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>_cards<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__getitem__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> position<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>_cards<span style="color:#1f2328">[</span>position<span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>本来我们对这副牌什么都不能做，但是由于实现了<code>__len__</code>，可以使用<code>len()</code>函数查看有多少张牌：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#6639ba">len</span><span style="color:#1f2328">(</span>deck<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">52</span>
+</span></span></code></pre></div><p>由于实现了<code>__getitem__</code>，可以使用中括号索引取值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> deck<span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;2&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;spades&#39;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>能进行切片：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> deck<span style="color:#1f2328">[:</span><span style="color:#0550ae">3</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">[</span>Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;2&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;spades&#39;</span><span style="color:#1f2328">),</span> Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;3&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;spades&#39;</span><span style="color:#1f2328">),</span> Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;4&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;spades&#39;</span><span style="color:#1f2328">)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> deck<span style="color:#1f2328">[</span><span style="color:#0550ae">12</span><span style="color:#1f2328">::</span><span style="color:#0550ae">13</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">[</span>Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;A&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;spades&#39;</span><span style="color:#1f2328">),</span> Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;A&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;diamonds&#39;</span><span style="color:#1f2328">),</span> Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;A&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;clubs&#39;</span><span style="color:#1f2328">),</span> Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;A&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;hearts&#39;</span><span style="color:#1f2328">)]</span>
+</span></span></code></pre></div><p>能迭代：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#cf222e">for</span> card <span style="color:#0550ae">in</span> deck<span style="color:#1f2328">:</span>  <span style="color:#57606a"># doctest: +ELLIPSIS</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>   <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span>card<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;2&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;spades&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;3&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;spades&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>Card<span style="color:#1f2328">(</span>rank<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;4&#39;</span><span style="color:#1f2328">,</span> suit<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;spades&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>
+</span></span></code></pre></div><p>发现没有，魔法方法是可以用来装B的！别人写个类只能<code>get</code>、<code>set</code>，你写个类还能花式炫技，666。</p>
+<blockquote>
+<p>Python魔法方法是给Python解释器使用的，一般不需要直接调用，Python会自己去调，比如把<code>len(my_object)</code>写成<code>my_object.__len__()</code>，就弄巧成拙了。</p>
+</blockquote>
+<h1 id="魔法方法实现运算符">魔法方法实现运算符<a hidden class="anchor" aria-hidden="true" href="#魔法方法实现运算符">#</a></h1>
+<p>前面例子实现了取值和长度，接着再看一个例子，使用<code>__repr__</code>、<code>__abs__</code>、<code>__bool__</code>、<code>__add__</code>、<code>__mul__</code>，实现运算符：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">math</span> <span style="color:#cf222e">import</span> hypot
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 二维向量</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Vector</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> x<span style="color:#0550ae">=</span><span style="color:#0550ae">0</span><span style="color:#1f2328">,</span> y<span style="color:#0550ae">=</span><span style="color:#0550ae">0</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>x <span style="color:#0550ae">=</span> x
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>y <span style="color:#0550ae">=</span> y
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 表达式</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__repr__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#39;Vector(</span><span style="color:#0a3069">%r</span><span style="color:#0a3069">, </span><span style="color:#0a3069">%r</span><span style="color:#0a3069">)&#39;</span> <span style="color:#0550ae">%</span> <span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>x<span style="color:#1f2328">,</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>y<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 绝对值</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__abs__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> hypot<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>x<span style="color:#1f2328">,</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>y<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 布尔值</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__bool__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6639ba">bool</span><span style="color:#1f2328">(</span><span style="color:#6639ba">abs</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 加法</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__add__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> other<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        x <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>x <span style="color:#0550ae">+</span> other<span style="color:#0550ae">.</span>x
+</span></span><span style="display:flex;"><span>        y <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>y <span style="color:#0550ae">+</span> other<span style="color:#0550ae">.</span>y
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Vector<span style="color:#1f2328">(</span>x<span style="color:#1f2328">,</span> y<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a">#乘法</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__mul__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> scalar<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Vector<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>x <span style="color:#0550ae">*</span> scalar<span style="color:#1f2328">,</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>y <span style="color:#0550ae">*</span> scalar<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p><code>__add__</code>实现了加法：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> v1 <span style="color:#0550ae">=</span> Vector<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">4</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> v2 <span style="color:#0550ae">=</span> Vector<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> v1 <span style="color:#0550ae">+</span> v2
+</span></span><span style="display:flex;"><span>Vector<span style="color:#1f2328">(</span><span style="color:#0550ae">4</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">5</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p><code>__abs__</code>实现了绝对值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> v <span style="color:#0550ae">=</span> Vector<span style="color:#1f2328">(</span><span style="color:#0550ae">3</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">4</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#6639ba">abs</span><span style="color:#1f2328">(</span>v<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">5.0</span>
+</span></span></code></pre></div><p><code>__mul__</code>实现了乘法：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> v <span style="color:#0550ae">*</span> <span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span>Vector<span style="color:#1f2328">(</span><span style="color:#0550ae">9</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p><code>__repr__</code>实现了对象的字符串表示：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>Vector<span style="color:#1f2328">(</span><span style="color:#0550ae">4</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">5</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><blockquote>
+<p>否则得到的字符串可能是<code>&lt;Vector object at 0x10e100070&gt;</code>。</p>
+</blockquote>
+<p><code>__bool__</code>实现了布尔值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">if</span> Vector<span style="color:#1f2328">(</span><span style="color:#0550ae">4</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">5</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#cf222e">True</span>
+</span></span></code></pre></div><h1 id="其他魔法方法">其他魔法方法<a hidden class="anchor" aria-hidden="true" href="#其他魔法方法">#</a></h1>
+<p><img loading="lazy" src="../assets/6eb4d7ad7994448f9f52c92680148ecd.png"></p>
+<p>一篇文章是讲不完魔法方法的，我们会在后续文章中，继续探讨如何使用和实现它们。</p>
+<h1 id="tips">Tips<a hidden class="anchor" aria-hidden="true" href="#tips">#</a></h1>
+<p>本小节内容是我看《流畅的Python》第一遍时记录的知识点：</p>
+<ol>
+<li>
+<p><code>collections.namedtuple</code>可以用来创建只有少数属性但没有方法的对象，比如</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>beer_card <span style="color:#0550ae">=</span> Card<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;7&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;diamonds&#39;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div></li>
+<li>
+<p><code>random.choice</code>和<code>random.sample</code>不一样的地方在于，sample是返回序列，choice是返回元素，当使用sample(list, 1)[0]的时候，不如直接使用choice(list)。</p>
+</li>
+<li>
+<p>特殊方法的存在是为了被Python解释器调用的。</p>
+</li>
+<li>
+<p>PyVarObject是表示内存中长度可变的内置对象的C语言结构体。<code>list</code>或<code>str</code>或<code>bytearray</code>的__len__实际上返回的PyVarObject.ob_size属性，这个比调用一个方法要快的多。</p>
+</li>
+<li>
+<p>len之所以不是一个普通方法，是为了让python自带的数据结构可以走后门，abs也是同理。</p>
+</li>
+<li>
+<p>很多时候调用__init__方法的目的是，在你自己的子类的__init__方法中调用超类的构造器。</p>
+</li>
+<li>
+<p>abs，如果输入是整数或者浮点数，它返回的是输入值的绝对值；如果输入是复数，那么返回这个复数的模。</p>
+</li>
+<li>
+<p>__repr__和__str__二选一的话，__repr__更好，因为如果一个对象没有__str__函数，解释器会用__repr__作为替代。</p>
+</li>
+<li>
+<p>python对象的一个基本要求就是它得有合理的字符串表示形式，这就是数据模型中存在特殊方法__repr__和__str__的原因。</p>
+</li>
+<li>
+<p>为了判定一个值x为真还是为假，python会调用bool(x)，它的背后是调用x.__bool__()。如果不存在，就会调用x.__len__()，返回0为Flase，非0为True。</p>
+</li>
+<li>
+<p>python通过运算符重载这一模式提供了丰富的数值类型，除了内置那些，还有<code>decimal.Decimal</code>和<code>fractions.Fraction</code>。</p>
+</li>
+</ol>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文是Python进阶系列开篇，参考《流畅的Python》序章改写而成。原书内容有深度有广度，我选择了其中的魔法方法知识点，作为切入，循序渐进学习。其实书中这一章节的副标题是“数据模型”，它是个什么概念呢？</p>
+<blockquote>
+<p>系列文章会不定期同步到在线电子书中，欢迎访问查看：</p>
+<p><a href="https://dongfanger.gitee.io/blog/">https://dongfanger.gitee.io/blog/</a></p>
+</blockquote>
+<p><img loading="lazy" src="../assets/e3e66ddf56bd45179c075f8b8bffd51d.png"></p>
+<blockquote>
+<p>参考资料：</p>
+<p>《流畅的Python》</p>
+<p><a href="https://docs.python.org/3/reference/datamodel.html">https://docs.python.org/3/reference/datamodel.html</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/python/">Python</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000008-tep%E9%9B%86%E6%88%90httprunner%E4%B8%8Eflask%E5%AE%9E%E7%8E%B0%E5%BC%80%E7%AE%B1%E5%8D%B3%E7%94%A8/">
+    <span class="title">« 上一页</span>
+    <span>tep集成HttpRunner与Flask实现开箱即用</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000008-%E5%A6%82%E4%BD%95%E6%9E%84%E5%BB%BA%E6%B5%8B%E8%AF%95%E5%BC%80%E5%8F%91%E4%BD%93%E7%B3%BB/">
+    <span class="title">下一页 »</span>
+    <span>如何构建“测试开发体系”</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#热爱python">热爱Python</a></li>
+    <li><a href="#奇迹时刻">奇迹时刻</a></li>
+    <li><a href="#__getitem__和__len__"><code>__getitem__</code>和<code>__len__</code></a></li>
+    <li><a href="#魔法方法实现运算符">魔法方法实现运算符</a></li>
+    <li><a href="#其他魔法方法">其他魔法方法</a></li>
+    <li><a href="#tips">Tips</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

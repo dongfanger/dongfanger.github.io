@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>后端测试 on 测试开发刚哥</title>
+    <link>https://dongfanger.github.io/tags/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/</link>
+    <description>Recent content in 后端测试 on 测试开发刚哥</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 04 Jan 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://dongfanger.github.io/tags/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>把RPC包进事务的暗坑</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000004-%E6%8A%8Arpc%E5%8C%85%E8%BF%9B%E4%BA%8B%E5%8A%A1%E7%9A%84%E6%9A%97%E5%9D%91/</link>
+      <pubDate>Sun, 04 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000004-%E6%8A%8Arpc%E5%8C%85%E8%BF%9B%E4%BA%8B%E5%8A%A1%E7%9A%84%E6%9A%97%E5%9D%91/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;# 方式：把判断放进 SQL，一条语句的原子性&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;rows &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; db&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;execute&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    UPDATE pay_record SET status = &amp;#39;PAID&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    WHERE order_no = ? AND status = &amp;#39;INIT&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; order_no&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; rows &lt;span style=&#34;color:#0550ae&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;已处理&amp;#34;&lt;/span&gt;          &lt;span style=&#34;color:#57606a&#34;&gt;# 别人改过了，我不是第一个&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;grant_coupon&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;order_no&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;       &lt;span style=&#34;color:#57606a&#34;&gt;# 只有改成功的那个才发券&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;success&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;grant_coupon失败会发生什么？&lt;/p&gt;
+&lt;p&gt;券永久丢失，该发没发，资损。&lt;/p&gt;
+&lt;p&gt;第一次请求：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;UPDATE status: INIT → PAID   ✅ 已提交，改不回去了
+grant_coupon(order_no)        ❌ 抛异常 / 超时 / 下游挂了
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;第二次请求：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;rows = db.execute(&amp;#34;UPDATE ... WHERE status = &amp;#39;INIT&amp;#39;&amp;#34;)  # status已是PAID
+# rows == 0
+return &amp;#34;已处理&amp;#34;   # ← 被自己的幂等逻辑拦住，不会执行grant_coupon
+&lt;/code&gt;&lt;/pre&gt;&lt;h1 id=&#34;包进一个事务能解决吗&#34;&gt;包进一个事务能解决吗&lt;/h1&gt;
+&lt;p&gt;把update和grant_coupon这两个操作，包进一个事务里，要么同时执行，要么同时回滚，是不是就解决了？&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>幂等测试</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000003-%E5%B9%82%E7%AD%89%E6%B5%8B%E8%AF%95/</link>
+      <pubDate>Sat, 03 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000003-%E5%B9%82%E7%AD%89%E6%B5%8B%E8%AF%95/</guid>
+      <description>连续调用两次，第一次提交成功，第二次会被驳回——串行重复，系统是防住了的。</description>
+    </item>
+    <item>
+      <title>接口设计的可测试性</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000002-%E6%8E%A5%E5%8F%A3%E8%AE%BE%E8%AE%A1%E7%9A%84%E5%8F%AF%E6%B5%8B%E8%AF%95%E6%80%A7/</link>
+      <pubDate>Fri, 02 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000002-%E6%8E%A5%E5%8F%A3%E8%AE%BE%E8%AE%A1%E7%9A%84%E5%8F%AF%E6%B5%8B%E8%AF%95%E6%80%A7/</guid>
+      <description>错误码不分层的接口，你只能靠 msg 断言，改个文案用例就跑失败。返回快照的字段返回了实时，数据就无法核对上。</description>
+    </item>
+    <item>
+      <title>一个请求的一生</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000001-%E4%B8%80%E4%B8%AA%E8%AF%B7%E6%B1%82%E7%9A%84%E4%B8%80%E7%94%9F/</link>
+      <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/000001-%E4%B8%80%E4%B8%AA%E8%AF%B7%E6%B1%82%E7%9A%84%E4%B8%80%E7%94%9F/</guid>
+      <description>点进Service，全是接口。点进ServiceImpl，前半段在校验业务规则，后半段调了个stockService.deduct()，又得跳到另一个Service。</description>
+    </item>
+  </channel>
+</rss>

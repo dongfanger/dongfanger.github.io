@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Django官方为什么没有标准项目结构 | 测试开发刚哥</title>
+<meta name="keywords" content="Django">
+<meta name="description" content="Django官方并没有提供标准的项目结构，于是网上众说纷纭，百花齐放，一千个读者有一千个哈姆雷特。那我们该怎么设计项目结构呢？在回答这个问题之前，先了解一下Django原生的目录和文件都是干嘛的。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000003-djangodjango%E5%AE%98%E6%96%B9%E4%B8%BA%E4%BB%80%E4%B9%88%E6%B2%A1%E6%9C%89%E6%A0%87%E5%87%86%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000003-djangodjango%E5%AE%98%E6%96%B9%E4%B8%BA%E4%BB%80%E4%B9%88%E6%B2%A1%E6%9C%89%E6%A0%87%E5%87%86%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000003-djangodjango%E5%AE%98%E6%96%B9%E4%B8%BA%E4%BB%80%E4%B9%88%E6%B2%A1%E6%9C%89%E6%A0%87%E5%87%86%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Django官方为什么没有标准项目结构">
+  <meta property="og:description" content="Django官方并没有提供标准的项目结构，于是网上众说纷纭，百花齐放，一千个读者有一千个哈姆雷特。那我们该怎么设计项目结构呢？在回答这个问题之前，先了解一下Django原生的目录和文件都是干嘛的。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:tag" content="Django">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Django官方为什么没有标准项目结构">
+  <meta name="twitter:description" content="Django官方并没有提供标准的项目结构，于是网上众说纷纭，百花齐放，一千个读者有一千个哈姆雷特。那我们该怎么设计项目结构呢？在回答这个问题之前，先了解一下Django原生的目录和文件都是干嘛的。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Django官方为什么没有标准项目结构",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000003-djangodjango%E5%AE%98%E6%96%B9%E4%B8%BA%E4%BB%80%E4%B9%88%E6%B2%A1%E6%9C%89%E6%A0%87%E5%87%86%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Django官方为什么没有标准项目结构",
+  "name": "Django官方为什么没有标准项目结构",
+  "description": "Django官方并没有提供标准的项目结构，于是网上众说纷纭，百花齐放，一千个读者有一千个哈姆雷特。那我们该怎么设计项目结构呢？在回答这个问题之前，先了解一下Django原生的目录和文件都是干嘛的。",
+  "keywords": [
+    "Django"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nDjango官方并没有提供标准的项目结构，于是网上众说纷纭，百花齐放，一千个读者有一千个哈姆雷特。那我们该怎么设计项目结构呢？在回答这个问题之前，先了解一下Django原生的目录和文件都是干嘛的。\nproject 在使用django-admin startproject命令后就会创建这样的目录文件，如下：\nmysite/ manage.py mysite/ __init__.py settings.py urls.py asgi.py wsgi.py 根目录mysite/ 根目录的mysite/，仅仅是个目录而已，Django不会拿它做什么，它的名字可以随意修改。\n带短横线的根目录\n分享一个踩坑经验，有时候我们想把项目名命名为带短横线的，如 hello-world，通过命令直接创建会报错：\n...\\\u003e django-admin startproject hello-world CommandError: 'hello-world' is not a valid project name. Please make sure the name is a valid identifier. startproject不支持直接创建带短横线的项目名。\n方法1 加参数\n其实！它是支持的，只是我们漏了一个参数。startproject的完整格式为django-admin startproject name [directory]，可以在后面追加一个目录参数：\n...\\\u003e django-admin startproject helloworld hello-world 就可以了。根目录是hello-world，里面的project是helloworld。\n方法2 改名字\n先用helloworld创建，然后再修改，可以①在资源管理器中直接修改文件夹，②也可以在 PyCharm 中修改：\n选择Rename directory：\n注意去掉勾选Search，不修改其他位置：\n只修改这个根目录的名字即可。\nmanage.py Django的命令行工具，使用频繁，格式为：\npython manage.py [options] 内部mysite.py/ Django项目实际使用到的Python包，存放项目配置、URL路由等。\nmysite/__init__.py 表明这个目录是Python包。\nmysite/settings.py Django项目配置。\nmysite/urls.py URL路由。\nmysite/asgi.py 兼容ASGI Web服务器的入口。\nmysite/wsgi.py 兼容WSGI Web服务器的入口。\nASGI和WSGI，都是一种Python的Web服务网关接口协议，是在CGI通用网关接口，Common Gateway Interface）的标准上构建的。\napp app是Django项目的应用，一个project可以包含多个app。在使用django-admin startapp命令后就会创建这样的目录文件，如下：\npolls/ __init__.py admin.py apps.py migrations/ __init__.py models.py tests.py views.py polls/ app的Python包，可以放在任意路径。修改存放路径，相关配置中的路径也需要修改。\nadmin.py 存放Django自带后台管理的models。\napps.py app配置信息，例如：\nfrom django.apps import AppConfig class PollsConfig(AppConfig): name = 'polls' 存放路径不同，name的值也不同。\nmigrations/ Django数据迁移生成的迁移记录文件。\nmodels.py 存放app的models。\ntests.py 单元测试。\nviews.py 视图函数（类）。\nurls.py app的路由配置，需要手动添加，可通过include()函数导入到mysite/urls.py中，例如：\nfrom django.contrib import admin from django.urls import include, path urlpatterns = [ path('admin/', admin.site.urls), path('polls/', include('polls.urls')), ] polls/urls.py：\nfrom django.urls import path from . import views urlpatterns = [ path('', views.index), ] 访问xxx/polls/就会路由到views.index。\n工程化项目参考 虽说是百家争鸣，但也有公认的工程化实践。我找了GitHub上star最多的叫做Django Edge的project skeleton，它的设计如下：\nTop-directory ├── docs ├── logs ├── README.md ├── requirements │ ├── base.txt │ ├── development.txt │ └── production.txt ├── requirements.txt └── src ├── Your project name │ ├── __init__.py │ ├── logger.py │ ├── settings │ │ ├── base.py │ │ ├── development.py │ │ ├── local.sample.env │ │ └── production.py │ ├── urls.py │ ├── views.py │ └── wsgi.py ├── accounts │ ├── admin.py │ ├── forms.py │ ├── migrations │ ├── models.py │ ├── templates │ ├── tests.py │ ├── urls.py │ └── views.py ├── manage.py ├── media ├── profiles │ ├── admin.py │ ├── apps.py │ ├── forms.py │ ├── migrations │ ├── models.py │ ├── signals.py │ ├── templates │ ├── tests.py │ ├── urls.py │ └── views.py ├── static │ ├── bootstrap │ │ ├── css │ │ ├── fonts │ │ └── js │ └── site │ ├── css │ ├── ico │ ├── img │ └── js └── templates 非常的像那么回事。我又搜了其他实践的文章，找到了这张图：\n国内的文章也有提到类似这2种项目结构的设计，特点是①app放置在单独目录统一管理，②requirements和settings按环境做拆分，等等等。我说说我的观点，一开始没有必要就按照这种标准的工程化实践来写项目，我更倾向于先凭自己的能力写一版，再不断重构和优化的方式。业务不同，能力不同，经验不同，写出来的代码自然也不同。不过在碰到问题时，可以参考借鉴，很可能别人已经提供了解决方案。\n我看了一些Django开源项目代码，很少见到真像这么设计项目结构的，所以不必过分在意。\n小结 本文介绍了Django startproject和startapp命令产生的目录文件的结构和作用。然后给出了工程化项目参考。项目结构没有标准，只有适用于当前的最佳实践，可能这就是官方没有给出标准项目结构的原因吧。\n参考资料：\nhttps://docs.djangoproject.com/en/3.1/intro/tutorial01/\nhttps://django-edge.readthedocs.io/en/latest/Architecture/\nhttps://studygyaan.com/django/best-practice-to-structure-django-project-directories-and-files\n",
+  "wordCount" : "325",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-03T00:00:00Z",
+  "dateModified": "2026-01-03T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000003-djangodjango%E5%AE%98%E6%96%B9%E4%B8%BA%E4%BB%80%E4%B9%88%E6%B2%A1%E6%9C%89%E6%A0%87%E5%87%86%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      Django官方为什么没有标准项目结构
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-03T00:00:00+00:00'>2026-01-03</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>325 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/django/'>#Django</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>Django官方并没有提供标准的项目结构，于是网上众说纷纭，百花齐放，一千个读者有一千个哈姆雷特。那我们该怎么设计项目结构呢？在回答这个问题之前，先了解一下Django原生的目录和文件都是干嘛的。</p>
+<h1 id="project">project<a hidden class="anchor" aria-hidden="true" href="#project">#</a></h1>
+<p>在使用<code>django-admin startproject</code>命令后就会创建这样的目录文件，如下：</p>
+<pre tabindex="0"><code>mysite/
+    manage.py
+    mysite/
+        __init__.py
+        settings.py
+        urls.py
+        asgi.py
+        wsgi.py
+</code></pre><h2 id="根目录mysite">根目录mysite/<a hidden class="anchor" aria-hidden="true" href="#根目录mysite">#</a></h2>
+<p>根目录的mysite/，仅仅是个目录而已，Django不会拿它做什么，它的名字可以随意修改。</p>
+<p><strong>带短横线的根目录</strong></p>
+<p>分享一个踩坑经验，有时候我们想把项目名命名为带短横线的，如 hello-world，通过命令直接创建会报错：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>...<span style="color:#0a3069">\&gt;</span> django-admin startproject hello-world
+</span></span><span style="display:flex;"><span>CommandError: <span style="color:#0a3069">&#39;hello-world&#39;</span> is not a valid project name. Please make sure the name is a valid identifier.
+</span></span></code></pre></div><p><code>startproject</code>不支持直接创建带短横线的项目名。</p>
+<p><strong>方法1 加参数</strong></p>
+<p>其实！它是支持的，只是我们漏了一个参数。<code>startproject</code>的完整格式为<code>django-admin startproject name [directory]</code>，可以在后面追加一个目录参数：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>...<span style="color:#0a3069">\&gt;</span> django-admin startproject helloworld hello-world
+</span></span></code></pre></div><p>就可以了。根目录是<code>hello-world</code>，里面的project是<code>helloworld</code>。</p>
+<p><strong>方法2 改名字</strong></p>
+<p>先用helloworld创建，然后再修改，可以①在资源管理器中直接修改文件夹，②也可以在 PyCharm 中修改：</p>
+<p><img loading="lazy" src="../assets/e5a4d27ce94045ce8aecb54adc903ecd.png"></p>
+<p>选择Rename directory：</p>
+<p><img loading="lazy" src="../assets/b293f93f439f4cda8e892ccee82c2855.png"></p>
+<p>注意去掉勾选Search，不修改其他位置：</p>
+<p><img loading="lazy" src="../assets/6475316a3d0845cf9904f2c22f3514c5.png"></p>
+<p>只修改这个根目录的名字即可。</p>
+<h2 id="managepy">manage.py<a hidden class="anchor" aria-hidden="true" href="#managepy">#</a></h2>
+<p>Django的命令行工具，使用频繁，格式为：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>python manage.py &lt;command&gt; <span style="color:#0550ae">[</span>options<span style="color:#0550ae">]</span>
+</span></span></code></pre></div><h2 id="内部mysitepy">内部mysite.py/<a hidden class="anchor" aria-hidden="true" href="#内部mysitepy">#</a></h2>
+<p>Django项目实际使用到的Python包，存放项目配置、URL路由等。</p>
+<h2 id="mysite__init__py">mysite/__init__.py<a hidden class="anchor" aria-hidden="true" href="#mysite__init__py">#</a></h2>
+<p>表明这个目录是Python包。</p>
+<h2 id="mysitesettingspy">mysite/settings.py<a hidden class="anchor" aria-hidden="true" href="#mysitesettingspy">#</a></h2>
+<p>Django项目配置。</p>
+<h2 id="mysiteurlspy">mysite/urls.py<a hidden class="anchor" aria-hidden="true" href="#mysiteurlspy">#</a></h2>
+<p>URL路由。</p>
+<h2 id="mysiteasgipy">mysite/asgi.py<a hidden class="anchor" aria-hidden="true" href="#mysiteasgipy">#</a></h2>
+<p>兼容ASGI Web服务器的入口。</p>
+<h2 id="mysitewsgipy">mysite/wsgi.py<a hidden class="anchor" aria-hidden="true" href="#mysitewsgipy">#</a></h2>
+<p>兼容WSGI Web服务器的入口。</p>
+<blockquote>
+<p>ASGI和WSGI，都是一种Python的Web服务网关接口协议，是在CGI通用网关接口，Common Gateway Interface）的标准上构建的。</p>
+</blockquote>
+<h1 id="app">app<a hidden class="anchor" aria-hidden="true" href="#app">#</a></h1>
+<p>app是Django项目的应用，一个project可以包含多个app。在使用<code>django-admin startapp</code>命令后就会创建这样的目录文件，如下：</p>
+<pre tabindex="0"><code>polls/
+    __init__.py
+    admin.py
+    apps.py
+    migrations/
+        __init__.py
+    models.py
+    tests.py
+    views.py
+</code></pre><h2 id="polls">polls/<a hidden class="anchor" aria-hidden="true" href="#polls">#</a></h2>
+<p>app的Python包，可以放在任意路径。修改存放路径，相关配置中的路径也需要修改。</p>
+<h2 id="adminpy">admin.py<a hidden class="anchor" aria-hidden="true" href="#adminpy">#</a></h2>
+<p>存放Django自带后台管理的models。</p>
+<h2 id="appspy">apps.py<a hidden class="anchor" aria-hidden="true" href="#appspy">#</a></h2>
+<p>app配置信息，例如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.apps</span> <span style="color:#cf222e">import</span> AppConfig
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">PollsConfig</span><span style="color:#1f2328">(</span>AppConfig<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    name <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;polls&#39;</span>
+</span></span></code></pre></div><p>存放路径不同，name的值也不同。</p>
+<h2 id="migrations">migrations/<a hidden class="anchor" aria-hidden="true" href="#migrations">#</a></h2>
+<p>Django数据迁移生成的迁移记录文件。</p>
+<h2 id="modelspy">models.py<a hidden class="anchor" aria-hidden="true" href="#modelspy">#</a></h2>
+<p>存放app的models。</p>
+<h2 id="testspy">tests.py<a hidden class="anchor" aria-hidden="true" href="#testspy">#</a></h2>
+<p>单元测试。</p>
+<h2 id="viewspy">views.py<a hidden class="anchor" aria-hidden="true" href="#viewspy">#</a></h2>
+<p>视图函数（类）。</p>
+<h2 id="urlspy">urls.py<a hidden class="anchor" aria-hidden="true" href="#urlspy">#</a></h2>
+<p>app的路由配置，需要手动添加，可通过<code>include()</code>函数导入到<code>mysite/urls.py</code>中，例如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib</span> <span style="color:#cf222e">import</span> admin
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.urls</span> <span style="color:#cf222e">import</span> include<span style="color:#1f2328">,</span> path
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>urlpatterns <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;admin/&#39;</span><span style="color:#1f2328">,</span> admin<span style="color:#0550ae">.</span>site<span style="color:#0550ae">.</span>urls<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;polls/&#39;</span><span style="color:#1f2328">,</span> include<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;polls.urls&#39;</span><span style="color:#1f2328">)),</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>polls/urls.py：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.urls</span> <span style="color:#cf222e">import</span> path
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">.</span> <span style="color:#cf222e">import</span> views
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>urlpatterns <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;&#39;</span><span style="color:#1f2328">,</span> views<span style="color:#0550ae">.</span>index<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>访问<code>xxx/polls/</code>就会路由到<code>views.index</code>。</p>
+<h1 id="工程化项目参考">工程化项目参考<a hidden class="anchor" aria-hidden="true" href="#工程化项目参考">#</a></h1>
+<p>虽说是百家争鸣，但也有公认的工程化实践。我找了GitHub上star最多的叫做Django Edge的project skeleton，它的设计如下：</p>
+<pre tabindex="0"><code>Top-directory
+├── docs
+├── logs
+├── README.md
+├── requirements
+│   ├── base.txt
+│   ├── development.txt
+│   └── production.txt
+├── requirements.txt
+└── src
+    ├── Your project name
+    │   ├── __init__.py
+    │   ├── logger.py
+    │   ├── settings
+    │   │   ├── base.py
+    │   │   ├── development.py
+    │   │   ├── local.sample.env
+    │   │   └── production.py
+    │   ├── urls.py
+    │   ├── views.py
+    │   └── wsgi.py
+    ├── accounts
+    │   ├── admin.py
+    │   ├── forms.py
+    │   ├── migrations
+    │   ├── models.py
+    │   ├── templates
+    │   ├── tests.py
+    │   ├── urls.py
+    │   └── views.py
+    ├── manage.py
+    ├── media
+    ├── profiles
+    │   ├── admin.py
+    │   ├── apps.py
+    │   ├── forms.py
+    │   ├── migrations
+    │   ├── models.py
+    │   ├── signals.py
+    │   ├── templates
+    │   ├── tests.py
+    │   ├── urls.py
+    │   └── views.py
+    ├── static
+    │   ├── bootstrap
+    │   │   ├── css
+    │   │   ├── fonts
+    │   │   └── js
+    │   └── site
+    │       ├── css
+    │       ├── ico
+    │       ├── img
+    │       └── js
+    └── templates
+</code></pre><p>非常的像那么回事。我又搜了其他实践的文章，找到了这张图：</p>
+<p><img loading="lazy" src="../assets/3e51e840b79d4f1582f91fab1551fd60.png"></p>
+<p>国内的文章也有提到类似这2种项目结构的设计，特点是①app放置在单独目录统一管理，②requirements和settings按环境做拆分，等等等。我说说我的观点，一开始没有必要就按照这种标准的工程化实践来写项目，我更倾向于先凭自己的能力写一版，再不断重构和优化的方式。业务不同，能力不同，经验不同，写出来的代码自然也不同。不过在碰到问题时，可以参考借鉴，很可能别人已经提供了解决方案。</p>
+<blockquote>
+<p>我看了一些Django开源项目代码，很少见到真像这么设计项目结构的，所以不必过分在意。</p>
+</blockquote>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文介绍了Django startproject和startapp命令产生的目录文件的结构和作用。然后给出了工程化项目参考。项目结构没有标准，只有适用于当前的最佳实践，可能这就是官方没有给出标准项目结构的原因吧。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://docs.djangoproject.com/en/3.1/intro/tutorial01/">https://docs.djangoproject.com/en/3.1/intro/tutorial01/</a></p>
+<p><a href="https://django-edge.readthedocs.io/en/latest/Architecture/">https://django-edge.readthedocs.io/en/latest/Architecture/</a></p>
+<p><a href="https://studygyaan.com/django/best-practice-to-structure-django-project-directories-and-files">https://studygyaan.com/django/best-practice-to-structure-django-project-directories-and-files</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/django/">Django</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/000003-%E7%AE%97%E6%B3%9580%E9%81%93%E9%AB%98%E9%A2%91%E7%AE%97%E6%B3%95%E9%A2%98python%E7%89%88/">
+    <span class="title">« 上一页</span>
+    <span>80道高频算法题Python版</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/golang/000003-golangdockerfile%E6%96%87%E4%BB%B6%E4%B8%87%E5%AD%97%E5%85%A8%E9%9D%A2%E8%A7%A3%E6%9E%90/">
+    <span class="title">下一页 »</span>
+    <span>Dockerfile文件万字全面解析</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#project">project</a>
+      <ul>
+        <li><a href="#根目录mysite">根目录mysite/</a></li>
+        <li><a href="#managepy">manage.py</a></li>
+        <li><a href="#内部mysitepy">内部mysite.py/</a></li>
+        <li><a href="#mysite__init__py">mysite/__init__.py</a></li>
+        <li><a href="#mysitesettingspy">mysite/settings.py</a></li>
+        <li><a href="#mysiteurlspy">mysite/urls.py</a></li>
+        <li><a href="#mysiteasgipy">mysite/asgi.py</a></li>
+        <li><a href="#mysitewsgipy">mysite/wsgi.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#app">app</a>
+      <ul>
+        <li><a href="#polls">polls/</a></li>
+        <li><a href="#adminpy">admin.py</a></li>
+        <li><a href="#appspy">apps.py</a></li>
+        <li><a href="#migrations">migrations/</a></li>
+        <li><a href="#modelspy">models.py</a></li>
+        <li><a href="#testspy">tests.py</a></li>
+        <li><a href="#viewspy">views.py</a></li>
+        <li><a href="#urlspy">urls.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#工程化项目参考">工程化项目参考</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

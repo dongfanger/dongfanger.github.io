@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JavaWeb开发基础ServletSession | 测试开发刚哥</title>
+<meta name="keywords" content="JavaWeb开发">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Session是什么
+在Web应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于HTTP协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session通过在服务器端存储用户状态信息，并在客户端使用一个唯一的Session ID来标识用户，从而实现状态保持。
+Session工作原理如下：
+
+创建Session：当用户第一次访问Web应用程序时，服务器创建一个新的Session，并生成一个唯一的Session ID
+发送Session ID：服务器将Session ID发送给客户端，通常通过HTTP响应头中的Set-Cookie字段
+存储Session ID：客户端浏览器将Session ID存储在Cookie中，并在后续请求中将其发送回服务器
+识别Session：服务器通过接收到的Session ID识别用户的会话，并从服务器端存储中获取相应的Session数据
+
+四种主要技术
+
+Cookies
+Hidden Form Field
+URL Rewriting
+HttpSession
+
+1. Cookies（Cookie）
+Cookie是存储在客户端浏览器中的小数据片段。它们会随着每个HTTP请求一起发送到服务器，可以用来存储会话标识符。
+工作原理
+
+当用户第一次访问网站时，服务器生成一个唯一的会话ID，并将其作为Cookie发送到客户端浏览器
+浏览器存储这个Cookie，并在后续请求中将其发送回服务器
+服务器使用Cookie中的会话ID来检索用户的会话数据
+
+
+优点
+
+对用户透明
+由浏览器自动管理
+可以存储少量数据
+
+缺点
+
+用户可以在浏览器中禁用Cookie
+存储容量有限（通常每个Cookie大约4KB）
+如果处理不当，可能存在安全问题（例如Cookie盗窃）
+
+示例
+import javax.servlet.http.Cookie;
+
+
+// 在Servlet中设置Cookie
+Cookie sessionCookie = new Cookie(&#34;JSESSIONID&#34;, session.getId());
+sessionCookie.setMaxAge(30 * 60); // 30分钟
+response.addCookie(sessionCookie);
+
+// 在Servlet中检索Cookie
+Cookie[] cookies = request.getCookies();  // 从请求获取Cookie
+if (cookies != null) {
+    for (Cookie cookie : cookies) {
+        if (&#34;JSESSIONID&#34;.equals(cookie.getName())) {
+            String sessionId = cookie.getValue();
+            // 使用会话ID检索会话数据
+        }
+    }
+}
+Cookie有两种类型：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000007-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servletsession/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000007-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servletsession/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000007-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servletsession/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JavaWeb开发基础ServletSession">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Session是什么 在Web应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于HTTP协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session通过在服务器端存储用户状态信息，并在客户端使用一个唯一的Session ID来标识用户，从而实现状态保持。
+Session工作原理如下：
+创建Session：当用户第一次访问Web应用程序时，服务器创建一个新的Session，并生成一个唯一的Session ID 发送Session ID：服务器将Session ID发送给客户端，通常通过HTTP响应头中的Set-Cookie字段 存储Session ID：客户端浏览器将Session ID存储在Cookie中，并在后续请求中将其发送回服务器 识别Session：服务器通过接收到的Session ID识别用户的会话，并从服务器端存储中获取相应的Session数据 四种主要技术 Cookies Hidden Form Field URL Rewriting HttpSession 1. Cookies（Cookie） Cookie是存储在客户端浏览器中的小数据片段。它们会随着每个HTTP请求一起发送到服务器，可以用来存储会话标识符。
+工作原理
+当用户第一次访问网站时，服务器生成一个唯一的会话ID，并将其作为Cookie发送到客户端浏览器 浏览器存储这个Cookie，并在后续请求中将其发送回服务器 服务器使用Cookie中的会话ID来检索用户的会话数据 优点
+对用户透明 由浏览器自动管理 可以存储少量数据 缺点
+用户可以在浏览器中禁用Cookie 存储容量有限（通常每个Cookie大约4KB） 如果处理不当，可能存在安全问题（例如Cookie盗窃） 示例
+import javax.servlet.http.Cookie; // 在Servlet中设置Cookie Cookie sessionCookie = new Cookie(&#34;JSESSIONID&#34;, session.getId()); sessionCookie.setMaxAge(30 * 60); // 30分钟 response.addCookie(sessionCookie); // 在Servlet中检索Cookie Cookie[] cookies = request.getCookies(); // 从请求获取Cookie if (cookies != null) { for (Cookie cookie : cookies) { if (&#34;JSESSIONID&#34;.equals(cookie.getName())) { String sessionId = cookie.getValue(); // 使用会话ID检索会话数据 } } } Cookie有两种类型：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-07T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-07T00:00:00+00:00">
+    <meta property="article:tag" content="JavaWeb开发">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JavaWeb开发基础ServletSession">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Session是什么 在Web应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于HTTP协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session通过在服务器端存储用户状态信息，并在客户端使用一个唯一的Session ID来标识用户，从而实现状态保持。
+Session工作原理如下：
+创建Session：当用户第一次访问Web应用程序时，服务器创建一个新的Session，并生成一个唯一的Session ID 发送Session ID：服务器将Session ID发送给客户端，通常通过HTTP响应头中的Set-Cookie字段 存储Session ID：客户端浏览器将Session ID存储在Cookie中，并在后续请求中将其发送回服务器 识别Session：服务器通过接收到的Session ID识别用户的会话，并从服务器端存储中获取相应的Session数据 四种主要技术 Cookies Hidden Form Field URL Rewriting HttpSession 1. Cookies（Cookie） Cookie是存储在客户端浏览器中的小数据片段。它们会随着每个HTTP请求一起发送到服务器，可以用来存储会话标识符。
+工作原理
+当用户第一次访问网站时，服务器生成一个唯一的会话ID，并将其作为Cookie发送到客户端浏览器 浏览器存储这个Cookie，并在后续请求中将其发送回服务器 服务器使用Cookie中的会话ID来检索用户的会话数据 优点
+对用户透明 由浏览器自动管理 可以存储少量数据 缺点
+用户可以在浏览器中禁用Cookie 存储容量有限（通常每个Cookie大约4KB） 如果处理不当，可能存在安全问题（例如Cookie盗窃） 示例
+import javax.servlet.http.Cookie; // 在Servlet中设置Cookie Cookie sessionCookie = new Cookie(&#34;JSESSIONID&#34;, session.getId()); sessionCookie.setMaxAge(30 * 60); // 30分钟 response.addCookie(sessionCookie); // 在Servlet中检索Cookie Cookie[] cookies = request.getCookies(); // 从请求获取Cookie if (cookies != null) { for (Cookie cookie : cookies) { if (&#34;JSESSIONID&#34;.equals(cookie.getName())) { String sessionId = cookie.getValue(); // 使用会话ID检索会话数据 } } } Cookie有两种类型：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JavaWeb开发基础ServletSession",
+      "item": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000007-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servletsession/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JavaWeb开发基础ServletSession",
+  "name": "JavaWeb开发基础ServletSession",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nSession是什么 在Web应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于HTTP协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session通过在服务器端存储用户状态信息，并在客户端使用一个唯一的Session ID来标识用户，从而实现状态保持。\nSession工作原理如下：\n创建Session：当用户第一次访问Web应用程序时，服务器创建一个新的Session，并生成一个唯一的Session ID 发送Session ID：服务器将Session ID发送给客户端，通常通过HTTP响应头中的Set-Cookie字段 存储Session ID：客户端浏览器将Session ID存储在Cookie中，并在后续请求中将其发送回服务器 识别Session：服务器通过接收到的Session ID识别用户的会话，并从服务器端存储中获取相应的Session数据 四种主要技术 Cookies Hidden Form Field URL Rewriting HttpSession 1. Cookies（Cookie） Cookie是存储在客户端浏览器中的小数据片段。它们会随着每个HTTP请求一起发送到服务器，可以用来存储会话标识符。\n工作原理\n当用户第一次访问网站时，服务器生成一个唯一的会话ID，并将其作为Cookie发送到客户端浏览器 浏览器存储这个Cookie，并在后续请求中将其发送回服务器 服务器使用Cookie中的会话ID来检索用户的会话数据 优点\n对用户透明 由浏览器自动管理 可以存储少量数据 缺点\n用户可以在浏览器中禁用Cookie 存储容量有限（通常每个Cookie大约4KB） 如果处理不当，可能存在安全问题（例如Cookie盗窃） 示例\nimport javax.servlet.http.Cookie; // 在Servlet中设置Cookie Cookie sessionCookie = new Cookie(\u0026#34;JSESSIONID\u0026#34;, session.getId()); sessionCookie.setMaxAge(30 * 60); // 30分钟 response.addCookie(sessionCookie); // 在Servlet中检索Cookie Cookie[] cookies = request.getCookies(); // 从请求获取Cookie if (cookies != null) { for (Cookie cookie : cookies) { if (\u0026#34;JSESSIONID\u0026#34;.equals(cookie.getName())) { String sessionId = cookie.getValue(); // 使用会话ID检索会话数据 } } } Cookie有两种类型：\n",
+  "keywords": [
+    "JavaWeb开发"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nSession是什么 在Web应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于HTTP协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session通过在服务器端存储用户状态信息，并在客户端使用一个唯一的Session ID来标识用户，从而实现状态保持。\nSession工作原理如下：\n创建Session：当用户第一次访问Web应用程序时，服务器创建一个新的Session，并生成一个唯一的Session ID 发送Session ID：服务器将Session ID发送给客户端，通常通过HTTP响应头中的Set-Cookie字段 存储Session ID：客户端浏览器将Session ID存储在Cookie中，并在后续请求中将其发送回服务器 识别Session：服务器通过接收到的Session ID识别用户的会话，并从服务器端存储中获取相应的Session数据 四种主要技术 Cookies Hidden Form Field URL Rewriting HttpSession 1. Cookies（Cookie） Cookie是存储在客户端浏览器中的小数据片段。它们会随着每个HTTP请求一起发送到服务器，可以用来存储会话标识符。\n工作原理\n当用户第一次访问网站时，服务器生成一个唯一的会话ID，并将其作为Cookie发送到客户端浏览器 浏览器存储这个Cookie，并在后续请求中将其发送回服务器 服务器使用Cookie中的会话ID来检索用户的会话数据 优点\n对用户透明 由浏览器自动管理 可以存储少量数据 缺点\n用户可以在浏览器中禁用Cookie 存储容量有限（通常每个Cookie大约4KB） 如果处理不当，可能存在安全问题（例如Cookie盗窃） 示例\nimport javax.servlet.http.Cookie; // 在Servlet中设置Cookie Cookie sessionCookie = new Cookie(\"JSESSIONID\", session.getId()); sessionCookie.setMaxAge(30 * 60); // 30分钟 response.addCookie(sessionCookie); // 在Servlet中检索Cookie Cookie[] cookies = request.getCookies(); // 从请求获取Cookie if (cookies != null) { for (Cookie cookie : cookies) { if (\"JSESSIONID\".equals(cookie.getName())) { String sessionId = cookie.getValue(); // 使用会话ID检索会话数据 } } } Cookie有两种类型：\n非持久性Cookie（Non-persistent cookie），也称为会话Cookie（Session cookie），仅在浏览器会话期间有效。当用户关闭浏览器时，这些Cookie会被自动删除。适用于需要在用户会话期间保持状态的信息，如购物车内容、临时会话ID等。\n持久性Cookie（Persistent cookie），在浏览器会话结束后仍然有效，直到达到指定的过期时间或被用户手动删除。它们存储在客户端的硬盘上。适用于需要在多个会话之间保持状态的信息，如记住用户登录状态、用户偏好设置等。\n2. 隐藏表单字段（Hidden Form Field） 隐藏表单字段用于在HTML表单中存储会话数据。当表单提交时，这些数据会发送到服务器。\n工作原理\n服务器生成一个唯一的会话ID，并将其作为隐藏字段包含在HTML表单中 当用户提交表单时，隐藏字段会随表单数据一起发送到服务器 服务器从隐藏字段中检索会话ID，并使用它来访问用户的会话数据 优点\n实现简单 不依赖于浏览器设置（例如Cookie） 缺点\n仅适用于表单提交 需要修改所有表单以包含隐藏字段 不适用于跨多个页面跟踪会话（没有表单的页面） 示例\n\u003cform action=\"submitForm\" method=\"post\"\u003e \u003cinput type=\"hidden\" name=\"sessionId\" value=\"\u003c%= session.getId() %\u003e\"\u003e \u003cinput type=\"submit\" value=\"提交\"\u003e \u003c/form\u003e 3. URL重写（URL Rewriting） URL重写涉及将会话ID附加到每个请求的URL中。这种技术确保会话ID随每个请求一起发送到服务器。\n工作原理\n服务器生成一个唯一的会话ID，并将其作为查询参数附加到URL中 会话ID包含在服务器生成的所有后续URL中 服务器从URL中检索会话ID，并使用它来访问用户的会话数据 优点\n即使禁用Cookie也能工作 可以跨多个页面跟踪会话 缺点\nURL变得更长且不易读 需要修改所有URL以包含会话ID 如果会话ID暴露在URL中，可能存在安全风险 示例\n// 生成带有会话ID的URL // http://localhost:8080/myapp/nextPage.jsp;jsessionid=1234567890ABCDEF1234567890ABCDEF String url = response.encodeURL(\"nextPage.jsp\"); // 从URL中检索会话ID String sessionId = request.getParameter(\"jsessionid\"); 4. HttpSession HttpSession接口提供了一种内置的会话跟踪机制。它抽象了底层的会话跟踪技术（例如Cookie、URL重写），并提供了一个简单的API来管理会话数据。\n工作原理\n服务器为每个用户会话创建一个HttpSession对象 会话ID由服务器管理，可以存储在Cookie或URL中 HttpSession对象提供了存储和检索会话属性的方法 优点\n简单且方便的API 抽象了底层的会话跟踪机制 自动处理会话的创建、过期和失效 缺点\n依赖于服务器的会话管理实现 可能需要额外配置以实现会话持久化和集群 示例\n// 创建或检索会话 HttpSession session = request.getSession(); // 在会话中存储属性 session.setAttribute(\"username\", \"JohnDoe\"); // 从会话中检索属性 String username = (String) session.getAttribute(\"username\"); // 使会话失效 session.invalidate(); 在多数情况下，使用HttpSession是最方便和有效的方法，因为它抽象了底层的会话跟踪机制，并提供了一个简单的API来管理会话数据。\n为什么request.getSession()能拿到session？\nHttpSession抽象了底层的会话跟踪技术，实际上请求的sessionid还是通过cookie或url，从客户端发给服务器的，比如cookie，服务器响应（第一次请求时创建会话）：\nHTTP/1.1 200 OK Set-Cookie: JSESSIONID=1234567890ABCDEF1234567890ABCDEF; Path=/; HttpOnly Content-Type: text/html 客户端请求（后续请求中包含sessionid）：\nGET /myapp/urlRewriting HTTP/1.1 Host: example.com Cookie: JSESSIONID=1234567890ABCDEF1234567890ABCDEF HttpSession是一个封装好的接口，提供了一组方法，简化了Session管理。\n参考资料：\nhttps://www.javatpoint.com/session-tracking-in-servlets\nChatGPT\n",
+  "wordCount" : "214",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-07T00:00:00Z",
+  "dateModified": "2026-01-07T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000007-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servletsession/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      JavaWeb开发基础ServletSession
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-07T00:00:00+00:00'>2026-01-07</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>214 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/javaweb%E5%BC%80%E5%8F%91/'>#JavaWeb开发</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="session是什么">Session是什么<a hidden class="anchor" aria-hidden="true" href="#session是什么">#</a></h1>
+<p>在Web应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于HTTP协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session通过在服务器端存储用户状态信息，并在客户端使用一个唯一的Session ID来标识用户，从而实现状态保持。</p>
+<p>Session工作原理如下：</p>
+<ol>
+<li>创建Session：当用户第一次访问Web应用程序时，服务器创建一个新的Session，并生成一个唯一的Session ID</li>
+<li>发送Session ID：服务器将Session ID发送给客户端，通常通过HTTP响应头中的Set-Cookie字段</li>
+<li>存储Session ID：客户端浏览器将Session ID存储在Cookie中，并在后续请求中将其发送回服务器</li>
+<li>识别Session：服务器通过接收到的Session ID识别用户的会话，并从服务器端存储中获取相应的Session数据</li>
+</ol>
+<h1 id="四种主要技术">四种主要技术<a hidden class="anchor" aria-hidden="true" href="#四种主要技术">#</a></h1>
+<ol>
+<li>Cookies</li>
+<li>Hidden Form Field</li>
+<li>URL Rewriting</li>
+<li>HttpSession</li>
+</ol>
+<h2 id="1-cookiescookie">1. Cookies（Cookie）<a hidden class="anchor" aria-hidden="true" href="#1-cookiescookie">#</a></h2>
+<p>Cookie是存储在客户端浏览器中的小数据片段。它们会随着每个HTTP请求一起发送到服务器，可以用来存储会话标识符。</p>
+<p><strong>工作原理</strong></p>
+<ul>
+<li>当用户第一次访问网站时，服务器生成一个唯一的会话ID，并将其作为Cookie发送到客户端浏览器</li>
+<li>浏览器存储这个Cookie，并在后续请求中将其发送回服务器</li>
+<li>服务器使用Cookie中的会话ID来检索用户的会话数据</li>
+</ul>
+<p><img loading="lazy" src="../assets/3e75a2f1a0ff4b6a8c74edfe28560fc8.png"></p>
+<p><strong>优点</strong></p>
+<ul>
+<li>对用户透明</li>
+<li>由浏览器自动管理</li>
+<li>可以存储少量数据</li>
+</ul>
+<p><strong>缺点</strong></p>
+<ul>
+<li>用户可以在浏览器中禁用Cookie</li>
+<li>存储容量有限（通常每个Cookie大约4KB）</li>
+<li>如果处理不当，可能存在安全问题（例如Cookie盗窃）</li>
+</ul>
+<p><strong>示例</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.Cookie</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// 在Servlet中设置Cookie</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Cookie<span style="color:#fff"> </span>sessionCookie<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Cookie<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;JSESSIONID&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>session<span style="color:#1f2328">.</span><span style="color:#1f2328">getId</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>sessionCookie<span style="color:#1f2328">.</span><span style="color:#1f2328">setMaxAge</span><span style="color:#1f2328">(</span>30<span style="color:#fff"> </span><span style="color:#0550ae">*</span><span style="color:#fff"> </span>60<span style="color:#1f2328">);</span><span style="color:#fff"> </span><span style="color:#57606a">// 30分钟</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>response<span style="color:#1f2328">.</span><span style="color:#1f2328">addCookie</span><span style="color:#1f2328">(</span>sessionCookie<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// 在Servlet中检索Cookie</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Cookie<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>cookies<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">.</span><span style="color:#1f2328">getCookies</span><span style="color:#1f2328">();</span><span style="color:#fff">  </span><span style="color:#57606a">// 从请求获取Cookie</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>cookies<span style="color:#fff"> </span><span style="color:#0550ae">!=</span><span style="color:#fff"> </span><span style="color:#cf222e">null</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Cookie<span style="color:#fff"> </span>cookie<span style="color:#fff"> </span><span style="color:#1f2328">:</span><span style="color:#fff"> </span>cookies<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;JSESSIONID&#34;</span><span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span>cookie<span style="color:#1f2328">.</span><span style="color:#1f2328">getName</span><span style="color:#1f2328">()))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>String<span style="color:#fff"> </span>sessionId<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>cookie<span style="color:#1f2328">.</span><span style="color:#1f2328">getValue</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#57606a">// 使用会话ID检索会话数据</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Cookie有两种类型：</p>
+<ul>
+<li>
+<p>非持久性Cookie（Non-persistent cookie），也称为会话Cookie（Session cookie），仅在浏览器会话期间有效。当用户关闭浏览器时，这些Cookie会被自动删除。适用于需要在用户会话期间保持状态的信息，如购物车内容、临时会话ID等。</p>
+</li>
+<li>
+<p>持久性Cookie（Persistent cookie），在浏览器会话结束后仍然有效，直到达到指定的过期时间或被用户手动删除。它们存储在客户端的硬盘上。适用于需要在多个会话之间保持状态的信息，如记住用户登录状态、用户偏好设置等。</p>
+</li>
+</ul>
+<h2 id="2-隐藏表单字段hidden-form-field">2. 隐藏表单字段（Hidden Form Field）<a hidden class="anchor" aria-hidden="true" href="#2-隐藏表单字段hidden-form-field">#</a></h2>
+<p>隐藏表单字段用于在HTML表单中存储会话数据。当表单提交时，这些数据会发送到服务器。</p>
+<p><strong>工作原理</strong></p>
+<ul>
+<li>服务器生成一个唯一的会话ID，并将其作为隐藏字段包含在HTML表单中</li>
+<li>当用户提交表单时，隐藏字段会随表单数据一起发送到服务器</li>
+<li>服务器从隐藏字段中检索会话ID，并使用它来访问用户的会话数据</li>
+</ul>
+<p><strong>优点</strong></p>
+<ul>
+<li>实现简单</li>
+<li>不依赖于浏览器设置（例如Cookie）</li>
+</ul>
+<p><strong>缺点</strong></p>
+<ul>
+<li>仅适用于表单提交</li>
+<li>需要修改所有表单以包含隐藏字段</li>
+<li>不适用于跨多个页面跟踪会话（没有表单的页面）</li>
+</ul>
+<p><strong>示例</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#1f2328">&lt;</span><span style="color:#0550ae">form</span> <span style="color:#1f2328">action</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;submitForm&#34;</span> <span style="color:#1f2328">method</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">&lt;</span><span style="color:#0550ae">input</span> <span style="color:#1f2328">type</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;hidden&#34;</span> <span style="color:#1f2328">name</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;sessionId&#34;</span> <span style="color:#1f2328">value</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;&lt;%= session.getId() %&gt;&#34;</span><span style="color:#1f2328">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a">&lt;!-- 其他表单字段 --&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">&lt;</span><span style="color:#0550ae">input</span> <span style="color:#1f2328">type</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;submit&#34;</span> <span style="color:#1f2328">value</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;提交&#34;</span><span style="color:#1f2328">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">&lt;/</span><span style="color:#0550ae">form</span><span style="color:#1f2328">&gt;</span>
+</span></span></code></pre></div><h2 id="3-url重写url-rewriting">3. URL重写（URL Rewriting）<a hidden class="anchor" aria-hidden="true" href="#3-url重写url-rewriting">#</a></h2>
+<p>URL重写涉及将会话ID附加到每个请求的URL中。这种技术确保会话ID随每个请求一起发送到服务器。</p>
+<p><strong>工作原理</strong></p>
+<ul>
+<li>服务器生成一个唯一的会话ID，并将其作为查询参数附加到URL中</li>
+<li>会话ID包含在服务器生成的所有后续URL中</li>
+<li>服务器从URL中检索会话ID，并使用它来访问用户的会话数据</li>
+</ul>
+<p><strong>优点</strong></p>
+<ul>
+<li>即使禁用Cookie也能工作</li>
+<li>可以跨多个页面跟踪会话</li>
+</ul>
+<p><strong>缺点</strong></p>
+<ul>
+<li>URL变得更长且不易读</li>
+<li>需要修改所有URL以包含会话ID</li>
+<li>如果会话ID暴露在URL中，可能存在安全风险</li>
+</ul>
+<p><strong>示例</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#57606a">// 生成带有会话ID的URL</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// http://localhost:8080/myapp/nextPage.jsp;jsessionid=1234567890ABCDEF1234567890ABCDEF</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#fff"> </span>url<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>response<span style="color:#1f2328">.</span><span style="color:#1f2328">encodeURL</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;nextPage.jsp&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// 从URL中检索会话ID</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#fff"> </span>sessionId<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">.</span><span style="color:#1f2328">getParameter</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;jsessionid&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="4-httpsession">4. HttpSession<a hidden class="anchor" aria-hidden="true" href="#4-httpsession">#</a></h2>
+<p>HttpSession接口提供了一种内置的会话跟踪机制。它抽象了底层的会话跟踪技术（例如Cookie、URL重写），并提供了一个简单的API来管理会话数据。</p>
+<p><strong>工作原理</strong></p>
+<ul>
+<li>服务器为每个用户会话创建一个HttpSession对象</li>
+<li>会话ID由服务器管理，可以存储在Cookie或URL中</li>
+<li>HttpSession对象提供了存储和检索会话属性的方法</li>
+</ul>
+<p><img loading="lazy" src="../assets/71a4511c3d764f74bc0d73b8bc563d84.png"></p>
+<p><strong>优点</strong></p>
+<ul>
+<li>简单且方便的API</li>
+<li>抽象了底层的会话跟踪机制</li>
+<li>自动处理会话的创建、过期和失效</li>
+</ul>
+<p><strong>缺点</strong></p>
+<ul>
+<li>依赖于服务器的会话管理实现</li>
+<li>可能需要额外配置以实现会话持久化和集群</li>
+</ul>
+<p><strong>示例</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#57606a">// 创建或检索会话</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>HttpSession<span style="color:#fff"> </span>session<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">.</span><span style="color:#1f2328">getSession</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// 在会话中存储属性</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>session<span style="color:#1f2328">.</span><span style="color:#1f2328">setAttribute</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;JohnDoe&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// 从会话中检索属性</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#fff"> </span>username<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>String<span style="color:#1f2328">)</span><span style="color:#fff"> </span>session<span style="color:#1f2328">.</span><span style="color:#1f2328">getAttribute</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// 使会话失效</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>session<span style="color:#1f2328">.</span><span style="color:#1f2328">invalidate</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>在多数情况下，使用HttpSession是最方便和有效的方法，因为它抽象了底层的会话跟踪机制，并提供了一个简单的API来管理会话数据。</p>
+<p>为什么request.getSession()能拿到session？</p>
+<p>HttpSession抽象了底层的会话跟踪技术，实际上请求的sessionid还是通过cookie或url，从客户端发给服务器的，比如cookie，服务器响应（第一次请求时创建会话）：</p>
+<pre tabindex="0"><code>HTTP/1.1 200 OK
+Set-Cookie: JSESSIONID=1234567890ABCDEF1234567890ABCDEF; Path=/; HttpOnly
+Content-Type: text/html
+</code></pre><p>客户端请求（后续请求中包含sessionid）：</p>
+<pre tabindex="0"><code>GET /myapp/urlRewriting HTTP/1.1
+Host: example.com
+Cookie: JSESSIONID=1234567890ABCDEF1234567890ABCDEF
+</code></pre><p><img loading="lazy" src="../assets/66907231914b43a38875d7c63d7aedb0.png"></p>
+<p>HttpSession是一个封装好的接口，提供了一组方法，简化了Session管理。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.javatpoint.com/session-tracking-in-servlets">https://www.javatpoint.com/session-tracking-in-servlets</a></p>
+<p>ChatGPT</p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/javaweb%E5%BC%80%E5%8F%91/">JavaWeb开发</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/flask/000007-flaskflask%E9%A1%B9%E7%9B%AE%E5%8F%91%E5%B8%83%E6%B5%81%E7%A8%8B/">
+    <span class="title">« 上一页</span>
+    <span>Flask项目发布流程</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000007-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B04%E7%B1%BB%E5%92%8C%E5%AF%B9%E8%B1%A1/">
+    <span class="title">下一页 »</span>
+    <span>Java官方笔记4类和对象</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#session是什么">Session是什么</a></li>
+    <li><a href="#四种主要技术">四种主要技术</a>
+      <ul>
+        <li><a href="#1-cookiescookie">1. Cookies（Cookie）</a></li>
+        <li><a href="#2-隐藏表单字段hidden-form-field">2. 隐藏表单字段（Hidden Form Field）</a></li>
+        <li><a href="#3-url重写url-rewriting">3. URL重写（URL Rewriting）</a></li>
+        <li><a href="#4-httpsession">4. HttpSession</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

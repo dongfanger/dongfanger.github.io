@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>AI工具 | 测试开发刚哥</title>
+<meta name="keywords" content="AI开发, AI白皮书">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+5.1 AI工具简介
+5.1.1 Function Calling
+
+
+Function Calling需要编写代码，并且存在规格碎片化、可靠性挑战、工程治理缺位、厂商锁定与迁移成本高等问题。
+5.1.2 MCP
+MCP，Model Context Protocol，模型上下文协议，是一个开放标准，帮助连接AI助手与数据所在的系统，包括内容存储库、业务工具和开发环境。
+MCP可以看作是AI应用程序的“USB-C端口”，就像USB-C为连接设备与各种外设提供了标准化方式，MCP为AI模型连接不同数据源和工具提供了标准化方法。
+
+MCP把工具（Tools）、资源（Resources/用于检索与长上下文读写）、提示（Prompts）、会话（Sessions）、取样/推理（Sampling）等能力统一纳入协议语义，并标准化“枚举-描述-请求-响应-权限-审计”的全链路。传输层上，MCP不限定具体载体，既可以通过HTTP/WebSocket，也可以通过stdio等方式交换消息。
+5.1.3 MCP就足够了吗
+无论是RAG、Function Call还是MCP，其实都是为了让模型获取更多知识，调用更多工具来完成更复杂的事情。MCP并不是万能的，短期内存在不确定性与不同声音，国内是否成为事实标准亦未定。以MCP为协议底座，叠加AI工具接入的最佳实践与企业级安全治理，才能把“可接入”变成“可规模、可移植、可审计”的Agent能力。
+5.2 AI工具标准化
+5.2.1 MCP协议介绍
+MCP协议遵循客户端-服务器（Client-Server）架构，允许AI应用程序通过MCP客户端与多个MCP服务器建立连接。MCP架构包含以下几个部分：
+
+
+MCP Host：协调和管理一个或多个MCP客户端的AI应用程序，如Claude Desktop、Visual Studio Code等，需要通过MCP协议访问数据。
+
+
+MCP Client：MCP客户端，运行在MCP Host内部，负责与MCP Server建立并维护连接。MCP Host会为每一个MCP Server单独创建一个Client，Client与Server保持一对一连接。
+
+
+MCP Server：MCP服务器，轻量级程序，通过MCP协议公开特定功能。MCP协议规定了MCP Server可为Client提供工具、资源文件以及提示词模板。
+
+
+
+MCP协议采用JSON-RPC 2.0作为通信规范，所有消息均使用JSON格式进行序列化。消息类型包括：Request、Result、Error、Notification。示例如下：
+请求：
+
+响应：
+
+AI应用程序与MCP Server交互的整体流程如下：
+
+5.2.2 MCP的核心优势
+
+
+标准化模型与工具的连接方式
+
+
+灵活的资源调度方式
+
+
+支持双向、异步通信
+
+
+支持能力共享
+
+
+构建方式便捷
+
+
+5.2.3 MCP面临的挑战
+
+
+安全问题
+
+
+大规模应用问题
+
+
+集中管理问题
+
+
+5.2.4 可行的解决方案
+1、AI网关解决MCP安全问题
+
+下一章将详细介绍AI网关。
+2、工具优选和语义检索提升批量MCP的调用质量、降低调用耗时
+
+
+工具优选：当模型请求在经过网关调用LLM时，携带含有大量工具的tool_calls数组时，网关侧基于Qwen3 Embedding和Qwen3 Reranker的方案，提供工具的精选能力，将tool_calls的数量压缩至目标数量，以提升模型响应速度与工具选择精确性。
+
+
+语义检索：基于Higress网关的WASM插件机制，通过创建一个“All-in-One”的MCP Server，将用户在网关实例中注册的所有MCP工具进行统一聚合和管理，并提供智能的语义化检索能力。
+
+">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005005-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E5%B7%A5%E5%85%B7/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005005-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E5%B7%A5%E5%85%B7/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005005-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E5%B7%A5%E5%85%B7/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="AI工具">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+5.1 AI工具简介 5.1.1 Function Calling Function Calling需要编写代码，并且存在规格碎片化、可靠性挑战、工程治理缺位、厂商锁定与迁移成本高等问题。
+5.1.2 MCP MCP，Model Context Protocol，模型上下文协议，是一个开放标准，帮助连接AI助手与数据所在的系统，包括内容存储库、业务工具和开发环境。
+MCP可以看作是AI应用程序的“USB-C端口”，就像USB-C为连接设备与各种外设提供了标准化方式，MCP为AI模型连接不同数据源和工具提供了标准化方法。
+MCP把工具（Tools）、资源（Resources/用于检索与长上下文读写）、提示（Prompts）、会话（Sessions）、取样/推理（Sampling）等能力统一纳入协议语义，并标准化“枚举-描述-请求-响应-权限-审计”的全链路。传输层上，MCP不限定具体载体，既可以通过HTTP/WebSocket，也可以通过stdio等方式交换消息。
+5.1.3 MCP就足够了吗 无论是RAG、Function Call还是MCP，其实都是为了让模型获取更多知识，调用更多工具来完成更复杂的事情。MCP并不是万能的，短期内存在不确定性与不同声音，国内是否成为事实标准亦未定。以MCP为协议底座，叠加AI工具接入的最佳实践与企业级安全治理，才能把“可接入”变成“可规模、可移植、可审计”的Agent能力。
+5.2 AI工具标准化 5.2.1 MCP协议介绍 MCP协议遵循客户端-服务器（Client-Server）架构，允许AI应用程序通过MCP客户端与多个MCP服务器建立连接。MCP架构包含以下几个部分：
+MCP Host：协调和管理一个或多个MCP客户端的AI应用程序，如Claude Desktop、Visual Studio Code等，需要通过MCP协议访问数据。
+MCP Client：MCP客户端，运行在MCP Host内部，负责与MCP Server建立并维护连接。MCP Host会为每一个MCP Server单独创建一个Client，Client与Server保持一对一连接。
+MCP Server：MCP服务器，轻量级程序，通过MCP协议公开特定功能。MCP协议规定了MCP Server可为Client提供工具、资源文件以及提示词模板。
+MCP协议采用JSON-RPC 2.0作为通信规范，所有消息均使用JSON格式进行序列化。消息类型包括：Request、Result、Error、Notification。示例如下：
+请求：
+响应：
+AI应用程序与MCP Server交互的整体流程如下：
+5.2.2 MCP的核心优势 标准化模型与工具的连接方式
+灵活的资源调度方式
+支持双向、异步通信
+支持能力共享
+构建方式便捷
+5.2.3 MCP面临的挑战 安全问题
+大规模应用问题
+集中管理问题
+5.2.4 可行的解决方案 1、AI网关解决MCP安全问题
+下一章将详细介绍AI网关。
+2、工具优选和语义检索提升批量MCP的调用质量、降低调用耗时
+工具优选：当模型请求在经过网关调用LLM时，携带含有大量工具的tool_calls数组时，网关侧基于Qwen3 Embedding和Qwen3 Reranker的方案，提供工具的精选能力，将tool_calls的数量压缩至目标数量，以提升模型响应速度与工具选择精确性。
+语义检索：基于Higress网关的WASM插件机制，通过创建一个“All-in-One”的MCP Server，将用户在网关实例中注册的所有MCP工具进行统一聚合和管理，并提供智能的语义化检索能力。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-09T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-09T00:00:00+00:00">
+    <meta property="article:tag" content="AI开发">
+    <meta property="article:tag" content="AI白皮书">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AI工具">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+5.1 AI工具简介 5.1.1 Function Calling Function Calling需要编写代码，并且存在规格碎片化、可靠性挑战、工程治理缺位、厂商锁定与迁移成本高等问题。
+5.1.2 MCP MCP，Model Context Protocol，模型上下文协议，是一个开放标准，帮助连接AI助手与数据所在的系统，包括内容存储库、业务工具和开发环境。
+MCP可以看作是AI应用程序的“USB-C端口”，就像USB-C为连接设备与各种外设提供了标准化方式，MCP为AI模型连接不同数据源和工具提供了标准化方法。
+MCP把工具（Tools）、资源（Resources/用于检索与长上下文读写）、提示（Prompts）、会话（Sessions）、取样/推理（Sampling）等能力统一纳入协议语义，并标准化“枚举-描述-请求-响应-权限-审计”的全链路。传输层上，MCP不限定具体载体，既可以通过HTTP/WebSocket，也可以通过stdio等方式交换消息。
+5.1.3 MCP就足够了吗 无论是RAG、Function Call还是MCP，其实都是为了让模型获取更多知识，调用更多工具来完成更复杂的事情。MCP并不是万能的，短期内存在不确定性与不同声音，国内是否成为事实标准亦未定。以MCP为协议底座，叠加AI工具接入的最佳实践与企业级安全治理，才能把“可接入”变成“可规模、可移植、可审计”的Agent能力。
+5.2 AI工具标准化 5.2.1 MCP协议介绍 MCP协议遵循客户端-服务器（Client-Server）架构，允许AI应用程序通过MCP客户端与多个MCP服务器建立连接。MCP架构包含以下几个部分：
+MCP Host：协调和管理一个或多个MCP客户端的AI应用程序，如Claude Desktop、Visual Studio Code等，需要通过MCP协议访问数据。
+MCP Client：MCP客户端，运行在MCP Host内部，负责与MCP Server建立并维护连接。MCP Host会为每一个MCP Server单独创建一个Client，Client与Server保持一对一连接。
+MCP Server：MCP服务器，轻量级程序，通过MCP协议公开特定功能。MCP协议规定了MCP Server可为Client提供工具、资源文件以及提示词模板。
+MCP协议采用JSON-RPC 2.0作为通信规范，所有消息均使用JSON格式进行序列化。消息类型包括：Request、Result、Error、Notification。示例如下：
+请求：
+响应：
+AI应用程序与MCP Server交互的整体流程如下：
+5.2.2 MCP的核心优势 标准化模型与工具的连接方式
+灵活的资源调度方式
+支持双向、异步通信
+支持能力共享
+构建方式便捷
+5.2.3 MCP面临的挑战 安全问题
+大规模应用问题
+集中管理问题
+5.2.4 可行的解决方案 1、AI网关解决MCP安全问题
+下一章将详细介绍AI网关。
+2、工具优选和语义检索提升批量MCP的调用质量、降低调用耗时
+工具优选：当模型请求在经过网关调用LLM时，携带含有大量工具的tool_calls数组时，网关侧基于Qwen3 Embedding和Qwen3 Reranker的方案，提供工具的精选能力，将tool_calls的数量压缩至目标数量，以提升模型响应速度与工具选择精确性。
+语义检索：基于Higress网关的WASM插件机制，通过创建一个“All-in-One”的MCP Server，将用户在网关实例中注册的所有MCP工具进行统一聚合和管理，并提供智能的语义化检索能力。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "AI工具",
+      "item": "https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005005-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E5%B7%A5%E5%85%B7/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI工具",
+  "name": "AI工具",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n5.1 AI工具简介 5.1.1 Function Calling Function Calling需要编写代码，并且存在规格碎片化、可靠性挑战、工程治理缺位、厂商锁定与迁移成本高等问题。\n5.1.2 MCP MCP，Model Context Protocol，模型上下文协议，是一个开放标准，帮助连接AI助手与数据所在的系统，包括内容存储库、业务工具和开发环境。\nMCP可以看作是AI应用程序的“USB-C端口”，就像USB-C为连接设备与各种外设提供了标准化方式，MCP为AI模型连接不同数据源和工具提供了标准化方法。\nMCP把工具（Tools）、资源（Resources/用于检索与长上下文读写）、提示（Prompts）、会话（Sessions）、取样/推理（Sampling）等能力统一纳入协议语义，并标准化“枚举-描述-请求-响应-权限-审计”的全链路。传输层上，MCP不限定具体载体，既可以通过HTTP/WebSocket，也可以通过stdio等方式交换消息。\n5.1.3 MCP就足够了吗 无论是RAG、Function Call还是MCP，其实都是为了让模型获取更多知识，调用更多工具来完成更复杂的事情。MCP并不是万能的，短期内存在不确定性与不同声音，国内是否成为事实标准亦未定。以MCP为协议底座，叠加AI工具接入的最佳实践与企业级安全治理，才能把“可接入”变成“可规模、可移植、可审计”的Agent能力。\n5.2 AI工具标准化 5.2.1 MCP协议介绍 MCP协议遵循客户端-服务器（Client-Server）架构，允许AI应用程序通过MCP客户端与多个MCP服务器建立连接。MCP架构包含以下几个部分：\nMCP Host：协调和管理一个或多个MCP客户端的AI应用程序，如Claude Desktop、Visual Studio Code等，需要通过MCP协议访问数据。\nMCP Client：MCP客户端，运行在MCP Host内部，负责与MCP Server建立并维护连接。MCP Host会为每一个MCP Server单独创建一个Client，Client与Server保持一对一连接。\nMCP Server：MCP服务器，轻量级程序，通过MCP协议公开特定功能。MCP协议规定了MCP Server可为Client提供工具、资源文件以及提示词模板。\nMCP协议采用JSON-RPC 2.0作为通信规范，所有消息均使用JSON格式进行序列化。消息类型包括：Request、Result、Error、Notification。示例如下：\n请求：\n响应：\nAI应用程序与MCP Server交互的整体流程如下：\n5.2.2 MCP的核心优势 标准化模型与工具的连接方式\n灵活的资源调度方式\n支持双向、异步通信\n支持能力共享\n构建方式便捷\n5.2.3 MCP面临的挑战 安全问题\n大规模应用问题\n集中管理问题\n5.2.4 可行的解决方案 1、AI网关解决MCP安全问题\n下一章将详细介绍AI网关。\n2、工具优选和语义检索提升批量MCP的调用质量、降低调用耗时\n工具优选：当模型请求在经过网关调用LLM时，携带含有大量工具的tool_calls数组时，网关侧基于Qwen3 Embedding和Qwen3 Reranker的方案，提供工具的精选能力，将tool_calls的数量压缩至目标数量，以提升模型响应速度与工具选择精确性。\n语义检索：基于Higress网关的WASM插件机制，通过创建一个“All-in-One”的MCP Server，将用户在网关实例中注册的所有MCP工具进行统一聚合和管理，并提供智能的语义化检索能力。\n",
+  "keywords": [
+    "AI开发", "AI白皮书"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n5.1 AI工具简介 5.1.1 Function Calling Function Calling需要编写代码，并且存在规格碎片化、可靠性挑战、工程治理缺位、厂商锁定与迁移成本高等问题。\n5.1.2 MCP MCP，Model Context Protocol，模型上下文协议，是一个开放标准，帮助连接AI助手与数据所在的系统，包括内容存储库、业务工具和开发环境。\nMCP可以看作是AI应用程序的“USB-C端口”，就像USB-C为连接设备与各种外设提供了标准化方式，MCP为AI模型连接不同数据源和工具提供了标准化方法。\nMCP把工具（Tools）、资源（Resources/用于检索与长上下文读写）、提示（Prompts）、会话（Sessions）、取样/推理（Sampling）等能力统一纳入协议语义，并标准化“枚举-描述-请求-响应-权限-审计”的全链路。传输层上，MCP不限定具体载体，既可以通过HTTP/WebSocket，也可以通过stdio等方式交换消息。\n5.1.3 MCP就足够了吗 无论是RAG、Function Call还是MCP，其实都是为了让模型获取更多知识，调用更多工具来完成更复杂的事情。MCP并不是万能的，短期内存在不确定性与不同声音，国内是否成为事实标准亦未定。以MCP为协议底座，叠加AI工具接入的最佳实践与企业级安全治理，才能把“可接入”变成“可规模、可移植、可审计”的Agent能力。\n5.2 AI工具标准化 5.2.1 MCP协议介绍 MCP协议遵循客户端-服务器（Client-Server）架构，允许AI应用程序通过MCP客户端与多个MCP服务器建立连接。MCP架构包含以下几个部分：\nMCP Host：协调和管理一个或多个MCP客户端的AI应用程序，如Claude Desktop、Visual Studio Code等，需要通过MCP协议访问数据。\nMCP Client：MCP客户端，运行在MCP Host内部，负责与MCP Server建立并维护连接。MCP Host会为每一个MCP Server单独创建一个Client，Client与Server保持一对一连接。\nMCP Server：MCP服务器，轻量级程序，通过MCP协议公开特定功能。MCP协议规定了MCP Server可为Client提供工具、资源文件以及提示词模板。\nMCP协议采用JSON-RPC 2.0作为通信规范，所有消息均使用JSON格式进行序列化。消息类型包括：Request、Result、Error、Notification。示例如下：\n请求：\n响应：\nAI应用程序与MCP Server交互的整体流程如下：\n5.2.2 MCP的核心优势 标准化模型与工具的连接方式\n灵活的资源调度方式\n支持双向、异步通信\n支持能力共享\n构建方式便捷\n5.2.3 MCP面临的挑战 安全问题\n大规模应用问题\n集中管理问题\n5.2.4 可行的解决方案 1、AI网关解决MCP安全问题\n下一章将详细介绍AI网关。\n2、工具优选和语义检索提升批量MCP的调用质量、降低调用耗时\n工具优选：当模型请求在经过网关调用LLM时，携带含有大量工具的tool_calls数组时，网关侧基于Qwen3 Embedding和Qwen3 Reranker的方案，提供工具的精选能力，将tool_calls的数量压缩至目标数量，以提升模型响应速度与工具选择精确性。\n语义检索：基于Higress网关的WASM插件机制，通过创建一个“All-in-One”的MCP Server，将用户在网关实例中注册的所有MCP工具进行统一聚合和管理，并提供智能的语义化检索能力。\n3、Nacos解决“MCP爆炸”问题\nMCP Registry允许用户将已有的MCP服务统一注册到Nacos上，Router则可以根据用户任务的语义描述和关键词，从MCP Registry中筛选出最匹配的MCP服务，然后将这些服务提供给模型进行决策。\n4、HiMarket解决MCP管理问题\nHiMarket是一个开箱即用的AI开放平台，可用于帮助用户实现MCP服务的集中化管理。\n5.3 MCP实践 5.3.1 构建MCP的实践 1、从零快速构建MCP Server\n框架：\nSpring AI MCP（Java）\nFastMCP（Python）\nMCP-Framework（TypeScript）\n更多技术选型可以参考官方文档：https://mcp-docs.cn/introduction\n代码示例：\n2、基于存量OpenAPI构建MCP Server\n构建一个中间转换层，将MCP协议的请求转换为对现有的OpenAPI的调用，并将API的响应转换为MCP协议的格式。\n目前已经有成熟的API网关和开源工具提供了自动化解决方案，以下可以参考：\n利用Higress AI网关实现零代码接入\n结合Nacos提供MCP Registry能力\n3、MCP Server优化与扩展\n数据处理优化：数据聚合与精简、数据结构转换\n性能与可靠性：缓存与异步、连接管理、可观测性\n安全与合规：身份认证与授权、日志记录、持续升级策略\n功能扩展\n5.3.2 从第一个MCP Server开始 MCP Server的开发之旅，从技术上讲并不复杂，但要构建一个真正生产可用、性能卓越、智能高效的服务器，则需要在协议理解、业务封装、性能优化和安全防护等多个维度上精益求精。\n参考资料：\nhttps://developer.aliyun.com/ebook/8479\n",
+  "wordCount" : "107",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-09T00:00:00Z",
+  "dateModified": "2026-01-09T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005005-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E5%B7%A5%E5%85%B7/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      AI工具
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>107 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/ai%E6%8A%80%E6%9C%AF/'>AI技术</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/ai%E5%BC%80%E5%8F%91/'>#AI开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/'>#AI白皮书</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="51-ai工具简介">5.1 AI工具简介<a hidden class="anchor" aria-hidden="true" href="#51-ai工具简介">#</a></h1>
+<h2 id="511-function-calling">5.1.1 Function Calling<a hidden class="anchor" aria-hidden="true" href="#511-function-calling">#</a></h2>
+<p><img loading="lazy" src="../assets/95cc2317230e4760a9adb9435283c508.png"></p>
+<p><img loading="lazy" src="../assets/ee6df274f39347e1992064268a75e991.png"></p>
+<p>Function Calling需要编写代码，并且存在规格碎片化、可靠性挑战、工程治理缺位、厂商锁定与迁移成本高等问题。</p>
+<h2 id="512-mcp">5.1.2 MCP<a hidden class="anchor" aria-hidden="true" href="#512-mcp">#</a></h2>
+<p>MCP，Model Context Protocol，模型上下文协议，是一个开放标准，帮助连接AI助手与数据所在的系统，包括内容存储库、业务工具和开发环境。</p>
+<p>MCP可以看作是AI应用程序的“USB-C端口”，就像USB-C为连接设备与各种外设提供了标准化方式，MCP为AI模型连接不同数据源和工具提供了标准化方法。</p>
+<p><img loading="lazy" src="../assets/037d99bd2bdd48669370af85c3568941.png"></p>
+<p>MCP把工具（Tools）、资源（Resources/用于检索与长上下文读写）、提示（Prompts）、会话（Sessions）、取样/推理（Sampling）等能力统一纳入协议语义，并标准化“枚举-描述-请求-响应-权限-审计”的全链路。传输层上，MCP不限定具体载体，既可以通过HTTP/WebSocket，也可以通过stdio等方式交换消息。</p>
+<h2 id="513-mcp就足够了吗">5.1.3 MCP就足够了吗<a hidden class="anchor" aria-hidden="true" href="#513-mcp就足够了吗">#</a></h2>
+<p>无论是RAG、Function Call还是MCP，其实都是为了让模型获取更多知识，调用更多工具来完成更复杂的事情。MCP并不是万能的，短期内存在不确定性与不同声音，国内是否成为事实标准亦未定。以MCP为协议底座，叠加AI工具接入的最佳实践与企业级安全治理，才能把“可接入”变成“可规模、可移植、可审计”的Agent能力。</p>
+<h1 id="52-ai工具标准化">5.2 AI工具标准化<a hidden class="anchor" aria-hidden="true" href="#52-ai工具标准化">#</a></h1>
+<h2 id="521-mcp协议介绍">5.2.1 MCP协议介绍<a hidden class="anchor" aria-hidden="true" href="#521-mcp协议介绍">#</a></h2>
+<p>MCP协议遵循客户端-服务器（Client-Server）架构，允许AI应用程序通过MCP客户端与多个MCP服务器建立连接。MCP架构包含以下几个部分：</p>
+<ul>
+<li>
+<p>MCP Host：协调和管理一个或多个MCP客户端的AI应用程序，如Claude Desktop、Visual Studio Code等，需要通过MCP协议访问数据。</p>
+</li>
+<li>
+<p>MCP Client：MCP客户端，运行在MCP Host内部，负责与MCP Server建立并维护连接。MCP Host会为每一个MCP Server单独创建一个Client，Client与Server保持一对一连接。</p>
+</li>
+<li>
+<p>MCP Server：MCP服务器，轻量级程序，通过MCP协议公开特定功能。MCP协议规定了MCP Server可为Client提供工具、资源文件以及提示词模板。</p>
+</li>
+</ul>
+<p><img loading="lazy" src="../assets/39989b3e403744a0b0290c1e38e72e11.png"></p>
+<p>MCP协议采用JSON-RPC 2.0作为通信规范，所有消息均使用JSON格式进行序列化。消息类型包括：Request、Result、Error、Notification。示例如下：</p>
+<p>请求：</p>
+<p><img loading="lazy" src="../assets/991306dcc55744aebde7b9ccac15ff2e.png"></p>
+<p>响应：</p>
+<p><img loading="lazy" src="../assets/425df5c698d441489eeefb3caa30011e.png"></p>
+<p>AI应用程序与MCP Server交互的整体流程如下：</p>
+<p><img loading="lazy" src="../assets/a2eaeb531e6246718d2f701cfa94736b.png"></p>
+<h2 id="522-mcp的核心优势">5.2.2 MCP的核心优势<a hidden class="anchor" aria-hidden="true" href="#522-mcp的核心优势">#</a></h2>
+<ul>
+<li>
+<p>标准化模型与工具的连接方式</p>
+</li>
+<li>
+<p>灵活的资源调度方式</p>
+</li>
+<li>
+<p>支持双向、异步通信</p>
+</li>
+<li>
+<p>支持能力共享</p>
+</li>
+<li>
+<p>构建方式便捷</p>
+</li>
+</ul>
+<h2 id="523-mcp面临的挑战">5.2.3 MCP面临的挑战<a hidden class="anchor" aria-hidden="true" href="#523-mcp面临的挑战">#</a></h2>
+<ul>
+<li>
+<p>安全问题</p>
+</li>
+<li>
+<p>大规模应用问题</p>
+</li>
+<li>
+<p>集中管理问题</p>
+</li>
+</ul>
+<h2 id="524-可行的解决方案">5.2.4 可行的解决方案<a hidden class="anchor" aria-hidden="true" href="#524-可行的解决方案">#</a></h2>
+<p><strong>1、AI网关解决MCP安全问题</strong></p>
+<p><img loading="lazy" src="../assets/ffedcbf1a0044fd5aac0a9228f77175c.png"></p>
+<p>下一章将详细介绍AI网关。</p>
+<p><strong>2、工具优选和语义检索提升批量MCP的调用质量、降低调用耗时</strong></p>
+<ul>
+<li>
+<p>工具优选：当模型请求在经过网关调用LLM时，携带含有大量工具的tool_calls数组时，网关侧基于Qwen3 Embedding和Qwen3 Reranker的方案，提供工具的精选能力，将tool_calls的数量压缩至目标数量，以提升模型响应速度与工具选择精确性。</p>
+</li>
+<li>
+<p>语义检索：基于Higress网关的WASM插件机制，通过创建一个“All-in-One”的MCP Server，将用户在网关实例中注册的所有MCP工具进行统一聚合和管理，并提供智能的语义化检索能力。</p>
+</li>
+</ul>
+<p><strong>3、Nacos解决“MCP爆炸”问题</strong></p>
+<p><img loading="lazy" src="../assets/1e1e59272dee40e397d9793c12daa859.png"></p>
+<p>MCP Registry允许用户将已有的MCP服务统一注册到Nacos上，Router则可以根据用户任务的语义描述和关键词，从MCP Registry中筛选出最匹配的MCP服务，然后将这些服务提供给模型进行决策。</p>
+<p><strong>4、HiMarket解决MCP管理问题</strong></p>
+<p><img loading="lazy" src="../assets/0a3104a8369e4e268f5f594754fb9669.png"></p>
+<p>HiMarket是一个开箱即用的AI开放平台，可用于帮助用户实现MCP服务的集中化管理。</p>
+<h1 id="53-mcp实践">5.3 MCP实践<a hidden class="anchor" aria-hidden="true" href="#53-mcp实践">#</a></h1>
+<h2 id="531-构建mcp的实践">5.3.1 构建MCP的实践<a hidden class="anchor" aria-hidden="true" href="#531-构建mcp的实践">#</a></h2>
+<p><strong>1、从零快速构建MCP Server</strong></p>
+<p>框架：</p>
+<ul>
+<li>
+<p>Spring AI MCP（Java）</p>
+</li>
+<li>
+<p>FastMCP（Python）</p>
+</li>
+<li>
+<p>MCP-Framework（TypeScript）</p>
+</li>
+</ul>
+<p>更多技术选型可以参考官方文档：https://mcp-docs.cn/introduction</p>
+<p>代码示例：</p>
+<p><img loading="lazy" src="../assets/40fbc32645144432bdfddd7f3485a0e2.png"></p>
+<p><img loading="lazy" src="../assets/b7aa4111dd7745768c1dd3459de1d0c3.png"></p>
+<p><strong>2、基于存量OpenAPI构建MCP Server</strong></p>
+<p>构建一个中间转换层，将MCP协议的请求转换为对现有的OpenAPI的调用，并将API的响应转换为MCP协议的格式。</p>
+<p>目前已经有成熟的API网关和开源工具提供了自动化解决方案，以下可以参考：</p>
+<ul>
+<li>
+<p>利用Higress AI网关实现零代码接入</p>
+</li>
+<li>
+<p>结合Nacos提供MCP Registry能力</p>
+</li>
+</ul>
+<p><img loading="lazy" src="../assets/7674fb306906418ca18819b939f84924.png"></p>
+<p><strong>3、MCP Server优化与扩展</strong></p>
+<ul>
+<li>
+<p>数据处理优化：数据聚合与精简、数据结构转换</p>
+</li>
+<li>
+<p>性能与可靠性：缓存与异步、连接管理、可观测性</p>
+</li>
+<li>
+<p>安全与合规：身份认证与授权、日志记录、持续升级策略</p>
+</li>
+<li>
+<p>功能扩展</p>
+</li>
+</ul>
+<h2 id="532-从第一个mcp-server开始">5.3.2 从第一个MCP Server开始<a hidden class="anchor" aria-hidden="true" href="#532-从第一个mcp-server开始">#</a></h2>
+<p>MCP Server的开发之旅，从技术上讲并不复杂，但要构建一个真正生产可用、性能卓越、智能高效的服务器，则需要在协议理解、业务封装、性能优化和安全防护等多个维度上精益求精。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://developer.aliyun.com/ebook/8479">https://developer.aliyun.com/ebook/8479</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/ai%E5%BC%80%E5%8F%91/">AI开发</a></li>
+      <li><a href="https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/">AI白皮书</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000010-%E6%B5%8B%E8%AF%95%E6%B5%81%E7%A8%8B%E5%88%AB%E5%86%8D%E5%B1%82%E5%B1%82%E5%8A%A0%E7%A0%81%E4%BA%86/">
+    <span class="title">« 上一页</span>
+    <span>测试流程，别再层层加码了</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000009-djangodrf%E7%B1%BB%E8%A7%86%E5%9B%BE%E8%AE%A9%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81dry%E8%B5%B7%E6%9D%A5/">
+    <span class="title">下一页 »</span>
+    <span>DRF类视图让你的代码DRY起来</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#51-ai工具简介">5.1 AI工具简介</a>
+      <ul>
+        <li><a href="#511-function-calling">5.1.1 Function Calling</a></li>
+        <li><a href="#512-mcp">5.1.2 MCP</a></li>
+        <li><a href="#513-mcp就足够了吗">5.1.3 MCP就足够了吗</a></li>
+      </ul>
+    </li>
+    <li><a href="#52-ai工具标准化">5.2 AI工具标准化</a>
+      <ul>
+        <li><a href="#521-mcp协议介绍">5.2.1 MCP协议介绍</a></li>
+        <li><a href="#522-mcp的核心优势">5.2.2 MCP的核心优势</a></li>
+        <li><a href="#523-mcp面临的挑战">5.2.3 MCP面临的挑战</a></li>
+        <li><a href="#524-可行的解决方案">5.2.4 可行的解决方案</a></li>
+      </ul>
+    </li>
+    <li><a href="#53-mcp实践">5.3 MCP实践</a>
+      <ul>
+        <li><a href="#531-构建mcp的实践">5.3.1 构建MCP的实践</a></li>
+        <li><a href="#532-从第一个mcp-server开始">5.3.2 从第一个MCP Server开始</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

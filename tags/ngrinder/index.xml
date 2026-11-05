@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>NGrinder on 测试开发刚哥</title>
+    <link>https://dongfanger.github.io/tags/ngrinder/</link>
+    <description>Recent content in NGrinder on 测试开发刚哥</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 14 Jan 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://dongfanger.github.io/tags/ngrinder/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>你的下一个压测工具可以是nGrinder</title>
+      <link>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000014-ngrinder%E4%BD%A0%E7%9A%84%E4%B8%8B%E4%B8%80%E4%B8%AA%E5%8E%8B%E6%B5%8B%E5%B7%A5%E5%85%B7%E5%8F%AF%E4%BB%A5%E6%98%AFngrinder/</link>
+      <pubDate>Wed, 14 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000014-ngrinder%E4%BD%A0%E7%9A%84%E4%B8%8B%E4%B8%80%E4%B8%AA%E5%8E%8B%E6%B5%8B%E5%B7%A5%E5%85%B7%E5%8F%AF%E4%BB%A5%E6%98%AFngrinder/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;ngrinder小众而实用&#34;&gt;nGrinder小众而实用&lt;/h1&gt;
+&lt;p&gt;nGrinder在GitHub的star有1.6k，相比于JMeter6.4k来说，要少很多。在测试资料中，关于压测工具也是以JMeter居多，几乎没有专门针对nGrinder的学习资料。nGrinder既然这么小众，那为什么还要学它呢？因为听说咱们&lt;strong&gt;公司的压测平台，底层就是用的nGrinder&lt;/strong&gt;，对于企业级应用来说，nGrinder还是很实用的，正如它的介绍：“Enterprise level performance testing solution based on The Grinder”。&lt;/p&gt;
+&lt;p&gt;nGrinder有以下特点：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/1cc334dacd5b43a18998748c60aaeccd.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;我们编写压测脚本用到的就是第一个特点提到的Groovy脚本，跟Java语法类似，可以无成本切换。&lt;/p&gt;
+&lt;h1 id=&#34;设计理念&#34;&gt;设计理念&lt;/h1&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/4a5323e837144767bf9b77159c816859.png&#34;&gt;&lt;/p&gt;
+&lt;h1 id=&#34;ngrinder架构&#34;&gt;nGrinder架构&lt;/h1&gt;
+&lt;p&gt;nGrinder系统架构如下：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/a492956cd0794cd68032605a2318fbb3.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;nGrinder的底层是Grinder，基于Grinder的console和agent，nGrinder封装成了controller和agent：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;controller 提供了Web页面创建测试脚本和配置运行策略，这是nGrinder比较突出的特色了。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;agent 虚拟用户生成器，创建压测负载。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;当用户创建test后，会先创建一个console，AgentControllerServer会根据console分配相应的agent，AgentControllerServer管理着agent pool，负责agent的创建和释放。然后console将test脚本和资源多个已分配的agent，并控制整个test flow直到测试结束。测试结束后，agent会回收至AgentControllerServer以便其他test使用，console也会回收至ConsoleManager。&lt;/p&gt;
+&lt;p&gt;nGrinder和Ginder最大的不同之处在于，nGrinder在controller中保留了多个console实例和agent。每个console都是跟其他console隔离的，能并发运行。&lt;/p&gt;
+&lt;p&gt;不像其他压测工具在测试时，会保留agent以确保用户执行test时agent是可用的，也就是“预占”agent。nGrinder只有在真正测试执行时，动态分配agent，这个方案是nGrinder最独特的架构设计。它保证了多个压测任务能并发执行，并发上限只取决于空闲的agent数量。&lt;/p&gt;
+&lt;p&gt;nGrinder3.1版本以前是单机架构的，如下图所示：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/ddc8a508a37a4721a9af652d9fc8a7b3.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;1、nGrinder使用SVNkit，即svn server，来管理脚本文件。svn仓库存放在&lt;code&gt;${NGRINDER_HOME}&lt;/code&gt;目录。&lt;/p&gt;
+&lt;p&gt;2、nGrinder使用EhCache缓存，提升DB和SVN查询性能。&lt;/p&gt;
+&lt;p&gt;3、nGrinder使用Spring Security保证安全，并使用Atlassian支持扩展。&lt;/p&gt;
+&lt;p&gt;nGrinder3.1版本之后，支持集群：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/3f38396937d14876b2ef552c3c50cb71.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;1、集群中所有console共享同样的DB和文件系统，并指向NFS共享的同一个&lt;code&gt;${NGRINDER_HOME}&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;2、每个controller有它自己的&lt;code&gt;${NGRINDER_EX_HOME}&lt;/code&gt;，存放特殊配置和日志。&lt;/p&gt;
+&lt;p&gt;3、所有controller相互复制EhCache，让某些数据在集群中都是可见的。&lt;/p&gt;
+&lt;h1 id=&#34;ngrinder技术栈&#34;&gt;nGrinder技术栈&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;Client层&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Bootstrap、Bootstrap-slider、Jquery、Jquery Validate、Datatables、Select2、JqPlot、CodeMirror。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Controller层&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;FreeMarker、Spring Security、Spring MVC、GSon、SVNKit Dav。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Service层&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The Grinder、Atlassian Plugin Framework、Spring、EhCache。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Data层&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Spring Data、H2、Cubrid、Liquibase、SVNKit。&lt;/p&gt;
+&lt;h1 id=&#34;快速入门&#34;&gt;快速入门&lt;/h1&gt;
+&lt;h2 id=&#34;安装&#34;&gt;安装&lt;/h2&gt;
+&lt;p&gt;在GitHub Release下载war包：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/naver/ngrinder/releases&#34;&gt;https://github.com/naver/ngrinder/releases&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/4549b3e0373b4d3c9a31f4a41d21cdfe.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;执行命令：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;java -jar ngrinder-controller-&lt;span style=&#34;color:#0550ae&#34;&gt;{&lt;/span&gt;version&lt;span style=&#34;color:#0550ae&#34;&gt;}&lt;/span&gt;.war
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;访问&lt;code&gt;http://localhost:8080/&lt;/code&gt;即可。&lt;/p&gt;
+&lt;p&gt;但是由于nGrinder需要占用大量内存，最好加上额外参数：&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

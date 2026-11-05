@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Java官方笔记2面向对象编程基本概念 | 测试开发刚哥</title>
+<meta name="keywords" content="Java, 官方">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+对象Object
+对象有2个特征：状态state和行为behavior。我们可以用真实世界的对象来做类比，这样有助于理解面向对象编程，比如狗的状态（名字、颜色、品种）和行为（叫、抓、摇尾巴），自行车的状态（当前档位、当前踏板节奏、当前速度）和行为（切换档位、切换踏板节奏、踩刹车）。
+软件对象也是由状态和行为组成：
+
+状态，在软件对象中，叫做字段fields，或变量variables。
+行为，在软件对象中，叫做方法methods，或函数functions。
+所谓的数据封装data encapsulation，就是字段只在内部，不对外暴露，仅由方法进行操作，对象与对象之间通过方法来相互访问。
+Java是纯粹的面向对象编程语言。
+类Class
+类，可以视为对象的模版，基于类来创造出同一类对象。
+比如自行车的类：
+class Bicycle {
+
+    int cadence = 0;
+    int speed = 0;
+    int gear = 1;
+
+    void changeCadence(int newValue) {
+         cadence = newValue;
+    }
+
+    void changeGear(int newValue) {
+         gear = newValue;
+    }
+
+    void speedUp(int increment) {
+         speed = speed &#43; increment;   
+    }
+
+    void applyBrakes(int decrement) {
+         speed = speed - decrement;
+    }
+
+    void printStates() {
+         System.out.println(&#34;cadence:&#34; &#43;
+             cadence &#43; &#34; speed:&#34; &#43; 
+             speed &#43; &#34; gear:&#34; &#43; gear);
+    }
+}
+类也是有2个特征：字段和方法。比如Bicycle类有字段cadence、speed、gear和方法changeCadence()、changeGear()、speedUp()等。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000005-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000005-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000005-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Java官方笔记2面向对象编程基本概念">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+对象Object 对象有2个特征：状态state和行为behavior。我们可以用真实世界的对象来做类比，这样有助于理解面向对象编程，比如狗的状态（名字、颜色、品种）和行为（叫、抓、摇尾巴），自行车的状态（当前档位、当前踏板节奏、当前速度）和行为（切换档位、切换踏板节奏、踩刹车）。
+软件对象也是由状态和行为组成：
+状态，在软件对象中，叫做字段fields，或变量variables。
+行为，在软件对象中，叫做方法methods，或函数functions。
+所谓的数据封装data encapsulation，就是字段只在内部，不对外暴露，仅由方法进行操作，对象与对象之间通过方法来相互访问。
+Java是纯粹的面向对象编程语言。
+类Class 类，可以视为对象的模版，基于类来创造出同一类对象。
+比如自行车的类：
+class Bicycle { int cadence = 0; int speed = 0; int gear = 1; void changeCadence(int newValue) { cadence = newValue; } void changeGear(int newValue) { gear = newValue; } void speedUp(int increment) { speed = speed &#43; increment; } void applyBrakes(int decrement) { speed = speed - decrement; } void printStates() { System.out.println(&#34;cadence:&#34; &#43; cadence &#43; &#34; speed:&#34; &#43; speed &#43; &#34; gear:&#34; &#43; gear); } } 类也是有2个特征：字段和方法。比如Bicycle类有字段cadence、speed、gear和方法changeCadence()、changeGear()、speedUp()等。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:tag" content="Java">
+    <meta property="article:tag" content="官方">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Java官方笔记2面向对象编程基本概念">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+对象Object 对象有2个特征：状态state和行为behavior。我们可以用真实世界的对象来做类比，这样有助于理解面向对象编程，比如狗的状态（名字、颜色、品种）和行为（叫、抓、摇尾巴），自行车的状态（当前档位、当前踏板节奏、当前速度）和行为（切换档位、切换踏板节奏、踩刹车）。
+软件对象也是由状态和行为组成：
+状态，在软件对象中，叫做字段fields，或变量variables。
+行为，在软件对象中，叫做方法methods，或函数functions。
+所谓的数据封装data encapsulation，就是字段只在内部，不对外暴露，仅由方法进行操作，对象与对象之间通过方法来相互访问。
+Java是纯粹的面向对象编程语言。
+类Class 类，可以视为对象的模版，基于类来创造出同一类对象。
+比如自行车的类：
+class Bicycle { int cadence = 0; int speed = 0; int gear = 1; void changeCadence(int newValue) { cadence = newValue; } void changeGear(int newValue) { gear = newValue; } void speedUp(int increment) { speed = speed &#43; increment; } void applyBrakes(int decrement) { speed = speed - decrement; } void printStates() { System.out.println(&#34;cadence:&#34; &#43; cadence &#43; &#34; speed:&#34; &#43; speed &#43; &#34; gear:&#34; &#43; gear); } } 类也是有2个特征：字段和方法。比如Bicycle类有字段cadence、speed、gear和方法changeCadence()、changeGear()、speedUp()等。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Java官方笔记2面向对象编程基本概念",
+      "item": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000005-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Java官方笔记2面向对象编程基本概念",
+  "name": "Java官方笔记2面向对象编程基本概念",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n对象Object 对象有2个特征：状态state和行为behavior。我们可以用真实世界的对象来做类比，这样有助于理解面向对象编程，比如狗的状态（名字、颜色、品种）和行为（叫、抓、摇尾巴），自行车的状态（当前档位、当前踏板节奏、当前速度）和行为（切换档位、切换踏板节奏、踩刹车）。\n软件对象也是由状态和行为组成：\n状态，在软件对象中，叫做字段fields，或变量variables。\n行为，在软件对象中，叫做方法methods，或函数functions。\n所谓的数据封装data encapsulation，就是字段只在内部，不对外暴露，仅由方法进行操作，对象与对象之间通过方法来相互访问。\nJava是纯粹的面向对象编程语言。\n类Class 类，可以视为对象的模版，基于类来创造出同一类对象。\n比如自行车的类：\nclass Bicycle { int cadence = 0; int speed = 0; int gear = 1; void changeCadence(int newValue) { cadence = newValue; } void changeGear(int newValue) { gear = newValue; } void speedUp(int increment) { speed = speed + increment; } void applyBrakes(int decrement) { speed = speed - decrement; } void printStates() { System.out.println(\u0026#34;cadence:\u0026#34; + cadence + \u0026#34; speed:\u0026#34; + speed + \u0026#34; gear:\u0026#34; + gear); } } 类也是有2个特征：字段和方法。比如Bicycle类有字段cadence、speed、gear和方法changeCadence()、changeGear()、speedUp()等。\n",
+  "keywords": [
+    "Java", "官方"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n对象Object 对象有2个特征：状态state和行为behavior。我们可以用真实世界的对象来做类比，这样有助于理解面向对象编程，比如狗的状态（名字、颜色、品种）和行为（叫、抓、摇尾巴），自行车的状态（当前档位、当前踏板节奏、当前速度）和行为（切换档位、切换踏板节奏、踩刹车）。\n软件对象也是由状态和行为组成：\n状态，在软件对象中，叫做字段fields，或变量variables。\n行为，在软件对象中，叫做方法methods，或函数functions。\n所谓的数据封装data encapsulation，就是字段只在内部，不对外暴露，仅由方法进行操作，对象与对象之间通过方法来相互访问。\nJava是纯粹的面向对象编程语言。\n类Class 类，可以视为对象的模版，基于类来创造出同一类对象。\n比如自行车的类：\nclass Bicycle { int cadence = 0; int speed = 0; int gear = 1; void changeCadence(int newValue) { cadence = newValue; } void changeGear(int newValue) { gear = newValue; } void speedUp(int increment) { speed = speed + increment; } void applyBrakes(int decrement) { speed = speed - decrement; } void printStates() { System.out.println(\"cadence:\" + cadence + \" speed:\" + speed + \" gear:\" + gear); } } 类也是有2个特征：字段和方法。比如Bicycle类有字段cadence、speed、gear和方法changeCadence()、changeGear()、speedUp()等。\n你可能会发现这个类里面没有main方法，因为Bicycle类只是定义了对象的模版，可以新建一个类来实现Bicycle类对象的创建和使用：\nclass BicycleDemo { public static void main(String[] args) { // Create two different // Bicycle objects Bicycle bike1 = new Bicycle(); Bicycle bike2 = new Bicycle(); // Invoke methods on // those objects bike1.changeCadence(50); bike1.speedUp(10); bike1.changeGear(2); bike1.printStates(); bike2.changeCadence(50); bike2.speedUp(10); bike2.changeGear(2); bike2.changeCadence(40); bike2.speedUp(10); bike2.changeGear(3); bike2.printStates(); } } 运行输出：\ncadence:50 speed:10 gear:2 cadence:40 speed:20 gear:3 继承Inheritance 自行车有很多种，自行车的共同点可以用父类来表示，自行车的不同点可以用子类继承父类，然后添加自己的差异点：\n图中的Bicycle是父类，MountainBike、RoadBike和TandemBike是子类。父类的字段和方法会同步给所有的子类，而子类可以继续添加自己的字段和方法。\n继承使用extends来定义：\nclass MountainBike extends Bicycle { // new fields and methods defining // a mountain bike would go here } Java的子类只能有1个父类，但是父类可以有无限多个子类。\n接口Interface 就像电视机开关一样，你跟电视机交互，只需要按开关就可以，电视机暴露出来的是方法。接口就是一组方法，只有方法声明，没有具体实现。比如：\ninterface Bicycle { // wheel revolutions per minute void changeCadence(int newValue); void changeGear(int newValue); void speedUp(int increment); void applyBrakes(int decrement); } 类使用implements来实现接口方法：\nclass ACMEBicycle implements Bicycle { int cadence = 0; int speed = 0; int gear = 1; // The compiler will now require that methods // changeCadence, changeGear, speedUp, and applyBrakes // all be implemented. Compilation will fail if those // methods are missing from this class. void changeCadence(int newValue) { cadence = newValue; } void changeGear(int newValue) { gear = newValue; } void speedUp(int increment) { speed = speed + increment; } void applyBrakes(int decrement) { speed = speed - decrement; } void printStates() { System.out.println(\"cadence:\" + cadence + \" speed:\" + speed + \" gear:\" + gear); } } Java为什么要发明接口呢？我们知道对象与对象只能通过方法来相互访问，而接口其实就是一种契约，编译器会在编译时强制执行这份契约。就像文章的大纲一样。\n实现接口的类，必须实现接口中的所有方法。\n包Package 包相当于文件夹，用来组织接口和类。\nJava API，也叫做Java类库，内置了很多包：\nhttps://docs.oracle.com/javase/8/docs/api/index.html\n包列表：\n包里面的接口、类：\n参考资料：\nObjects, Classes, Interfaces, Packages, and Inheritance https://dev.java/learn/oop/\n",
+  "wordCount" : "302",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-05T00:00:00Z",
+  "dateModified": "2026-01-05T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000005-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      Java官方笔记2面向对象编程基本概念
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-05T00:00:00+00:00'>2026-01-05</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>302 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/java/'>#Java</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%AE%98%E6%96%B9/'>#官方</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h3 id="对象object">对象Object<a hidden class="anchor" aria-hidden="true" href="#对象object">#</a></h3>
+<p>对象有2个特征：<strong>状态state和行为behavior</strong>。我们可以用真实世界的对象来做类比，这样有助于理解面向对象编程，比如狗的状态（名字、颜色、品种）和行为（叫、抓、摇尾巴），自行车的状态（当前档位、当前踏板节奏、当前速度）和行为（切换档位、切换踏板节奏、踩刹车）。</p>
+<p>软件对象也是由状态和行为组成：</p>
+<p><img loading="lazy" src="../assets/8ea4654355834e17ab6dd437db1d8243.png"></p>
+<p>状态，在软件对象中，叫做字段fields，或变量variables。</p>
+<p>行为，在软件对象中，叫做方法methods，或函数functions。</p>
+<p>所谓的数据封装data encapsulation，就是字段只在内部，不对外暴露，仅由方法进行操作，对象与对象之间通过方法来相互访问。</p>
+<p>Java是<strong>纯粹的</strong>面向对象编程语言。</p>
+<h3 id="类class">类Class<a hidden class="anchor" aria-hidden="true" href="#类class">#</a></h3>
+<p>类，可以视为对象的<strong>模版</strong>，基于类来创造出同一类对象。</p>
+<p>比如自行车的类：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Bicycle</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>cadence<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>gear<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">changeCadence</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>newValue<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">         </span>cadence<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>newValue<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">changeGear</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>newValue<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">         </span>gear<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>newValue<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">speedUp</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>increment<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">         </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>increment<span style="color:#1f2328">;</span><span style="color:#fff">   
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">applyBrakes</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>decrement<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">         </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">-</span><span style="color:#fff"> </span>decrement<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">printStates</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">         </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;cadence:&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">             </span>cadence<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; speed:&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">             </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; gear:&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>gear<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>类也是有2个特征：字段和方法。比如Bicycle类有字段cadence、speed、gear和方法changeCadence()、changeGear()、speedUp()等。</p>
+<p>你可能会发现这个类里面没有main方法，因为Bicycle类只是定义了对象的模版，可以新建一个类来实现Bicycle类对象的创建和使用：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">BicycleDemo</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">main</span><span style="color:#1f2328">(</span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>args<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// Create two different </span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// Bicycle objects</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>Bicycle<span style="color:#fff"> </span>bike1<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Bicycle<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>Bicycle<span style="color:#fff"> </span>bike2<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Bicycle<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// Invoke methods on </span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// those objects</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike1<span style="color:#1f2328">.</span><span style="color:#1f2328">changeCadence</span><span style="color:#1f2328">(</span>50<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike1<span style="color:#1f2328">.</span><span style="color:#1f2328">speedUp</span><span style="color:#1f2328">(</span>10<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike1<span style="color:#1f2328">.</span><span style="color:#1f2328">changeGear</span><span style="color:#1f2328">(</span>2<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike1<span style="color:#1f2328">.</span><span style="color:#1f2328">printStates</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike2<span style="color:#1f2328">.</span><span style="color:#1f2328">changeCadence</span><span style="color:#1f2328">(</span>50<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike2<span style="color:#1f2328">.</span><span style="color:#1f2328">speedUp</span><span style="color:#1f2328">(</span>10<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike2<span style="color:#1f2328">.</span><span style="color:#1f2328">changeGear</span><span style="color:#1f2328">(</span>2<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike2<span style="color:#1f2328">.</span><span style="color:#1f2328">changeCadence</span><span style="color:#1f2328">(</span>40<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike2<span style="color:#1f2328">.</span><span style="color:#1f2328">speedUp</span><span style="color:#1f2328">(</span>10<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike2<span style="color:#1f2328">.</span><span style="color:#1f2328">changeGear</span><span style="color:#1f2328">(</span>3<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>bike2<span style="color:#1f2328">.</span><span style="color:#1f2328">printStates</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>运行输出：</p>
+<pre tabindex="0"><code>cadence:50 speed:10 gear:2
+cadence:40 speed:20 gear:3
+</code></pre><h3 id="继承inheritance">继承Inheritance<a hidden class="anchor" aria-hidden="true" href="#继承inheritance">#</a></h3>
+<p>自行车有很多种，自行车的共同点可以用父类来表示，自行车的不同点可以用子类<strong>继承</strong>父类，然后添加自己的差异点：</p>
+<p><img loading="lazy" src="../assets/eb47660b87744c7395e47a81ce106aff.png"></p>
+<p>图中的Bicycle是父类，MountainBike、RoadBike和TandemBike是子类。父类的字段和方法会同步给所有的子类，而子类可以继续添加自己的字段和方法。</p>
+<p>继承使用<code>extends</code>来定义：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MountainBike</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>Bicycle<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// new fields and methods defining </span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// a mountain bike would go here</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Java的子类只能有1个父类，但是父类可以有无限多个子类。</p>
+<h3 id="接口interface">接口Interface<a hidden class="anchor" aria-hidden="true" href="#接口interface">#</a></h3>
+<p>就像电视机开关一样，你跟电视机交互，只需要按开关就可以，电视机暴露出来的是方法。接口就是一组方法，只有方法声明，没有具体实现。比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">Bicycle</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">//  wheel revolutions per minute</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">changeCadence</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>newValue<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">changeGear</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>newValue<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">speedUp</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>increment<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">applyBrakes</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>decrement<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>类使用<code>implements</code>来实现接口方法：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ACMEBicycle</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>Bicycle<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>cadence<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>gear<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">   </span><span style="color:#57606a">// The compiler will now require that methods</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">   </span><span style="color:#57606a">// changeCadence, changeGear, speedUp, and applyBrakes</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">   </span><span style="color:#57606a">// all be implemented. Compilation will fail if those</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">   </span><span style="color:#57606a">// methods are missing from this class.</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">changeCadence</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>newValue<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">         </span>cadence<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>newValue<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">changeGear</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>newValue<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">         </span>gear<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>newValue<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">speedUp</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>increment<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">         </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>increment<span style="color:#1f2328">;</span><span style="color:#fff">   
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">applyBrakes</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>decrement<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">         </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">-</span><span style="color:#fff"> </span>decrement<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">printStates</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">         </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;cadence:&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">             </span>cadence<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; speed:&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">             </span>speed<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; gear:&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>gear<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Java为什么要发明接口呢？我们知道对象与对象只能通过方法来相互访问，而接口其实就是一种<strong>契约</strong>，编译器会在编译时强制执行这份契约。就像文章的大纲一样。</p>
+<p>实现接口的类，必须实现接口中的所有方法。</p>
+<h3 id="包package">包Package<a hidden class="anchor" aria-hidden="true" href="#包package">#</a></h3>
+<p>包相当于文件夹，用来组织接口和类。</p>
+<p>Java API，也叫做Java类库，内置了很多包：</p>
+<p><a href="https://docs.oracle.com/javase/8/docs/api/index.html">https://docs.oracle.com/javase/8/docs/api/index.html</a></p>
+<p>包列表：</p>
+<p><img loading="lazy" src="../assets/bc095e42fa01430e80b7380c218def5a.png"></p>
+<p>包里面的接口、类：</p>
+<p><img loading="lazy" src="../assets/ca6fee999ea14cbe979223d015fb6e10.png"></p>
+<blockquote>
+<p>参考资料：</p>
+<p>Objects, Classes, Interfaces, Packages, and Inheritance <a href="https://dev.java/learn/oop/">https://dev.java/learn/oop/</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/java/">Java</a></li>
+      <li><a href="https://dongfanger.github.io/tags/%E5%AE%98%E6%96%B9/">官方</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000005-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E8%AF%B7%E6%B1%82%E5%88%86%E5%8F%91%E4%B8%8E%E9%87%8D%E5%AE%9A%E5%90%91/">
+    <span class="title">« 上一页</span>
+    <span>JavaWeb开发基础Servlet请求分发与重定向</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000005-jmeterjmeter%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E9%85%8D%E7%BD%AE%E9%A1%B9%E8%A7%A3%E6%9E%90/">
+    <span class="title">下一页 »</span>
+    <span>JMeter测试计划配置项解析</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#对象object">对象Object</a></li>
+            <li><a href="#类class">类Class</a></li>
+            <li><a href="#继承inheritance">继承Inheritance</a></li>
+            <li><a href="#接口interface">接口Interface</a></li>
+            <li><a href="#包package">包Package</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

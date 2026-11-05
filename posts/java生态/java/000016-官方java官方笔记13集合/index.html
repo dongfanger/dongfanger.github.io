@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Java官方笔记13集合 | 测试开发刚哥</title>
+<meta name="keywords" content="Java, 官方">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Storing Data
+The Collections Framework is the most widely used API of the JDK.
+
+集合不是数据类型，它是JDK的API，可以用来存储数据等，相当于数据结构。
+
+the Collections Framework is a set of interfaces that models different way of storing data in different types of containers. Then the Framework provides at least one implementation for each interface.
+There are two main categories of interfaces in the Collections Framework: collections and maps.（所以我猜想Python也是基于这样的考虑，设计了List和Dict，并作为Python基本数据类型，实际编码中要用到的也主要是这两类）
+That makes two main categories, Collection and Map, a subcategory, Queue, and a side category, Iterator.">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000016-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B013%E9%9B%86%E5%90%88/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000016-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B013%E9%9B%86%E5%90%88/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000016-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B013%E9%9B%86%E5%90%88/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Java官方笔记13集合">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Storing Data The Collections Framework is the most widely used API of the JDK.
+集合不是数据类型，它是JDK的API，可以用来存储数据等，相当于数据结构。
+the Collections Framework is a set of interfaces that models different way of storing data in different types of containers. Then the Framework provides at least one implementation for each interface.
+There are two main categories of interfaces in the Collections Framework: collections and maps.（所以我猜想Python也是基于这样的考虑，设计了List和Dict，并作为Python基本数据类型，实际编码中要用到的也主要是这两类）
+That makes two main categories, Collection and Map, a subcategory, Queue, and a side category, Iterator.">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-16T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-16T00:00:00+00:00">
+    <meta property="article:tag" content="Java">
+    <meta property="article:tag" content="官方">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Java官方笔记13集合">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Storing Data The Collections Framework is the most widely used API of the JDK.
+集合不是数据类型，它是JDK的API，可以用来存储数据等，相当于数据结构。
+the Collections Framework is a set of interfaces that models different way of storing data in different types of containers. Then the Framework provides at least one implementation for each interface.
+There are two main categories of interfaces in the Collections Framework: collections and maps.（所以我猜想Python也是基于这样的考虑，设计了List和Dict，并作为Python基本数据类型，实际编码中要用到的也主要是这两类）
+That makes two main categories, Collection and Map, a subcategory, Queue, and a side category, Iterator.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Java官方笔记13集合",
+      "item": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000016-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B013%E9%9B%86%E5%90%88/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Java官方笔记13集合",
+  "name": "Java官方笔记13集合",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nStoring Data The Collections Framework is the most widely used API of the JDK.\n集合不是数据类型，它是JDK的API，可以用来存储数据等，相当于数据结构。\nthe Collections Framework is a set of interfaces that models different way of storing data in different types of containers. Then the Framework provides at least one implementation for each interface.\nThere are two main categories of interfaces in the Collections Framework: collections and maps.（所以我猜想Python也是基于这样的考虑，设计了List和Dict，并作为Python基本数据类型，实际编码中要用到的也主要是这两类）\nThat makes two main categories, Collection and Map, a subcategory, Queue, and a side category, Iterator.\n",
+  "keywords": [
+    "Java", "官方"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nStoring Data The Collections Framework is the most widely used API of the JDK.\n集合不是数据类型，它是JDK的API，可以用来存储数据等，相当于数据结构。\nthe Collections Framework is a set of interfaces that models different way of storing data in different types of containers. Then the Framework provides at least one implementation for each interface.\nThere are two main categories of interfaces in the Collections Framework: collections and maps.（所以我猜想Python也是基于这样的考虑，设计了List和Dict，并作为Python基本数据类型，实际编码中要用到的也主要是这两类）\nThat makes two main categories, Collection and Map, a subcategory, Queue, and a side category, Iterator.\na collection is an object，but an array is not an object in Java.\nCollection Hierarchy The Iterable Interface is the super interface of the Collection interface, and thus of all the interfaces of this hierarchy. An object that implements Iterable is an object that you can iterate over.\nthe Collection interface also models different ways of accessing its elements:\nyou can iterate over the elements of a collection, through the use of an iterator; you can create a stream on these elements, that can be parallel. List是有序列表：\nThe difference between a List of elements and a Collection of elements, is that a List remembers in what order its elements have been added. If you iterate over the elements of a list, the first element you will get is the first that has been added.\nYou do not have this guarantee with a plain Collection nor for a Set.\nList跟Collection的区别是，增加了index。\nSet跟Collection的区别是，不允许重复。\nSet是无序的，SortedSet是排序过的，SortedSet的排序是指从小到大排列，跟List的有序不一样，List有序是指的先添加排前面，不一定是最小的。\nStoring Elements Collection\u003cString\u003e strings = new ArrayList\u003c\u003e(); strings.add(\"one\"); strings.add(\"two\"); System.out.println(\"strings = \" + strings); strings.remove(\"one\"); System.out.println(\"strings = \" + strings); containsAll(): defines the inclusion\nCollection\u003cString\u003e strings = new ArrayList\u003c\u003e(); strings.add(\"one\"); strings.add(\"two\"); strings.add(\"three\"); Collection\u003cString\u003e first = new ArrayList\u003c\u003e(); strings.add(\"one\"); strings.add(\"two\"); Collection\u003cString\u003e second = new ArrayList\u003c\u003e(); strings.add(\"one\"); strings.add(\"four\"); System.out.println(\"Is first contained in strings? \" + strings.containsAll(first)); System.out.println(\"Is second contained in strings? \" + strings.containsAll(second)); addAll(): defines the union 并集\nGetting a true value does not mean that all the elements of the other collection have been added; it means that at least one has been added.\nCollection\u003cString\u003e strings = new ArrayList\u003c\u003e(); strings.add(\"one\"); strings.add(\"two\"); strings.add(\"three\"); Collection\u003cString\u003e first = new ArrayList\u003c\u003e(); first.add(\"one\"); first.add(\"four\"); boolean hasChanged = strings.addAll(first); System.out.println(\"Has strings changed? \" + hasChanged); System.out.println(\"strings = \" + strings); removeAll(): defines the complement\nCollection\u003cString\u003e strings = new ArrayList\u003c\u003e(); strings.add(\"one\"); strings.add(\"two\"); strings.add(\"three\"); Collection\u003cString\u003e toBeRemoved = new ArrayList\u003c\u003e(); toBeRemoved.add(\"one\"); toBeRemoved.add(\"four\"); boolean hasChanged = strings.removeAll(toBeRemoved); System.out.println(\"Has strings changed? \" + hasChanged); System.out.println(\"strings = \" + strings); retainAll(): defines the intersection 交集\nCollection\u003cString\u003e strings = new ArrayList\u003c\u003e(); strings.add(\"one\"); strings.add(\"two\"); strings.add(\"three\"); Collection\u003cString\u003e toBeRetained = new ArrayList\u003c\u003e(); toBeRetained.add(\"one\"); toBeRetained.add(\"four\"); boolean hasChanged = strings.retainAll(toBeRetained); System.out.println(\"Has strings changed? \" + hasChanged); System.out.println(\"strings = \" + strings); 注意上面的并集和交集，Collection本来就是集合，所以能够求并集和交集是理所当然的。\nisEmpty()、clear()\nCollection\u003cString\u003e strings = new ArrayList\u003c\u003e(); strings.add(\"one\"); strings.add(\"two\"); if (!strings.isEmpty()) { System.out.println(\"Indeed strings is not empty!\"); } System.out.println(\"The number of elements in strings is \" + strings.size()); Collection\u003cString\u003e strings = new ArrayList\u003c\u003e(); strings.add(\"one\"); strings.add(\"two\"); System.out.println(\"The number of elements in strings is \" + strings.size()); strings.clear(); System.out.println(\"After clearing it, this number is now \" + strings.size()); size()，Collection相当于容器，用size。而array和String，相当于序列，用length。\ntoArray\n将Collection转为array：\n①无入参：\nCollection\u003cString\u003e strings = ...; // suppose you have 15 elements in that collection String[] tabString1 = strings.toArray(new String[] {}); // you can pass an empty array String[] tabString2 = strings.toArray(new String[15]); // or an array of the right size ②传参\nCollection\u003cString\u003e strings = List.of(\"one\", \"two\"); String[] largerTab = {\"three\", \"three\", \"three\", \"I\", \"was\", \"there\"}; System.out.println(\"largerTab = \" + Arrays.toString(largerTab)); String[] result = strings.toArray(largerTab); System.out.println(\"result = \" + Arrays.toString(result)); System.out.println(\"Same arrays? \" + (result == largerTab)); Collection\u003cString\u003e strings = List.of(\"one\", \"two\"); String[] zeroLengthTab = {}; String[] result = strings.toArray(zeroLengthTab); System.out.println(\"zeroLengthTab = \" + Arrays.toString(zeroLengthTab)); System.out.println(\"result = \" + Arrays.toString(result)); ③简写\nCollection\u003cString\u003e strings = ...; String[] tabString3 = strings.toArray(String[]::new); Predicate + removeIf 实现有条件的删除，比如删除null和empty的元素：\nPredicate\u003cString\u003e isNull = Objects::isNull; Predicate\u003cString\u003e isEmpty = String::isEmpty; Predicate\u003cString\u003e isNullOrEmpty = isNull.or(isEmpty); Collection\u003cString\u003e strings = new ArrayList\u003c\u003e(); strings.add(null); strings.add(\"\"); strings.add(\"one\"); strings.add(\"two\"); strings.add(\"\"); strings.add(\"three\"); strings.add(null); System.out.println(\"strings = \" + strings); strings.removeIf(isNullOrEmpty); System.out.println(\"filtered strings = \" + strings); Iterating for-each\nCollection\u003cString\u003e strings = List.of(\"one\", \"two\", \"three\"); for (String element: strings) { System.out.println(string); } Iterator\nCollection\u003cString\u003e strings = List.of(\"one\", \"two\", \"three\", \"four\"); for (Iterator\u003cString\u003e iterator = strings.iterator(); iterator.hasNext();) { String element = iterator.next(); if (element.length() == 3) { System.out.println(element); } } List the List interface has 2: ArrayList and LinkedList. As you may guess, the first one is built on an internal array, and the second on a doubly-linked list.\nIterating over the elements of an ArrayList is much faster that over the elements of a LinkedList. There are still cases where a linked list is faster than an array. A doubly-linked list can access its first and last element faster than an ArrayList can. This is the main use case that makes LinkedList better than ArrayList. So if your application needs a Last In, First Out (LIFO, covered later in this tutorial) stack, or a First In, First Out (FIFO, also covered later) waiting queue, then choosing a linked list is probably your best choice.\n注意，链表在插入和删除的速度优势已经不在，因为现代硬件、CPU缓存和指针追踪已经很强大。\nindex\nadd(index, element): inserts the given object at the index, adjusting the index if there are remaining elements get(index): returns the object at the given index set(index, element): replaces the element at the given index with the new element remove(index): removes the element at the given index, adjusting the index of the remaining elements. The methods indexOf(element) and lastIndexOf(element) return the index of the given element in the list, or -1 if the element is not found.\nsubList：\nList\u003cString\u003e strings = new ArrayList\u003c\u003e(List.of(\"0\", \"1\", \"2\", \"3\", \"4\", \"5\")); System.out.println(strings); strings.subList(2, 5).clear(); System.out.println(strings); addAll(int index, Collection collection)\nListIterator\nThe ListIterator interface extends the regular Iterator that you already know. It adds several methods to it.\nhasPrevious() and previous(): to iterate in the descending order rather than the ascending order nextIndex() and previousIndex(): to get the index of the element that will be returned by the next next() call, or the next previous() call set(element): to update the last element returned by next() or previous(). If neither of these methods have been called on this iterator then an IllegalStateException is raised. List\u003cString\u003e numbers = Arrays.asList(\"one\", \"two\", \"three\"); for (ListIterator\u003cString\u003e iterator = numbers.listIterator(); iterator.hasNext();) { String nextElement = iterator.next(); if (Objects.equals(nextElement, \"two\")) { iterator.set(\"2\"); } } System.out.println(\"numbers = \" + numbers); Set The Set interface does not bring any new method to the Collection interface. The Collections Framework gives you one plain implementation of the Set interface: HashSet. Internally, a HashSet wraps an instance of HashMap.\nList\u003cString\u003e strings = List.of(\"one\", \"two\", \"three\", \"four\", \"five\", \"six\"); Set\u003cString\u003e set = new HashSet\u003c\u003e(); set.addAll(strings); set.forEach(System.out::println); The SortedSet interface adds new methods to Set.\nfirst() and last() returns the lowest and the largest elements of the set headSet(toElement) and tailSet(fromElement) returns you subsets containing the elements lower than toElement or greater than fromElement subSet(fromElement, toElement) gives you a subset of the element between fromElement and toElement. SortedSet\u003cString\u003e strings = new TreeSet\u003c\u003e(Set.of(\"a\", \"b\", \"c\", \"d\", \"e\", \"f\")); SortedSet\u003cString\u003e subSet = strings.subSet(\"aa\", \"d\"); System.out.println(\"sub set = \" + subSet); 注意，subSet仅仅相当于视图。No copy is made, meaning that any change you make to these subsets will be reflected in the set, and the other way round.\nNavigableSet\nSome methods are overloaded by NavigableSet. headSet(), headSet(), and headSet() may take a further boolean arguments to specify whether the limits (toElement or fromElement) are to be included in the resulting subset. Other methods have been added.\nceiling(element), and floor(element) return the greatest element lesser or equal than, or the lowest element greater or equal than the provided element. If there is no such element then null is returned floor(element), and higher(element) return the greater element lesser than, or the lowest element greater than the provided element. If there is no such element then null is returned. pollFirst(), and pollLast() return and removes the lowest or the greatest element of the set. Furthermore, NavigableSet also allows you to iterate over its elements in descending order. There are two ways to do this.\nYou can call descendingIterator(): it gives you a regular Iterator that traverses the set in the descending order. You can also call descendingSet(). What you get in return is another NavigableSet that is a view on this set and that makes you think you have the same set, sorted in the reversed order. NavigableSet\u003cString\u003e sortedStrings = new TreeSet\u003c\u003e(Set.of(\"a\", \"b\", \"c\", \"d\", \"e\", \"f\")); System.out.println(\"sorted strings = \" + sortedStrings); NavigableSet\u003cString\u003e reversedStrings = sortedStrings.descendingSet(); System.out.println(\"reversed strings = \" + reversedStrings); Factory Methods Java SE 9\nList\u003cString\u003e stringList = List.of(\"one\", \"two\", \"three\"); Set\u003cString\u003e stringSet = Set.of(\"one\", \"two\", \"three\"); Java SE 10\nCollection\u003cString\u003e strings = Arrays.asList(\"one\", \"two\", \"three\"); List\u003cString\u003e list = List.copyOf(strings); Set\u003cString\u003e set = Set.copyOf(strings); Arrays\nThe Collections Framework has a class called Arrays with about 200 methods to handle arrays. Most of them are implementing various algorithms on arrays, like sorting, merging, searching.\nCollections\nThe Collections Framework comes with another factory class: Collections, with a set of method to manipulate collections and their content.\nFinding a Sublist in a List\nTwo methods locate a given sublist in a bigger list: indexOfSublist(List\u003c?\u003e source, List\u003c?\u003e target): returns the first index of the first element of the target list in the source list, or -1 if it does not exist; lastIndexOfSublist(List\u003c?\u003e source, List\u003c?\u003e target): return the last of these indexes. Changing the Order of the Elements of a List\nsort() sorts the list in place. This method may take a comparator as an argument. As usual, if no comparator is provided, then the elements of the list must be comparable. If a comparator is provided, then it will be used to compare the elements. Starting with Java SE 8, you should favor the sort() method from the Listinterface. shuffle() randomly shuffles the elements of the provided list. You can provide yout instance of Random if you need a random shuffling that you can repeat. rotate() rotates the elements of the list. After a rotation the element at index 0 will be found at index 1 and so on. The last elements will be moved to the first place of the list. You can combine subList() and rotate() to remove an element at a given index and to insert it in another place in the list. reverse(): reverse the order of the elements of the list. swap(): swaps two elements from the list. This method can take a list as an argument, as well as a plain array. Stacks and Queues Stacks are also called LIFO stacks, where LIFO stands for Last In, First Out. Queues are known as FIFO: First In First Out. These structures are very simple and gives you three main operations. push(element): adds an element to the queue, or the stack pop(): removes an element from the stack, that is, the youngest element added poll(): removes an element from the queue, that is, the oldest element added peek(): allows you to see the element you will get with a pop() or a poll(), but without removing it from the queue of the stack. Queues and Stacks\nthe Queue interface models a queue; the Deque interface models a double ended queue (thus the name). You can push, pop, poll and peek elements on both the tail and the head of a Deque, making it both a queue and a stack. Collection没有Stack接口，栈是通过Deque来定义的。\nImplementing Queue and Deque\nArrayDeque: which implements both. This implementation is backed by an array. The capacity of this class automatically grows as elements are added. So this implementation always accepts new elements. LinkedList: which also implements both. This implementation is backed by a linked list, making the access to its first and last element very efficient. A LinkedList will always accept new elements. PriorityQueue: that only implements Queue. This queue is backed by an array that keeps its elements sorted by their natural order or by an order specified by a Comparator. The head of this queue is always the least element of the queue with respect to the specified ordering. The capacity of this class automatically grows as elements are added. Maps implementations：\nHashMap\nLinkedHashMap is a HashMap with an internal structure to keep the key-value pairs ordered. Iterating on the keys or the key-value pairs will follow the order in which you have added your key-value pairs.\n这里注意，HashMap是无序的，LinkedHashMap是有序的。\nIdentityHashMap is a specialized Map that you should only be used in very precise cases. This implementation is not meant to be generally used in application. Instead of using equals() and hashCode() to compare the key objects, this implementation only compares the references to these keys, with an equality operator (==). Use it with caution, only if you are sure this is what you need.\nJava SE 9\nMap\u003cInteger, String\u003e map = Map.of( 1, \"one\", 2, \"two\", 3, \"three\" ); The Map defines a member interface: Map.Entry to model a key-value pair. This interface defines three methods to access the key and the values:\ngetKey(): to read the key; getValue() and setValue(value): to read and update the value bound to that key. putIfAbsent()，如果是null，会替换为默认值：\nfor (String key : map.keySet()) { map.putIfAbsent(key, -1); } 如果value是null，可能会报错，比如：\nMap\u003cString, Integer\u003e map = new HashMap\u003c\u003e(); map.put(\"one\", 1); map.put(\"two\", null); map.put(\"three\", 3); map.put(\"four\", null); map.put(\"five\", 5); for (int value : map.values()) { // 这里是int System.out.println(\"value = \" + value); // Integer拆包为int时会报NPE } getOrDefault()，如果没有key，返回默认值：\nMap\u003cInteger, String\u003e map = new HashMap\u003c\u003e(); map.put(1, \"one\"); map.put(2, \"two\"); map.put(3, \"three\"); List\u003cString\u003e values = new ArrayList\u003c\u003e(); for (int i = 0; i \u003c 5; i++) { values.add(map.getOrDefault(key,\"UNDEFINED\")); } System.out.println(\"values = \" + values); 流式写法：\nList\u003cString\u003e values = IntStream.range(0, 5) .mapToObj(key -\u003e map.getOrDefault(key, \"UNDEFINED\")) .collect(Collectors.toList()); System.out.println(\"values = \" + values); remove(key)，remove后返回value，可能为null。\nremove(key, value)，remove时先判断value存在才移除，返回boolean，true if the key/value pair was removed from the map。\ncontainsKey(key) and containsValue(value) Both methods return true if the map contains the given key or value.\nputAll(otherMap) If some keys are present in both maps, then the values of otherMap will erase those of this map.（并集）\nkeySet(): returns an instance of Set, containing the keys defined in the map entrySet(): returns an instance of Set, containing the key/value pairs contained in the map values(): returns an instance of Collection, containing the values present in the map. 遍历推荐使用以下方式：\nfor (Map.Entry\u003cInteger, String\u003e entry : map.entrySet()) { System.out.println(\"entry = \" + entry); } Lambda Expressions\nMap\u003cInteger, String\u003e map = new HashMap\u003c\u003e(); map.put(1, \"one\"); map.put(2, \"two\"); map.put(3, \"three\"); map.forEach((key, value) -\u003e System.out.println(key + \" :: \" + value)); Map\u003cInteger, String\u003e map = new HashMap\u003c\u003e(); map.put(1, \"one\"); map.put(2, \"two\"); map.put(3, \"three\"); map.replaceAll((key, value) -\u003e value.toUpperCase()); map.forEach((key, value) -\u003e System.out.println(key + \" :: \" + value)); compute\nThe put() methods return the previous value, whereas the compute() methods return the new value.\nList\u003cString\u003e strings = List.of(\"one\", \"two\", \"three\", \"four\", \"five\", \"six\", \"seven\"); Map\u003cInteger, List\u003cString\u003e\u003e map = new HashMap\u003c\u003e(); for (String word: strings) { int length = word.length(); if (!map.containsKey(length)) { map.put(length, new ArrayList\u003c\u003e()); } map.get(length).add(word); } map.forEach((key, value) -\u003e System.out.println(key + \" :: \" + value)); 使用putIfAbsent优化：\nfor (String word: strings) { int length = word.length(); map.putIfAbsent(length, new ArrayList\u003c\u003e()); map.get(length).add(word); } 使用computeIfAbsent优化：\nfor (String word: strings) { int length = word.length(); map.computeIfAbsent(length, key -\u003e new ArrayList\u003c\u003e()) .add(word); } merge\nList\u003cString\u003e strings = List.of(\"one\", \"two\", \"three\", \"four\", \"five\", \"six\", \"seven\"); Map\u003cInteger, String\u003e map = new HashMap\u003c\u003e(); for (String word: strings) { int length = word.length(); map.merge(length, word, (existingValue, newWord) -\u003e existingValue + \", \" + newWord); } map.forEach((key, value) -\u003e System.out.println(key + \" :: \" + value)); SortedMap and NavigableMap\nSortedMap\u003cInteger, String\u003e map = new TreeMap\u003c\u003e(); map.put(1, \"one\"); map.put(2, \"two\"); map.put(3, \"three\"); map.put(5, \"five\"); map.put(6, \"six\"); SortedMap\u003cInteger, String\u003e headMap = map.headMap(3); headMap.put(0, \"zero\"); // this line is ok headMap.put(4, \"four\"); // this line throws an IllegalArgumentException Here is the code of the add(element) of the HashSet class:\nprivate transient HashMap\u003cE,Object\u003e map; private static final Object PRESENT = new Object(); public boolean add(E e) { return map.put(e, PRESENT)==null; } What you can see is that in fact, a hashset stores your object in a hashmap (the transient keyword is not relevant). Your objects are the keys of this hashmap, and the value is just a placeholder, an object with no significance.\nhashset 是用hashmap来存的，所以最好不要更新hashset的值（也就是hashmap的key），否则会有意想不到的Bug。\n参考资料：\nThe Collections Framework https://dev.java/learn/api/collections-framework/\n",
+  "wordCount" : "2621",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-16T00:00:00Z",
+  "dateModified": "2026-01-16T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000016-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B013%E9%9B%86%E5%90%88/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      Java官方笔记13集合
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-16T00:00:00+00:00'>2026-01-16</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>2621 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/java/'>#Java</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%AE%98%E6%96%B9/'>#官方</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h2 id="storing-data">Storing Data<a hidden class="anchor" aria-hidden="true" href="#storing-data">#</a></h2>
+<p>The Collections Framework is the most widely used API of the JDK.</p>
+<blockquote>
+<p>集合不是数据类型，它是JDK的API，可以用来存储数据等，相当于数据结构。</p>
+</blockquote>
+<p>the Collections Framework is a set of interfaces that models different way of storing data in different types of containers. Then the Framework provides at least one implementation for each interface.</p>
+<p>There are two main categories of interfaces in the Collections Framework: collections and maps.（所以我猜想Python也是基于这样的考虑，设计了List和Dict，并作为Python基本数据类型，实际编码中要用到的也主要是这两类）</p>
+<p>That makes two main categories, <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collection.html"><code>Collection</code></a> and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.html"><code>Map</code></a>, a subcategory, <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Queue.html"><code>Queue</code></a>, and a side category, <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Iterator.html"><code>Iterator</code></a>.</p>
+<p>a collection is an object，but an array is not an object in Java.</p>
+<h2 id="collection-hierarchy">Collection Hierarchy<a hidden class="anchor" aria-hidden="true" href="#collection-hierarchy">#</a></h2>
+<p><img loading="lazy" src="../assets/b8e71675135b46378edd903fb3d32741.png"></p>
+<p>The Iterable Interface is the super interface of the <strong>Collection interface</strong>, and thus of all the interfaces of this hierarchy. An object that implements <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/lang/Iterable.html"><code>Iterable</code></a> is an object that you can iterate over.</p>
+<p>the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collection.html"><code>Collection</code></a> interface also models different ways of accessing its elements:</p>
+<ul>
+<li>you can iterate over the elements of a collection, through the use of an iterator;</li>
+<li>you can create a stream on these elements, that can be parallel.</li>
+</ul>
+<p><strong>List是有序列表</strong>：</p>
+<p>The difference between a <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html"><code>List</code></a> of elements and a <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collection.html"><code>Collection</code></a> of elements, is that a <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html"><code>List</code></a> remembers in what order its elements have been added. If you iterate over the elements of a list, the first element you will get is the first that has been added.</p>
+<p><strong>You do not have this guarantee with a plain Collection nor for a Set.</strong></p>
+<p>List跟Collection的区别是，增加了index。</p>
+<p>Set跟Collection的区别是，不允许重复。</p>
+<p>Set是无序的，SortedSet是排序过的，SortedSet的排序是指从小到大排列，跟List的有序不一样，List有序是指的先添加排前面，不一定是最小的。</p>
+<h2 id="storing-elements">Storing Elements<a hidden class="anchor" aria-hidden="true" href="#storing-elements">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;strings = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">remove</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;strings = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><ul>
+<li>
+<p><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collection.html#containsAll(java.util.Collection)"><code>containsAll()</code></a>: defines the inclusion</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>first<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>second<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Is first contained in strings? &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">containsAll</span><span style="color:#1f2328">(</span>first<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Is second contained in strings? &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">containsAll</span><span style="color:#1f2328">(</span>second<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collection.html#addAll(java.util.Collection)"><code>addAll()</code></a>: defines the union 并集</p>
+<p>Getting a <code>true</code> value does not mean that all the elements of the other collection have been added; it means that <strong>at least one has been added</strong>.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>first<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>first<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>first<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">boolean</span><span style="color:#fff"> </span>hasChanged<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">addAll</span><span style="color:#1f2328">(</span>first<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Has strings changed? &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>hasChanged<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;strings = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collection.html#removeAll(java.util.Collection)"><code>removeAll()</code></a>: defines the complement</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>toBeRemoved<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>toBeRemoved<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>toBeRemoved<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">boolean</span><span style="color:#fff"> </span>hasChanged<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">removeAll</span><span style="color:#1f2328">(</span>toBeRemoved<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Has strings changed? &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>hasChanged<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;strings = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+<li>
+<p><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collection.html#retainAll(java.util.Collection)"><code>retainAll()</code></a>: defines the intersection 交集</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>toBeRetained<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>toBeRetained<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>toBeRetained<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">boolean</span><span style="color:#fff"> </span>hasChanged<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">retainAll</span><span style="color:#1f2328">(</span>toBeRetained<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Has strings changed? &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>hasChanged<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;strings = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div></li>
+</ul>
+<p>注意上面的并集和交集，Collection本来就是集合，所以能够求并集和交集是理所当然的。</p>
+<p>isEmpty()、clear()</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">!</span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">isEmpty</span><span style="color:#1f2328">())</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Indeed strings is not empty!&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;The number of elements in strings is &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">size</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;The number of elements in strings is &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">size</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">clear</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;After clearing it, this number is now &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">size</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>size()，Collection相当于容器，用size。而array和String，相当于序列，用length。</p>
+<p><strong>toArray</strong></p>
+<p>将Collection转为array：</p>
+<p>①无入参：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">...;</span><span style="color:#fff"> </span><span style="color:#57606a">// suppose you have 15 elements in that collection</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>tabString1<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">toArray</span><span style="color:#1f2328">(</span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span><span style="color:#1f2328">{});</span><span style="color:#fff"> </span><span style="color:#57606a">// you can pass an empty array</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>tabString2<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">toArray</span><span style="color:#1f2328">(</span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>String<span style="color:#0550ae">[</span>15<span style="color:#0550ae">]</span><span style="color:#1f2328">);</span><span style="color:#fff">   </span><span style="color:#57606a">// or an array of the right size</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>②传参</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>largerTab<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;I&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;was&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;there&#34;</span><span style="color:#1f2328">};</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;largerTab = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>Arrays<span style="color:#1f2328">.</span><span style="color:#1f2328">toString</span><span style="color:#1f2328">(</span>largerTab<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>result<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">toArray</span><span style="color:#1f2328">(</span>largerTab<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;result = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>Arrays<span style="color:#1f2328">.</span><span style="color:#1f2328">toString</span><span style="color:#1f2328">(</span>result<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Same arrays? &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>result<span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span>largerTab<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>zeroLengthTab<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{};</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>result<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">toArray</span><span style="color:#1f2328">(</span>zeroLengthTab<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;zeroLengthTab = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>Arrays<span style="color:#1f2328">.</span><span style="color:#1f2328">toString</span><span style="color:#1f2328">(</span>zeroLengthTab<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;result = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>Arrays<span style="color:#1f2328">.</span><span style="color:#1f2328">toString</span><span style="color:#1f2328">(</span>result<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>③简写</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">...;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>tabString3<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">toArray</span><span style="color:#1f2328">(</span>String<span style="color:#0550ae">[]</span><span style="color:#1f2328">::</span><span style="color:#cf222e">new</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Predicate + removeIf 实现有条件的删除，比如删除null和empty的元素：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>isNull<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Objects<span style="color:#1f2328">::</span>isNull<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>isEmpty<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>String<span style="color:#1f2328">::</span>isEmpty<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>isNullOrEmpty<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>isNull<span style="color:#1f2328">.</span><span style="color:#1f2328">or</span><span style="color:#1f2328">(</span>isEmpty<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#cf222e">null</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span><span style="color:#cf222e">null</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;strings = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">removeIf</span><span style="color:#1f2328">(</span>isNullOrEmpty<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;filtered strings = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="iterating">Iterating<a hidden class="anchor" aria-hidden="true" href="#iterating">#</a></h2>
+<p>for-each</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>element<span style="color:#1f2328">:</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>string<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Iterator</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Iterator<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>iterator<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">iterator</span><span style="color:#1f2328">();</span><span style="color:#fff"> </span>iterator<span style="color:#1f2328">.</span><span style="color:#1f2328">hasNext</span><span style="color:#1f2328">();)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>element<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>iterator<span style="color:#1f2328">.</span><span style="color:#1f2328">next</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>element<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span>3<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>element<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="list">List<a hidden class="anchor" aria-hidden="true" href="#list">#</a></h2>
+<p>the List interface has 2: ArrayList and LinkedList. As you may guess, the first one is built on an internal array, and the second on a doubly-linked list.</p>
+<p><strong>Iterating</strong> over the elements of an ArrayList is much faster that over the elements of a LinkedList.
+There are still cases where a linked list is faster than an array. A doubly-linked list can access its <strong>first and last element</strong> faster than an ArrayList can. This is the main use case that makes LinkedList better than ArrayList. So if your application needs a Last In, First Out (<strong>LIFO</strong>, covered later in this tutorial) stack, or a First In, First Out (<strong>FIFO</strong>, also covered later) waiting <strong>queue</strong>, then choosing a linked list is probably your best choice.</p>
+<p>注意，链表在插入和删除的速度优势已经不在，因为现代硬件、CPU缓存和指针追踪已经很强大。</p>
+<p><strong>index</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html#add(int,E)"><code>add(index, element)</code></a>: inserts the given object at the <code>index</code>, adjusting the index if there are remaining elements</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html#get(int)"><code>get(index)</code></a>: returns the object at the given <code>index</code></li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html#set(int,E)"><code>set(index, element)</code></a>: replaces the element at the given index with the new element</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html#remove(int)"><code>remove(index)</code></a>: removes the element at the given <code>index</code>, adjusting the index of the remaining elements.</li>
+</ul>
+<p>The methods <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html#indexOf(java.lang.Object)"><code>indexOf(element)</code></a> and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html#lastIndexOf(java.lang.Object)"><code>lastIndexOf(element)</code></a> return the index of the given element in the list, or -1 if the element is not found.</p>
+<p>subList：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">(</span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;0&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;1&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;2&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;3&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;4&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;5&#34;</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">subList</span><span style="color:#1f2328">(</span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span>5<span style="color:#1f2328">).</span><span style="color:#1f2328">clear</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p> <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html#addAll(int,java.util.Collection)"><code>addAll(int index, Collection collection)</code></a></p>
+<p><strong>ListIterator</strong></p>
+<p>The <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ListIterator.html"><code>ListIterator</code></a> interface extends the regular <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Iterator.html"><code>Iterator</code></a> that you already know. It adds several methods to it.</p>
+<ul>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ListIterator.html#hasPrevious()"><code>hasPrevious()</code></a> and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ListIterator.html#previous()"><code>previous()</code></a>: to iterate in the descending order rather than the ascending order</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ListIterator.html#nextIndex()"><code>nextIndex()</code></a> and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ListIterator.html#previousIndex()"><code>previousIndex()</code></a>: to get the index of the element that will be returned by the next <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ListIterator.html#next()"><code>next()</code></a> call, or the next <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ListIterator.html#previous()"><code>previous()</code></a> call</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ListIterator.html#set(E)"><code>set(element)</code></a>: to update the last element returned by <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ListIterator.html#next()"><code>next()</code></a> or <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ListIterator.html#previous()"><code>previous()</code></a>. If neither of these methods have been called on this iterator then an <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/lang/IllegalStateException.html"><code>IllegalStateException</code></a> is raised.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>numbers<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Arrays<span style="color:#1f2328">.</span><span style="color:#1f2328">asList</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>ListIterator<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>iterator<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>numbers<span style="color:#1f2328">.</span><span style="color:#1f2328">listIterator</span><span style="color:#1f2328">();</span><span style="color:#fff"> </span>iterator<span style="color:#1f2328">.</span><span style="color:#1f2328">hasNext</span><span style="color:#1f2328">();)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>nextElement<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>iterator<span style="color:#1f2328">.</span><span style="color:#1f2328">next</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Objects<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span>nextElement<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>iterator<span style="color:#1f2328">.</span><span style="color:#1f2328">set</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;2&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;numbers = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>numbers<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="set">Set<a hidden class="anchor" aria-hidden="true" href="#set">#</a></h2>
+<p>The <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Set.html"><code>Set</code></a> interface does not bring any new method to the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collection.html"><code>Collection</code></a> interface. The Collections Framework gives you one plain implementation of the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Set.html"><code>Set</code></a> interface: <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/HashSet.html"><code>HashSet</code></a>. <strong>Internally, a <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/HashSet.html"><code>HashSet</code></a> wraps an instance of <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/HashMap.html"><code>HashMap</code></a>.</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;five&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;six&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Set<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>set<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>HashSet<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>set<span style="color:#1f2328">.</span><span style="color:#1f2328">addAll</span><span style="color:#1f2328">(</span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>set<span style="color:#1f2328">.</span><span style="color:#1f2328">forEach</span><span style="color:#1f2328">(</span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">::</span>println<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>The <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/SortedSet.html"><code>SortedSet</code></a> interface adds new methods to <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Set.html"><code>Set</code></a>.</p>
+<ul>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/TreeSet.html#first()"><code>first()</code></a> and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/TreeSet.html#last()"><code>last()</code></a> returns the lowest and the largest elements of the set</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/TreeSet.html#headSet(E)"><code>headSet(toElement)</code></a> and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/TreeSet.html#tailSet(E)"><code>tailSet(fromElement)</code></a> returns you subsets containing the elements lower than <code>toElement</code> or greater than <code>fromElement</code></li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/TreeSet.html#subSet(E,E)"><code>subSet(fromElement, toElement)</code></a> gives you a subset of the element between <code>fromElement</code> and <code>toElement</code>.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>SortedSet<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>TreeSet<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">(</span>Set<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;a&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;b&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;c&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;d&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;e&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;f&#34;</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>SortedSet<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>subSet<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">subSet</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;aa&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;d&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;sub set = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>subSet<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>注意，subSet仅仅相当于视图。No copy is made, meaning that any change you make to these subsets will be reflected in the set, and the other way round.</p>
+<p><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html"><code>NavigableSet</code></a></p>
+<p>Some methods are overloaded by <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html"><code>NavigableSet</code></a>. </p>
+<ul>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#headSet(E)"><code>headSet()</code></a>, <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#tailSet(E)"><code>headSet()</code></a>, and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#subSet(E)"><code>headSet()</code></a> may take a further <code>boolean</code> arguments to specify whether the limits (<code>toElement</code> or <code>fromElement</code>) are to be included in the resulting subset. </li>
+</ul>
+<p>Other methods have been added.</p>
+<ul>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#ceiling(E)"><code>ceiling(element)</code></a>, and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#floor(E)"><code>floor(element)</code></a> return the greatest element lesser or equal than, or the lowest element greater or equal than the provided <code>element</code>. If there is no such element then <code>null</code> is returned</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#lower(E)"><code>floor(element)</code></a>, and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#higher(E)"><code>higher(element)</code></a> return the greater element lesser than, or the lowest element greater than the provided <code>element</code>. If there is no such element then <code>null</code> is returned.</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#pollFirst()"><code>pollFirst()</code></a>, and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#pollLast()"><code>pollLast()</code></a> return and removes the lowest or the greatest element of the set. </li>
+</ul>
+<p>Furthermore, <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html"><code>NavigableSet</code></a> also allows you to iterate over its elements in descending order. There are two ways to do this.</p>
+<ul>
+<li>You can call <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#descendingIterator()"><code>descendingIterator()</code></a>: it gives you a regular <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Iterator.html"><code>Iterator</code></a> that traverses the set in the descending order.</li>
+<li>You can also call <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html#descendingSet()"><code>descendingSet()</code></a>. What you get in return is another <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/NavigableSet.html"><code>NavigableSet</code></a> that is a view on this set and that makes you think you have the same set, sorted in the reversed order.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>NavigableSet<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>sortedStrings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>TreeSet<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">(</span>Set<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;a&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;b&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;c&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;d&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;e&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;f&#34;</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;sorted strings = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>sortedStrings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>NavigableSet<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>reversedStrings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>sortedStrings<span style="color:#1f2328">.</span><span style="color:#1f2328">descendingSet</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;reversed strings = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>reversedStrings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="factory-methods">Factory Methods<a hidden class="anchor" aria-hidden="true" href="#factory-methods">#</a></h2>
+<p>Java SE 9</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>stringList<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Set<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>stringSet<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Set<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Java SE 10</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Collection<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Arrays<span style="color:#1f2328">.</span><span style="color:#1f2328">asList</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>list<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">copyOf</span><span style="color:#1f2328">(</span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Set<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>set<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Set<span style="color:#1f2328">.</span><span style="color:#1f2328">copyOf</span><span style="color:#1f2328">(</span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>Arrays</strong></p>
+<p><strong>The Collections Framework has a class</strong> called <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Arrays.html"><code>Arrays</code></a> with about 200 methods to handle arrays. Most of them are implementing various algorithms on arrays, like sorting, merging, searching.</p>
+<p><strong>Collections</strong></p>
+<p>The Collections Framework comes with another factory class: <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collections.html"><code>Collections</code></a>, with a set of method to manipulate collections and their content.</p>
+<p><strong>Finding a Sublist in a List</strong></p>
+<p>Two methods locate a given sublist in a bigger list: </p>
+<ul>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collections.html#indexOfSubList(java.util.List,java.util.List)"><code>indexOfSublist(List&lt;?&gt; source, List&lt;?&gt; target)</code></a>: returns the first index of the first element of the <code>target</code> list in the <code>source</code> list, or -1 if it does not exist; </li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collections.html#lastIndexOfSubList(java.util.List,java.util.List)"><code>lastIndexOfSublist(List&lt;?&gt; source, List&lt;?&gt; target)</code></a>: return the last of these indexes.</li>
+</ul>
+<p><strong>Changing the Order of the Elements of a List</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collections.html#sort(java.util.List)"><code>sort()</code></a> sorts the list in place. This method may take a comparator as an argument. As usual, if no comparator is provided, then the elements of the list must be comparable. If a comparator is provided, then it will be used to compare the elements. Starting with Java SE 8, you should favor the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html#sort(java.util.Comparator)"><code>sort()</code></a> method from the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html"><code>List</code></a>interface. </li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collections.html#shuffle(java.util.List)"><code>shuffle()</code></a> randomly shuffles the elements of the provided list. You can provide yout instance of <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Random.html"><code>Random</code></a> if you need a random shuffling that you can repeat. </li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collections.html#rotate(java.util.List,int)"><code>rotate()</code></a> rotates the elements of the list. After a rotation the element at index 0 will be found at index 1 and so on. The last elements will be moved to the first place of the list. You can combine <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/List.html#subList(int,int)"><code>subList()</code></a> and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collections.html#rotate(java.util.List,int)"><code>rotate()</code></a> to remove an element at a given index and to insert it in another place in the list.</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collections.html#reverse(java.util.List)"><code>reverse()</code></a>: reverse the order of the elements of the list.</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collections.html#swap(java.util.List,int,int)"><code>swap()</code></a>: swaps two elements from the list. This method can take a list as an argument, as well as a plain array.</li>
+</ul>
+<h2 id="stacks-and-queues">Stacks and Queues<a hidden class="anchor" aria-hidden="true" href="#stacks-and-queues">#</a></h2>
+<p><img loading="lazy" src="../assets/f339d888648d4f439443095684299ae6.png"></p>
+<p>Stacks are also called LIFO stacks, where LIFO stands for Last In, First Out. Queues are known as FIFO: First In First Out. </p>
+<p>These structures are very simple and gives you three main operations. </p>
+<ul>
+<li><em>push(element)</em>: adds an element to the queue, or the stack</li>
+<li><em>pop()</em>: removes an element from the stack, that is, the youngest element added</li>
+<li><em>poll()</em>: removes an element from the queue, that is, the oldest element added </li>
+<li><em>peek()</em>: allows you to see the element you will get with a <em>pop()</em> or a <em>poll()</em>, but without removing it from the queue of the stack.</li>
+</ul>
+<p><strong>Queues and Stacks</strong></p>
+<ul>
+<li>the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Queue.html"><code>Queue</code></a> interface models a queue;</li>
+<li>the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Deque.html"><code>Deque</code></a> interface models a <strong>double ended queue</strong> (thus the name). You can push, pop, poll and peek elements on both the tail and the head of a <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Deque.html"><code>Deque</code></a>, making it both a <strong>queue and a stack</strong>.</li>
+</ul>
+<p>Collection没有Stack接口，栈是通过Deque来定义的。</p>
+<p><strong>Implementing Queue and Deque</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ArrayDeque.html"><code>ArrayDeque</code></a>: which implements both. This implementation is backed by an array. The capacity of this class automatically grows as elements are added. So this implementation always accepts new elements.</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/LinkedList.html"><code>LinkedList</code></a>: which also implements both. This implementation is backed by a linked list, making the access to its first and last element very efficient. A <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/LinkedList.html"><code>LinkedList</code></a> will always accept new elements. </li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/PriorityQueue.html"><code>PriorityQueue</code></a>: that only implements <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Queue.html"><code>Queue</code></a>. This queue is backed by an array that keeps its elements sorted by their natural order or by an order specified by a <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Comparator.html"><code>Comparator</code></a>. The head of this queue is always the least element of the queue with respect to the specified ordering. The capacity of this class automatically grows as elements are added.</li>
+</ul>
+<h2 id="maps">Maps<a hidden class="anchor" aria-hidden="true" href="#maps">#</a></h2>
+<p><img loading="lazy" src="../assets/d3ffc062788a443abd8a86125de6b894.png"></p>
+<p>implementations：</p>
+<ul>
+<li>
+<p>HashMap</p>
+</li>
+<li>
+<p><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/LinkedHashMap.html"><code>LinkedHashMap</code></a> is a <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/HashMap.html"><code>HashMap</code></a> with an internal structure to keep the key-value pairs ordered. Iterating on the keys or the key-value pairs will follow the order in which you have added your key-value pairs.</p>
+<p>这里注意，HashMap是无序的，LinkedHashMap是有序的。</p>
+</li>
+<li>
+<p><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/IdentityHashMap.html"><code>IdentityHashMap</code></a> is a specialized <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.html"><code>Map</code></a> that you should only be used in very precise cases. This implementation is not meant to be generally used in application. Instead of using <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)"><code>equals()</code></a> and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/lang/Object.html#hashCode()"><code>hashCode()</code></a> to compare the key objects, this implementation only compares the references to these keys, with an equality operator (<code>==</code>). Use it with caution, only if you are sure this is what you need.</p>
+</li>
+</ul>
+<p>Java SE 9</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Map<span style="color:#0550ae">&lt;</span>Integer<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>map<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>Map<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>3<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>The <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.html"><code>Map</code></a> defines a member interface: <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.Entry.html"><code>Map.Entry</code></a> to model a key-value pair. This interface defines three methods to access the key and the values:</p>
+<ul>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.Entry.html#getKey()"><code>getKey()</code></a>: to read the key;</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.Entry.html#getValue()"><code>getValue()</code></a> and <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.Entry.html#setValue(V)"><code>setValue(value)</code></a>: to read and update the value bound to that key.</li>
+</ul>
+<p><strong>putIfAbsent()</strong>，如果是null，会替换为默认值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>key<span style="color:#fff"> </span><span style="color:#1f2328">:</span><span style="color:#fff"> </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">keySet</span><span style="color:#1f2328">())</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">putIfAbsent</span><span style="color:#1f2328">(</span>key<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0550ae">-</span>1<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>如果value是null，可能会报错，比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Map<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>map<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>HashMap<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>1<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">null</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>3<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">null</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;five&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>5<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>value<span style="color:#fff"> </span><span style="color:#1f2328">:</span><span style="color:#fff"> </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">values</span><span style="color:#1f2328">())</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">  </span><span style="color:#57606a">// 这里是int</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;value = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>value<span style="color:#1f2328">);</span><span style="color:#fff">  </span><span style="color:#57606a">// Integer拆包为int时会报NPE</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>getOrDefault()</strong>，如果没有key，返回默认值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Map<span style="color:#0550ae">&lt;</span>Integer<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>map<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>HashMap<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>3<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>values<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>i<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff"> </span>i<span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span><span style="color:#fff"> </span>5<span style="color:#1f2328">;</span><span style="color:#fff"> </span>i<span style="color:#0550ae">++</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>values<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">getOrDefault</span><span style="color:#1f2328">(</span>key<span style="color:#1f2328">,</span><span style="color:#0a3069">&#34;UNDEFINED&#34;</span><span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;values = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>values<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>流式写法：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>values<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>IntStream<span style="color:#1f2328">.</span><span style="color:#1f2328">range</span><span style="color:#1f2328">(</span>0<span style="color:#1f2328">,</span><span style="color:#fff"> </span>5<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">.</span><span style="color:#1f2328">mapToObj</span><span style="color:#1f2328">(</span>key<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">getOrDefault</span><span style="color:#1f2328">(</span>key<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;UNDEFINED&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">.</span><span style="color:#1f2328">collect</span><span style="color:#1f2328">(</span>Collectors<span style="color:#1f2328">.</span><span style="color:#1f2328">toList</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;values = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>values<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>remove(key)</strong>，remove后返回value，可能为null。</p>
+<p><strong>remove(key, value)</strong>，remove时先判断value存在才移除，返回boolean，<code>true</code> if the key/value pair was removed from the map。</p>
+<p><strong>containsKey(key) and containsValue(value)</strong>  Both methods return true if the map contains the given key or value.</p>
+<p><strong>putAll(otherMap)</strong>  If some keys are present in both maps, then the values of otherMap will erase those of this map.（并集）</p>
+<ul>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.html#keySet()"><code>keySet()</code></a>: returns an instance of <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Set.html"><code>Set</code></a>, containing the keys defined in the map</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.html#entrySet()"><code>entrySet()</code></a>: returns an instance of <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Set.html"><code>Set&lt;Map.Entry&gt;</code></a>, containing the key/value pairs contained in the map</li>
+<li><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.html#values()"><code>values()</code></a>: returns an instance of <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collection.html"><code>Collection</code></a>, containing the values present in the map.</li>
+</ul>
+<p>遍历推荐使用以下方式：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Map<span style="color:#1f2328">.</span><span style="color:#1f2328">Entry</span><span style="color:#0550ae">&lt;</span>Integer<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>entry<span style="color:#fff"> </span><span style="color:#1f2328">:</span><span style="color:#fff"> </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">entrySet</span><span style="color:#1f2328">())</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;entry = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>entry<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>Lambda Expressions</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Map<span style="color:#0550ae">&lt;</span>Integer<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>map<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>HashMap<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>3<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">forEach</span><span style="color:#1f2328">((</span>key<span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>key<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; :: &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>value<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Map<span style="color:#0550ae">&lt;</span>Integer<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>map<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>HashMap<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>3<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">replaceAll</span><span style="color:#1f2328">((</span>key<span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>value<span style="color:#1f2328">.</span><span style="color:#1f2328">toUpperCase</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">forEach</span><span style="color:#1f2328">((</span>key<span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>key<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; :: &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>value<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>compute</strong></p>
+<p>The <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.html#put(K,V)"><code>put()</code></a> methods return the previous value, whereas the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Map.html#compute(K,java.util.function.BiFunction)"><code>compute()</code></a> methods return the new value.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;five&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;six&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;seven&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Map<span style="color:#0550ae">&lt;</span>Integer<span style="color:#1f2328">,</span><span style="color:#fff"> </span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;&gt;</span><span style="color:#fff"> </span>map<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>HashMap<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>word<span style="color:#1f2328">:</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>length<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>word<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">!</span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">containsKey</span><span style="color:#1f2328">(</span>length<span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>length<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">get</span><span style="color:#1f2328">(</span>length<span style="color:#1f2328">).</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>word<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">forEach</span><span style="color:#1f2328">((</span>key<span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>key<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; :: &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>value<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>使用putIfAbsent优化：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>word<span style="color:#1f2328">:</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>length<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>word<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">putIfAbsent</span><span style="color:#1f2328">(</span>length<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">get</span><span style="color:#1f2328">(</span>length<span style="color:#1f2328">).</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>word<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>使用computeIfAbsent优化：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>word<span style="color:#1f2328">:</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>length<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>word<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">computeIfAbsent</span><span style="color:#1f2328">(</span>length<span style="color:#1f2328">,</span><span style="color:#fff"> </span>key<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">())</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">       </span><span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>word<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>merge</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;five&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;six&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;seven&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Map<span style="color:#0550ae">&lt;</span>Integer<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>map<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>HashMap<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>word<span style="color:#1f2328">:</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>length<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>word<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">merge</span><span style="color:#1f2328">(</span>length<span style="color:#1f2328">,</span><span style="color:#fff"> </span>word<span style="color:#1f2328">,</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">              </span><span style="color:#1f2328">(</span>existingValue<span style="color:#1f2328">,</span><span style="color:#fff"> </span>newWord<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>existingValue<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;, &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>newWord<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">forEach</span><span style="color:#1f2328">((</span>key<span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>key<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; :: &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>value<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>SortedMap and NavigableMap</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>SortedMap<span style="color:#0550ae">&lt;</span>Integer<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>map<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>TreeMap<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>3<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>5<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;five&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>6<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;six&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>SortedMap<span style="color:#0550ae">&lt;</span>Integer<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>headMap<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">headMap</span><span style="color:#1f2328">(</span>3<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>headMap<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>0<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;zero&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff"> </span><span style="color:#57606a">// this line is ok</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>headMap<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>4<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff"> </span><span style="color:#57606a">// this line throws an IllegalArgumentException</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Here is the code of the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/HashSet.html#add(E)"><code>add(element)</code></a> of the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/HashSet.html"><code>HashSet</code></a> class:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">transient</span><span style="color:#fff"> </span>HashMap<span style="color:#0550ae">&lt;</span>E<span style="color:#1f2328">,</span>Object<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>map<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>Object<span style="color:#fff"> </span>PRESENT<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Object<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">boolean</span><span style="color:#fff"> </span><span style="color:#6639ba">add</span><span style="color:#1f2328">(</span>E<span style="color:#fff"> </span>e<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>map<span style="color:#1f2328">.</span><span style="color:#1f2328">put</span><span style="color:#1f2328">(</span>e<span style="color:#1f2328">,</span><span style="color:#fff"> </span>PRESENT<span style="color:#1f2328">)</span><span style="color:#0550ae">==</span><span style="color:#cf222e">null</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>What you can see is that in fact, <strong>a hashset stores your object in a hashmap</strong> (the <code>transient</code> keyword is not relevant). Your objects are the keys of this hashmap, and the value is just a placeholder, an object with no significance.</p>
+<p>hashset 是用hashmap来存的，所以最好不要更新hashset的值（也就是hashmap的key），否则会有意想不到的Bug。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>The Collections Framework <a href="https://dev.java/learn/api/collections-framework/">https://dev.java/learn/api/collections-framework/</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/java/">Java</a></li>
+      <li><a href="https://dongfanger.github.io/tags/%E5%AE%98%E6%96%B9/">官方</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000017-tep1.0.0%E6%95%99%E7%A8%8B/">
+    <span class="title">« 上一页</span>
+    <span>tep1.0.0教程</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000016-locustpython%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7locust%E5%85%A5%E9%97%A8/">
+    <span class="title">下一页 »</span>
+    <span>Python技术栈性能测试工具Locust入门</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#storing-data">Storing Data</a></li>
+        <li><a href="#collection-hierarchy">Collection Hierarchy</a></li>
+        <li><a href="#storing-elements">Storing Elements</a></li>
+        <li><a href="#iterating">Iterating</a></li>
+        <li><a href="#list">List</a></li>
+        <li><a href="#set">Set</a></li>
+        <li><a href="#factory-methods">Factory Methods</a></li>
+        <li><a href="#stacks-and-queues">Stacks and Queues</a></li>
+        <li><a href="#maps">Maps</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

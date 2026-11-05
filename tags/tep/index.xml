@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Tep on 测试开发刚哥</title>
+    <link>https://dongfanger.github.io/tags/tep/</link>
+    <description>Recent content in Tep on 测试开发刚哥</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 19 Jan 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://dongfanger.github.io/tags/tep/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Python处理接口数据，这个函数太香了</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000019-python%E5%A4%84%E7%90%86%E6%8E%A5%E5%8F%A3%E6%95%B0%E6%8D%AE%E8%BF%99%E4%B8%AA%E5%87%BD%E6%95%B0%E5%A4%AA%E9%A6%99%E4%BA%86/</link>
+      <pubDate>Mon, 19 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000019-python%E5%A4%84%E7%90%86%E6%8E%A5%E5%8F%A3%E6%95%B0%E6%8D%AE%E8%BF%99%E4%B8%AA%E5%87%BD%E6%95%B0%E5%A4%AA%E9%A6%99%E4%BA%86/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;python处理接口数据&#34;&gt;Python处理接口数据&lt;/h1&gt;
+&lt;p&gt;接口数据通常是JSON格式，Python处理起来并不轻松。&lt;/p&gt;
+&lt;p&gt;方法一，json文件。额外编写代码读取文件，接口参数很多，文件变多，难维护。&lt;/p&gt;
+&lt;p&gt;方法二，字典。JSON可以直接粘贴到代码中，Python认作字典，但语法有差异，JSON的语法是true/false/null，Python的语法是True/False/None，不兼容。&lt;/p&gt;
+&lt;p&gt;这两种方法都有共同的缺点，需要编写表达式来定位某个节点。&lt;/p&gt;
+&lt;p&gt;比如：&lt;code&gt;body[&amp;quot;a&amp;quot;][0][&amp;quot;x&amp;quot;][&amp;quot;m&amp;quot;]&lt;/code&gt;&lt;/p&gt;
+&lt;h1 id=&#34;字符串与占位符&#34;&gt;字符串与占位符&lt;/h1&gt;
+&lt;p&gt;占位符是一种很常见的文本替换技术，在任何编程语言中都有广泛应用。&lt;/p&gt;
+&lt;p&gt;Python语法有个很特别的字符串，三引号字符串：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;test_json &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt; &amp;#34;bool&amp;#34;: true,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;  &amp;#34;x&amp;#34;: null,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;  &amp;#34;customerId&amp;#34;: &amp;#34;123456&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;  &amp;#34;items&amp;#34;: [
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;      &amp;#34;productId&amp;#34;: &amp;#34;987654&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;      &amp;#34;quantity&amp;#34;: 2,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;      &amp;#34;price&amp;#34;: 199.99
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;  ],
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;  &amp;#34;shippingAddress&amp;#34;: {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;recipientName&amp;#34;: &amp;#34;张三&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;streetAddress&amp;#34;: &amp;#34;北京市朝阳区某街道123号&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;city&amp;#34;: &amp;#34;北京&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;state&amp;#34;: &amp;#34;北京&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;postalCode&amp;#34;: &amp;#34;100000&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;country&amp;#34;: &amp;#34;中国&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;  },
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;  &amp;#34;paymentMethod&amp;#34;: {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;type&amp;#34;: &amp;#34;CreditCard&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;cardNumber&amp;#34;: &amp;#34;4111111111111111&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;expiryDate&amp;#34;: &amp;#34;12/25&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;cvv&amp;#34;: &amp;#34;123&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;  },
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;  &amp;#34;orderNotes&amp;#34;: &amp;#34;请尽快发货，谢谢！&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;基本思路是，把JSON写在三引号字符串中，这能保留原生JSON格式，就像很多测试平台的做法一样，然后再通过占位符，直接替换其中的节点值。占位符不用编写表达式定位节点，在JSON字符串标记即可。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>年度大版本，tep3回归纯粹Python接口测试框架</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000018-%E5%B9%B4%E5%BA%A6%E5%A4%A7%E7%89%88%E6%9C%ACtep3%E5%9B%9E%E5%BD%92%E7%BA%AF%E7%B2%B9python%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6/</link>
+      <pubDate>Sun, 18 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000018-%E5%B9%B4%E5%BA%A6%E5%A4%A7%E7%89%88%E6%9C%ACtep3%E5%9B%9E%E5%BD%92%E7%BA%AF%E7%B2%B9python%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;回顾&#34;&gt;回顾&lt;/h1&gt;
+&lt;p&gt;tep是基于pytest开发的接口测试框架，上个版本从小工具升级为了关键字驱动框架，通过pystats发现最近半年仍然有4000+人次在安装使用tep。时隔1年后，我对tep进行了一次大版本改造，抛弃tep2的Java代码风格，重新回归到tep1的纯粹Python风格。&lt;/p&gt;
+&lt;h1 id=&#34;纯粹python&#34;&gt;纯粹Python&lt;/h1&gt;
+&lt;p&gt;所谓纯粹Python，体现在两个方面，一个方面是tep源码进行了重写，更加Pythonic，自动化用例写起来也更加简单易懂；另一方面是抛弃了依赖Java的Allure和依赖C++的loguru，分别使用Python技术栈的pytest-html和logging替代。&lt;/p&gt;
+&lt;h1 id=&#34;tep3版本&#34;&gt;tep3版本&lt;/h1&gt;
+&lt;h2 id=&#34;简介&#34;&gt;简介&lt;/h2&gt;
+&lt;p&gt;tep是Try Easy Pytest的首字母缩写，帮你轻松上手pytest。&lt;/p&gt;
+&lt;p&gt;框架特点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基于pytest封装，成熟、稳定且扩展性强。&lt;/li&gt;
+&lt;li&gt;框架完全由Python构建，没有混杂其他语言。&lt;/li&gt;
+&lt;li&gt;原生Python语法，学习Python，零成本使用框架。&lt;/li&gt;
+&lt;li&gt;HAR包转换pytest用例。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;安装&#34;&gt;安装&lt;/h2&gt;
+&lt;p&gt;支持Python3.8以上版本&lt;/p&gt;
+&lt;p&gt;创建虚拟环境：&lt;code&gt;python -m venv venv&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;激活虚拟环境，Windows用户：&lt;code&gt;activate.bat&lt;/code&gt; Mac用户：&lt;code&gt;source venv/bin/activate&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;安装tep：&lt;code&gt;pip install tep&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;验证安装成功：&lt;code&gt;tep -V&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&#34;目录结构&#34;&gt;目录结构&lt;/h2&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;data
+file
+fixture
+report
+scripts
+tests
+.gitignore
+conftest.py
+pytest.ini
+run.py
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;tep new demo&lt;/code&gt;就能快速创建项目名称为&lt;code&gt;demo&lt;/code&gt;的项目脚手架。&lt;/p&gt;
+&lt;h2 id=&#34;用例示范&#34;&gt;用例示范&lt;/h2&gt;
+&lt;p&gt;简单的请求：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;tep&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; request
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;test&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;():&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    response &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; request&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;get&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;http://httpbin.org/status/200&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;200&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;复杂的场景：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;tep&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; request
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;tep&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; v
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;data.global_data&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; GlobalData
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;Data&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    v&lt;span style=&#34;color:#1f2328&#34;&gt;({&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;domain&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; GlobalData&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;domain&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;skuNum&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;2&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;payAmount&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;0.2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#1f2328&#34;&gt;})&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body_add_cart &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;{&amp;#34;skuId&amp;#34;:&amp;#34;$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{skuId}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;,&amp;#34;skuNum&amp;#34;:$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{skuNum}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;}&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body_order &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;{&amp;#34;skuId&amp;#34;:&amp;#34;$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{skuId}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;,&amp;#34;price&amp;#34;:$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{skuPrice}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;,&amp;#34;skuNum&amp;#34;:$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{skuNum}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;,&amp;#34;totalPrice&amp;#34;:$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{totalPrice}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;}&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body_pay &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;{&amp;#34;orderId&amp;#34;:&amp;#34;$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{orderId}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;,&amp;#34;payAmount&amp;#34;:$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{payAmount}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;}&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;test&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;():&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    url &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{domain}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;/searchSku?skuName=book&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    response &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; request&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;get&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;GlobalData&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;400&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;skuId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;jsonpath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$.skuId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)[&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;])&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;skuPrice&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;jsonpath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$.price&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)[&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;])&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    url &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{domain}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;/addCart&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;Data&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;body_add_cart&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    response &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; request&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;post&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;GlobalData&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; json&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;body&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;400&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;skuNum&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;jsonpath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$.skuNum&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)[&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;])&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;totalPrice&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;jsonpath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$.totalPrice&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)[&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;])&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    url &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{domain}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;/order&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;Data&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;body_order&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    response &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; request&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;post&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;GlobalData&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; json&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;body&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;400&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;orderId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;jsonpath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$.orderId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)[&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;])&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    url &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{domain}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;/pay&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; v&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;Data&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;body_pay&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    response &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; request&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;post&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;GlobalData&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; json&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;body&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;400&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;jsonpath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$.success&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)[&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;true&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;用例和数据&#34;&gt;用例和数据&lt;/h1&gt;
+&lt;p&gt;数据怎么存放，这里给出了一个参考方案，在用例内定义&lt;code&gt;class Data&lt;/code&gt;，然后通过类变量存放数据。不同的项目，不同的场景，不同的参数，可以考虑不一样的存放方式。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>tep1.0.0教程</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000017-tep1.0.0%E6%95%99%E7%A8%8B/</link>
+      <pubDate>Sat, 17 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000017-tep1.0.0%E6%95%99%E7%A8%8B/</guid>
+      <description>正式版教程： &lt;a href=&#34;https://dongfanger.gitee.io/blog/tep.html&#34;&gt;https://dongfanger.gitee.io/blog/tep.html&lt;/a&gt;</description>
+    </item>
+    <item>
+      <title>当Pytest遇上MVC分层设计自动化用例就该这么写</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000016-%E5%BD%93pytest%E9%81%87%E4%B8%8Amvc%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E5%B0%B1%E8%AF%A5%E8%BF%99%E4%B9%88%E5%86%99/</link>
+      <pubDate>Fri, 16 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000016-%E5%BD%93pytest%E9%81%87%E4%B8%8Amvc%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E5%B0%B1%E8%AF%A5%E8%BF%99%E4%B9%88%E5%86%99/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;引子&#34;&gt;引子&lt;/h1&gt;
+&lt;p&gt;数据写在代码里，追求快速编写用例，是我设计tep的一个特点，这在个人编写时是一种非常良好的体验。但相比于HttpRunner、JMeter等来说，总觉得还差点意思。思考良久，总结为三个字：&lt;strong&gt;工程化&lt;/strong&gt;。工程化是我近一年在学习Java并参与了2个测试平台模块开发，和写了几个小工具后，感受到的一种编程思想。而其中最明显的就是Spring的MVC分层设计。为了让tep更工程化，后续版本将以MVC模块编写用例为准，同时会兼容之前的脚本式快速编写。&lt;/p&gt;
+&lt;h1 id=&#34;示例&#34;&gt;示例&lt;/h1&gt;
+&lt;h2 id=&#34;目录结构&#34;&gt;目录结构&lt;/h2&gt;
+&lt;p&gt;测试用例都放在一个文件夹下：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/5487a3073adf417c82931654f233f508.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;test_case：用例主程序；&lt;/p&gt;
+&lt;p&gt;steps：测试步骤；&lt;/p&gt;
+&lt;p&gt;data：纯粹的json；&lt;/p&gt;
+&lt;h2 id=&#34;测试用例&#34;&gt;测试用例&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;test_case.py&lt;/code&gt;是测试用例，包含的只有测试步骤：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;allure&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;examples.tests.LoginToPayFlow.steps.step_add_cart&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; step_add_cart
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;examples.tests.LoginToPayFlow.steps.step_order&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; step_order
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;examples.tests.LoginToPayFlow.steps.step_pay&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; step_pay
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;examples.tests.LoginToPayFlow.steps.step_search_sku&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; step_search_sku
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;utils.cache&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; TepCache
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;utils.step&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; Step
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;测试登录到下单流程，需要先运行utils/fastapi_mock.py
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;@allure.title&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;从登录到下单支付&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;test&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;login&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; env_vars&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; case_vars&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    case_vars&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;put&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;token&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; login&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;token&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;])&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    cache &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; TepCache&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;env_vars&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;env_vars&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; case_vars&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;case_vars&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Step&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;搜索商品&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; step_search_sku&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; cache&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Step&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;添加购物车&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; step_add_cart&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; cache&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Step&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;下单&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; step_order&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; cache&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Step&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;支付&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; step_pay&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; cache&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;TepCache是“缓存”，包括global_vars、env_vars、case_vars三个级别的变量池。&lt;/p&gt;
+&lt;p&gt;Step是一个泛化调用类，作用是打日志，调用第二个参数对应的步骤函数。&lt;/p&gt;
+&lt;h2 id=&#34;测试步骤&#34;&gt;测试步骤&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;utils.cache&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; TepCache
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;utils.func&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; data
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;utils.http_client&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; request
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;step_search_sku&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;cache&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; TepCache&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    url &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; cache&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;env_vars&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;domain&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;/searchSku&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    headers &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;token&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; cache&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;case_vars&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;get&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;token&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; data&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;查询SKU.json&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    response &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; request&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;get&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; params&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;body&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;400&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    cache&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;case_vars&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;put&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;skuId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;jsonpath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$.skuId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    cache&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;case_vars&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;put&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;skuPrice&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;jsonpath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$.price&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-py&#34; data-lang=&#34;py&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;utils.cache&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; TepCache
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;utils.func&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; data
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;utils.http_client&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; request
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;step_add_cart&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;cache&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; TepCache&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    url &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; cache&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;env_vars&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;domain&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;/addCart&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    headers &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;token&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; cache&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;case_vars&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;get&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;token&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; data&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;添加购物车.json&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    body&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;skuId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; cache&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;case_vars&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;get&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;skuId&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    response &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; request&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;post&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; json&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;body&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;400&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    cache&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;case_vars&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;put&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;skuNum&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;jsonpath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$.skuNum&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    cache&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;case_vars&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;put&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;totalPrice&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;jsonpath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;$.totalPrice&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;步骤函数以step开头，尤其注意的是cache借助Python Typing提示，可以在编写下面代码时，获得PyCharm语法提示，所以一定不要忘了加上&lt;code&gt;: TepCache&lt;/code&gt;：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>tep支持pytest-xdist分布式执行用例及合并Allure报告</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000015-tep%E6%94%AF%E6%8C%81pytest-xdist%E5%88%86%E5%B8%83%E5%BC%8F%E6%89%A7%E8%A1%8C%E7%94%A8%E4%BE%8B%E5%8F%8A%E5%90%88%E5%B9%B6allure%E6%8A%A5%E5%91%8A/</link>
+      <pubDate>Thu, 15 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000015-tep%E6%94%AF%E6%8C%81pytest-xdist%E5%88%86%E5%B8%83%E5%BC%8F%E6%89%A7%E8%A1%8C%E7%94%A8%E4%BE%8B%E5%8F%8A%E5%90%88%E5%B9%B6allure%E6%8A%A5%E5%91%8A/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;tep近期更新频率较快，一方面是作者在积极投入到tep工具开发中；另一方面是我们聚集了20位小伙伴，一起合力打造&lt;strong&gt;EasyPytest测试平台&lt;/strong&gt;，teprunner的FastAPI升级版本，依托于tep，&lt;strong&gt;帮你高效管理pytest测试用例&lt;/strong&gt;。陆续也会有平台开发日志发布，欢迎持续关注。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;tep0.11.1版本升级内容：&lt;/p&gt;
+&lt;p&gt;1、pytest-xdist分布式执行用例，合并Allure报告；&lt;/p&gt;
+&lt;p&gt;2、global_vars全局变量配置；&lt;/p&gt;
+&lt;h1 id=&#34;分布式执行用例&#34;&gt;分布式执行用例&lt;/h1&gt;
+&lt;p&gt;借助于pytest-xdist，在命令行执行时添加参数&lt;code&gt;-n auto&lt;/code&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;pytest &lt;span style=&#34;color:#0550ae&#34;&gt;-&lt;/span&gt;n auto
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;pytest-xdist会自动根据本地机器硬件配置，设置最优并发，并分发用例，分布式执行。&lt;/p&gt;
+&lt;p&gt;测试时先运行main.py，然后在case100目录下执行&lt;code&gt;pytest -n auto --tep-reports&lt;/code&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/1076643eec9e418685bdef10b49e53a5.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;第一次串行，第二次xdist并行：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/55a2c725e31e47ac8b2abebd886a3abe.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;执行时间从50s一下降到5s，性能提升还是非常的明显。&lt;/p&gt;
+&lt;h1 id=&#34;合并allure报告&#34;&gt;合并Allure报告&lt;/h1&gt;
+&lt;p&gt;pytest-xdist分布式执行，只要把allure源文件，也就是那一堆json文件，存到同一个目录下，报告的数据就是一体的，不需要单独合并。但是有个问题，tep封装了&lt;code&gt;--tep-reports&lt;/code&gt; 命令行参数一键生成Allure报告，背后的逻辑是在pytest_sessionfinish hook函数里面实现的，分布式执行时，每个xdist的node都是一个单独的session，多个node就会生成多份报告：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/8c44989d22914ca68894d80d1aa07d4c.png&#34;&gt;c&lt;/p&gt;
+&lt;p&gt;10个node生成了11份报告，其中1份master节点生成的。pytest-xdist的原理如图所示：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/03de9a932bac4e3c8bb9d9cdc55cf0a3.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;master节点不运行任何测试，只是通过一小部分消息与节点通信。子节点执行后会通过workeroutput把数据回传给master节点。所以只需要通过是否有workeroutput属性来判断master节点：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;_is_master&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    pytest-xdist分布式执行时，判断是主节点master还是子节点
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    主节点没有workerinput属性
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;hasattr&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;workerinput&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;然后只在主节点的pytest_sessionfinish，生成1次报告，就能避免生成多份报告。这样在xdist分布式执行模式下，&lt;code&gt;--tep-reports&lt;/code&gt;也只会生成1份合并后的包含所有测试用例的Allure HTML报告。&lt;/p&gt;
+&lt;p&gt;完整实现代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;time&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;shutil&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;allure_commons&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;allure_commons.logger&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; AllureFileLogger
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;allure_pytest.listener&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; AllureListener
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;allure_pytest.plugin&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; cleanup_factory
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;reports_path &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;join&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;Project&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;root_dir&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;reports&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;allure_source_dir_name &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;.allure.source.temp&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;allure_source_path &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;join&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;reports_path&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; allure_source_dir_name&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;_tep_reports&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    --tep-reports命令行参数不能和allure命令行参数同时使用，否则可能出错
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; config&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;getoption&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;--tep-reports&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;and&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;not&lt;/span&gt; config&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;getoption&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;allure_report_dir&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cf222e&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;True&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;False&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;_is_master&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    pytest-xdist分布式执行时，判断是主节点master还是子节点
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    主节点没有workerinput属性
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;hasattr&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;workerinput&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;pytest_addoption&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;parser&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    allure测试报告 命令行参数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    parser&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;addoption&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;--tep-reports&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        action&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;store_const&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        const&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;True&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        help&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;Create tep allure HTML reports.&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;pytest_configure&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    这段代码源自：https://github.com/allure-framework/allure-python/blob/master/allure-pytest/src/plugin.py
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    目的是生成allure源文件，用于生成HTML报告
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; _tep_reports&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;exists&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;allure_source_path&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            shutil&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;rmtree&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;allure_source_path&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        test_listener &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; AllureListener&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        config&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;pluginmanager&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;register&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;test_listener&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        allure_commons&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;plugin_manager&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;register&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;test_listener&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        config&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;add_cleanup&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;cleanup_factory&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;test_listener&lt;span style=&#34;color:#1f2328&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        clean &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; config&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;option&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;clean_alluredir
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        file_logger &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; AllureFileLogger&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;allure_source_path&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; clean&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;  &lt;span style=&#34;color:#57606a&#34;&gt;# allure_source&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        allure_commons&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;plugin_manager&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;register&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;file_logger&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        config&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;add_cleanup&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;cleanup_factory&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;file_logger&lt;span style=&#34;color:#1f2328&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;pytest_sessionfinish&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;session&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    测试运行结束后生成allure报告
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    &amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; _tep_reports&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;session&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; _is_master&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;session&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;  &lt;span style=&#34;color:#57606a&#34;&gt;# 只在master节点才生成报告&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#57606a&#34;&gt;# 最近一份报告的历史数据，填充allure趋势图&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;exists&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;reports_path&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                his_reports &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;listdir&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;reports_path&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; allure_source_dir_name &lt;span style=&#34;color:#0550ae&#34;&gt;in&lt;/span&gt; his_reports&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    his_reports&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;remove&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;allure_source_dir_name&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; his_reports&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    latest_report_history &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;join&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;reports_path&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; his_reports&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;],&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;history&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    shutil&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;copytree&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;latest_report_history&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;join&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;allure_source_path&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;history&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            current_time &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; time&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;strftime&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;%Y-%m-&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;%d&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;-%H-%M-%S&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; time&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;localtime&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;time&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;time&lt;span style=&#34;color:#1f2328&#34;&gt;()))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            html_report_name &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;join&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;reports_path&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;report-&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;+&lt;/span&gt; current_time&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;system&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;allure generate &lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{&lt;/span&gt;allure_source_path&lt;span style=&#34;color:#0a3069&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt; -o &lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{&lt;/span&gt;html_report_name&lt;span style=&#34;color:#0a3069&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;  --clean&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            shutil&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;rmtree&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;allure_source_path&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;global_vars全局变量&#34;&gt;global_vars全局变量&lt;/h1&gt;
+&lt;p&gt;在使用环境变量模版时，有些变量需要在多个模版重复设置，tep新增了global_vars全局变量fixture，可以将重复设置的变量，定义在&lt;code&gt;resources/global_vars.yaml&lt;/code&gt;：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>tep时隔8个月迎来重大全新升级</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000014-tep%E6%97%B6%E9%9A%948%E4%B8%AA%E6%9C%88%E8%BF%8E%E6%9D%A5%E9%87%8D%E5%A4%A7%E5%85%A8%E6%96%B0%E5%8D%87%E7%BA%A7/</link>
+      <pubDate>Wed, 14 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000014-tep%E6%97%B6%E9%9A%948%E4%B8%AA%E6%9C%88%E8%BF%8E%E6%9D%A5%E9%87%8D%E5%A4%A7%E5%85%A8%E6%96%B0%E5%8D%87%E7%BA%A7/</guid>
+      <description>&lt;strong&gt;tep此次更新，旨在从“工具”升级为“框架”，为此做了大量的代码整洁工作，重新设计了部分功能，项目脚手架也焕然一新。&lt;/strong&gt;</description>
+    </item>
+    <item>
+      <title>接口自动化项目落地之HTTPBin网站</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000013-%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A1%B9%E7%9B%AE%E8%90%BD%E5%9C%B0%E4%B9%8Bhttpbin%E7%BD%91%E7%AB%99/</link>
+      <pubDate>Tue, 13 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000013-%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A1%B9%E7%9B%AE%E8%90%BD%E5%9C%B0%E4%B9%8Bhttpbin%E7%BD%91%E7%AB%99/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;接口自动化项目落地系列&#34;&gt;接口自动化项目落地系列&lt;/h1&gt;
+&lt;p&gt;找个开源网站或开源项目，用&lt;strong&gt;tep&lt;/strong&gt;实现整套&lt;strong&gt;pytest&lt;/strong&gt;接口自动化项目落地，归档到电子书，作为&lt;strong&gt;tep完整教程&lt;/strong&gt;的&lt;strong&gt;项目篇&lt;/strong&gt;一部分。自从tep完整教程发布以后，tep被越来越多小伙伴了解。教程只是纯理论，是骡子是马，拉出来遛遛才知道。做接口自动化项目落地，一方面是为了让自己脑海中的构想实实在在的呈现出来，现实和理想存在多少差距，不断尝试去弥补和修缮；另一方面也是方便读者朋友们学习使用，借助实际项目来练习，才能在赛道中弯道超车。&lt;/p&gt;
+&lt;h1 id=&#34;httpbin网站&#34;&gt;HTTPBin网站&lt;/h1&gt;
+&lt;p&gt;httpbin.org是一个简单的在线提供HTTP服务的网站：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/216043454b2f43eeb4659ce9ac7b81a8.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/acfb96edb6fe40008c3942d17482d2ee.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;它能够用来对HTTP进行在线测试。&lt;/p&gt;
+&lt;h1 id=&#34;测试报告&#34;&gt;测试报告&lt;/h1&gt;
+&lt;p&gt;HTTPBin网站的接口自动化项目包含&lt;strong&gt;11个用例集&lt;/strong&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/2b7c958062ed47d89e09e9e40d6abb5c.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;67条测试用例&lt;/strong&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/c63e2d9a06bc4bdd8e7feed8b7ebc349.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;自动化执行正确率98.5%&lt;/strong&gt;，其中有1条错误结果，是我故意为之的，因为想展示下断言失败的效果。&lt;/p&gt;
+&lt;h1 id=&#34;环境配置&#34;&gt;环境配置&lt;/h1&gt;
+&lt;p&gt;包含http和https两套环境，因为HTTPBin支持HTTP&amp;amp;HTTPS：&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;fixtures/fixture_env_vars.py&lt;/em&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;#!/usr/bin/python&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;## encoding=utf-8&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;tep.fixture&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;*&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;@pytest.fixture&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;scope&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;session&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;env_vars&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;config&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;Clazz&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;TepVars&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        env &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; config&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;env&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;变量定义开始&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#57606a&#34;&gt;# 环境变量&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        mapping &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;http&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;  &lt;span style=&#34;color:#57606a&#34;&gt;# http环境&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;domain&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;http://httpbin.org&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#1f2328&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;https&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;  &lt;span style=&#34;color:#57606a&#34;&gt;# https环境&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;domain&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;https://httpbin.org&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#57606a&#34;&gt;# 继续添加&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#1f2328&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#57606a&#34;&gt;# 定义类属性，敲代码时会自动补全&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        domain &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; mapping&lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;env&lt;span style=&#34;color:#1f2328&#34;&gt;][&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;domain&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;变量定义结束&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;return&lt;/span&gt; Clazz&lt;span style=&#34;color:#1f2328&#34;&gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;配置默认为http环境：&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;conf.yaml&lt;/em&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;env&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#fff&#34;&gt; &lt;/span&gt;http&lt;span style=&#34;color:#fff&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;用例集&#34;&gt;用例集&lt;/h1&gt;
+&lt;h2 id=&#34;http-methods&#34;&gt;http-methods&lt;/h2&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/85caafcedc6e4c3bb04f47375fbf8015.png&#34;&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;allure&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;tep.client&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; request
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;@allure.title&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;get请求&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;test&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;env_vars&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#57606a&#34;&gt;# 描述&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#57606a&#34;&gt;# 数据&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#57606a&#34;&gt;# 请求&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    response &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; request&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;get&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        url&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;env_vars&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;domain &lt;span style=&#34;color:#0550ae&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;/get&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        headers&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Host&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;httpbin.org&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Proxy-Connection&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;keep-alive&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;accept&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;application/json&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                 &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;User-Agent&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                 &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Referer&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;http://httpbin.org/&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Accept-Encoding&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;gzip, deflate&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                 &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;Accept-Language&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#39;en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        params&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#57606a&#34;&gt;# 提取&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#57606a&#34;&gt;# 断言&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;assert&lt;/span&gt; response&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;status_code &lt;span style=&#34;color:#0550ae&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;400&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;auth&#34;&gt;auth&lt;/h2&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/30f73a425db04174bb36bfcb19e79800.png&#34;&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>民间流转的pytest项目结构设计</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000012-%E6%B0%91%E9%97%B4%E6%B5%81%E8%BD%AC%E7%9A%84pytest%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/</link>
+      <pubDate>Mon, 12 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000012-%E6%B0%91%E9%97%B4%E6%B5%81%E8%BD%AC%E7%9A%84pytest%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/d890fa29667248acb99bcd84bb794f0a.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;创建上图的pytest项目结构，&lt;strong&gt;只需要一条命令即可&lt;/strong&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tep startproject demo
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/8ef1c1ae74b04a1295e9a3c91a44aeac.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;前提是安装tep0.9.8版本：&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;pip install &lt;span style=&#34;color:#953800&#34;&gt;tep&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;==&lt;/span&gt;0.9.8
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;示例代码单独放在了samples文件夹下，可以放心将整个目录删除。其中的db演示了连接MySQL数据库，http演示了requests常见用法和tep request的猴子补丁，login_pay演示了&lt;strong&gt;从登陆到下单该如何编写脚本&lt;/strong&gt;，包括httprunner、mvc（不推荐）、tep（强烈推荐）三种写法。&lt;/p&gt;
+&lt;p&gt;fixtures从conftest.py文件中单独拎了出来。这个设计与Django不谋而合，Django也有个叫做fixtures的文件夹，用来存放测试数据。其实pytest的fixture的本意是可以用来做setup和teardown的，从这个意义来说，fixtures就是存放测试数据的，比如封装登录接口为用例提供token。&lt;/p&gt;
+&lt;p&gt;utils存放了一些工具。比如自带的fastapi项目，request猴子补丁，mitmproxy抓包自动生成用例。request猴子补丁可以自定义日志输出格式，在发送请求前后完成任何你想做的操作。&lt;/p&gt;
+&lt;p&gt;tep0.9.8版本正式发布，对项目脚手架进行了精简，是为接下来的**《tep完整教程帮你突破pytest》**做好准备。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>tep集成mitmproxy录制流量自动生成用例</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000011-tep%E9%9B%86%E6%88%90mitmproxy%E5%BD%95%E5%88%B6%E6%B5%81%E9%87%8F%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%94%A8%E4%BE%8B/</link>
+      <pubDate>Sun, 11 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000011-tep%E9%9B%86%E6%88%90mitmproxy%E5%BD%95%E5%88%B6%E6%B5%81%E9%87%8F%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%94%A8%E4%BE%8B/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;使用&#34;&gt;使用&lt;/h1&gt;
+&lt;p&gt;操作过程非常简单，流程如下：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/878aab2dbe594c36b9daadf8c46baf8b.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;①&lt;strong&gt;配置过滤域名&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;必须配置，不然会有很多无效流量造成数据冗余。&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/aecdc4689cd145c5b79e049fbc5e18e1.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;②&lt;strong&gt;启动代理&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;「示例」使用了反向代理，tep自带FastApi启动Mock服务：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/5477922c30864b6686005cac4c30d1a0.png&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;「&lt;strong&gt;实际&lt;/strong&gt;」使用正向代理，并手动配置代理。命令说明在&lt;code&gt;utils/mitm.py&lt;/code&gt;文件中有：&lt;img loading=&#34;lazy&#34; src=&#34;../assets/4a6bbaf69b9c4321960f445ff9c07b4e.png&#34;&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;③&lt;strong&gt;录制流量&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;「示例」通过Postman发起请求：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/e75f4777b1514b22bd450704670603bf.png&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;「&lt;strong&gt;实际&lt;/strong&gt;」在网页上点点点。&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/cf5ebc04eea34b0cbd710dcb35b9d378.png&#34;&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;自动生成用例&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;用例就在&lt;code&gt;tests/mitm&lt;/code&gt;&lt;strong&gt;实时生成&lt;/strong&gt;好了，用例文件名为当前时间：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/423aec3928b24f778066d05885ebd279.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;每录制一个请求，就能在测试用例中看到实时添加了一条测试步骤：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    # 接口描述
+    # 数据
+    # 请求
+    response = request(
+        &amp;#34;{method}&amp;#34;,
+        url=&amp;#34;{url}&amp;#34;,
+        headers={headers},
+        {body_grammar}
+    )
+    # 数据提取
+    # var = response.jmespath(&amp;#34;expression&amp;#34;)
+    # 断言
+    assert response.status_code &amp;lt; 400
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;录制完成以后，就可以再次编辑测试用例完善它。&lt;/p&gt;
+&lt;h1 id=&#34;原理&#34;&gt;原理&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;utils/mitm.py&lt;/code&gt;源码如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;#!/usr/bin/python&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;## encoding=utf-8&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;## mitmproxy录制流量自动生成用例&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;os&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;time&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#24292e&#34;&gt;mitmproxy&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;import&lt;/span&gt; ctx
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;project_dir &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;dirname&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;dirname&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;abspath&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#953800&#34;&gt;__file__&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tests_dir &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;join&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;project_dir&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;tests&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;## tests/mitm&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mitm_dir &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;join&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;tests_dir&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;mitm&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;not&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;exists&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;mitm_dir&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;mkdir&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;mitm_dir&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;## 当前时间作为文件名&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;filename &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; time&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;strftime&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;%Y%m&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;%d&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;_%H_%M_%S&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; time&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;localtime&lt;span style=&#34;color:#1f2328&#34;&gt;())&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;.py&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;case_file &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;join&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;mitm_dir&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; filename&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;## 生成用例文件&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;template &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;from tep.client import request
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;def test():
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;not&lt;/span&gt; os&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;path&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;exists&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;case_file&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;with&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;open&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;case_file&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;w&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; encoding&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;utf8&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;as&lt;/span&gt; fw&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        fw&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;write&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;template&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;Record&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;__init__&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#6a737d&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; domains&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#6a737d&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;domains &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; domains
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;response&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#6a737d&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; flow&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#6a737d&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#cf222e&#34;&gt;match&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;flow&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;request&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#57606a&#34;&gt;# method&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            method &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; flow&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;request&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;method&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;lower&lt;span style=&#34;color:#1f2328&#34;&gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            ctx&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;log&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;error&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;method&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#57606a&#34;&gt;# url&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            url &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; flow&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;request&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;url
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            ctx&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;log&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;error&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;url&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#57606a&#34;&gt;# headers&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            headers &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;dict&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;flow&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;request&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            ctx&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;log&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;error&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;headers&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#57606a&#34;&gt;# body&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            body &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; flow&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;request&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;text &lt;span style=&#34;color:#0550ae&#34;&gt;or&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            ctx&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;log&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;error&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;body&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#cf222e&#34;&gt;with&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;open&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;case_file&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;a&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; encoding&lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;utf8&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;as&lt;/span&gt; fa&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                fa&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;write&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#6a737d&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;step&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;method&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; body&lt;span style=&#34;color:#1f2328&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;match&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#6a737d&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#0550ae&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#6a737d&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;domains&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            ctx&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;log&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;error&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;必须配置过滤域名&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            exit&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cf222e&#34;&gt;for&lt;/span&gt; domain &lt;span style=&#34;color:#0550ae&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#6a737d&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color:#0550ae&#34;&gt;.&lt;/span&gt;domains&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; domain &lt;span style=&#34;color:#0550ae&#34;&gt;in&lt;/span&gt; url&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#cf222e&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;True&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cf222e&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#cf222e&#34;&gt;False&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cf222e&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#6639ba&#34;&gt;step&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#6a737d&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; method&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; url&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; headers&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt; body&lt;span style=&#34;color:#1f2328&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cf222e&#34;&gt;if&lt;/span&gt; method &lt;span style=&#34;color:#0550ae&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;get&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            body_grammar &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;params=&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{&lt;/span&gt;body&lt;span style=&#34;color:#0a3069&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cf222e&#34;&gt;else&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            body_grammar &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;json=&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{&lt;/span&gt;body&lt;span style=&#34;color:#0a3069&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cf222e&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#0a3069&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    # 接口描述
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    # 数据
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    # 请求
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    response = request(
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;        &amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{&lt;/span&gt;method&lt;span style=&#34;color:#0a3069&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;        url=&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{&lt;/span&gt;url&lt;span style=&#34;color:#0a3069&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;        headers=&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{&lt;/span&gt;headers&lt;span style=&#34;color:#0a3069&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;        &lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;{&lt;/span&gt;body_grammar&lt;span style=&#34;color:#0a3069&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    )
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    # 数据提取
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    # var = response.jmespath(&amp;#34;expression&amp;#34;)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    # 断言
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;    assert response.status_code &amp;lt; 400
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;## ==================================配置开始==================================&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;addons &lt;span style=&#34;color:#0550ae&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Record&lt;span style=&#34;color:#1f2328&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#57606a&#34;&gt;# 过滤域名&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#1f2328&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;http://www.httpbin.org&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;http://127.0.0.1:5000&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#1f2328&#34;&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#1f2328&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#1f2328&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#57606a&#34;&gt;## ==================================配置结束==================================&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;==================================命令说明开始==================================
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;## 正向代理
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;mitmdump -s mitm.py
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;## 反向代理
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;mitmdump -s mitm.py --mode reverse:http://127.0.0.1:5000 --listen-host 127.0.0.1 --listen-port 8000
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;==================================命令说明结束==================================
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#0a3069&#34;&gt;&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;通过mitmproxy命令启动代理后，获取当前时间作为文件名在&lt;code&gt;tests/mitm&lt;/code&gt;下生成用例文件，给addons添加插件Record类，通过response钩子捕获请求信息，对请求进行域名过滤，域名匹配成功的请求就使用测试步骤代码模板，填充method、url、headers、body数据，追加到测试用例文件中。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>tep0.9.5支持自定义扩展request</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000010-tep0.9.5%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95request/</link>
+      <pubDate>Sat, 10 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000010-tep0.9.5%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95request/</guid>
+      <description>tep0.9.5更新了以下内容：</description>
+    </item>
+    <item>
+      <title>tep支持MVC架构实现用例数据分离</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000009-tep%E6%94%AF%E6%8C%81mvc%E6%9E%B6%E6%9E%84%E5%AE%9E%E7%8E%B0%E7%94%A8%E4%BE%8B%E6%95%B0%E6%8D%AE%E5%88%86%E7%A6%BB/</link>
+      <pubDate>Fri, 09 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000009-tep%E6%94%AF%E6%8C%81mvc%E6%9E%B6%E6%9E%84%E5%AE%9E%E7%8E%B0%E7%94%A8%E4%BE%8B%E6%95%B0%E6%8D%AE%E5%88%86%E7%A6%BB/</guid>
+      <description>大家好，我是刚哥。</description>
+    </item>
+    <item>
+      <title>tep集成HttpRunner与Flask实现开箱即用</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000008-tep%E9%9B%86%E6%88%90httprunner%E4%B8%8Eflask%E5%AE%9E%E7%8E%B0%E5%BC%80%E7%AE%B1%E5%8D%B3%E7%94%A8/</link>
+      <pubDate>Thu, 08 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000008-tep%E9%9B%86%E6%88%90httprunner%E4%B8%8Eflask%E5%AE%9E%E7%8E%B0%E5%BC%80%E7%AE%B1%E5%8D%B3%E7%94%A8/</guid>
+      <description>大家好，我是刚哥。</description>
+    </item>
+    <item>
+      <title>原创pytest辅助工具tep0.9.1版本恢复项目初始化文件</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000007-%E5%8E%9F%E5%88%9Bpytest%E8%BE%85%E5%8A%A9%E5%B7%A5%E5%85%B7tep0.9.1%E7%89%88%E6%9C%AC%E6%81%A2%E5%A4%8D%E9%A1%B9%E7%9B%AE%E5%88%9D%E5%A7%8B%E5%8C%96%E6%96%87%E4%BB%B6/</link>
+      <pubDate>Wed, 07 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000007-%E5%8E%9F%E5%88%9Bpytest%E8%BE%85%E5%8A%A9%E5%B7%A5%E5%85%B7tep0.9.1%E7%89%88%E6%9C%AC%E6%81%A2%E5%A4%8D%E9%A1%B9%E7%9B%AE%E5%88%9D%E5%A7%8B%E5%8C%96%E6%96%87%E4%BB%B6/</guid>
+      <description>最近几个月时间有些小伙伴问到为什么tep项目初始化文件没有了？</description>
+    </item>
+    <item>
+      <title>tep环境变量、fixtures、用例三者之间的关系</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000006-tep%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8Ffixtures%E7%94%A8%E4%BE%8B%E4%B8%89%E8%80%85%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB/</link>
+      <pubDate>Tue, 06 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000006-tep%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8Ffixtures%E7%94%A8%E4%BE%8B%E4%B8%89%E8%80%85%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB/</guid>
+      <description>tep是一款测试工具，在pytest测试框架基础上集成了第三方包，提供项目脚手架，帮助以写Python代码方式，快速实现自动化项目落地。</description>
+    </item>
+    <item>
+      <title>tep0.6.0更新聊聊pytest变量接口用例3个级别复用</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000005-tep0.6.0%E6%9B%B4%E6%96%B0%E8%81%8A%E8%81%8Apytest%E5%8F%98%E9%87%8F%E6%8E%A5%E5%8F%A3%E7%94%A8%E4%BE%8B3%E4%B8%AA%E7%BA%A7%E5%88%AB%E5%A4%8D%E7%94%A8/</link>
+      <pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000005-tep0.6.0%E6%9B%B4%E6%96%B0%E8%81%8A%E8%81%8Apytest%E5%8F%98%E9%87%8F%E6%8E%A5%E5%8F%A3%E7%94%A8%E4%BE%8B3%E4%B8%AA%E7%BA%A7%E5%88%AB%E5%A4%8D%E7%94%A8/</guid>
+      <description>tep是一款测试工具，在pytest测试框架基础上集成了第三方包，提供项目脚手架，帮助以写Python代码方式，快速实现自动化项目落地。fixture是pytest核心技术，本文聊聊如何使用fixture完成变量、接口、用例3个级别复用。</description>
+    </item>
+    <item>
+      <title>如何用tep完成增删改查接口自动化</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000004-%E5%A6%82%E4%BD%95%E7%94%A8tep%E5%AE%8C%E6%88%90%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96/</link>
+      <pubDate>Sun, 04 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000004-%E5%A6%82%E4%BD%95%E7%94%A8tep%E5%AE%8C%E6%88%90%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96/</guid>
+      <description>tep的设计理念是让人人都可以用Python写自动化，本文就来介绍如何用tep完成增删改查接口自动化。</description>
+    </item>
+    <item>
+      <title>框架V2.0.0开发指南</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000003-%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E6%A1%86%E6%9E%B6v2.0.0%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97/</link>
+      <pubDate>Sat, 03 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000003-%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E6%A1%86%E6%9E%B6v2.0.0%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97/</guid>
+      <description>&lt;strong&gt;温馨提示：开发指南，根据V2.0.0编写，不随版本更新维护，仅供入门参考。最新实现请结合教程和源码阅读，教程会在版本发布后维护。&lt;/strong&gt;</description>
+    </item>
+    <item>
+      <title>tep用户手册帮你从unittest过渡到pytest</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000002-tep%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C%E5%B8%AE%E4%BD%A0%E4%BB%8Eunittest%E8%BF%87%E6%B8%A1%E5%88%B0pytest/</link>
+      <pubDate>Fri, 02 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000002-tep%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C%E5%B8%AE%E4%BD%A0%E4%BB%8Eunittest%E8%BF%87%E6%B8%A1%E5%88%B0pytest/</guid>
+      <description>unittest和pytest是Python的2个强大的测试框架，经常用来做UI自动化或接口自动化。unittest是PyCharm的默认集成工具，也是我们大多数人入门自动化的首选框架。pytest提供了更丰富的功能，相对的上手难度也要高一点。如果学了pytest后，想快速用pytest写项目，用于工作实践，那么可以试试我写的这款测试工具：&lt;code&gt;tep&lt;/code&gt;，try easy pytest。</description>
+    </item>
+    <item>
+      <title>tep首次开源V0.2.3介绍</title>
+      <link>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000001-tep%E9%A6%96%E6%AC%A1%E5%BC%80%E6%BA%90v0.2.3%E4%BB%8B%E7%BB%8D/</link>
+      <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000001-tep%E9%A6%96%E6%AC%A1%E5%BC%80%E6%BA%90v0.2.3%E4%BB%8B%E7%BB%8D/</guid>
+      <description>『  tep is a testing tool to help you write pytest more easily. Try Easy Pytest!  』</description>
+    </item>
+  </channel>
+</rss>

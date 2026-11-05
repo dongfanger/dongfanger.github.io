@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Java官方笔记5数字和字符串 | 测试开发刚哥</title>
+<meta name="keywords" content="Java, 官方">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Numbers
+Number的子类：
+
+另外还有BigDecimal和BigInteger，用于高精度计算，AtomicInteger和AtomicLong用于多线程应用。
+我们有时候需要用包装类而非基本数据类型，理由如下：
+
+
+方法入参类型为Object，只能传入对象
+
+
+使用包装类提供的常量，比如MIN_VALUE和MAX_VALUE
+
+
+使用包装类的方法来做类型转换
+
+
+format
+import java.util.Calendar;
+import java.util.Locale;
+
+public class TestFormat {
+
+    public static void main(String[] args) {
+      long n = 461012;
+      System.out.format(&#34;%d%n&#34;, n);      //  --&gt;  &#34;461012&#34;
+      System.out.format(&#34;%08d%n&#34;, n);    //  --&gt;  &#34;00461012&#34;
+      System.out.format(&#34;%&#43;8d%n&#34;, n);    //  --&gt;  &#34; &#43;461012&#34;
+      System.out.format(&#34;%,8d%n&#34;, n);    // --&gt;  &#34; 461,012&#34;
+      System.out.format(&#34;%&#43;,8d%n%n&#34;, n); //  --&gt;  &#34;&#43;461,012&#34;
+
+      double pi = Math.PI;
+
+      System.out.format(&#34;%f%n&#34;, pi);       // --&gt;  &#34;3.141593&#34;
+      System.out.format(&#34;%.3f%n&#34;, pi);     // --&gt;  &#34;3.142&#34;
+      System.out.format(&#34;%10.3f%n&#34;, pi);   // --&gt;  &#34;     3.142&#34;
+      System.out.format(&#34;%-10.3f%n&#34;, pi);  // --&gt;  &#34;3.142&#34;
+      System.out.format(Locale.FRANCE,
+                        &#34;%-10.4f%n%n&#34;, pi); // --&gt;  &#34;3,1416&#34;
+
+      Calendar c = Calendar.getInstance();
+      System.out.format(&#34;%tB %te, %tY%n&#34;, c, c, c); // --&gt;  &#34;May 29, 2006&#34;
+
+      System.out.format(&#34;%tl:%tM %tp%n&#34;, c, c, c);  // --&gt;  &#34;2:34 am&#34;
+
+      System.out.format(&#34;%tD%n&#34;, c);    // --&gt;  &#34;05/29/06&#34;
+    }
+}
+DecimalFormat">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000008-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B05%E6%95%B0%E5%AD%97%E5%92%8C%E5%AD%97%E7%AC%A6%E4%B8%B2/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000008-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B05%E6%95%B0%E5%AD%97%E5%92%8C%E5%AD%97%E7%AC%A6%E4%B8%B2/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000008-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B05%E6%95%B0%E5%AD%97%E5%92%8C%E5%AD%97%E7%AC%A6%E4%B8%B2/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Java官方笔记5数字和字符串">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Numbers Number的子类：
+另外还有BigDecimal和BigInteger，用于高精度计算，AtomicInteger和AtomicLong用于多线程应用。
+我们有时候需要用包装类而非基本数据类型，理由如下：
+方法入参类型为Object，只能传入对象
+使用包装类提供的常量，比如MIN_VALUE和MAX_VALUE
+使用包装类的方法来做类型转换
+format
+import java.util.Calendar; import java.util.Locale; public class TestFormat { public static void main(String[] args) { long n = 461012; System.out.format(&#34;%d%n&#34;, n); // --&gt; &#34;461012&#34; System.out.format(&#34;%08d%n&#34;, n); // --&gt; &#34;00461012&#34; System.out.format(&#34;%&#43;8d%n&#34;, n); // --&gt; &#34; &#43;461012&#34; System.out.format(&#34;%,8d%n&#34;, n); // --&gt; &#34; 461,012&#34; System.out.format(&#34;%&#43;,8d%n%n&#34;, n); // --&gt; &#34;&#43;461,012&#34; double pi = Math.PI; System.out.format(&#34;%f%n&#34;, pi); // --&gt; &#34;3.141593&#34; System.out.format(&#34;%.3f%n&#34;, pi); // --&gt; &#34;3.142&#34; System.out.format(&#34;%10.3f%n&#34;, pi); // --&gt; &#34; 3.142&#34; System.out.format(&#34;%-10.3f%n&#34;, pi); // --&gt; &#34;3.142&#34; System.out.format(Locale.FRANCE, &#34;%-10.4f%n%n&#34;, pi); // --&gt; &#34;3,1416&#34; Calendar c = Calendar.getInstance(); System.out.format(&#34;%tB %te, %tY%n&#34;, c, c, c); // --&gt; &#34;May 29, 2006&#34; System.out.format(&#34;%tl:%tM %tp%n&#34;, c, c, c); // --&gt; &#34;2:34 am&#34; System.out.format(&#34;%tD%n&#34;, c); // --&gt; &#34;05/29/06&#34; } } DecimalFormat">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-08T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-08T00:00:00+00:00">
+    <meta property="article:tag" content="Java">
+    <meta property="article:tag" content="官方">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Java官方笔记5数字和字符串">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Numbers Number的子类：
+另外还有BigDecimal和BigInteger，用于高精度计算，AtomicInteger和AtomicLong用于多线程应用。
+我们有时候需要用包装类而非基本数据类型，理由如下：
+方法入参类型为Object，只能传入对象
+使用包装类提供的常量，比如MIN_VALUE和MAX_VALUE
+使用包装类的方法来做类型转换
+format
+import java.util.Calendar; import java.util.Locale; public class TestFormat { public static void main(String[] args) { long n = 461012; System.out.format(&#34;%d%n&#34;, n); // --&gt; &#34;461012&#34; System.out.format(&#34;%08d%n&#34;, n); // --&gt; &#34;00461012&#34; System.out.format(&#34;%&#43;8d%n&#34;, n); // --&gt; &#34; &#43;461012&#34; System.out.format(&#34;%,8d%n&#34;, n); // --&gt; &#34; 461,012&#34; System.out.format(&#34;%&#43;,8d%n%n&#34;, n); // --&gt; &#34;&#43;461,012&#34; double pi = Math.PI; System.out.format(&#34;%f%n&#34;, pi); // --&gt; &#34;3.141593&#34; System.out.format(&#34;%.3f%n&#34;, pi); // --&gt; &#34;3.142&#34; System.out.format(&#34;%10.3f%n&#34;, pi); // --&gt; &#34; 3.142&#34; System.out.format(&#34;%-10.3f%n&#34;, pi); // --&gt; &#34;3.142&#34; System.out.format(Locale.FRANCE, &#34;%-10.4f%n%n&#34;, pi); // --&gt; &#34;3,1416&#34; Calendar c = Calendar.getInstance(); System.out.format(&#34;%tB %te, %tY%n&#34;, c, c, c); // --&gt; &#34;May 29, 2006&#34; System.out.format(&#34;%tl:%tM %tp%n&#34;, c, c, c); // --&gt; &#34;2:34 am&#34; System.out.format(&#34;%tD%n&#34;, c); // --&gt; &#34;05/29/06&#34; } } DecimalFormat">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Java官方笔记5数字和字符串",
+      "item": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000008-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B05%E6%95%B0%E5%AD%97%E5%92%8C%E5%AD%97%E7%AC%A6%E4%B8%B2/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Java官方笔记5数字和字符串",
+  "name": "Java官方笔记5数字和字符串",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nNumbers Number的子类：\n另外还有BigDecimal和BigInteger，用于高精度计算，AtomicInteger和AtomicLong用于多线程应用。\n我们有时候需要用包装类而非基本数据类型，理由如下：\n方法入参类型为Object，只能传入对象\n使用包装类提供的常量，比如MIN_VALUE和MAX_VALUE\n使用包装类的方法来做类型转换\nformat\nimport java.util.Calendar; import java.util.Locale; public class TestFormat { public static void main(String[] args) { long n = 461012; System.out.format(\u0026#34;%d%n\u0026#34;, n); // --\u0026gt; \u0026#34;461012\u0026#34; System.out.format(\u0026#34;%08d%n\u0026#34;, n); // --\u0026gt; \u0026#34;00461012\u0026#34; System.out.format(\u0026#34;%+8d%n\u0026#34;, n); // --\u0026gt; \u0026#34; +461012\u0026#34; System.out.format(\u0026#34;%,8d%n\u0026#34;, n); // --\u0026gt; \u0026#34; 461,012\u0026#34; System.out.format(\u0026#34;%+,8d%n%n\u0026#34;, n); // --\u0026gt; \u0026#34;+461,012\u0026#34; double pi = Math.PI; System.out.format(\u0026#34;%f%n\u0026#34;, pi); // --\u0026gt; \u0026#34;3.141593\u0026#34; System.out.format(\u0026#34;%.3f%n\u0026#34;, pi); // --\u0026gt; \u0026#34;3.142\u0026#34; System.out.format(\u0026#34;%10.3f%n\u0026#34;, pi); // --\u0026gt; \u0026#34; 3.142\u0026#34; System.out.format(\u0026#34;%-10.3f%n\u0026#34;, pi); // --\u0026gt; \u0026#34;3.142\u0026#34; System.out.format(Locale.FRANCE, \u0026#34;%-10.4f%n%n\u0026#34;, pi); // --\u0026gt; \u0026#34;3,1416\u0026#34; Calendar c = Calendar.getInstance(); System.out.format(\u0026#34;%tB %te, %tY%n\u0026#34;, c, c, c); // --\u0026gt; \u0026#34;May 29, 2006\u0026#34; System.out.format(\u0026#34;%tl:%tM %tp%n\u0026#34;, c, c, c); // --\u0026gt; \u0026#34;2:34 am\u0026#34; System.out.format(\u0026#34;%tD%n\u0026#34;, c); // --\u0026gt; \u0026#34;05/29/06\u0026#34; } } DecimalFormat\n",
+  "keywords": [
+    "Java", "官方"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nNumbers Number的子类：\n另外还有BigDecimal和BigInteger，用于高精度计算，AtomicInteger和AtomicLong用于多线程应用。\n我们有时候需要用包装类而非基本数据类型，理由如下：\n方法入参类型为Object，只能传入对象\n使用包装类提供的常量，比如MIN_VALUE和MAX_VALUE\n使用包装类的方法来做类型转换\nformat\nimport java.util.Calendar; import java.util.Locale; public class TestFormat { public static void main(String[] args) { long n = 461012; System.out.format(\"%d%n\", n); // --\u003e \"461012\" System.out.format(\"%08d%n\", n); // --\u003e \"00461012\" System.out.format(\"%+8d%n\", n); // --\u003e \" +461012\" System.out.format(\"%,8d%n\", n); // --\u003e \" 461,012\" System.out.format(\"%+,8d%n%n\", n); // --\u003e \"+461,012\" double pi = Math.PI; System.out.format(\"%f%n\", pi); // --\u003e \"3.141593\" System.out.format(\"%.3f%n\", pi); // --\u003e \"3.142\" System.out.format(\"%10.3f%n\", pi); // --\u003e \" 3.142\" System.out.format(\"%-10.3f%n\", pi); // --\u003e \"3.142\" System.out.format(Locale.FRANCE, \"%-10.4f%n%n\", pi); // --\u003e \"3,1416\" Calendar c = Calendar.getInstance(); System.out.format(\"%tB %te, %tY%n\", c, c, c); // --\u003e \"May 29, 2006\" System.out.format(\"%tl:%tM %tp%n\", c, c, c); // --\u003e \"2:34 am\" System.out.format(\"%tD%n\", c); // --\u003e \"05/29/06\" } } DecimalFormat\nimport java.text.*; public class DecimalFormatDemo { static public void customFormat(String pattern, double value ) { DecimalFormat myFormatter = new DecimalFormat(pattern); String output = myFormatter.format(value); System.out.println(value + \" \" + pattern + \" \" + output); } static public void main(String[] args) { customFormat(\"###,###.###\", 123456.789); customFormat(\"###.##\", 123456.789); customFormat(\"000000.000\", 123.78); customFormat(\"$###,###.###\", 12345.67); } } Math\npublic class BasicMathDemo { public static void main(String[] args) { double a = -191.635; double b = 43.74; int c = 16, d = 45; System.out.printf(\"The absolute value \" + \"of %.3f is %.3f%n\", a, Math.abs(a)); System.out.printf(\"The ceiling of \" + \"%.2f is %.0f%n\", b, Math.ceil(b)); System.out.printf(\"The floor of \" + \"%.2f is %.0f%n\", b, Math.floor(b)); System.out.printf(\"The rint of %.2f \" + \"is %.0f%n\", b, Math.rint(b)); System.out.printf(\"The max of %d and \" + \"%d is %d%n\", c, d, Math.max(c, d)); System.out.printf(\"The min of of %d \" + \"and %d is %d%n\", c, d, Math.min(c, d)); } } Charaters 基本类型char\nchar ch = 'a'; // Unicode for uppercase Greek omega character char uniChar = '\\u03A9'; // an array of chars char[] charArray = { 'a', 'b', 'c', 'd', 'e' }; Character\nCharacter ch = new Character('a'); Strings 定义：\nString greeting = \"Hello world!\"; char[] helloArray = { 'h', 'e', 'l', 'l', 'o', '.' }; String helloString = new String(helloArray); System.out.println(helloString); 回文字符串实现：\npublic class StringDemo { public static void main(String[] args) { String palindrome = \"Dot saw I was Tod\"; int len = palindrome.length(); char[] tempCharArray = new char[len]; char[] charArray = new char[len]; // put original string in an // array of chars for (int i = 0; i \u003c len; i++) { tempCharArray[i] = palindrome.charAt(i); } // reverse array of chars for (int j = 0; j \u003c len; j++) { charArray[j] = tempCharArray[len - 1 - j]; } String reversePalindrome = new String(charArray); System.out.println(reversePalindrome); } } String转换为基本数据类型，parseXXX()比valueOf更好用：\nfloat a = (Float.valueOf(args[0])).floatValue(); float b = (Float.valueOf(args[1])).floatValue(); float a = Float.parseFloat(args[0]); float b = Float.parseFloat(args[1]); 基本数据类型转换为String：\nint i; // Concatenate \"i\" with an empty string; conversion is handled for you. String s1 = \"\" + i; // The valueOf class method. String s2 = String.valueOf(i); int i; double d; String s3 = Integer.toString(i); String s4 = Double.toString(d); 根据字符查找对应索引：\nString anotherPalindrome = \"Niagara. O roar again!\"; char aChar = anotherPalindrome.charAt(9); 子串：\nString anotherPalindrome = \"Niagara. O roar again!\"; String roar = anotherPalindrome.substring(11, 15); String Builders String不可变，StringBuilder可变。StringBuilder除了length()，还有个capacity()，返回分配的字符数量，大于等于length，并且会自动扩充。\n// creates empty builder, capacity 16 StringBuilder sb = new StringBuilder(); // adds 9 character string at beginning sb.append(\"Greetings\"); StringBuffer用的少，只在需要保证线程安全时使用。\n自动装箱和拆箱 装箱，基本数据类型→包装类：\nList\u003cInteger\u003e ints = new ArrayList\u003c\u003e(); for (int i = 1; i \u003c 50; i += 2) ints.add(i); 拆箱，包装类→基本数据类型：\npublic static int sumEven(List\u003cInteger\u003e ints) { int sum = 0; for (Integer i: ints) { if (i % 2 == 0) { sum+=i; } } return sum; } 参考资料：\nNumbers and Strings https://dev.java/learn/numbers-strings/\n",
+  "wordCount" : "577",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-08T00:00:00Z",
+  "dateModified": "2026-01-08T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000008-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B05%E6%95%B0%E5%AD%97%E5%92%8C%E5%AD%97%E7%AC%A6%E4%B8%B2/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      Java官方笔记5数字和字符串
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-08T00:00:00+00:00'>2026-01-08</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>577 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/java/'>#Java</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%AE%98%E6%96%B9/'>#官方</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h2 id="numbers">Numbers<a hidden class="anchor" aria-hidden="true" href="#numbers">#</a></h2>
+<p>Number的子类：</p>
+<p><img loading="lazy" src="../assets/dcbfcf05bdbe4805a767acf39b45e777.png"></p>
+<p>另外还有BigDecimal和BigInteger，用于高精度计算，AtomicInteger和AtomicLong用于多线程应用。</p>
+<p>我们有时候需要用包装类而非基本数据类型，理由如下：</p>
+<ol>
+<li>
+<p>方法入参类型为Object，只能传入对象</p>
+</li>
+<li>
+<p>使用包装类提供的常量，比如MIN_VALUE和MAX_VALUE</p>
+</li>
+<li>
+<p>使用包装类的方法来做类型转换</p>
+</li>
+</ol>
+<p>format</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.util.Calendar</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.util.Locale</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TestFormat</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">main</span><span style="color:#1f2328">(</span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>args<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span><span style="color:#cf222e">long</span><span style="color:#fff"> </span>n<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>461012<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%d%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>n<span style="color:#1f2328">);</span><span style="color:#fff">      </span><span style="color:#57606a">//  --&gt;  &#34;461012&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%08d%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>n<span style="color:#1f2328">);</span><span style="color:#fff">    </span><span style="color:#57606a">//  --&gt;  &#34;00461012&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%+8d%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>n<span style="color:#1f2328">);</span><span style="color:#fff">    </span><span style="color:#57606a">//  --&gt;  &#34; +461012&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%,8d%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>n<span style="color:#1f2328">);</span><span style="color:#fff">    </span><span style="color:#57606a">// --&gt;  &#34; 461,012&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%+,8d%n%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>n<span style="color:#1f2328">);</span><span style="color:#fff"> </span><span style="color:#57606a">//  --&gt;  &#34;+461,012&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span><span style="color:#cf222e">double</span><span style="color:#fff"> </span>pi<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Math<span style="color:#1f2328">.</span><span style="color:#1f2328">PI</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%f%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>pi<span style="color:#1f2328">);</span><span style="color:#fff">       </span><span style="color:#57606a">// --&gt;  &#34;3.141593&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%.3f%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>pi<span style="color:#1f2328">);</span><span style="color:#fff">     </span><span style="color:#57606a">// --&gt;  &#34;3.142&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%10.3f%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>pi<span style="color:#1f2328">);</span><span style="color:#fff">   </span><span style="color:#57606a">// --&gt;  &#34;     3.142&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%-10.3f%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>pi<span style="color:#1f2328">);</span><span style="color:#fff">  </span><span style="color:#57606a">// --&gt;  &#34;3.142&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span>Locale<span style="color:#1f2328">.</span><span style="color:#1f2328">FRANCE</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                        </span><span style="color:#0a3069">&#34;%-10.4f%n%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>pi<span style="color:#1f2328">);</span><span style="color:#fff"> </span><span style="color:#57606a">// --&gt;  &#34;3,1416&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>Calendar<span style="color:#fff"> </span>c<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Calendar<span style="color:#1f2328">.</span><span style="color:#1f2328">getInstance</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%tB %te, %tY%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>c<span style="color:#1f2328">,</span><span style="color:#fff"> </span>c<span style="color:#1f2328">,</span><span style="color:#fff"> </span>c<span style="color:#1f2328">);</span><span style="color:#fff"> </span><span style="color:#57606a">// --&gt;  &#34;May 29, 2006&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%tl:%tM %tp%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>c<span style="color:#1f2328">,</span><span style="color:#fff"> </span>c<span style="color:#1f2328">,</span><span style="color:#fff"> </span>c<span style="color:#1f2328">);</span><span style="color:#fff">  </span><span style="color:#57606a">// --&gt;  &#34;2:34 am&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%tD%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>c<span style="color:#1f2328">);</span><span style="color:#fff">    </span><span style="color:#57606a">// --&gt;  &#34;05/29/06&#34;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>DecimalFormat</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.text.*</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">DecimalFormatDemo</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">   </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">customFormat</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>pattern<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">double</span><span style="color:#fff"> </span>value<span style="color:#fff"> </span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>DecimalFormat<span style="color:#fff"> </span>myFormatter<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>DecimalFormat<span style="color:#1f2328">(</span>pattern<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>String<span style="color:#fff"> </span>output<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>myFormatter<span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span>value<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>value<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;  &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>pattern<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;  &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>output<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">   </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">   </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">main</span><span style="color:#1f2328">(</span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>args<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>customFormat<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;###,###.###&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>123456<span style="color:#1f2328">.</span><span style="color:#1f2328">789</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>customFormat<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;###.##&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>123456<span style="color:#1f2328">.</span><span style="color:#1f2328">789</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>customFormat<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;000000.000&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>123<span style="color:#1f2328">.</span><span style="color:#1f2328">78</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">      </span>customFormat<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$###,###.###&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>12345<span style="color:#1f2328">.</span><span style="color:#1f2328">67</span><span style="color:#1f2328">);</span><span style="color:#fff">  
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">   </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Math</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">BasicMathDemo</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">main</span><span style="color:#1f2328">(</span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>args<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">double</span><span style="color:#fff"> </span>a<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0550ae">-</span>191<span style="color:#1f2328">.</span><span style="color:#1f2328">635</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">double</span><span style="color:#fff"> </span>b<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>43<span style="color:#1f2328">.</span><span style="color:#1f2328">74</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>c<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>16<span style="color:#1f2328">,</span><span style="color:#fff"> </span>d<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>45<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">printf</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;The absolute value &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;of %.3f is %.3f%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                          </span>a<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Math<span style="color:#1f2328">.</span><span style="color:#1f2328">abs</span><span style="color:#1f2328">(</span>a<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">printf</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;The ceiling of &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;%.2f is %.0f%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                          </span>b<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Math<span style="color:#1f2328">.</span><span style="color:#1f2328">ceil</span><span style="color:#1f2328">(</span>b<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">printf</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;The floor of &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;%.2f is %.0f%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                          </span>b<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Math<span style="color:#1f2328">.</span><span style="color:#1f2328">floor</span><span style="color:#1f2328">(</span>b<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">printf</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;The rint of %.2f &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;is %.0f%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                          </span>b<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Math<span style="color:#1f2328">.</span><span style="color:#1f2328">rint</span><span style="color:#1f2328">(</span>b<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">printf</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;The max of %d and &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;%d is %d%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                          </span>c<span style="color:#1f2328">,</span><span style="color:#fff"> </span>d<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Math<span style="color:#1f2328">.</span><span style="color:#1f2328">max</span><span style="color:#1f2328">(</span>c<span style="color:#1f2328">,</span><span style="color:#fff"> </span>d<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">printf</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;The min of of %d &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;and %d is %d%n&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                          </span>c<span style="color:#1f2328">,</span><span style="color:#fff"> </span>d<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Math<span style="color:#1f2328">.</span><span style="color:#1f2328">min</span><span style="color:#1f2328">(</span>c<span style="color:#1f2328">,</span><span style="color:#fff"> </span>d<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="charaters">Charaters<a hidden class="anchor" aria-hidden="true" href="#charaters">#</a></h2>
+<p>基本类型char</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">char</span><span style="color:#fff"> </span>ch<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;a&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// Unicode for uppercase Greek omega character</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">char</span><span style="color:#fff"> </span>uniChar<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;\u03A9&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// an array of chars</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">char</span><span style="color:#0550ae">[]</span><span style="color:#fff"> </span>charArray<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;a&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;b&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;c&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;d&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;e&#39;</span><span style="color:#fff"> </span><span style="color:#1f2328">};</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Character</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Character<span style="color:#fff"> </span>ch<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Character<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;a&#39;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="strings">Strings<a hidden class="anchor" aria-hidden="true" href="#strings">#</a></h2>
+<p>定义：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>String<span style="color:#fff"> </span>greeting<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;Hello world!&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">char</span><span style="color:#0550ae">[]</span><span style="color:#fff"> </span>helloArray<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;h&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;e&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;l&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;l&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;o&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;.&#39;</span><span style="color:#fff"> </span><span style="color:#1f2328">};</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#fff"> </span>helloString<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>String<span style="color:#1f2328">(</span>helloArray<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>helloString<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>回文字符串实现：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">StringDemo</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">main</span><span style="color:#1f2328">(</span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>args<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>palindrome<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;Dot saw I was Tod&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>len<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>palindrome<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">char</span><span style="color:#0550ae">[]</span><span style="color:#fff"> </span>tempCharArray<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span><span style="color:#cf222e">char</span><span style="color:#0550ae">[</span>len<span style="color:#0550ae">]</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">char</span><span style="color:#0550ae">[]</span><span style="color:#fff"> </span>charArray<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span><span style="color:#cf222e">char</span><span style="color:#0550ae">[</span>len<span style="color:#0550ae">]</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// put original string in an </span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// array of chars</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>i<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff"> </span>i<span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span><span style="color:#fff"> </span>len<span style="color:#1f2328">;</span><span style="color:#fff"> </span>i<span style="color:#0550ae">++</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>tempCharArray<span style="color:#0550ae">[</span>i<span style="color:#0550ae">]</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                </span>palindrome<span style="color:#1f2328">.</span><span style="color:#1f2328">charAt</span><span style="color:#1f2328">(</span>i<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// reverse array of chars</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>j<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff"> </span>j<span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span><span style="color:#fff"> </span>len<span style="color:#1f2328">;</span><span style="color:#fff"> </span>j<span style="color:#0550ae">++</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>charArray<span style="color:#0550ae">[</span>j<span style="color:#0550ae">]</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                </span>tempCharArray<span style="color:#0550ae">[</span>len<span style="color:#fff"> </span><span style="color:#0550ae">-</span><span style="color:#fff"> </span>1<span style="color:#fff"> </span><span style="color:#0550ae">-</span><span style="color:#fff"> </span>j<span style="color:#0550ae">]</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>reversePalindrome<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>String<span style="color:#1f2328">(</span>charArray<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>reversePalindrome<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>String转换为基本数据类型，parseXXX()比valueOf更好用：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">float</span><span style="color:#fff"> </span>a<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Float<span style="color:#1f2328">.</span><span style="color:#1f2328">valueOf</span><span style="color:#1f2328">(</span>args<span style="color:#0550ae">[</span>0<span style="color:#0550ae">]</span><span style="color:#1f2328">)).</span><span style="color:#1f2328">floatValue</span><span style="color:#1f2328">();</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">float</span><span style="color:#fff"> </span>b<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Float<span style="color:#1f2328">.</span><span style="color:#1f2328">valueOf</span><span style="color:#1f2328">(</span>args<span style="color:#0550ae">[</span>1<span style="color:#0550ae">]</span><span style="color:#1f2328">)).</span><span style="color:#1f2328">floatValue</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">float</span><span style="color:#fff"> </span>a<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Float<span style="color:#1f2328">.</span><span style="color:#1f2328">parseFloat</span><span style="color:#1f2328">(</span>args<span style="color:#0550ae">[</span>0<span style="color:#0550ae">]</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">float</span><span style="color:#fff"> </span>b<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Float<span style="color:#1f2328">.</span><span style="color:#1f2328">parseFloat</span><span style="color:#1f2328">(</span>args<span style="color:#0550ae">[</span>1<span style="color:#0550ae">]</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>基本数据类型转换为String：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>i<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// Concatenate &#34;i&#34; with an empty string; conversion is handled for you.</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#fff"> </span>s1<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>i<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#57606a">// The valueOf class method.</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#fff"> </span>s2<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">valueOf</span><span style="color:#1f2328">(</span>i<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>i<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">double</span><span style="color:#fff"> </span>d<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#fff"> </span>s3<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Integer<span style="color:#1f2328">.</span><span style="color:#1f2328">toString</span><span style="color:#1f2328">(</span>i<span style="color:#1f2328">);</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span>String<span style="color:#fff"> </span>s4<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Double<span style="color:#1f2328">.</span><span style="color:#1f2328">toString</span><span style="color:#1f2328">(</span>d<span style="color:#1f2328">);</span><span style="color:#fff"> 
+</span></span></span></code></pre></div><p>根据字符查找对应索引：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>String<span style="color:#fff"> </span>anotherPalindrome<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;Niagara. O roar again!&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">char</span><span style="color:#fff"> </span>aChar<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>anotherPalindrome<span style="color:#1f2328">.</span><span style="color:#1f2328">charAt</span><span style="color:#1f2328">(</span>9<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>子串：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>String<span style="color:#fff"> </span>anotherPalindrome<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;Niagara. O roar again!&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff"> 
+</span></span></span><span style="display:flex;"><span>String<span style="color:#fff"> </span>roar<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>anotherPalindrome<span style="color:#1f2328">.</span><span style="color:#1f2328">substring</span><span style="color:#1f2328">(</span>11<span style="color:#1f2328">,</span><span style="color:#fff"> </span>15<span style="color:#1f2328">);</span><span style="color:#fff"> 
+</span></span></span></code></pre></div><h2 id="string-builders">String Builders<a hidden class="anchor" aria-hidden="true" href="#string-builders">#</a></h2>
+<p>String不可变，StringBuilder可变。StringBuilder除了length()，还有个capacity()，返回分配的字符数量，大于等于length，并且会自动扩充。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#57606a">// creates empty builder, capacity 16</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>StringBuilder<span style="color:#fff"> </span>sb<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>StringBuilder<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// adds 9 character string at beginning</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>sb<span style="color:#1f2328">.</span><span style="color:#1f2328">append</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Greetings&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>StringBuffer用的少，只在需要保证线程安全时使用。</p>
+<h2 id="自动装箱和拆箱">自动装箱和拆箱<a hidden class="anchor" aria-hidden="true" href="#自动装箱和拆箱">#</a></h2>
+<p>装箱，基本数据类型→包装类：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>ints<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>i<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>1<span style="color:#1f2328">;</span><span style="color:#fff"> </span>i<span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span><span style="color:#fff"> </span>50<span style="color:#1f2328">;</span><span style="color:#fff"> </span>i<span style="color:#fff"> </span><span style="color:#0550ae">+=</span><span style="color:#fff"> </span>2<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>ints<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>i<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>拆箱，包装类→基本数据类型：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span><span style="color:#6639ba">sumEven</span><span style="color:#1f2328">(</span>List<span style="color:#0550ae">&lt;</span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>ints<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>sum<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Integer<span style="color:#fff"> </span>i<span style="color:#1f2328">:</span><span style="color:#fff"> </span>ints<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>i<span style="color:#fff"> </span><span style="color:#0550ae">%</span><span style="color:#fff"> </span>2<span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span>0<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>sum<span style="color:#0550ae">+=</span>i<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>sum<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><blockquote>
+<p>参考资料：</p>
+<p>Numbers and Strings <a href="https://dev.java/learn/numbers-strings/">https://dev.java/learn/numbers-strings/</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/java/">Java</a></li>
+      <li><a href="https://dongfanger.github.io/tags/%E5%AE%98%E6%96%B9/">官方</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/000008-mockitojava%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95mock%E6%A1%86%E6%9E%B6mockito%E5%85%A5%E9%97%A8%E4%BB%8B%E7%BB%8D/">
+    <span class="title">« 上一页</span>
+    <span>Java单元测试Mock框架Mockito入门介绍</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000008-jmeterjmeter%E5%9B%9B%E7%A7%8D%E5%8F%82%E6%95%B0%E5%8C%96%E6%96%B9%E5%BC%8F/">
+    <span class="title">下一页 »</span>
+    <span>JMeter四种参数化方式</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#numbers">Numbers</a></li>
+        <li><a href="#charaters">Charaters</a></li>
+        <li><a href="#strings">Strings</a></li>
+        <li><a href="#string-builders">String Builders</a></li>
+        <li><a href="#自动装箱和拆箱">自动装箱和拆箱</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

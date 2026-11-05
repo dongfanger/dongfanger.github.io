@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Django认证系统并不鸡肋反而很重要 | 测试开发刚哥</title>
+<meta name="keywords" content="Django">
+<meta name="description" content="在使用django-admin startproject创建项目后，Django就默认安装了一个采用session实现的认证系统。这是Django相比于其他框架的一大特点：自带认证系统，开箱即用。有人说它方便，有人说它鸡肋，但它作为Django的重要组成部分，学习它有助于我们理解Django框架的核心技术。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000004-djangodjango%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E5%B9%B6%E4%B8%8D%E9%B8%A1%E8%82%8B%E5%8F%8D%E8%80%8C%E5%BE%88%E9%87%8D%E8%A6%81/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000004-djangodjango%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E5%B9%B6%E4%B8%8D%E9%B8%A1%E8%82%8B%E5%8F%8D%E8%80%8C%E5%BE%88%E9%87%8D%E8%A6%81/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000004-djangodjango%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E5%B9%B6%E4%B8%8D%E9%B8%A1%E8%82%8B%E5%8F%8D%E8%80%8C%E5%BE%88%E9%87%8D%E8%A6%81/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Django认证系统并不鸡肋反而很重要">
+  <meta property="og:description" content="在使用django-admin startproject创建项目后，Django就默认安装了一个采用session实现的认证系统。这是Django相比于其他框架的一大特点：自带认证系统，开箱即用。有人说它方便，有人说它鸡肋，但它作为Django的重要组成部分，学习它有助于我们理解Django框架的核心技术。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:tag" content="Django">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Django认证系统并不鸡肋反而很重要">
+  <meta name="twitter:description" content="在使用django-admin startproject创建项目后，Django就默认安装了一个采用session实现的认证系统。这是Django相比于其他框架的一大特点：自带认证系统，开箱即用。有人说它方便，有人说它鸡肋，但它作为Django的重要组成部分，学习它有助于我们理解Django框架的核心技术。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Django认证系统并不鸡肋反而很重要",
+      "item": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000004-djangodjango%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E5%B9%B6%E4%B8%8D%E9%B8%A1%E8%82%8B%E5%8F%8D%E8%80%8C%E5%BE%88%E9%87%8D%E8%A6%81/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Django认证系统并不鸡肋反而很重要",
+  "name": "Django认证系统并不鸡肋反而很重要",
+  "description": "在使用django-admin startproject创建项目后，Django就默认安装了一个采用session实现的认证系统。这是Django相比于其他框架的一大特点：自带认证系统，开箱即用。有人说它方便，有人说它鸡肋，但它作为Django的重要组成部分，学习它有助于我们理解Django框架的核心技术。",
+  "keywords": [
+    "Django"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n在使用django-admin startproject创建项目后，Django就默认安装了一个采用session实现的认证系统。这是Django相比于其他框架的一大特点：自带认证系统，开箱即用。有人说它方便，有人说它鸡肋，但它作为Django的重要组成部分，学习它有助于我们理解Django框架的核心技术。\n安装 Django默认已安装，可以在settings.py中的INSTALLED_APPS看到：\ndjango.contrib.auth：认证系统内核，以及默认models等。 django.contrib.contenttypes：用于关联权限和models，从而赋予models的添加/删除等权限。 contrib翻译为普通发布版。\n在MIDDLEWARE可以看到：\nSessionMiddleware：session中间件。 AuthenticationMiddleware：认证中间件。 使用python manage.py migrate后，数据库会新增认证系统的这些表：\n认证与授权 认证的英文是authentication，授权的英文是authorization。单词不一样，咋看有点像。认证是指验证用户是谁。授权是指授予已认证用户权限。由于认证授权在某种程序上是耦合的，所以Django把它们统称为“认证”。\n认证系统概览 认证系统的组成部分如下：\n用户 权限 组 密码管理 登录相关表单（前后端分离不需要）和视图（接受Web请求并且返回Web响应） Django框架是MTV模式，类似于MVC模式。Django的View对应MVC的Controller。\n可配置的backend 以上是Django自带内容，如果需要更多功能，可以安装第三方包：\n密码增强校验 登录限流 OAuth 对象级权限（django-guardian） 以Article举例，Django是模型级权限，用户只能具有全部文章的权限。django-guardian提供了对象级权限，可以对单篇文章进行授权。\nmodels.User User模型是Django认证系统的核心，它的主要属性包括：\nid username email password is_active is_superuser last_login date_joined django.contrib.auth.models，在django.db.models之上封装了AbstractBaseUser、AbstractUser、User等模型。\n创建超级管理员 cmd中使用createsuperuser命令：\n$ python manage.py createsuperuser 根据提示输入username、email、password后，就会在数据库中创建1条超管用户。\n创建用户 方法1 代码创建\n在代码中使用create_user()函数来创建用户：\n\u003e\u003e\u003e from django.contrib.auth.models import User # 创建用户并保存到数据库 \u003e\u003e\u003e user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword') # 修改其他字段值 \u003e\u003e\u003e user.last_name = 'Lennon' \u003e\u003e\u003e user.save() 方法2 管理后台创建\n访问http://127.0.0.1:8000/admin/，用超管登录后，在界面上创建：\n修改密码 方法1 命令行修改\npython manage.py changepassword username 根据提示输入旧密码、新密码、确认密码即可。\n方法2 代码中修改\n\u003e\u003e\u003e from django.contrib.auth.models import User \u003e\u003e\u003e u = User.objects.get(username='john') \u003e\u003e\u003e u.set_password('new password') \u003e\u003e\u003e u.save() 方法3 管理后台修改\n用户认证 框架底层使用authenticate()函数对用户进行认证：\nauthenticate(request=None, **credentials) credentials是用户凭证，如用户名、密码。\n示例：\nfrom django.contrib.auth import authenticate user = authenticate(username='john', password='secret') if user is not None: # A backend authenticated the credentials else: # No backend authenticated the credentials 如果认证成功，authenticate()会返回User。如果用户凭证无效或者权限不足，认证后端抛出了PermissionDenied，authenticate()会返回None。\n认证后端 认证后端（authentication backends）是Django做用户验证的后端模块，默认为['django.contrib.auth.backends.ModelBackend']，只会简单比较请求的用户名密码和数据库中的用户名密码是否匹配。可以切换成其他认证后端，也可以重写authenticate()进行自定义。我点开了源码，发现除了Django的认证后端，DRF已经封装了Session、Token、JWT的认证：\n权限管理 权限一般分为add、change、delete、view，也就是增删改查。\n默认权限 Django会在python manage.py migrate的时候，为每个model创建4种权限：add、change、delete、view。\n比如有个app叫做foo，它有个model叫做Bar，可以使用has_perm()函数来检查权限：\nadd：user.has_perm(‘foo.add_bar’) change：user.has_perm(‘foo.change_bar’) delete：user.has_perm(‘foo.delete_bar’) view：user.has_perm(‘foo.view_bar’) 创建新权限 除了增删改查权限，有时我们需要更多的权限，例如，为myapp中的BlogPost创建一个can_publish权限：\n方法1 meta中配置\nclass BlogPost(models.Model): ... class Meta: permissions = ( (\"can_publish\", \"Can Publish Posts\"), ) 方法2 使用create()函数\nfrom myapp.models import BlogPost from django.contrib.auth.models import Permission from django.contrib.contenttypes.models import ContentType content_type = ContentType.objects.get_for_model(BlogPost) permission = Permission.objects.create( codename='can_publish', name='Can Publish Posts', content_type=content_type, ) 在使用python manage.py migrate命令后，就会创建这个新权限，接着就可以在view中编写代码判断用户是否有这个权限来决定能否发表文章。\n授权 可以在管理后台对用户授权：\n或者把用户分组后，按组来进行授权：\n从数据库这6张表就能看出来，有用户表、分组表、权限表，以及它们的关联关系表：\n其代码实现是把permission赋值给User.user_permissions或者Group.permissions属性。\n代理模型权限 代理模型是从某个模型继承来的，不影响表结构，用于扩展行为实现代码解耦。\n代理模型不会继承父类的权限，例如：\nclass Person(models.Model): class Meta: permissions = [('can_eat_pizzas', 'Can eat pizzas')] # 代理模型 class Student(Person): class Meta: proxy = True permissions = [('can_deliver_pizzas', 'Can deliver pizzas')] \u003e\u003e\u003e # 注意代理模型取ContentType需要加for_concrete_model=False \u003e\u003e\u003e content_type = ContentType.objects.get_for_model(Student, for_concrete_model=False) \u003e\u003e\u003e student_permissions = Permission.objects.filter(content_type=content_type) \u003e\u003e\u003e [p.codename for p in student_permissions] ['add_student', 'change_student', 'delete_student', 'view_student', 'can_deliver_pizzas'] # 没有父类的can_eat_pizzas权限 Session认证 Django认证系统是基于Session的。Django把Web请求封装成了request（HttpRequest类），然后通过中间件设置了session相关的属性：request.session、request.site、request.user。其中request.user就代表当前用户，如果未登陆它的值是AnonymousUser（匿名用户）的实例，如果已登陆它的值是User的实例。可以通过is_authenticated来判断是否已认证：\nif request.user.is_authenticated: # Do something for authenticated users. ... else: # Do something for anonymous users. ... 用户登录 我们先简单回顾一下基于session的登录过程：\nDjango提供了login()函数来登录，把用户凭证保存到session中。它的函数签名如下：\nlogin(request, user, backend=None)\n示例：\nimport json from django.contrib.auth import authenticate, login from django.http import HttpResponse # Create your views here. def my_view(request): request_body = json.loads(request.body) username = request_body[\"username\"] password = request_body[\"password\"] user = authenticate(request, username=username, password=password) if user is not None: login(request, user) return HttpResponse(\"logged in\") else: return HttpResponse(\"invalid login\") 除了保存用户凭证，Django还会把认证后端也保存到session中，便于相同的认证后端下次可以直接获取到用户信息。至于保存哪个认证后端，Django按以下顺序选取：\n使用login()函数的backend参数值，如果赋值了的话。 使用user.backend的值，如果有的话。 使用settings中AUTHENTICATION_BACKENDS的值，默认 ['django.contrib.auth.backends.ModelBackend']。 否则抛出异常。 用户登出 Django提供了logout()函数来登出。它的函数签名如下：\nlogout(request)\n示例：\nfrom django.contrib.auth import logout def logout_view(request): logout(request) # Redirect to a success page. 登出后session会被销毁，所有数据都会被清除，以防止其他人使用相同的浏览器再次登录后获取到之前用户的session数据。\nlogin_required 对于未登陆的用户，需要进行限制，必须先登陆才能进行访问。\n传统方法\n使用request.user.is_authenticated判断，然后重定向到登录页面：\nfrom django.conf import settings from django.shortcuts import redirect def my_view(request): if not request.user.is_authenticated: return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path)) # ... 或者错误页面：\nfrom django.shortcuts import render def my_view(request): if not request.user.is_authenticated: return render(request, 'myapp/login_error.html') # ... login_required装饰器\nlogin_required(redirect_field_name='next', login_url=None)\n示例：\nfrom django.contrib.auth.decorators import login_required @login_required def my_view(request): ... 它的处理是这样的：\n如果用户没有登录，就重定向到settings.LOGIN_URL（默认值/accounts/login/），同时把当前的绝对路径添加到查询字符串中，如：/accounts/login/?next=/polls/3/。\n如果用户已经登录了，正常执行view代码。\nlogin_required的redirect_field_name参数是指登陆认证成功后重定向的页面，默认保存在叫做next的查询字符串参数中（如/accounts/login/?next=/polls/3/）。可以修改为自定义：\nfrom django.contrib.auth.decorators import login_required @login_required(redirect_field_name='my_redirect_field') def my_view(request): ... 不过修改后还需要同时修改login模板等。\nlogin_required的login_url参数是指登录页面的url，可以自定义，默认是/accounts/login/，需要在URLconf中关联登陆视图：\nfrom django.contrib.auth import views as auth_views path('accounts/login/', auth_views.LoginView.as_view()), function views和class-based views function views（函数视图），视图是个函数：\nfrom django.http import HttpResponse def my_view(request): if request.method == 'GET': # return HttpResponse('result') class-based views（基于类的视图），视图是个类：\nfrom django.views import View class MyView(View): def get(self, request): # return HttpResponse('result') 为什么需要cbv？因为类可以继承，提高代码复用。由于Django的URLconf只能接受函数，所以cbv有个as_view()方法用来返回一个函数：\n# urls.py from django.urls import path from myapp.views import MyView urlpatterns = [ path('about/', MyView.as_view()), ] LoginRequiredMixin Mixin是为了代码复用，从多个父类继承而来的类。如果使用的是class-based views，那么可以使用LoginRequiredMixin，来实现login_required的效果，例如：\nfrom django.contrib.auth.mixins import LoginRequiredMixin class MyView(LoginRequiredMixin, View): login_url = '/login/' redirect_field_name = 'redirect_to' permission_required 除了需要登录，有些视图还需要权限。Django提供了permission_required装饰器，它的函数签名如下：\npermission_required(perm, login_url=None, raise_exception=False)\n示例：\nfrom django.contrib.auth.decorators import permission_required @permission_required('polls.add_choice') def my_view(request): ... permission_required的perm参数，指的是权限，可以是单个权限，也可以是权限列表。\npermission_required的login_url参数和login_required的login_url作用一样。\npermission_required的raise_exception参数，可以用来抛出异常，赋值为True后会跳转到403（HTTP Forbidden）页面而非登录页面。\n如果既想抛出异常 ，又想跳转到登录页面，那么可以同时添加这2个装饰器：\nfrom django.contrib.auth.decorators import login_required, permission_required @login_required @permission_required('polls.add_choice', raise_exception=True) def my_view(request): ... PermissionRequiredMixin 如果使用的是class-based views，那么可以使用PermissionRequiredMixin，来实现permission_required的效果，例如：\nfrom django.contrib.auth.mixins import PermissionRequiredMixin class MyView(PermissionRequiredMixin, View): permission_required = 'polls.add_choice' # Or multiple of permissions: permission_required = ('polls.view_choice', 'polls.change_choice') 修改密码导致session失效 登录成功后，Django会把加密后的密码hash值存入session中，每次请求时，会校验session中的密码和数据库中的密码是否匹配。如果修改了密码，数据库中的密码改变了，而session中的密码没有更新，那么密码就会匹配不上，导致session失效。django.contrib.auth的PasswordChangeView和user_change_password视图会在修改密码时更新session中的密码hash，来避免session失效。如果对修改密码的视图进行了自定义，那么可以使用update_session_auth_hash(request, user)来更新session中的密码，防止修改密码导致session失效。\n认证视图 Django提供了登录、登出、密码管理等视图。最简单的使用方式是在URLconf中配置：\nurlpatterns = [ path('accounts/', include('django.contrib.auth.urls')), ] 它会包含这些URL patterns：\naccounts/login/ [name='login'] accounts/logout/ [name='logout'] accounts/password_change/ [name='password_change'] accounts/password_change/done/ [name='password_change_done'] accounts/password_reset/ [name='password_reset'] accounts/password_reset/done/ [name='password_reset_done'] accounts/reset/\u003cuidb64\u003e/\u003ctoken\u003e/ [name='password_reset_confirm'] accounts/reset/done/ [name='password_reset_complete'] name是别名，可以使用reverse()函数来获取，如reverse('login')。\n但有时我们需要自定义url，在URLconf中添加自定义url后，再加上相应视图即可，例如：\nfrom django.contrib.auth import views as auth_views urlpatterns = [ path('change-password/', auth_views.PasswordChangeView.as_view()), ] 所有的这些视图都是class-based views，便于继承后重写进行自定义。\nDjango提供的相关视图有LoginView、LogoutView、PasswordChangeView、PasswordChangeDoneView、PasswordResetView、PasswordResetDoneView、PasswordResetConfirmView、PasswordResetCompleteView。\n快速上手体验 如果想快速上手体验，可以按如下步骤进行操作：\npip install django，安装Django。\ndjango-admin startproject project_name，创建Django项目。\npython manage.py migrate，数据迁移，使用自带SQLite数据库即可。\npython manage.py createsuperuser，创建超级管理员。\npython manage.py runserver，启动项目。\n访问http://127.0.0.1:8000/admin/，用超管登录管理后台。\n就可以使用Django自带认证系统了。\n小结 本文介绍了Django自带的基于session的认证系统，阐述了用户、组、认证与授权的相关概念，以及session认证的技术细节，最后讲解了如何快速上手体验的操作步骤。虽然如今基于session认证用的很少了，但它却是理解Token、JWT认证的基础，仍然值得我们学习。\n参考资料：\nhttps://docs.djangoproject.com/en/3.1/topics/auth/\nhttps://docs.djangoproject.com/en/3.1/topics/auth/default/\n",
+  "wordCount" : "615",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-04T00:00:00Z",
+  "dateModified": "2026-01-04T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000004-djangodjango%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E5%B9%B6%E4%B8%8D%E9%B8%A1%E8%82%8B%E5%8F%8D%E8%80%8C%E5%BE%88%E9%87%8D%E8%A6%81/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      Django认证系统并不鸡肋反而很重要
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-04T00:00:00+00:00'>2026-01-04</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>615 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/django/'>#Django</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>在使用<code>django-admin startproject</code>创建项目后，Django就默认安装了一个采用session实现的认证系统。这是Django相比于其他框架的一大特点：自带认证系统，开箱即用。有人说它方便，有人说它鸡肋，但它作为Django的重要组成部分，学习它有助于我们理解Django框架的核心技术。</p>
+<h1 id="安装">安装<a hidden class="anchor" aria-hidden="true" href="#安装">#</a></h1>
+<p>Django默认已安装，可以在<code>settings.py</code>中的<code>INSTALLED_APPS</code>看到：</p>
+<ul>
+<li>django.contrib.auth：认证系统内核，以及默认models等。</li>
+<li>django.contrib.contenttypes：用于关联权限和models，从而赋予models的添加/删除等权限。</li>
+</ul>
+<blockquote>
+<p>contrib翻译为普通发布版。</p>
+</blockquote>
+<p>在<code>MIDDLEWARE</code>可以看到：</p>
+<ul>
+<li><code>SessionMiddleware</code>：session中间件。</li>
+<li><code>AuthenticationMiddleware</code>：认证中间件。</li>
+</ul>
+<p>使用<code>python manage.py migrate</code>后，数据库会新增认证系统的这些表：</p>
+<p><img loading="lazy" src="../assets/b91f842a516e43aca28ba39f27e97e9b.png"></p>
+<h1 id="认证与授权">认证与授权<a hidden class="anchor" aria-hidden="true" href="#认证与授权">#</a></h1>
+<p>认证的英文是authentication，授权的英文是authorization。单词不一样，咋看有点像。认证是指验证用户是谁。授权是指授予已认证用户权限。由于认证授权在某种程序上是耦合的，所以Django把它们统称为“认证”。</p>
+<h1 id="认证系统概览">认证系统概览<a hidden class="anchor" aria-hidden="true" href="#认证系统概览">#</a></h1>
+<p>认证系统的组成部分如下：</p>
+<ul>
+<li>用户</li>
+<li>权限</li>
+<li>组</li>
+<li>密码管理</li>
+<li>登录相关表单（前后端分离不需要）和视图（接受Web请求并且返回Web响应）</li>
+</ul>
+<blockquote>
+<p>Django框架是MTV模式，类似于MVC模式。Django的View对应MVC的Controller。</p>
+</blockquote>
+<ul>
+<li>可配置的backend</li>
+</ul>
+<p>以上是Django自带内容，如果需要更多功能，可以安装第三方包：</p>
+<ul>
+<li>密码增强校验</li>
+<li>登录限流</li>
+<li>OAuth</li>
+<li>对象级权限（django-guardian）</li>
+</ul>
+<blockquote>
+<p>以Article举例，Django是模型级权限，用户只能具有全部文章的权限。django-guardian提供了对象级权限，可以对单篇文章进行授权。</p>
+</blockquote>
+<h1 id="modelsuser">models.User<a hidden class="anchor" aria-hidden="true" href="#modelsuser">#</a></h1>
+<p>User模型是Django认证系统的核心，它的主要属性包括：</p>
+<ul>
+<li>id</li>
+<li>username</li>
+<li>email</li>
+<li>password</li>
+<li>is_active</li>
+<li>is_superuser</li>
+<li>last_login</li>
+<li>date_joined</li>
+</ul>
+<blockquote>
+<p>django.contrib.auth.models，在django.db.models之上封装了AbstractBaseUser、AbstractUser、User等模型。</p>
+</blockquote>
+<h2 id="创建超级管理员">创建超级管理员<a hidden class="anchor" aria-hidden="true" href="#创建超级管理员">#</a></h2>
+<p>cmd中使用<code>createsuperuser</code>命令：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ python manage.py createsuperuser
+</span></span></code></pre></div><p>根据提示输入username、email、password后，就会在数据库中创建1条超管用户。</p>
+<h2 id="创建用户">创建用户<a hidden class="anchor" aria-hidden="true" href="#创建用户">#</a></h2>
+<p><strong>方法1 代码创建</strong></p>
+<p>在代码中使用<code>create_user()</code>函数来创建用户：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>&gt;&gt;&gt; from django.contrib.auth.models import User
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 创建用户并保存到数据库</span>
+</span></span><span style="display:flex;"><span>&gt;&gt;&gt; <span style="color:#953800">user</span> <span style="color:#0550ae">=</span> User.objects.create_user<span style="color:#0550ae">(</span><span style="color:#0a3069">&#39;john&#39;</span>, <span style="color:#0a3069">&#39;lennon@thebeatles.com&#39;</span>, <span style="color:#0a3069">&#39;johnpassword&#39;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 修改其他字段值</span>
+</span></span><span style="display:flex;"><span>&gt;&gt;&gt; user.last_name <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;Lennon&#39;</span>
+</span></span><span style="display:flex;"><span>&gt;&gt;&gt; user.save<span style="color:#0550ae">()</span>
+</span></span></code></pre></div><p><strong>方法2 管理后台创建</strong></p>
+<p>访问<code>http://127.0.0.1:8000/admin/</code>，用超管登录后，在界面上创建：</p>
+<p><img loading="lazy" src="../assets/f643da94d9ff4b41896130585f483e11.png"></p>
+<h2 id="修改密码">修改密码<a hidden class="anchor" aria-hidden="true" href="#修改密码">#</a></h2>
+<p><strong>方法1 命令行修改</strong></p>
+<pre tabindex="0"><code>python manage.py changepassword username
+</code></pre><p>根据提示输入旧密码、新密码、确认密码即可。</p>
+<p><strong>方法2 代码中修改</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>&gt;&gt;&gt; from django.contrib.auth.models import User
+</span></span><span style="display:flex;"><span>&gt;&gt;&gt; <span style="color:#953800">u</span> <span style="color:#0550ae">=</span> User.objects.get<span style="color:#0550ae">(</span><span style="color:#953800">username</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;john&#39;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>&gt;&gt;&gt; u.set_password<span style="color:#0550ae">(</span><span style="color:#0a3069">&#39;new password&#39;</span><span style="color:#0550ae">)</span>
+</span></span><span style="display:flex;"><span>&gt;&gt;&gt; u.save<span style="color:#0550ae">()</span>
+</span></span></code></pre></div><p><strong>方法3 管理后台修改</strong></p>
+<p><img loading="lazy" src="../assets/c80ea9d1c0fb45919b7bbbaeb347af83.png"></p>
+<br/>
+<p><img loading="lazy" src="../assets/e8592ac70fd7498fa770325d020700ff.png"></p>
+<h2 id="用户认证">用户认证<a hidden class="anchor" aria-hidden="true" href="#用户认证">#</a></h2>
+<p>框架底层使用<code>authenticate()</code>函数对用户进行认证：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>authenticate<span style="color:#1f2328">(</span>request<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>credentials<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>credentials是用户凭证，如用户名、密码。</p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth</span> <span style="color:#cf222e">import</span> authenticate
+</span></span><span style="display:flex;"><span>user <span style="color:#0550ae">=</span> authenticate<span style="color:#1f2328">(</span>username<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;john&#39;</span><span style="color:#1f2328">,</span> password<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;secret&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span> user <span style="color:#0550ae">is</span> <span style="color:#0550ae">not</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># A backend authenticated the credentials</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># No backend authenticated the credentials</span>
+</span></span></code></pre></div><p>如果认证成功，<code>authenticate()</code>会返回User。如果用户凭证无效或者权限不足，认证后端抛出了PermissionDenied，<code>authenticate()</code>会返回None。</p>
+<h2 id="认证后端">认证后端<a hidden class="anchor" aria-hidden="true" href="#认证后端">#</a></h2>
+<p>认证后端（authentication backends）是Django做用户验证的后端模块，默认为<code>['django.contrib.auth.backends.ModelBackend']</code>，只会简单比较请求的用户名密码和数据库中的用户名密码是否匹配。可以切换成其他认证后端，也可以重写<code>authenticate()</code>进行自定义。我点开了源码，发现除了Django的认证后端，DRF已经封装了Session、Token、JWT的认证：</p>
+<p><img loading="lazy" src="../assets/d356cacaaff34077ac982f41b2b30045.png"></p>
+<h1 id="权限管理">权限管理<a hidden class="anchor" aria-hidden="true" href="#权限管理">#</a></h1>
+<p>权限一般分为add、change、delete、view，也就是增删改查。</p>
+<h2 id="默认权限">默认权限<a hidden class="anchor" aria-hidden="true" href="#默认权限">#</a></h2>
+<p>Django会在<code>python manage.py migrate</code>的时候，为每个model创建4种权限：add、change、delete、view。</p>
+<p>比如有个app叫做foo，它有个model叫做Bar，可以使用<code>has_perm()</code>函数来检查权限：</p>
+<ul>
+<li>add：user.has_perm(&lsquo;foo.add_bar&rsquo;)</li>
+<li>change：user.has_perm(&lsquo;foo.change_bar&rsquo;)</li>
+<li>delete：user.has_perm(&lsquo;foo.delete_bar&rsquo;)</li>
+<li>view：user.has_perm(&lsquo;foo.view_bar&rsquo;)</li>
+</ul>
+<h2 id="创建新权限">创建新权限<a hidden class="anchor" aria-hidden="true" href="#创建新权限">#</a></h2>
+<p>除了增删改查权限，有时我们需要更多的权限，例如，为myapp中的BlogPost创建一个can_publish权限：</p>
+<p><strong>方法1 meta中配置</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">BlogPost</span><span style="color:#1f2328">(</span>models<span style="color:#0550ae">.</span>Model<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">class</span> <span style="color:#1f2328">Meta</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        permissions <span style="color:#0550ae">=</span> <span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;can_publish&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;Can Publish Posts&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p><strong>方法2 使用<code>create()</code>函数</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">myapp.models</span> <span style="color:#cf222e">import</span> BlogPost
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.models</span> <span style="color:#cf222e">import</span> Permission
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.contenttypes.models</span> <span style="color:#cf222e">import</span> ContentType
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>content_type <span style="color:#0550ae">=</span> ContentType<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>get_for_model<span style="color:#1f2328">(</span>BlogPost<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>permission <span style="color:#0550ae">=</span> Permission<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>create<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    codename<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;can_publish&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;Can Publish Posts&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    content_type<span style="color:#0550ae">=</span>content_type<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>在使用<code>python manage.py migrate</code>命令后，就会创建这个新权限，接着就可以在view中编写代码判断用户是否有这个权限来决定能否发表文章。</p>
+<h2 id="授权">授权<a hidden class="anchor" aria-hidden="true" href="#授权">#</a></h2>
+<p>可以在管理后台对用户授权：</p>
+<p><img loading="lazy" src="../assets/20e1811b21ab4174bbc7dc5250cc4c25.png"></p>
+<p>或者把用户分组后，按组来进行授权：</p>
+<p><img loading="lazy" src="../assets/0aba38531402455c97f107e5d3359c7d.png"></p>
+<p>从数据库这6张表就能看出来，有用户表、分组表、权限表，以及它们的关联关系表：</p>
+<p><img loading="lazy" src="../assets/b569640be02e4e3ab67d301389d5efe2.png"></p>
+<p>其代码实现是把permission赋值给User.user_permissions或者Group.permissions属性。</p>
+<h2 id="代理模型权限">代理模型权限<a hidden class="anchor" aria-hidden="true" href="#代理模型权限">#</a></h2>
+<blockquote>
+<p>代理模型是从某个模型继承来的，不影响表结构，用于扩展行为实现代码解耦。</p>
+</blockquote>
+<p>代理模型不会继承父类的权限，例如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Person</span><span style="color:#1f2328">(</span>models<span style="color:#0550ae">.</span>Model<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">class</span> <span style="color:#1f2328">Meta</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        permissions <span style="color:#0550ae">=</span> <span style="color:#1f2328">[(</span><span style="color:#0a3069">&#39;can_eat_pizzas&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;Can eat pizzas&#39;</span><span style="color:#1f2328">)]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 代理模型</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Student</span><span style="color:#1f2328">(</span>Person<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">class</span> <span style="color:#1f2328">Meta</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        proxy <span style="color:#0550ae">=</span> <span style="color:#cf222e">True</span>
+</span></span><span style="display:flex;"><span>        permissions <span style="color:#0550ae">=</span> <span style="color:#1f2328">[(</span><span style="color:#0a3069">&#39;can_deliver_pizzas&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;Can deliver pizzas&#39;</span><span style="color:#1f2328">)]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#57606a"># 注意代理模型取ContentType需要加for_concrete_model=False</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> content_type <span style="color:#0550ae">=</span> ContentType<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>get_for_model<span style="color:#1f2328">(</span>Student<span style="color:#1f2328">,</span> for_concrete_model<span style="color:#0550ae">=</span><span style="color:#cf222e">False</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> student_permissions <span style="color:#0550ae">=</span> Permission<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>filter<span style="color:#1f2328">(</span>content_type<span style="color:#0550ae">=</span>content_type<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#1f2328">[</span>p<span style="color:#0550ae">.</span>codename <span style="color:#cf222e">for</span> p <span style="color:#0550ae">in</span> student_permissions<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;add_student&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;change_student&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;delete_student&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;view_student&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#0a3069">&#39;can_deliver_pizzas&#39;</span><span style="color:#1f2328">]</span>  <span style="color:#57606a"># 没有父类的can_eat_pizzas权限</span>
+</span></span></code></pre></div><h1 id="session认证">Session认证<a hidden class="anchor" aria-hidden="true" href="#session认证">#</a></h1>
+<p>Django认证系统是基于Session的。Django把Web请求封装成了request（HttpRequest类），然后通过中间件设置了session相关的属性：request.session、request.site、request.user。其中request.user就代表当前用户，如果未登陆它的值是AnonymousUser（匿名用户）的实例，如果已登陆它的值是User的实例。可以通过is_authenticated来判断是否已认证：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">if</span> request<span style="color:#0550ae">.</span>user<span style="color:#0550ae">.</span>is_authenticated<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># Do something for authenticated users.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># Do something for anonymous users.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span></code></pre></div><h2 id="用户登录">用户登录<a hidden class="anchor" aria-hidden="true" href="#用户登录">#</a></h2>
+<p>我们先简单回顾一下基于session的登录过程：</p>
+<p><img loading="lazy" src="../assets/feba38bb2a5e4b1ca2b111e389551201.png"></p>
+<p>Django提供了<code>login()</code>函数来登录，把用户凭证保存到session中。它的函数签名如下：</p>
+<p><code>login(request, user, backend=None)</code></p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">json</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth</span> <span style="color:#cf222e">import</span> authenticate<span style="color:#1f2328">,</span> login
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.http</span> <span style="color:#cf222e">import</span> HttpResponse
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># Create your views here.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">my_view</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    request_body <span style="color:#0550ae">=</span> json<span style="color:#0550ae">.</span>loads<span style="color:#1f2328">(</span>request<span style="color:#0550ae">.</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    username <span style="color:#0550ae">=</span> request_body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    password <span style="color:#0550ae">=</span> request_body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    user <span style="color:#0550ae">=</span> authenticate<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> username<span style="color:#0550ae">=</span>username<span style="color:#1f2328">,</span> password<span style="color:#0550ae">=</span>password<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> user <span style="color:#0550ae">is</span> <span style="color:#0550ae">not</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        login<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> user<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> HttpResponse<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;logged in&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> HttpResponse<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;invalid login&#34;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>除了保存用户凭证，Django还会把认证后端也保存到session中，便于相同的认证后端下次可以直接获取到用户信息。至于保存哪个认证后端，Django按以下顺序选取：</p>
+<ol>
+<li>使用<code>login()</code>函数的backend参数值，如果赋值了的话。</li>
+<li>使用user.backend的值，如果有的话。</li>
+<li>使用settings中<code>AUTHENTICATION_BACKENDS</code>的值，默认 <code>['django.contrib.auth.backends.ModelBackend']</code>。</li>
+<li>否则抛出异常。</li>
+</ol>
+<h2 id="用户登出">用户登出<a hidden class="anchor" aria-hidden="true" href="#用户登出">#</a></h2>
+<p>Django提供了<code>logout()</code>函数来登出。它的函数签名如下：</p>
+<p><code>logout(request)</code></p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth</span> <span style="color:#cf222e">import</span> logout
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">logout_view</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    logout<span style="color:#1f2328">(</span>request<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># Redirect to a success page.</span>
+</span></span></code></pre></div><p>登出后session会被销毁，所有数据都会被清除，以防止其他人使用相同的浏览器再次登录后获取到之前用户的session数据。</p>
+<h2 id="login_required">login_required<a hidden class="anchor" aria-hidden="true" href="#login_required">#</a></h2>
+<p>对于未登陆的用户，需要进行限制，必须先登陆才能进行访问。</p>
+<p><strong>传统方法</strong></p>
+<p>使用request.user.is_authenticated判断，然后重定向到登录页面：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.conf</span> <span style="color:#cf222e">import</span> settings
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.shortcuts</span> <span style="color:#cf222e">import</span> redirect
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">my_view</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> request<span style="color:#0550ae">.</span>user<span style="color:#0550ae">.</span>is_authenticated<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> redirect<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;</span><span style="color:#0a3069">%s</span><span style="color:#0a3069">?next=</span><span style="color:#0a3069">%s</span><span style="color:#0a3069">&#39;</span> <span style="color:#0550ae">%</span> <span style="color:#1f2328">(</span>settings<span style="color:#0550ae">.</span>LOGIN_URL<span style="color:#1f2328">,</span> request<span style="color:#0550ae">.</span>path<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># ...</span>
+</span></span></code></pre></div><p>或者错误页面：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.shortcuts</span> <span style="color:#cf222e">import</span> render
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">my_view</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> request<span style="color:#0550ae">.</span>user<span style="color:#0550ae">.</span>is_authenticated<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> render<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;myapp/login_error.html&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># ...</span>
+</span></span></code></pre></div><p><strong>login_required装饰器</strong></p>
+<p><code>login_required(redirect_field_name='next', login_url=None)</code></p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.decorators</span> <span style="color:#cf222e">import</span> login_required
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@login_required</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">my_view</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span></code></pre></div><p>它的处理是这样的：</p>
+<ul>
+<li>
+<p>如果用户没有登录，就重定向到settings.LOGIN_URL（默认值<code>/accounts/login/</code>），同时把当前的绝对路径添加到查询字符串中，如：<code>/accounts/login/?next=/polls/3/</code>。</p>
+</li>
+<li>
+<p>如果用户已经登录了，正常执行view代码。</p>
+</li>
+</ul>
+<p><code>login_required</code>的<code>redirect_field_name</code>参数是指登陆认证成功后重定向的页面，默认保存在叫做<code>next</code>的查询字符串参数中（如/accounts/login/?next=/polls/3/）。可以修改为自定义：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.decorators</span> <span style="color:#cf222e">import</span> login_required
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@login_required</span><span style="color:#1f2328">(</span>redirect_field_name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;my_redirect_field&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">my_view</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span></code></pre></div><p>不过修改后还需要同时修改login模板等。</p>
+<p><code>login_required</code>的<code>login_url</code>参数是指登录页面的url，可以自定义，默认是<code>/accounts/login/</code>，需要在URLconf中关联登陆视图：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth</span> <span style="color:#cf222e">import</span> views <span style="color:#cf222e">as</span> auth_views
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;accounts/login/&#39;</span><span style="color:#1f2328">,</span> auth_views<span style="color:#0550ae">.</span>LoginView<span style="color:#0550ae">.</span>as_view<span style="color:#1f2328">()),</span>
+</span></span></code></pre></div><h2 id="function-views和class-based-views"><strong>function views和class-based views</strong><a hidden class="anchor" aria-hidden="true" href="#function-views和class-based-views">#</a></h2>
+<p>function views（函数视图），视图是个函数：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.http</span> <span style="color:#cf222e">import</span> HttpResponse
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">my_view</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> request<span style="color:#0550ae">.</span>method <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;GET&#39;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># &lt;view logic&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> HttpResponse<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;result&#39;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>class-based views（基于类的视图），视图是个类：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.views</span> <span style="color:#cf222e">import</span> View
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyView</span><span style="color:#1f2328">(</span>View<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># &lt;view logic&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> HttpResponse<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;result&#39;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>为什么需要cbv？因为类可以继承，提高代码复用。由于Django的URLconf只能接受函数，所以cbv有个as_view()方法用来返回一个函数：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a"># urls.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.urls</span> <span style="color:#cf222e">import</span> path
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">myapp.views</span> <span style="color:#cf222e">import</span> MyView
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>urlpatterns <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;about/&#39;</span><span style="color:#1f2328">,</span> MyView<span style="color:#0550ae">.</span>as_view<span style="color:#1f2328">()),</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><h2 id="loginrequiredmixin">LoginRequiredMixin<a hidden class="anchor" aria-hidden="true" href="#loginrequiredmixin">#</a></h2>
+<p>Mixin是为了代码复用，从多个父类继承而来的类。如果使用的是class-based views，那么可以使用LoginRequiredMixin，来实现login_required的效果，例如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.mixins</span> <span style="color:#cf222e">import</span> LoginRequiredMixin
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyView</span><span style="color:#1f2328">(</span>LoginRequiredMixin<span style="color:#1f2328">,</span> View<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    login_url <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;/login/&#39;</span>
+</span></span><span style="display:flex;"><span>    redirect_field_name <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;redirect_to&#39;</span>
+</span></span></code></pre></div><h2 id="permission_required">permission_required<a hidden class="anchor" aria-hidden="true" href="#permission_required">#</a></h2>
+<p>除了需要登录，有些视图还需要权限。Django提供了<code>permission_required</code>装饰器，它的函数签名如下：</p>
+<p><code>permission_required(perm, login_url=None, raise_exception=False)</code></p>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.decorators</span> <span style="color:#cf222e">import</span> permission_required
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@permission_required</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;polls.add_choice&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">my_view</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span></code></pre></div><p><code>permission_required</code>的<code>perm</code>参数，指的是权限，可以是单个权限，也可以是权限列表。</p>
+<p><code>permission_required</code>的<code>login_url</code>参数和<code>login_required</code>的<code>login_url</code>作用一样。</p>
+<p><code>permission_required</code>的<code>raise_exception</code>参数，可以用来抛出异常，赋值为True后会跳转到403（HTTP Forbidden）页面而非登录页面。</p>
+<p>如果既想抛出异常 ，又想跳转到登录页面，那么可以同时添加这2个装饰器：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.decorators</span> <span style="color:#cf222e">import</span> login_required<span style="color:#1f2328">,</span> permission_required
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@login_required</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@permission_required</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;polls.add_choice&#39;</span><span style="color:#1f2328">,</span> raise_exception<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">my_view</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span></code></pre></div><h2 id="permissionrequiredmixin">PermissionRequiredMixin<a hidden class="anchor" aria-hidden="true" href="#permissionrequiredmixin">#</a></h2>
+<p>如果使用的是class-based views，那么可以使用PermissionRequiredMixin，来实现permission_required的效果，例如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth.mixins</span> <span style="color:#cf222e">import</span> PermissionRequiredMixin
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyView</span><span style="color:#1f2328">(</span>PermissionRequiredMixin<span style="color:#1f2328">,</span> View<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    permission_required <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;polls.add_choice&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># Or multiple of permissions:</span>
+</span></span><span style="display:flex;"><span>    permission_required <span style="color:#0550ae">=</span> <span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;polls.view_choice&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;polls.change_choice&#39;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><h2 id="修改密码导致session失效">修改密码导致session失效<a hidden class="anchor" aria-hidden="true" href="#修改密码导致session失效">#</a></h2>
+<p>登录成功后，Django会把加密后的密码hash值存入session中，每次请求时，会校验session中的密码和数据库中的密码是否匹配。如果修改了密码，数据库中的密码改变了，而session中的密码没有更新，那么密码就会匹配不上，导致session失效。django.contrib.auth的PasswordChangeView和user_change_password视图会在修改密码时更新session中的密码hash，来避免session失效。如果对修改密码的视图进行了自定义，那么可以使用<code>update_session_auth_hash(request, user)</code>来更新session中的密码，防止修改密码导致session失效。</p>
+<h2 id="认证视图">认证视图<a hidden class="anchor" aria-hidden="true" href="#认证视图">#</a></h2>
+<p>Django提供了登录、登出、密码管理等视图。最简单的使用方式是在URLconf中配置：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>urlpatterns <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;accounts/&#39;</span><span style="color:#1f2328">,</span> include<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;django.contrib.auth.urls&#39;</span><span style="color:#1f2328">)),</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>它会包含这些URL patterns：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>accounts<span style="color:#0550ae">/</span>login<span style="color:#0550ae">/</span> <span style="color:#1f2328">[</span>name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;login&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>accounts<span style="color:#0550ae">/</span>logout<span style="color:#0550ae">/</span> <span style="color:#1f2328">[</span>name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;logout&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>accounts<span style="color:#0550ae">/</span>password_change<span style="color:#0550ae">/</span> <span style="color:#1f2328">[</span>name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;password_change&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>accounts<span style="color:#0550ae">/</span>password_change<span style="color:#0550ae">/</span>done<span style="color:#0550ae">/</span> <span style="color:#1f2328">[</span>name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;password_change_done&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>accounts<span style="color:#0550ae">/</span>password_reset<span style="color:#0550ae">/</span> <span style="color:#1f2328">[</span>name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;password_reset&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>accounts<span style="color:#0550ae">/</span>password_reset<span style="color:#0550ae">/</span>done<span style="color:#0550ae">/</span> <span style="color:#1f2328">[</span>name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;password_reset_done&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>accounts<span style="color:#0550ae">/</span>reset<span style="color:#0550ae">/&lt;</span>uidb64<span style="color:#0550ae">&gt;/&lt;</span>token<span style="color:#0550ae">&gt;/</span> <span style="color:#1f2328">[</span>name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;password_reset_confirm&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>accounts<span style="color:#0550ae">/</span>reset<span style="color:#0550ae">/</span>done<span style="color:#0550ae">/</span> <span style="color:#1f2328">[</span>name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;password_reset_complete&#39;</span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><blockquote>
+<p>name是别名，可以使用reverse()函数来获取，如<code>reverse('login')</code>。</p>
+</blockquote>
+<p>但有时我们需要自定义url，在URLconf中添加自定义url后，再加上相应视图即可，例如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.contrib.auth</span> <span style="color:#cf222e">import</span> views <span style="color:#cf222e">as</span> auth_views
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>urlpatterns <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;change-password/&#39;</span><span style="color:#1f2328">,</span> auth_views<span style="color:#0550ae">.</span>PasswordChangeView<span style="color:#0550ae">.</span>as_view<span style="color:#1f2328">()),</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><blockquote>
+<p>所有的这些视图都是class-based views，便于继承后重写进行自定义。</p>
+</blockquote>
+<p>Django提供的相关视图有LoginView、LogoutView、PasswordChangeView、PasswordChangeDoneView、PasswordResetView、PasswordResetDoneView、PasswordResetConfirmView、PasswordResetCompleteView。</p>
+<h1 id="快速上手体验">快速上手体验<a hidden class="anchor" aria-hidden="true" href="#快速上手体验">#</a></h1>
+<p>如果想快速上手体验，可以按如下步骤进行操作：</p>
+<ol>
+<li>
+<p><code>pip install django</code>，安装Django。</p>
+</li>
+<li>
+<p><code>django-admin startproject project_name</code>，创建Django项目。</p>
+</li>
+<li>
+<p><code>python manage.py migrate</code>，数据迁移，使用自带SQLite数据库即可。</p>
+</li>
+<li>
+<p><code>python manage.py createsuperuser</code>，创建超级管理员。</p>
+</li>
+<li>
+<p><code>python manage.py runserver</code>，启动项目。</p>
+</li>
+<li>
+<p>访问<code>http://127.0.0.1:8000/admin/</code>，用超管登录管理后台。</p>
+</li>
+</ol>
+<p>就可以使用Django自带认证系统了。</p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文介绍了Django自带的基于session的认证系统，阐述了用户、组、认证与授权的相关概念，以及session认证的技术细节，最后讲解了如何快速上手体验的操作步骤。虽然如今基于session认证用的很少了，但它却是理解Token、JWT认证的基础，仍然值得我们学习。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://docs.djangoproject.com/en/3.1/topics/auth/">https://docs.djangoproject.com/en/3.1/topics/auth/</a></p>
+<p><a href="https://docs.djangoproject.com/en/3.1/topics/auth/default/">https://docs.djangoproject.com/en/3.1/topics/auth/default/</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/django/">Django</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000005-django%E8%87%AA%E5%AE%9A%E4%B9%89django%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88/">
+    <span class="title">« 上一页</span>
+    <span>自定义Django认证系统的技术方案</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/fastapi/000004-fastapifastapi%E4%BD%BF%E7%94%A8typing%E7%B1%BB%E5%9E%8B%E6%8F%90%E7%A4%BA/">
+    <span class="title">下一页 »</span>
+    <span>FastAPI使用typing类型提示</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#安装">安装</a></li>
+    <li><a href="#认证与授权">认证与授权</a></li>
+    <li><a href="#认证系统概览">认证系统概览</a></li>
+    <li><a href="#modelsuser">models.User</a>
+      <ul>
+        <li><a href="#创建超级管理员">创建超级管理员</a></li>
+        <li><a href="#创建用户">创建用户</a></li>
+        <li><a href="#修改密码">修改密码</a></li>
+        <li><a href="#用户认证">用户认证</a></li>
+        <li><a href="#认证后端">认证后端</a></li>
+      </ul>
+    </li>
+    <li><a href="#权限管理">权限管理</a>
+      <ul>
+        <li><a href="#默认权限">默认权限</a></li>
+        <li><a href="#创建新权限">创建新权限</a></li>
+        <li><a href="#授权">授权</a></li>
+        <li><a href="#代理模型权限">代理模型权限</a></li>
+      </ul>
+    </li>
+    <li><a href="#session认证">Session认证</a>
+      <ul>
+        <li><a href="#用户登录">用户登录</a></li>
+        <li><a href="#用户登出">用户登出</a></li>
+        <li><a href="#login_required">login_required</a></li>
+        <li><a href="#function-views和class-based-views"><strong>function views和class-based views</strong></a></li>
+        <li><a href="#loginrequiredmixin">LoginRequiredMixin</a></li>
+        <li><a href="#permission_required">permission_required</a></li>
+        <li><a href="#permissionrequiredmixin">PermissionRequiredMixin</a></li>
+        <li><a href="#修改密码导致session失效">修改密码导致session失效</a></li>
+        <li><a href="#认证视图">认证视图</a></li>
+      </ul>
+    </li>
+    <li><a href="#快速上手体验">快速上手体验</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

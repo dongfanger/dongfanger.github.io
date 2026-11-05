@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>SpringBoot官方笔记8其他 | 测试开发刚哥</title>
+<meta name="keywords" content="Spring技术栈, Spring">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Container Images
+FROM eclipse-temurin:17-jre as builder
+WORKDIR application
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} application.jar
+RUN java -Djarmode=layertools -jar application.jar extract
+
+FROM eclipse-temurin:17-jre
+WORKDIR application
+COPY --from=builder application/dependencies/ ./
+COPY --from=builder application/spring-boot-loader/ ./
+COPY --from=builder application/snapshot-dependencies/ ./
+COPY --from=builder application/application/ ./
+ENTRYPOINT [&#34;java&#34;, &#34;org.springframework.boot.loader.JarLauncher&#34;]
+$ docker build --build-arg JAR_FILE=path/to/myapp.jar .
+Production-ready Features
+The spring-boot-actuator module provides all of Spring Boot’s production-ready features.
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+Endpoints
+Actuator endpoints let you monitor and interact with your application. Spring Boot includes a number of built-in endpoints and lets you add your own. For example, the health endpoint provides basic application health information.">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000011-springspringboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B08%E5%85%B6%E4%BB%96/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000011-springspringboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B08%E5%85%B6%E4%BB%96/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000011-springspringboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B08%E5%85%B6%E4%BB%96/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="SpringBoot官方笔记8其他">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Container Images FROM eclipse-temurin:17-jre as builder WORKDIR application ARG JAR_FILE=target/*.jar COPY ${JAR_FILE} application.jar RUN java -Djarmode=layertools -jar application.jar extract FROM eclipse-temurin:17-jre WORKDIR application COPY --from=builder application/dependencies/ ./ COPY --from=builder application/spring-boot-loader/ ./ COPY --from=builder application/snapshot-dependencies/ ./ COPY --from=builder application/application/ ./ ENTRYPOINT [&#34;java&#34;, &#34;org.springframework.boot.loader.JarLauncher&#34;] $ docker build --build-arg JAR_FILE=path/to/myapp.jar . Production-ready Features The spring-boot-actuator module provides all of Spring Boot’s production-ready features.
+&lt;dependencies&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt; &lt;/dependency&gt; &lt;/dependencies&gt; Endpoints
+Actuator endpoints let you monitor and interact with your application. Spring Boot includes a number of built-in endpoints and lets you add your own. For example, the health endpoint provides basic application health information.">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-11T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-11T00:00:00+00:00">
+    <meta property="article:tag" content="Spring技术栈">
+    <meta property="article:tag" content="Spring">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="SpringBoot官方笔记8其他">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Container Images FROM eclipse-temurin:17-jre as builder WORKDIR application ARG JAR_FILE=target/*.jar COPY ${JAR_FILE} application.jar RUN java -Djarmode=layertools -jar application.jar extract FROM eclipse-temurin:17-jre WORKDIR application COPY --from=builder application/dependencies/ ./ COPY --from=builder application/spring-boot-loader/ ./ COPY --from=builder application/snapshot-dependencies/ ./ COPY --from=builder application/application/ ./ ENTRYPOINT [&#34;java&#34;, &#34;org.springframework.boot.loader.JarLauncher&#34;] $ docker build --build-arg JAR_FILE=path/to/myapp.jar . Production-ready Features The spring-boot-actuator module provides all of Spring Boot’s production-ready features.
+&lt;dependencies&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt; &lt;/dependency&gt; &lt;/dependencies&gt; Endpoints
+Actuator endpoints let you monitor and interact with your application. Spring Boot includes a number of built-in endpoints and lets you add your own. For example, the health endpoint provides basic application health information.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "SpringBoot官方笔记8其他",
+      "item": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000011-springspringboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B08%E5%85%B6%E4%BB%96/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SpringBoot官方笔记8其他",
+  "name": "SpringBoot官方笔记8其他",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nContainer Images FROM eclipse-temurin:17-jre as builder WORKDIR application ARG JAR_FILE=target/*.jar COPY ${JAR_FILE} application.jar RUN java -Djarmode=layertools -jar application.jar extract FROM eclipse-temurin:17-jre WORKDIR application COPY --from=builder application/dependencies/ ./ COPY --from=builder application/spring-boot-loader/ ./ COPY --from=builder application/snapshot-dependencies/ ./ COPY --from=builder application/application/ ./ ENTRYPOINT [\u0026#34;java\u0026#34;, \u0026#34;org.springframework.boot.loader.JarLauncher\u0026#34;] $ docker build --build-arg JAR_FILE=path/to/myapp.jar . Production-ready Features The spring-boot-actuator module provides all of Spring Boot’s production-ready features.\n\u0026lt;dependencies\u0026gt; \u0026lt;dependency\u0026gt; \u0026lt;groupId\u0026gt;org.springframework.boot\u0026lt;/groupId\u0026gt; \u0026lt;artifactId\u0026gt;spring-boot-starter-actuator\u0026lt;/artifactId\u0026gt; \u0026lt;/dependency\u0026gt; \u0026lt;/dependencies\u0026gt; Endpoints\nActuator endpoints let you monitor and interact with your application. Spring Boot includes a number of built-in endpoints and lets you add your own. For example, the health endpoint provides basic application health information.\n",
+  "keywords": [
+    "Spring技术栈", "Spring"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nContainer Images FROM eclipse-temurin:17-jre as builder WORKDIR application ARG JAR_FILE=target/*.jar COPY ${JAR_FILE} application.jar RUN java -Djarmode=layertools -jar application.jar extract FROM eclipse-temurin:17-jre WORKDIR application COPY --from=builder application/dependencies/ ./ COPY --from=builder application/spring-boot-loader/ ./ COPY --from=builder application/snapshot-dependencies/ ./ COPY --from=builder application/application/ ./ ENTRYPOINT [\"java\", \"org.springframework.boot.loader.JarLauncher\"] $ docker build --build-arg JAR_FILE=path/to/myapp.jar . Production-ready Features The spring-boot-actuator module provides all of Spring Boot’s production-ready features.\norg.springframework.boot spring-boot-starter-actuator Endpoints\nActuator endpoints let you monitor and interact with your application. Spring Boot includes a number of built-in endpoints and lets you add your own. For example, the health endpoint provides basic application health information.\nMonitoring and Management Over HTTP\nIf you are developing a web application, Spring Boot Actuator auto-configures all enabled endpoints to be exposed over HTTP. The default convention is to use the id of the endpoint with a prefix of /actuator as the URL path. For example, health is exposed as /actuator/health.\nLoggers\nTRACE\nDEBUG\nINFO\nWARN\nERROR\nFATAL\nOFF\nnull\nDeploying Spring Boot Applications You can deploy Spring Boot applications to a variety of cloud platforms, to virtual/real machines, or make them fully executable for Unix systems.\nKubernetes\nSpring Boot auto-detects Kubernetes deployment environments by checking the environment for \"*_SERVICE_HOST\" and \"*_SERVICE_PORT\" variables. You can override this detection with the spring.main.cloud-platform configuration property.\n总结 快速刷完SpringBoot官方网站，刚开始还比较能看懂，越到后面越发现，整个内容偏向于“配置”说明，能吸收和理解的知识很少，从我做的笔记也是能看出来这点。\n这跟SpringBoot本身的设计也是一致的，即SpringBoot是在Spring Framework基础之上做的“自动配置”，从繁杂的xml配置中解脱出来，SpringBoot本身就是一个外壳。\n学习SpirngBoot，需要对它的内核进行学习，也就是Spring Framework，还好也有官方文档，虽然有点难找：\nhttps://docs.spring.io/spring-framework/reference/overview.html\n",
+  "wordCount" : "222",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-11T00:00:00Z",
+  "dateModified": "2026-01-11T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000011-springspringboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B08%E5%85%B6%E4%BB%96/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      SpringBoot官方笔记8其他
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-11T00:00:00+00:00'>2026-01-11</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>222 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/spring%E6%8A%80%E6%9C%AF%E6%A0%88/'>#Spring技术栈</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/spring/'>#Spring</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="container-images">Container Images<a hidden class="anchor" aria-hidden="true" href="#container-images">#</a></h1>
+<pre tabindex="0"><code>FROM eclipse-temurin:17-jre as builder
+WORKDIR application
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} application.jar
+RUN java -Djarmode=layertools -jar application.jar extract
+
+FROM eclipse-temurin:17-jre
+WORKDIR application
+COPY --from=builder application/dependencies/ ./
+COPY --from=builder application/spring-boot-loader/ ./
+COPY --from=builder application/snapshot-dependencies/ ./
+COPY --from=builder application/application/ ./
+ENTRYPOINT [&#34;java&#34;, &#34;org.springframework.boot.loader.JarLauncher&#34;]
+</code></pre><pre tabindex="0"><code>$ docker build --build-arg JAR_FILE=path/to/myapp.jar .
+</code></pre><h1 id="production-ready-features">Production-ready Features<a hidden class="anchor" aria-hidden="true" href="#production-ready-features">#</a></h1>
+<p>The <a href="https://github.com/spring-projects/spring-boot/tree/v3.1.1/spring-boot-project/spring-boot-actuator"><code>spring-boot-actuator</code></a> module provides all of Spring Boot’s production-ready features.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;dependencies&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;artifactId&gt;</span>spring-boot-starter-actuator<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/dependencies&gt;</span>
+</span></span></code></pre></div><p><strong>Endpoints</strong></p>
+<p>Actuator endpoints let you monitor and interact with your application. Spring Boot includes a number of built-in endpoints and lets you add your own. For example, the <code>health</code> endpoint provides basic application health information.</p>
+<p><strong>Monitoring and Management Over HTTP</strong></p>
+<p>If you are developing a web application, Spring Boot Actuator auto-configures all enabled endpoints to be exposed over HTTP. The default convention is to use the <code>id</code> of the endpoint with a prefix of <code>/actuator</code> as the URL path. For example, <code>health</code> is exposed as <code>/actuator/health</code>.</p>
+<p><strong>Loggers</strong></p>
+<ul>
+<li>
+<p><code>TRACE</code></p>
+</li>
+<li>
+<p><code>DEBUG</code></p>
+</li>
+<li>
+<p><code>INFO</code></p>
+</li>
+<li>
+<p><code>WARN</code></p>
+</li>
+<li>
+<p><code>ERROR</code></p>
+</li>
+<li>
+<p><code>FATAL</code></p>
+</li>
+<li>
+<p><code>OFF</code></p>
+</li>
+<li>
+<p><code>null</code></p>
+</li>
+</ul>
+<h1 id="deploying-spring-boot-applications">Deploying Spring Boot Applications<a hidden class="anchor" aria-hidden="true" href="#deploying-spring-boot-applications">#</a></h1>
+<p> You can deploy Spring Boot applications to a variety of cloud platforms, to virtual/real machines, or make them fully executable for Unix systems.</p>
+<p><strong>Kubernetes</strong></p>
+<p>Spring Boot auto-detects Kubernetes deployment environments by checking the environment for <code>&quot;*_SERVICE_HOST&quot;</code> and <code>&quot;*_SERVICE_PORT&quot;</code> variables. You can override this detection with the <code>spring.main.cloud-platform</code> configuration property.</p>
+<h1 id="总结">总结<a hidden class="anchor" aria-hidden="true" href="#总结">#</a></h1>
+<p>快速刷完SpringBoot官方网站，刚开始还比较能看懂，越到后面越发现，整个内容偏向于“配置”说明，能吸收和理解的知识很少，从我做的笔记也是能看出来这点。</p>
+<p>这跟SpringBoot本身的设计也是一致的，即SpringBoot是在Spring Framework基础之上做的“自动配置”，从繁杂的xml配置中解脱出来，SpringBoot本身就是一个外壳。</p>
+<p>学习SpirngBoot，需要对它的内核进行学习，也就是Spring Framework，还好也有官方文档，虽然有点难找：</p>
+<p><a href="https://docs.spring.io/spring-framework/reference/overview.html">https://docs.spring.io/spring-framework/reference/overview.html</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/spring%E6%8A%80%E6%9C%AF%E6%A0%88/">Spring技术栈</a></li>
+      <li><a href="https://dongfanger.github.io/tags/spring/">Spring</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000011-pythonpython%E5%85%83%E7%BB%84%E6%8B%86%E5%8C%85%E6%8D%A1%E5%88%B08%E5%80%8D%E9%95%9C%E5%BF%AB%E5%87%86%E7%8B%A0/">
+    <span class="title">« 上一页</span>
+    <span>Python元组拆包捡到8倍镜快准狠</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/teprunner/000011-%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%85%A5%E9%97%A8%E7%BA%A7%E9%83%A8%E7%BD%B2%E6%89%8B%E5%86%8C%E5%8F%91%E5%B8%83%E5%95%A6/">
+    <span class="title">下一页 »</span>
+    <span>teprunner测试平台入门级部署手册发布啦</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#container-images">Container Images</a></li>
+    <li><a href="#production-ready-features">Production-ready Features</a></li>
+    <li><a href="#deploying-spring-boot-applications">Deploying Spring Boot Applications</a></li>
+    <li><a href="#总结">总结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
