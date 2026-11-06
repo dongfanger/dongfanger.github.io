@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Java 官方笔记 9Lambda 表达式 | 测试开发刚哥</title>
+<meta name="keywords" content="Java">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Lambda Expression
+有了 Lambda Expression，就不用再写 anonymous classes。
+写 Lambda，首先要找到它的类型。
+There is a restriction on the type of a lambda expression: it has to be a functional interface.
+函数接口，只有 1 个抽象方法的接口：
+@FunctionalInterface
+public interface Runnable {
+    public abstract void run();
+}
+默认方法 do not count，所以下面这个也是函数接口：
+@FunctionalInterface
+public interface Consumer&lt;T&gt; {
+
+    void accept(T t);
+
+    default Consumer&lt;T&gt; andThen(Consumer&lt;? super T&gt; after) {
+        // the body of this method has been removed
+    }
+}
+静态方法也 do not count，所以下面这个还是函数接口：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B09lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B09lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B09lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Java 官方笔记 9Lambda 表达式">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Lambda Expression 有了 Lambda Expression，就不用再写 anonymous classes。
+写 Lambda，首先要找到它的类型。
+There is a restriction on the type of a lambda expression: it has to be a functional interface.
+函数接口，只有 1 个抽象方法的接口：
+@FunctionalInterface public interface Runnable { public abstract void run(); } 默认方法 do not count，所以下面这个也是函数接口：
+@FunctionalInterface public interface Consumer&lt;T&gt; { void accept(T t); default Consumer&lt;T&gt; andThen(Consumer&lt;? super T&gt; after) { // the body of this method has been removed } } 静态方法也 do not count，所以下面这个还是函数接口：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-12T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-12T00:00:00+00:00">
+    <meta property="article:tag" content="Java">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Java 官方笔记 9Lambda 表达式">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Lambda Expression 有了 Lambda Expression，就不用再写 anonymous classes。
+写 Lambda，首先要找到它的类型。
+There is a restriction on the type of a lambda expression: it has to be a functional interface.
+函数接口，只有 1 个抽象方法的接口：
+@FunctionalInterface public interface Runnable { public abstract void run(); } 默认方法 do not count，所以下面这个也是函数接口：
+@FunctionalInterface public interface Consumer&lt;T&gt; { void accept(T t); default Consumer&lt;T&gt; andThen(Consumer&lt;? super T&gt; after) { // the body of this method has been removed } } 静态方法也 do not count，所以下面这个还是函数接口：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Java 官方笔记 9Lambda 表达式",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B09lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Java 官方笔记 9Lambda 表达式",
+  "name": "Java 官方笔记 9Lambda 表达式",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nLambda Expression 有了 Lambda Expression，就不用再写 anonymous classes。\n写 Lambda，首先要找到它的类型。\nThere is a restriction on the type of a lambda expression: it has to be a functional interface.\n函数接口，只有 1 个抽象方法的接口：\n@FunctionalInterface public interface Runnable { public abstract void run(); } 默认方法 do not count，所以下面这个也是函数接口：\n@FunctionalInterface public interface Consumer\u0026lt;T\u0026gt; { void accept(T t); default Consumer\u0026lt;T\u0026gt; andThen(Consumer\u0026lt;? super T\u0026gt; after) { // the body of this method has been removed } } 静态方法也 do not count，所以下面这个还是函数接口：\n",
+  "keywords": [
+    "Java"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nLambda Expression 有了 Lambda Expression，就不用再写 anonymous classes。\n写 Lambda，首先要找到它的类型。\nThere is a restriction on the type of a lambda expression: it has to be a functional interface.\n函数接口，只有 1 个抽象方法的接口：\n@FunctionalInterface public interface Runnable { public abstract void run(); } 默认方法 do not count，所以下面这个也是函数接口：\n@FunctionalInterface public interface Consumer\u003cT\u003e { void accept(T t); default Consumer\u003cT\u003e andThen(Consumer\u003c? super T\u003e after) { // the body of this method has been removed } } 静态方法也 do not count，所以下面这个还是函数接口：\n@FunctionalInterface public interface Predicate\u003cT\u003e { boolean test(T t); default Predicate\u003cT\u003e and(Predicate\u003c? super T\u003e other) { // the body of this method has been removed } default Predicate\u003cT\u003e negate() { // the body of this method has been removed } default Predicate\u003cT\u003e or(Predicate\u003c? super T\u003e other) { // the body of this method has been removed } static \u003cT\u003e Predicate\u003cT\u003e isEqual(Object targetRef) { // the body of this method has been removed } static \u003cT\u003e Predicate\u003cT\u003e not(Predicate\u003c? super T\u003e target) { // the body of this method has been removed } } 接着，实现函数接口的抽象方法，比如 Predicate 的抽象方法：\nboolean test(T t); 实现Predicate：\nPredicate\u003cString\u003e predicate = (String s) -\u003e { return s.length() == 3; }; 省略了返回类型和方法名，只保留参数列表和方法体，用-\u003e连接。\n再简化：\nPredicate\u003cString\u003e predicate = s -\u003e s.length() == 3; 这就是最常见的 Lambda，因为前面有 String，编译器能够知道，所以这里把(String s)简写为s，然后只有一行，再把大括号和 return 省略掉。\n无 return，跟省略掉 return：\nConsumer\u003cString\u003e print = s -\u003e System.out.println(s); 无参数，用()代替：\nRunnable runnable = () -\u003e System.out.println(\"I am running\"); Lambda 的使用：\nList\u003cString\u003e retainStringsOfLength3(List\u003cString\u003e strings) { Predicate\u003cString\u003e predicate = s -\u003e s.length() == 3; List\u003cString\u003e stringsOfLength3 = new ArrayList\u003c\u003e(); for (String s: strings) { if (predicate.test(s)) { stringsOfLength3.add(s); } } return stringsOfLength3; } 因为 Lambda 实现了接口的抽象方法，所以predicate.test(s)调用的实际上是 Lambda。\nLambda 不能修改变量值：\nint calculateTotalPrice(List\u003cProduct\u003e products) { int totalPrice = 0; Consumer\u003cProduct\u003e consumer = product -\u003e totalPrice += product.getPrice(); // 编译错误 for (Product product: products) { consumer.accept(product); } } 编译错误：Variable used in lambda expression should be final or effectively final\nThis process of accessing variable is called capturing: lambdas cannot capture variables, they can only capture values. A final variable is in fact a value.\n也就是 Lambda 只能读，不能写。\n使用 Lambda Lambda 是 JDK8 跨时代的语法技术，它引领了大量的 JDK API 重写。\njava.util.function 中包含了很多可供实现的函数接口，functional interfaces：\nhttps://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/function/package-summary.html\n比如：\n@FunctionalInterface public interface Supplier\u003cT\u003e { T get(); } Lambda 实现：\nSupplier supplier = () -\u003e \"Hello Duke!\";` 使用：\nRandom random = new Random(314L); Supplier\u003cInteger\u003e newRandom = () -\u003e random.nextInt(10); for (int index = 0; index \u003c 5; index++) { System.out.println(newRandom.get() + \" \"); } 比如：\nList\u003cString\u003e strings = ...; // really any list of any kind of objects Consumer\u003cString\u003e printer = s -\u003e System.out.println(s); strings.forEach(printer); 比如：\nList\u003cString\u003e immutableStrings = List.of(\"one\", \"two\", \"three\", \"four\", \"five\"); List\u003cString\u003e strings = new ArrayList\u003c\u003e(immutableStrings); Predicate\u003cString\u003e isOddLength = s -\u003e s.length() % 2 == 0; strings.removeIf(isOddLength); System.out.println(\"strings = \" + strings); 比如：\n@FunctionalInterface public interface Function\u003cT, R\u003e { R apply(U u); // default and static methods removed } Function\u003cString, Integer\u003e toLength = s -\u003e s.length(); String word = ...; // any kind of word will do int length = toLength.apply(word); 以上是 JDK 中最经典的4 种 function interface：\nSupplier Consumer Predicate Function 总结一下，Lambda 的使用就是先实现 function interface 的 abstract method，然后①接口实例调用 abstract method，或者②接口实例被 forEach 等调用。\nLambda 使得 function interface 能够实例化：Predicate isOddLength = s -\u003e s.length() % 2 == 0;\nThe java.util.function package is now central in Java, because all the lambda expressions you are going to use in the Collections Framework or the Stream API implement one of the interfaces from that package.\n发现没有，把：\nList\u003cString\u003e strings = ...; // really any list of any kind of objects Consumer\u003cString\u003e printer = s -\u003e System.out.println(s); strings.forEach(printer); 简写一下，去掉中间的接口实例：\nList\u003cString\u003e strings = ...; // really any list of any kind of objects strings.forEach(s -\u003e System.out.println(s)); 这不就是常见到的 Lambda 的形态嘛。换句话说，Lambda 的结果就是函数接口实例（Function interface instance），使用 Lambda 本质上就是调用函数，Java 中没有函数的概念，通过 function interface 的 abstract method，引入了函数，从而造就了 Lambda。\nMethod References Sometimes people call these lambda expressions “anonymous methods”, since it is just that: a method that has no name, and that you can move around your application, store in a field or a variable, pass as an argument to a method or a constructor and return from a method.\nConsumer\u003cString\u003e printer = s -\u003e System.out.println(s); 这里的 Lambda 没有什么逻辑，其实就是 System.out.println()方法的引用，所以可以简写为 Bound（System.out 优化前后一致）：\nConsumer\u003cString\u003e printer = System.out::println; Static：\nIntBinaryOperator max = (a, b) -\u003e Integer.max(a, b); IntBinaryOperator max = Integer::max; Unbound（优化前 s，优化后 String；优化前 user，优化后 User）：\nFunction\u003cString, Integer\u003e toLength = s -\u003e s.length(); Function\u003cString, Integer\u003e toLength = String::length; Function\u003cUser, String\u003e getName = user -\u003e user.getName(); Function\u003cString, Integer\u003e toLength = User::getName; BiFunction\u003cString, String, Integer\u003e indexOf = (sentence, word) -\u003e sentence.indexOf(word); BiFunction\u003cString, String, Integer\u003e indexOf = String::indexOf; Constructor：\nSupplier\u003cList\u003cString\u003e\u003e newListOfStrings = () -\u003e new ArrayList\u003c\u003e(); Supplier\u003cList\u003cString\u003e\u003e newListOfStrings = ArrayList::new; 总结：\nCombining Lambda Expressions Function interface 中的 defualt method 该登场了。\nPredicate\u003cString\u003e nonNull = s -\u003e s != null; Predicate\u003cString\u003e nonEmpty = s -\u003e s.isEmpty(); Predicate\u003cString\u003e shorterThan5 = s -\u003e s.length() \u003c 5; Predicate\u003cString\u003e p = nonNull.and(nonEmpty).and(shorterThan5); 这里的and()就是 default method，它实现了 Lambda 的组合，也就是链式调用的既视感。\n稍复杂点的：\nPredicate\u003cString\u003e isNull = Objects::isNull; Predicate\u003cString\u003e isEmpty = String::isEmpty; Predicate\u003cString\u003e isNullOrEmpty = isNull.or(isEmpty); Predicate\u003cString\u003e isNotNullNorEmpty = isNullOrEmpty.negate(); Predicate\u003cString\u003e shorterThan5 = s -\u003e s.length() \u003c 5; Predicate\u003cString\u003e p = isNotNullNorEmpty.and(shorterThan5); Comparators @FunctionalInterface public interface Comparator\u003cT\u003e { int compare(T o1, T o2); } Lambda 实现：\nComparator\u003cInteger\u003e comparator = (i1, i2) -\u003e Integer.compare(i1, i2); Comparator\u003cInteger\u003e comparator = Integer::compare; Comparator 的静态方法：\nComparator\u003cString\u003e comparator = Comparator.comparing(String::length); This comparing() method is a static method of the Comparator interface. It takes a Function as an argument, that should return a type that is an extension of Comparable.\n使用：\nList\u003cUser\u003e users = ...; // this is your list Comparator\u003cUser\u003e byName = Comparator.comparing(User::getName); users.sort(byName); 还有默认方法 thenComparing：\nComparator\u003cUser\u003e byFirstNameThenLastName = Comparator.comparing(User::getFirstName) .thenComparing(User::getLastName); 参考资料：\nLambda Expressions https://dev.java/learn/lambdas/\n",
+  "wordCount" : "887",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-12T00:00:00Z",
+  "dateModified": "2026-01-12T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B09lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Java 官方笔记 9Lambda 表达式
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-12T00:00:00+00:00'>2026-01-12</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/java/'>#Java</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h2 id="lambda-expression">Lambda Expression<a hidden class="anchor" aria-hidden="true" href="#lambda-expression">#</a></h2>
+<p>有了 Lambda Expression，就不用再写 anonymous classes。</p>
+<p>写 Lambda，首先要找到它的类型。</p>
+<p>There is a restriction on the type of a lambda expression: it has to be a functional interface.</p>
+<p>函数接口，只有 1 个抽象方法的接口：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@FunctionalInterface</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">Runnable</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">abstract</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">run</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>默认方法 do not count，所以下面这个也是函数接口：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@FunctionalInterface</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">Consumer</span><span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">accept</span><span style="color:#1f2328">(</span>T<span style="color:#fff"> </span>t<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span>Consumer<span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">andThen</span><span style="color:#1f2328">(</span>Consumer<span style="color:#0550ae">&lt;?</span><span style="color:#fff"> </span><span style="color:#cf222e">super</span><span style="color:#fff"> </span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>after<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// the body of this method has been removed</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>静态方法也 do not count，所以下面这个还是函数接口：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@FunctionalInterface</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">Predicate</span><span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">boolean</span><span style="color:#fff"> </span><span style="color:#6639ba">test</span><span style="color:#1f2328">(</span>T<span style="color:#fff"> </span>t<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span>Predicate<span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">and</span><span style="color:#1f2328">(</span>Predicate<span style="color:#0550ae">&lt;?</span><span style="color:#fff"> </span><span style="color:#cf222e">super</span><span style="color:#fff"> </span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>other<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// the body of this method has been removed</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span>Predicate<span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">negate</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// the body of this method has been removed</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">default</span><span style="color:#fff"> </span>Predicate<span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">or</span><span style="color:#1f2328">(</span>Predicate<span style="color:#0550ae">&lt;?</span><span style="color:#fff"> </span><span style="color:#cf222e">super</span><span style="color:#fff"> </span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>other<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// the body of this method has been removed</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>Predicate<span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">isEqual</span><span style="color:#1f2328">(</span>Object<span style="color:#fff"> </span>targetRef<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// the body of this method has been removed</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>Predicate<span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">not</span><span style="color:#1f2328">(</span>Predicate<span style="color:#0550ae">&lt;?</span><span style="color:#fff"> </span><span style="color:#cf222e">super</span><span style="color:#fff"> </span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>target<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// the body of this method has been removed</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>接着，实现函数接口的抽象方法，比如 Predicate 的抽象方法：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">boolean</span><span style="color:#fff"> </span><span style="color:#6639ba">test</span><span style="color:#1f2328">(</span>T<span style="color:#fff"> </span>t<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>实现<code>Predicate&lt;String&gt;</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>predicate<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>s<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>s<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span>3<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">};</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>省略了返回类型和方法名，只保留参数列表和方法体，用<code>-&gt;</code>连接。</p>
+<p>再简化：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>predicate<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>s<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span>3<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>这就是最常见的 Lambda，因为前面有 String，编译器能够知道，所以这里把<code>(String s)</code>简写为<code>s</code>，然后只有一行，再把大括号和 return 省略掉。</p>
+<p>无 return，跟省略掉 return：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Consumer<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>print<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>s<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>无参数，用<code>()</code>代替：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Runnable<span style="color:#fff"> </span>runnable<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;I am running&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Lambda 的使用：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#6639ba">retainStringsOfLength3</span><span style="color:#1f2328">(</span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>predicate<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>s<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span>3<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>stringsOfLength3<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>s<span style="color:#1f2328">:</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>predicate<span style="color:#1f2328">.</span><span style="color:#1f2328">test</span><span style="color:#1f2328">(</span>s<span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>stringsOfLength3<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>s<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>stringsOfLength3<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>因为 Lambda 实现了接口的抽象方法，所以<code>predicate.test(s)</code>调用的实际上是 Lambda。</p>
+<p>Lambda 不能修改变量值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">int</span><span style="color:#fff"> </span><span style="color:#6639ba">calculateTotalPrice</span><span style="color:#1f2328">(</span>List<span style="color:#0550ae">&lt;</span>Product<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>products<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>totalPrice<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>Consumer<span style="color:#0550ae">&lt;</span>Product<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>consumer<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>product<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>totalPrice<span style="color:#fff"> </span><span style="color:#0550ae">+=</span><span style="color:#fff"> </span>product<span style="color:#1f2328">.</span><span style="color:#1f2328">getPrice</span><span style="color:#1f2328">();</span><span style="color:#fff">  </span><span style="color:#57606a">// 编译错误</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>Product<span style="color:#fff"> </span>product<span style="color:#1f2328">:</span><span style="color:#fff"> </span>products<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>consumer<span style="color:#1f2328">.</span><span style="color:#1f2328">accept</span><span style="color:#1f2328">(</span>product<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>编译错误：Variable used in lambda expression should be final or effectively final</p>
+<p>This process of accessing variable is called <em>capturing</em>: lambdas cannot <em>capture</em> variables, they can only <em>capture</em> values. A final variable is in fact a value.</p>
+<p>也就是 Lambda 只能读，不能写。</p>
+<h2 id="使用-lambda">使用 Lambda<a hidden class="anchor" aria-hidden="true" href="#使用-lambda">#</a></h2>
+<p>Lambda 是 JDK8 跨时代的语法技术，它引领了大量的 JDK API 重写。</p>
+<p>java.util.function 中包含了很多可供实现的函数接口，functional interfaces：</p>
+<p><a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/function/package-summary.html">https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/function/package-summary.html</a></p>
+<p>比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@FunctionalInterface</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">Supplier</span><span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>T<span style="color:#fff"> </span><span style="color:#6639ba">get</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Lambda 实现：</p>
+<pre tabindex="0"><code>Supplier&lt;String&gt; supplier = () -&gt; &#34;Hello Duke!&#34;;`
+</code></pre><p>使用：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Random<span style="color:#fff"> </span>random<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Random<span style="color:#1f2328">(</span>314L<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Supplier<span style="color:#0550ae">&lt;</span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>newRandom<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>random<span style="color:#1f2328">.</span><span style="color:#1f2328">nextInt</span><span style="color:#1f2328">(</span>10<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>index<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff"> </span>index<span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span><span style="color:#fff"> </span>5<span style="color:#1f2328">;</span><span style="color:#fff"> </span>index<span style="color:#0550ae">++</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>newRandom<span style="color:#1f2328">.</span><span style="color:#1f2328">get</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34; &#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">...;</span><span style="color:#fff"> </span><span style="color:#57606a">// really any list of any kind of objects</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Consumer<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>printer<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>s<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">forEach</span><span style="color:#1f2328">(</span>printer<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>immutableStrings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>List<span style="color:#1f2328">.</span><span style="color:#1f2328">of</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;one&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;two&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;three&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;four&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;five&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">(</span>immutableStrings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>isOddLength<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>s<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">%</span><span style="color:#fff"> </span>2<span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">removeIf</span><span style="color:#1f2328">(</span>isOddLength<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;strings = &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>strings<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@FunctionalInterface</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">Function</span><span style="color:#0550ae">&lt;</span>T<span style="color:#1f2328">,</span><span style="color:#fff"> </span>R<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>R<span style="color:#fff"> </span><span style="color:#6639ba">apply</span><span style="color:#1f2328">(</span>U<span style="color:#fff"> </span>u<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// default and static methods removed</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Function<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>toLength<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>s<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>String<span style="color:#fff"> </span>word<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">...;</span><span style="color:#fff"> </span><span style="color:#57606a">// any kind of word will do</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>length<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>toLength<span style="color:#1f2328">.</span><span style="color:#1f2328">apply</span><span style="color:#1f2328">(</span>word<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>以上是 JDK 中最经典的<strong>4 种 function interface</strong>：</p>
+<ul>
+<li><code>Supplier&lt;T&gt;</code></li>
+<li><code>Consumer&lt;T&gt;</code></li>
+<li><code>Predicate&lt;T&gt;</code></li>
+<li><code>Function&lt;T, R&gt;</code></li>
+</ul>
+<p><strong>总结一下，Lambda 的使用就是先实现 function interface 的 abstract method，然后①接口实例调用 abstract method，或者②接口实例被 forEach 等调用。</strong></p>
+<blockquote>
+<p>Lambda 使得 function interface 能够实例化：<code>Predicate&lt;String&gt; isOddLength = s -&gt; s.length() % 2 == 0;</code></p>
+</blockquote>
+<p>The <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/function/package-summary.html"><code>java.util.function</code></a> package is now central in Java, because all the lambda expressions you are going to use in the Collections Framework or the Stream API implement one of the interfaces from that package.</p>
+<p>发现没有，把：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">...;</span><span style="color:#fff"> </span><span style="color:#57606a">// really any list of any kind of objects</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Consumer<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>printer<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>s<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">forEach</span><span style="color:#1f2328">(</span>printer<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>简写一下，去掉中间的接口实例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>strings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">...;</span><span style="color:#fff"> </span><span style="color:#57606a">// really any list of any kind of objects</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>strings<span style="color:#1f2328">.</span><span style="color:#1f2328">forEach</span><span style="color:#1f2328">(</span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>s<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>这不就是常见到的 Lambda 的形态嘛。换句话说，<strong>Lambda 的结果就是函数接口实例（Function interface instance）</strong>，使用 Lambda 本质上就是调用函数，Java 中没有函数的概念，通过 function interface 的 abstract method，引入了函数，从而造就了 Lambda。</p>
+<h2 id="method-references">Method References<a hidden class="anchor" aria-hidden="true" href="#method-references">#</a></h2>
+<p>Sometimes people call these lambda expressions &ldquo;anonymous methods&rdquo;, since it is just that: a method that has no name, and that you can move around your application, store in a field or a variable, pass as an argument to a method or a constructor and return from a method.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Consumer<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>printer<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>s<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>这里的 Lambda 没有什么逻辑，其实就是 System.out.println()方法的引用，所以可以简写为 Bound（System.out 优化前后一致）：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Consumer<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>printer<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">::</span>println<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Static：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>IntBinaryOperator<span style="color:#fff"> </span>max<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>a<span style="color:#1f2328">,</span><span style="color:#fff"> </span>b<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>Integer<span style="color:#1f2328">.</span><span style="color:#1f2328">max</span><span style="color:#1f2328">(</span>a<span style="color:#1f2328">,</span><span style="color:#fff"> </span>b<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>IntBinaryOperator<span style="color:#fff"> </span>max<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Integer<span style="color:#1f2328">::</span>max<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Unbound（优化前 s，优化后 String；优化前 user，优化后 User）：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Function<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>toLength<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>s<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Function<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>toLength<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>String<span style="color:#1f2328">::</span>length<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Function<span style="color:#0550ae">&lt;</span>User<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>getName<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>user<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>user<span style="color:#1f2328">.</span><span style="color:#1f2328">getName</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Function<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>toLength<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>User<span style="color:#1f2328">::</span>getName<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>BiFunction<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>indexOf<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>sentence<span style="color:#1f2328">,</span><span style="color:#fff"> </span>word<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>sentence<span style="color:#1f2328">.</span><span style="color:#1f2328">indexOf</span><span style="color:#1f2328">(</span>word<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>BiFunction<span style="color:#0550ae">&lt;</span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>String<span style="color:#1f2328">,</span><span style="color:#fff"> </span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>indexOf<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>String<span style="color:#1f2328">::</span>indexOf<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Constructor：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Supplier<span style="color:#0550ae">&lt;</span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;&gt;</span><span style="color:#fff"> </span>newListOfStrings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>ArrayList<span style="color:#0550ae">&lt;&gt;</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Supplier<span style="color:#0550ae">&lt;</span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;&gt;</span><span style="color:#fff"> </span>newListOfStrings<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>ArrayList<span style="color:#1f2328">::</span><span style="color:#cf222e">new</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>总结：</p>
+<p><img loading="lazy" src="../assets/8baaff0a11204d45aa0922fef5aa4cc0.png"></p>
+<h2 id="combining-lambda-expressions">Combining Lambda Expressions<a hidden class="anchor" aria-hidden="true" href="#combining-lambda-expressions">#</a></h2>
+<p>Function interface 中的 defualt method 该登场了。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>nonNull<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">!=</span><span style="color:#fff"> </span><span style="color:#cf222e">null</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>nonEmpty<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>s<span style="color:#1f2328">.</span><span style="color:#1f2328">isEmpty</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>shorterThan5<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>s<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span><span style="color:#fff"> </span>5<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>p<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>nonNull<span style="color:#1f2328">.</span><span style="color:#1f2328">and</span><span style="color:#1f2328">(</span>nonEmpty<span style="color:#1f2328">).</span><span style="color:#1f2328">and</span><span style="color:#1f2328">(</span>shorterThan5<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>这里的<code>and()</code>就是 default method，它实现了 Lambda 的组合，也就是链式调用的既视感。</p>
+<p>稍复杂点的：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>isNull<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Objects<span style="color:#1f2328">::</span>isNull<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>isEmpty<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>String<span style="color:#1f2328">::</span>isEmpty<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>isNullOrEmpty<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>isNull<span style="color:#1f2328">.</span><span style="color:#1f2328">or</span><span style="color:#1f2328">(</span>isEmpty<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>isNotNullNorEmpty<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>isNullOrEmpty<span style="color:#1f2328">.</span><span style="color:#1f2328">negate</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>shorterThan5<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>s<span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>s<span style="color:#1f2328">.</span><span style="color:#1f2328">length</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#0550ae">&lt;</span><span style="color:#fff"> </span>5<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Predicate<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>p<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>isNotNullNorEmpty<span style="color:#1f2328">.</span><span style="color:#1f2328">and</span><span style="color:#1f2328">(</span>shorterThan5<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><h2 id="comparators">Comparators<a hidden class="anchor" aria-hidden="true" href="#comparators">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@FunctionalInterface</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">Comparator</span><span style="color:#0550ae">&lt;</span>T<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span><span style="color:#6639ba">compare</span><span style="color:#1f2328">(</span>T<span style="color:#fff"> </span>o1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>T<span style="color:#fff"> </span>o2<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Lambda 实现：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Comparator<span style="color:#0550ae">&lt;</span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>comparator<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>i1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>i2<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#0550ae">-&gt;</span><span style="color:#fff"> </span>Integer<span style="color:#1f2328">.</span><span style="color:#1f2328">compare</span><span style="color:#1f2328">(</span>i1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>i2<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Comparator<span style="color:#0550ae">&lt;</span>Integer<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>comparator<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Integer<span style="color:#1f2328">::</span>compare<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Comparator 的静态方法：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Comparator<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>comparator<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Comparator<span style="color:#1f2328">.</span><span style="color:#1f2328">comparing</span><span style="color:#1f2328">(</span>String<span style="color:#1f2328">::</span>length<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>This <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Comparator.html#comparing(java.util.function.Function)"><code>comparing()</code></a> method is a static method of the <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Comparator.html"><code>Comparator</code></a> interface. It takes a <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/function/Function.html"><code>Function</code></a> as an argument, that should return a type that is an extension of <a href="https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/lang/Comparable.html"><code>Comparable</code></a>.</p>
+<p>使用：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>List<span style="color:#0550ae">&lt;</span>User<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>users<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">...;</span><span style="color:#fff"> </span><span style="color:#57606a">// this is your list</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>Comparator<span style="color:#0550ae">&lt;</span>User<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>byName<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>Comparator<span style="color:#1f2328">.</span><span style="color:#1f2328">comparing</span><span style="color:#1f2328">(</span>User<span style="color:#1f2328">::</span>getName<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>users<span style="color:#1f2328">.</span><span style="color:#1f2328">sort</span><span style="color:#1f2328">(</span>byName<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>还有默认方法 thenComparing：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Comparator<span style="color:#0550ae">&lt;</span>User<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>byFirstNameThenLastName<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>Comparator<span style="color:#1f2328">.</span><span style="color:#1f2328">comparing</span><span style="color:#1f2328">(</span>User<span style="color:#1f2328">::</span>getFirstName<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">                  </span><span style="color:#1f2328">.</span><span style="color:#1f2328">thenComparing</span><span style="color:#1f2328">(</span>User<span style="color:#1f2328">::</span>getLastName<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><blockquote>
+<p>参考资料：</p>
+<p>Lambda Expressions <a href="https://dev.java/learn/lambdas/">https://dev.java/learn/lambdas/</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/java/">Java</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E7%BB%88%E6%9E%81%E5%B0%81%E8%A3%85viewset%E5%92%8Crouter%E9%99%84%E6%95%99%E7%A8%8Bpdf%E6%BA%90%E7%A0%81/">
+    <span class="title">« 上一页</span>
+    <span>DRF 终极封装 ViewSet 和 Router 附教程 PDF 源码</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E5%93%8D%E5%BA%94%E6%96%AD%E8%A8%80%E5%A4%9F%E7%94%A8%E4%BA%86/">
+    <span class="title">下一页 »</span>
+    <span>JMeter 响应断言够用了</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#lambda-expression">Lambda Expression</a></li>
+        <li><a href="#使用-lambda">使用 Lambda</a></li>
+        <li><a href="#method-references">Method References</a></li>
+        <li><a href="#combining-lambda-expressions">Combining Lambda Expressions</a></li>
+        <li><a href="#comparators">Comparators</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

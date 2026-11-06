@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JMeter 是如何运行施压的 | 测试开发刚哥</title>
+<meta name="keywords" content="性能测试, JMeter">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+运行文件
+JMeter 下载地址为：
+https://jmeter.apache.org/download_jmeter.cgi
+最新版本为 5.4.1，依赖于 Java8&#43;，下载后无需安装，解压即用。解压后的目录和文件如下：
+
+
+bin 二进制文件目录，包括配置文件、启动文件、启动 jar 包、示例脚本。比如 Windows 和 Linux 系统的两个启动脚本：
+
+
+
+docs API 离线帮助文档。
+extras 辅助功能，可用于 Ant、Jenkins 集成。
+lib lib 根目录下存放 JMeter 基础 jar 包，lib/ext 目录下存放第三方或自定义扩展 jar 包。
+licenses 证书文本文件。
+printable_docs 离线帮助文档。
+LICENSE 证书说明。
+NOTICE 版权声明。
+README 简介。
+
+测试计划
+JMeter 以图形界面方式启动后，首先映入眼帘的是左侧的 TestPlan，测试计划：
+
+JMeter 的 UI 界面只能同时编辑一个测试计划，如果想再编辑另外一个测试计划，必须再打开一个 JMeter 界面。这是因为测试计划对应的是.jmx 文件！不同的.jmx 文件只能在不同的界面中编辑。
+JMeter 界面是通过组件拖拽的方式来编写脚本的，脚本的根目录是测试计划。根节点只能有一个，作为根节点，测试计划很适合来做全局配置，比如在 User Defined Variables 处添加键值对格式的全局变量。
+测试计划是默认节点，JMeter 还有另外一个不可缺少的次节点：Thread Group，线程组。
+多线程
+性能测试工具的目的是用少量电脑产生成百上千个并发请求。多进程和多线程正好能用来实现这个需求，书上有句关于进程和线程的至理名言：“进程是操作系统分配资源的最小单位，线程是程序执行的最小单位”。该如何理解呢？前一句的意思是说，每个应用程序都有对应的进程，按照进程来分配资源，可以使得资源利用最大化，避免浪费。后一句的理解得从一个故事讲起，很久以前，进程拿着资源找 CPU 执行。CPU 一看进程太大，说我处理不了。进程只能拆成多个线程给 CPU，不但能执行了，还能在线程之间灵活切换。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E6%98%AF%E5%A6%82%E4%BD%95%E8%BF%90%E8%A1%8C%E6%96%BD%E5%8E%8B%E7%9A%84/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E6%98%AF%E5%A6%82%E4%BD%95%E8%BF%90%E8%A1%8C%E6%96%BD%E5%8E%8B%E7%9A%84/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E6%98%AF%E5%A6%82%E4%BD%95%E8%BF%90%E8%A1%8C%E6%96%BD%E5%8E%8B%E7%9A%84/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JMeter 是如何运行施压的">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+运行文件 JMeter 下载地址为：
+https://jmeter.apache.org/download_jmeter.cgi
+最新版本为 5.4.1，依赖于 Java8&#43;，下载后无需安装，解压即用。解压后的目录和文件如下：
+bin 二进制文件目录，包括配置文件、启动文件、启动 jar 包、示例脚本。比如 Windows 和 Linux 系统的两个启动脚本： docs API 离线帮助文档。 extras 辅助功能，可用于 Ant、Jenkins 集成。 lib lib 根目录下存放 JMeter 基础 jar 包，lib/ext 目录下存放第三方或自定义扩展 jar 包。 licenses 证书文本文件。 printable_docs 离线帮助文档。 LICENSE 证书说明。 NOTICE 版权声明。 README 简介。 测试计划 JMeter 以图形界面方式启动后，首先映入眼帘的是左侧的 TestPlan，测试计划：
+JMeter 的 UI 界面只能同时编辑一个测试计划，如果想再编辑另外一个测试计划，必须再打开一个 JMeter 界面。这是因为测试计划对应的是.jmx 文件！不同的.jmx 文件只能在不同的界面中编辑。
+JMeter 界面是通过组件拖拽的方式来编写脚本的，脚本的根目录是测试计划。根节点只能有一个，作为根节点，测试计划很适合来做全局配置，比如在 User Defined Variables 处添加键值对格式的全局变量。
+测试计划是默认节点，JMeter 还有另外一个不可缺少的次节点：Thread Group，线程组。
+多线程 性能测试工具的目的是用少量电脑产生成百上千个并发请求。多进程和多线程正好能用来实现这个需求，书上有句关于进程和线程的至理名言：“进程是操作系统分配资源的最小单位，线程是程序执行的最小单位”。该如何理解呢？前一句的意思是说，每个应用程序都有对应的进程，按照进程来分配资源，可以使得资源利用最大化，避免浪费。后一句的理解得从一个故事讲起，很久以前，进程拿着资源找 CPU 执行。CPU 一看进程太大，说我处理不了。进程只能拆成多个线程给 CPU，不但能执行了，还能在线程之间灵活切换。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-02T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-02T00:00:00+00:00">
+    <meta property="article:tag" content="性能测试">
+    <meta property="article:tag" content="JMeter">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JMeter 是如何运行施压的">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+运行文件 JMeter 下载地址为：
+https://jmeter.apache.org/download_jmeter.cgi
+最新版本为 5.4.1，依赖于 Java8&#43;，下载后无需安装，解压即用。解压后的目录和文件如下：
+bin 二进制文件目录，包括配置文件、启动文件、启动 jar 包、示例脚本。比如 Windows 和 Linux 系统的两个启动脚本： docs API 离线帮助文档。 extras 辅助功能，可用于 Ant、Jenkins 集成。 lib lib 根目录下存放 JMeter 基础 jar 包，lib/ext 目录下存放第三方或自定义扩展 jar 包。 licenses 证书文本文件。 printable_docs 离线帮助文档。 LICENSE 证书说明。 NOTICE 版权声明。 README 简介。 测试计划 JMeter 以图形界面方式启动后，首先映入眼帘的是左侧的 TestPlan，测试计划：
+JMeter 的 UI 界面只能同时编辑一个测试计划，如果想再编辑另外一个测试计划，必须再打开一个 JMeter 界面。这是因为测试计划对应的是.jmx 文件！不同的.jmx 文件只能在不同的界面中编辑。
+JMeter 界面是通过组件拖拽的方式来编写脚本的，脚本的根目录是测试计划。根节点只能有一个，作为根节点，测试计划很适合来做全局配置，比如在 User Defined Variables 处添加键值对格式的全局变量。
+测试计划是默认节点，JMeter 还有另外一个不可缺少的次节点：Thread Group，线程组。
+多线程 性能测试工具的目的是用少量电脑产生成百上千个并发请求。多进程和多线程正好能用来实现这个需求，书上有句关于进程和线程的至理名言：“进程是操作系统分配资源的最小单位，线程是程序执行的最小单位”。该如何理解呢？前一句的意思是说，每个应用程序都有对应的进程，按照进程来分配资源，可以使得资源利用最大化，避免浪费。后一句的理解得从一个故事讲起，很久以前，进程拿着资源找 CPU 执行。CPU 一看进程太大，说我处理不了。进程只能拆成多个线程给 CPU，不但能执行了，还能在线程之间灵活切换。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JMeter 是如何运行施压的",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E6%98%AF%E5%A6%82%E4%BD%95%E8%BF%90%E8%A1%8C%E6%96%BD%E5%8E%8B%E7%9A%84/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JMeter 是如何运行施压的",
+  "name": "JMeter 是如何运行施压的",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n运行文件 JMeter 下载地址为：\nhttps://jmeter.apache.org/download_jmeter.cgi\n最新版本为 5.4.1，依赖于 Java8+，下载后无需安装，解压即用。解压后的目录和文件如下：\nbin 二进制文件目录，包括配置文件、启动文件、启动 jar 包、示例脚本。比如 Windows 和 Linux 系统的两个启动脚本： docs API 离线帮助文档。 extras 辅助功能，可用于 Ant、Jenkins 集成。 lib lib 根目录下存放 JMeter 基础 jar 包，lib/ext 目录下存放第三方或自定义扩展 jar 包。 licenses 证书文本文件。 printable_docs 离线帮助文档。 LICENSE 证书说明。 NOTICE 版权声明。 README 简介。 测试计划 JMeter 以图形界面方式启动后，首先映入眼帘的是左侧的 TestPlan，测试计划：\nJMeter 的 UI 界面只能同时编辑一个测试计划，如果想再编辑另外一个测试计划，必须再打开一个 JMeter 界面。这是因为测试计划对应的是.jmx 文件！不同的.jmx 文件只能在不同的界面中编辑。\nJMeter 界面是通过组件拖拽的方式来编写脚本的，脚本的根目录是测试计划。根节点只能有一个，作为根节点，测试计划很适合来做全局配置，比如在 User Defined Variables 处添加键值对格式的全局变量。\n测试计划是默认节点，JMeter 还有另外一个不可缺少的次节点：Thread Group，线程组。\n多线程 性能测试工具的目的是用少量电脑产生成百上千个并发请求。多进程和多线程正好能用来实现这个需求，书上有句关于进程和线程的至理名言：“进程是操作系统分配资源的最小单位，线程是程序执行的最小单位”。该如何理解呢？前一句的意思是说，每个应用程序都有对应的进程，按照进程来分配资源，可以使得资源利用最大化，避免浪费。后一句的理解得从一个故事讲起，很久以前，进程拿着资源找 CPU 执行。CPU 一看进程太大，说我处理不了。进程只能拆成多个线程给 CPU，不但能执行了，还能在线程之间灵活切换。\n",
+  "keywords": [
+    "性能测试", "JMeter"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n运行文件 JMeter 下载地址为：\nhttps://jmeter.apache.org/download_jmeter.cgi\n最新版本为 5.4.1，依赖于 Java8+，下载后无需安装，解压即用。解压后的目录和文件如下：\nbin 二进制文件目录，包括配置文件、启动文件、启动 jar 包、示例脚本。比如 Windows 和 Linux 系统的两个启动脚本： docs API 离线帮助文档。 extras 辅助功能，可用于 Ant、Jenkins 集成。 lib lib 根目录下存放 JMeter 基础 jar 包，lib/ext 目录下存放第三方或自定义扩展 jar 包。 licenses 证书文本文件。 printable_docs 离线帮助文档。 LICENSE 证书说明。 NOTICE 版权声明。 README 简介。 测试计划 JMeter 以图形界面方式启动后，首先映入眼帘的是左侧的 TestPlan，测试计划：\nJMeter 的 UI 界面只能同时编辑一个测试计划，如果想再编辑另外一个测试计划，必须再打开一个 JMeter 界面。这是因为测试计划对应的是.jmx 文件！不同的.jmx 文件只能在不同的界面中编辑。\nJMeter 界面是通过组件拖拽的方式来编写脚本的，脚本的根目录是测试计划。根节点只能有一个，作为根节点，测试计划很适合来做全局配置，比如在 User Defined Variables 处添加键值对格式的全局变量。\n测试计划是默认节点，JMeter 还有另外一个不可缺少的次节点：Thread Group，线程组。\n多线程 性能测试工具的目的是用少量电脑产生成百上千个并发请求。多进程和多线程正好能用来实现这个需求，书上有句关于进程和线程的至理名言：“进程是操作系统分配资源的最小单位，线程是程序执行的最小单位”。该如何理解呢？前一句的意思是说，每个应用程序都有对应的进程，按照进程来分配资源，可以使得资源利用最大化，避免浪费。后一句的理解得从一个故事讲起，很久以前，进程拿着资源找 CPU 执行。CPU 一看进程太大，说我处理不了。进程只能拆成多个线程给 CPU，不但能执行了，还能在线程之间灵活切换。\n多进程和多线程都可以用来模拟并发请求。JMeter 是用 Java 语言写的程序，运行在 JVM 虚拟机之上，进程的开销比线程大很多，JVM 为了保证足够性能，控制了进程的数量。如果用多线程，单台电脑能提供了负载有限，那么就只能用多线程。JMeter 只支持多线程！\n另外一个性能测试工具 LoadRunner 支持多进程和多线程。\n用户即线程 JMeter 除了 Thread Group，其他地方都是用的另外一个词：User。实际上它们是一个意思，用户就是线程。JMeter 的运行原理就是用多个线程来模拟多个用户！以下是简单示例：\n从图中可以看出，有两个线程组，Thread Group 1 和 Thread Group 2，它们分别定义了自己组内的用户要做的事情。不同线程组做的事情是不一样的，但是同一线程组内部做的事情是一模一样的。我们在写 JMeter 脚本的时候，实际上是在定义每个用户要做哪些事。当运行脚本的时候，JMeter 会启动多个线程，都来执行这个脚本，按照我们写的进行执行。\n由于每个线程启动时间不一样，线程执行时资源环境也有区别，导致线程的执行进度并不完全一致，比如一些线程已经登录完了，另一些线程可能才刚开始登录。后面的文章会给出一些解决办法。\n远程运行 一台机器提供了线程数量有限，如果想要施压更大的并发，那么就需要多台机器。JMeter 天然支持多台机器并发：\n控制机和负载机本质上没有区别，同一台机器既可以做控制机，也可以做负载机，取决于你的负载设计。控制机的作用是管理多台远程负载机，控制远程负载机脚本运行，收集远程负载机测试结果。负载机是实际产生并发的机器，它们向被测应用系统发起负载。\n运行逻辑如下：\n远程负载机启动 Agent 客户端，等待控制机连接。 控制机连接上远程负载机。 控制机发送指令到远程负载机启动线程。 远程负载机运行脚本，回传结果数据。 控制机收集结果并显示。 操作步骤如下：\n远程负载机启动 jmeter-server.bat。\n在控制机 bin\\JMeter.properties 文件中，修改 remote_hosts，添加远程负载机的 ip 和 port，多个远程负载机 ip 用逗号分隔，如 remote_hosts=192.168.0.1:1664,192.168.0.2:1664。1664 是默认 RMI 端口号（Remote Method Invocation，远程方法调用）。\n在控制机菜单栏 Run 执行 Remote 命令：\n如果远程负载机需要参数或 jar 包，可以手动先把环境准备好，也可以使用自动化工具在脚本运行前从控制机发送到远程负载机。\n小结 本文先从 JMeter 运行文件讲起，启动后默认有测试计划，建线程组，线程即用户，用多线程来模拟多用户，这就是 JMeter 运行起来施压的原理。为了解决单台机器负载能力有限的问题，JMeter 还提供了远程运行方式，既可以在局域网用多台机器来控制，也可以部署到云服务器上，进行云压测。\n",
+  "wordCount" : "143",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-02T00:00:00Z",
+  "dateModified": "2026-01-02T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E6%98%AF%E5%A6%82%E4%BD%95%E8%BF%90%E8%A1%8C%E6%96%BD%E5%8E%8B%E7%9A%84/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      JMeter 是如何运行施压的
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-02T00:00:00+00:00'>2026-01-02</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/'>#性能测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jmeter/'>#JMeter</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="运行文件">运行文件<a hidden class="anchor" aria-hidden="true" href="#运行文件">#</a></h1>
+<p>JMeter 下载地址为：</p>
+<p><a href="https://jmeter.apache.org/download_jmeter.cgi">https://jmeter.apache.org/download_jmeter.cgi</a></p>
+<p>最新版本为 5.4.1，依赖于 Java8+，下载后无需安装，解压即用。解压后的目录和文件如下：</p>
+<p><img loading="lazy" src="../assets/8882ce2b3e0f46aab689527e19940f07.png"></p>
+<ul>
+<li>bin 二进制文件目录，包括配置文件、启动文件、启动 jar 包、示例脚本。比如 Windows 和 Linux 系统的两个启动脚本：</li>
+</ul>
+<p><img loading="lazy" src="../assets/90a79cc617a44ecb991bec7a4c75c2cf.png"></p>
+<ul>
+<li>docs API 离线帮助文档。</li>
+<li>extras 辅助功能，可用于 Ant、Jenkins 集成。</li>
+<li>lib lib 根目录下存放 JMeter 基础 jar 包，lib/ext 目录下存放第三方或自定义扩展 jar 包。</li>
+<li>licenses 证书文本文件。</li>
+<li>printable_docs 离线帮助文档。</li>
+<li>LICENSE 证书说明。</li>
+<li>NOTICE 版权声明。</li>
+<li>README 简介。</li>
+</ul>
+<h1 id="测试计划">测试计划<a hidden class="anchor" aria-hidden="true" href="#测试计划">#</a></h1>
+<p>JMeter 以图形界面方式启动后，首先映入眼帘的是左侧的 TestPlan，测试计划：</p>
+<p><img loading="lazy" src="../assets/08391c0919354b15aaf9807d7d60e07f.png"></p>
+<p>JMeter 的 UI 界面只能同时编辑一个测试计划，如果想再编辑另外一个测试计划，必须再打开一个 JMeter 界面。这是因为测试计划对应的是.jmx 文件！不同的.jmx 文件只能在不同的界面中编辑。</p>
+<p>JMeter 界面是通过组件拖拽的方式来编写脚本的，脚本的根目录是测试计划。根节点只能有一个，作为根节点，测试计划很适合来做全局配置，比如在 User Defined Variables 处添加键值对格式的全局变量。</p>
+<p>测试计划是默认节点，JMeter 还有另外一个不可缺少的次节点：Thread Group，线程组。</p>
+<h1 id="多线程">多线程<a hidden class="anchor" aria-hidden="true" href="#多线程">#</a></h1>
+<p>性能测试工具的目的是用少量电脑产生成百上千个并发请求。多进程和多线程正好能用来实现这个需求，书上有句关于进程和线程的至理名言：“进程是操作系统分配资源的最小单位，线程是程序执行的最小单位”。该如何理解呢？前一句的意思是说，每个应用程序都有对应的进程，按照进程来分配资源，可以使得资源利用最大化，避免浪费。后一句的理解得从一个故事讲起，很久以前，进程拿着资源找 CPU 执行。CPU 一看进程太大，说我处理不了。进程只能拆成多个线程给 CPU，不但能执行了，还能在线程之间灵活切换。</p>
+<p>多进程和多线程都可以用来模拟并发请求。JMeter 是用 Java 语言写的程序，运行在 JVM 虚拟机之上，进程的开销比线程大很多，JVM 为了保证足够性能，控制了进程的数量。如果用多线程，单台电脑能提供了负载有限，那么就只能用多线程。JMeter 只支持多线程！</p>
+<blockquote>
+<p>另外一个性能测试工具 LoadRunner 支持多进程和多线程。</p>
+</blockquote>
+<h1 id="用户即线程">用户即线程<a hidden class="anchor" aria-hidden="true" href="#用户即线程">#</a></h1>
+<p>JMeter 除了 Thread Group，其他地方都是用的另外一个词：User。实际上它们是一个意思，用户就是线程。JMeter 的运行原理就是用多个线程来模拟多个用户！以下是简单示例：</p>
+<p><img loading="lazy" src="../assets/aa6bb9b7be474396862a0b81a3c68463.png"></p>
+<p>从图中可以看出，有两个线程组，Thread Group 1 和 Thread Group 2，它们分别定义了自己组内的用户要做的事情。不同线程组做的事情是不一样的，但是同一线程组内部做的事情是一模一样的。我们在写 JMeter 脚本的时候，实际上是在定义每个用户要做哪些事。当运行脚本的时候，JMeter 会启动多个线程，都来执行这个脚本，按照我们写的进行执行。</p>
+<blockquote>
+<p>由于每个线程启动时间不一样，线程执行时资源环境也有区别，导致线程的执行进度并不完全一致，比如一些线程已经登录完了，另一些线程可能才刚开始登录。后面的文章会给出一些解决办法。</p>
+</blockquote>
+<h1 id="远程运行">远程运行<a hidden class="anchor" aria-hidden="true" href="#远程运行">#</a></h1>
+<p>一台机器提供了线程数量有限，如果想要施压更大的并发，那么就需要多台机器。JMeter 天然支持多台机器并发：</p>
+<p><img loading="lazy" src="../assets/cca61040161c43e8a0d833613f1aa247.png"></p>
+<p>控制机和负载机本质上没有区别，同一台机器既可以做控制机，也可以做负载机，取决于你的负载设计。控制机的作用是管理多台远程负载机，控制远程负载机脚本运行，收集远程负载机测试结果。负载机是实际产生并发的机器，它们向被测应用系统发起负载。</p>
+<p>运行逻辑如下：</p>
+<ul>
+<li>远程负载机启动 Agent 客户端，等待控制机连接。</li>
+<li>控制机连接上远程负载机。</li>
+<li>控制机发送指令到远程负载机启动线程。</li>
+<li>远程负载机运行脚本，回传结果数据。</li>
+<li>控制机收集结果并显示。</li>
+</ul>
+<p>操作步骤如下：</p>
+<ol>
+<li>
+<p>远程负载机启动 jmeter-server.bat。</p>
+</li>
+<li>
+<p>在控制机 bin\JMeter.properties 文件中，修改 remote_hosts，添加远程负载机的 ip 和 port，多个远程负载机 ip 用逗号分隔，如 remote_hosts=192.168.0.1:1664,192.168.0.2:1664。1664 是默认 RMI 端口号（Remote Method Invocation，远程方法调用）。</p>
+</li>
+<li>
+<p>在控制机菜单栏 Run 执行 Remote 命令：</p>
+<p><img loading="lazy" src="../assets/70903ad24ce243368980c6b411ecd767.png"></p>
+</li>
+</ol>
+<blockquote>
+<p>如果远程负载机需要参数或 jar 包，可以手动先把环境准备好，也可以使用自动化工具在脚本运行前从控制机发送到远程负载机。</p>
+</blockquote>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文先从 JMeter 运行文件讲起，启动后默认有测试计划，建线程组，线程即用户，用多线程来模拟多用户，这就是 JMeter 运行起来施压的原理。为了解决单台机器负载能力有限的问题，JMeter 还提供了远程运行方式，既可以在局域网用多台机器来控制，也可以部署到云服务器上，进行云压测。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/">性能测试</a></li>
+      <li><a href="https://dongfanger.github.io/tags/jmeter/">JMeter</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%AE%80%E4%BB%8B/">
+    <span class="title">« 上一页</span>
+    <span>JavaWeb 开发基础 Servlet 简介</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/junit5%E6%B3%A8%E8%A7%A3%E5%AD%A6%E4%B9%A0%E6%8C%87%E5%BC%95/">
+    <span class="title">下一页 »</span>
+    <span>JUnit5 注解学习指引</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#运行文件">运行文件</a></li>
+    <li><a href="#测试计划">测试计划</a></li>
+    <li><a href="#多线程">多线程</a></li>
+    <li><a href="#用户即线程">用户即线程</a></li>
+    <li><a href="#远程运行">远程运行</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>AI 评估 | 测试开发刚哥</title>
+<meta name="keywords" content="AI白皮书">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+9.1 基于评估降低 AI 应用的不确定性
+9.1.1 从确定性到不确定性
+传统软件在很大程度上是确定性的，而 AI 应用其行为本质上是非确定性和概率性的。不确定性，就意味着对于相同的输入，它们可能产生不同的输出。
+传统的 QA 流程，专为可预测的、基于规则的系统而设计，已无法充分应对这些由数据驱动的、自适应系统的挑战。
+9.1.2 幻觉和不确定性的根因
+AI 应用的核心功能是基于从海量数据中学到的统计模式，来预测序列中的下一个词，而非真正意义上的理解。这就导致了“幻觉”现象，即模型生成听起来合理但实际上不正确或无意义的输出。
+产生幻觉和不确定性的根本原因错综复杂：数据导致的缺陷、架构与建模的产物、错位与不确定性。
+9.1.3 AI 评估的重要些
+从服务客户上看，评估是构建信任的核心机制。从商业视角看，严格评估直接转化为竞争优势。
+AI 的非确定性催生了评估经济，这是一个由可观测性平台、持续监控、自动化评估与治理即服务构成的新生态。评估不再是阶段性任务，而是与开发并行的持续工程实践，标志着 AI 原生时代质量保障的新范式。
+9.2 AI 评估体系
+9.2.1 评估方法的基础二分法
+1、内在评估 vs 外在评估
+内在评估：侧重于孤立地评估模型输出的固有质量，而不考虑其在特定任务中的应用效果。评估的维度通常包括流畅性、连贯性、语法正确性以及事实准确性。
+外在评估：通过衡量模型在特定下游任务或应用中的表现来评估其质量。
+2、自动化评估 vs 人工评估
+自动化评估：利用计算指标或利用其他 AI 模型来对模型输出进行打分。
+人工评估：依赖人类评估员的判断来评估 AI 系统的输出质量，特别是在衡量帮助性、创造力、用户满意度等主观维度时。
+在实践中，最佳的评估策略通常是自动化和人工评估的混合模式，利用自动化的效率进行大规模初步筛选，并结合人工的深度洞察力对关键或模糊的案例进行精细评估。
+9.2.2 从静态到动态评估的演进
+静态基准：静态基准是固定的、预先定义的数据集和任务组成。
+动态评估：动态评估旨在模拟真实世界场景的复杂性和不可预测性，通过变化的变量、意外的输入和演进的上下文来测试系统。主要的动态评估方法包括：基于模拟的测试、实时对抗性基准、程序化生成。
+9.2.3 现代 AI 评估的多范式全景
+6 个主要的评估范式：基准测试范式、“Evals”范式、心理测量学范式、人机交互范式、形式化方法范式、社会技术范式。
+一个组织的评估栈，即其选择、组合和优先排序不同评估范式的策略，深刻地揭示了该组织在性能、用户价值和风险规避之间的权衡。
+9.2.4 构建一个整体性的评估体系
+一个完整的评估体系应包含 8 个核心组件：
+
+性能指标，包括准确率、精确率、召回率、F1 分数等。
+鲁棒性与泛化测试
+偏见与公平性评估
+可解释性
+合理性与伦理考量
+持续监控与模型飘移检测
+决策框架
+自动化与人在回路
+
+9.3 基于 LLM 的自动化评估
+9.3.1 传统指标的局限性
+传统的自动化评估指标，其核心是基于词汇或短语的重叠度来计算分数，这种方法对于需要捕捉语义、风格、语气和创造力等细微差别的现代生成 AI 模型来说，存在根本性不足。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E8%AF%84%E4%BC%B0/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E8%AF%84%E4%BC%B0/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E8%AF%84%E4%BC%B0/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="AI 评估">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+9.1 基于评估降低 AI 应用的不确定性 9.1.1 从确定性到不确定性 传统软件在很大程度上是确定性的，而 AI 应用其行为本质上是非确定性和概率性的。不确定性，就意味着对于相同的输入，它们可能产生不同的输出。
+传统的 QA 流程，专为可预测的、基于规则的系统而设计，已无法充分应对这些由数据驱动的、自适应系统的挑战。
+9.1.2 幻觉和不确定性的根因 AI 应用的核心功能是基于从海量数据中学到的统计模式，来预测序列中的下一个词，而非真正意义上的理解。这就导致了“幻觉”现象，即模型生成听起来合理但实际上不正确或无意义的输出。
+产生幻觉和不确定性的根本原因错综复杂：数据导致的缺陷、架构与建模的产物、错位与不确定性。
+9.1.3 AI 评估的重要些 从服务客户上看，评估是构建信任的核心机制。从商业视角看，严格评估直接转化为竞争优势。
+AI 的非确定性催生了评估经济，这是一个由可观测性平台、持续监控、自动化评估与治理即服务构成的新生态。评估不再是阶段性任务，而是与开发并行的持续工程实践，标志着 AI 原生时代质量保障的新范式。
+9.2 AI 评估体系 9.2.1 评估方法的基础二分法 1、内在评估 vs 外在评估
+内在评估：侧重于孤立地评估模型输出的固有质量，而不考虑其在特定任务中的应用效果。评估的维度通常包括流畅性、连贯性、语法正确性以及事实准确性。
+外在评估：通过衡量模型在特定下游任务或应用中的表现来评估其质量。
+2、自动化评估 vs 人工评估
+自动化评估：利用计算指标或利用其他 AI 模型来对模型输出进行打分。
+人工评估：依赖人类评估员的判断来评估 AI 系统的输出质量，特别是在衡量帮助性、创造力、用户满意度等主观维度时。
+在实践中，最佳的评估策略通常是自动化和人工评估的混合模式，利用自动化的效率进行大规模初步筛选，并结合人工的深度洞察力对关键或模糊的案例进行精细评估。
+9.2.2 从静态到动态评估的演进 静态基准：静态基准是固定的、预先定义的数据集和任务组成。
+动态评估：动态评估旨在模拟真实世界场景的复杂性和不可预测性，通过变化的变量、意外的输入和演进的上下文来测试系统。主要的动态评估方法包括：基于模拟的测试、实时对抗性基准、程序化生成。
+9.2.3 现代 AI 评估的多范式全景 6 个主要的评估范式：基准测试范式、“Evals”范式、心理测量学范式、人机交互范式、形式化方法范式、社会技术范式。
+一个组织的评估栈，即其选择、组合和优先排序不同评估范式的策略，深刻地揭示了该组织在性能、用户价值和风险规避之间的权衡。
+9.2.4 构建一个整体性的评估体系 一个完整的评估体系应包含 8 个核心组件：
+性能指标，包括准确率、精确率、召回率、F1 分数等。 鲁棒性与泛化测试 偏见与公平性评估 可解释性 合理性与伦理考量 持续监控与模型飘移检测 决策框架 自动化与人在回路 9.3 基于 LLM 的自动化评估 9.3.1 传统指标的局限性 传统的自动化评估指标，其核心是基于词汇或短语的重叠度来计算分数，这种方法对于需要捕捉语义、风格、语气和创造力等细微差别的现代生成 AI 模型来说，存在根本性不足。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-13T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-13T00:00:00+00:00">
+    <meta property="article:tag" content="AI白皮书">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AI 评估">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+9.1 基于评估降低 AI 应用的不确定性 9.1.1 从确定性到不确定性 传统软件在很大程度上是确定性的，而 AI 应用其行为本质上是非确定性和概率性的。不确定性，就意味着对于相同的输入，它们可能产生不同的输出。
+传统的 QA 流程，专为可预测的、基于规则的系统而设计，已无法充分应对这些由数据驱动的、自适应系统的挑战。
+9.1.2 幻觉和不确定性的根因 AI 应用的核心功能是基于从海量数据中学到的统计模式，来预测序列中的下一个词，而非真正意义上的理解。这就导致了“幻觉”现象，即模型生成听起来合理但实际上不正确或无意义的输出。
+产生幻觉和不确定性的根本原因错综复杂：数据导致的缺陷、架构与建模的产物、错位与不确定性。
+9.1.3 AI 评估的重要些 从服务客户上看，评估是构建信任的核心机制。从商业视角看，严格评估直接转化为竞争优势。
+AI 的非确定性催生了评估经济，这是一个由可观测性平台、持续监控、自动化评估与治理即服务构成的新生态。评估不再是阶段性任务，而是与开发并行的持续工程实践，标志着 AI 原生时代质量保障的新范式。
+9.2 AI 评估体系 9.2.1 评估方法的基础二分法 1、内在评估 vs 外在评估
+内在评估：侧重于孤立地评估模型输出的固有质量，而不考虑其在特定任务中的应用效果。评估的维度通常包括流畅性、连贯性、语法正确性以及事实准确性。
+外在评估：通过衡量模型在特定下游任务或应用中的表现来评估其质量。
+2、自动化评估 vs 人工评估
+自动化评估：利用计算指标或利用其他 AI 模型来对模型输出进行打分。
+人工评估：依赖人类评估员的判断来评估 AI 系统的输出质量，特别是在衡量帮助性、创造力、用户满意度等主观维度时。
+在实践中，最佳的评估策略通常是自动化和人工评估的混合模式，利用自动化的效率进行大规模初步筛选，并结合人工的深度洞察力对关键或模糊的案例进行精细评估。
+9.2.2 从静态到动态评估的演进 静态基准：静态基准是固定的、预先定义的数据集和任务组成。
+动态评估：动态评估旨在模拟真实世界场景的复杂性和不可预测性，通过变化的变量、意外的输入和演进的上下文来测试系统。主要的动态评估方法包括：基于模拟的测试、实时对抗性基准、程序化生成。
+9.2.3 现代 AI 评估的多范式全景 6 个主要的评估范式：基准测试范式、“Evals”范式、心理测量学范式、人机交互范式、形式化方法范式、社会技术范式。
+一个组织的评估栈，即其选择、组合和优先排序不同评估范式的策略，深刻地揭示了该组织在性能、用户价值和风险规避之间的权衡。
+9.2.4 构建一个整体性的评估体系 一个完整的评估体系应包含 8 个核心组件：
+性能指标，包括准确率、精确率、召回率、F1 分数等。 鲁棒性与泛化测试 偏见与公平性评估 可解释性 合理性与伦理考量 持续监控与模型飘移检测 决策框架 自动化与人在回路 9.3 基于 LLM 的自动化评估 9.3.1 传统指标的局限性 传统的自动化评估指标，其核心是基于词汇或短语的重叠度来计算分数，这种方法对于需要捕捉语义、风格、语气和创造力等细微差别的现代生成 AI 模型来说，存在根本性不足。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "AI 评估",
+      "item": "https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E8%AF%84%E4%BC%B0/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI 评估",
+  "name": "AI 评估",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n9.1 基于评估降低 AI 应用的不确定性 9.1.1 从确定性到不确定性 传统软件在很大程度上是确定性的，而 AI 应用其行为本质上是非确定性和概率性的。不确定性，就意味着对于相同的输入，它们可能产生不同的输出。\n传统的 QA 流程，专为可预测的、基于规则的系统而设计，已无法充分应对这些由数据驱动的、自适应系统的挑战。\n9.1.2 幻觉和不确定性的根因 AI 应用的核心功能是基于从海量数据中学到的统计模式，来预测序列中的下一个词，而非真正意义上的理解。这就导致了“幻觉”现象，即模型生成听起来合理但实际上不正确或无意义的输出。\n产生幻觉和不确定性的根本原因错综复杂：数据导致的缺陷、架构与建模的产物、错位与不确定性。\n9.1.3 AI 评估的重要些 从服务客户上看，评估是构建信任的核心机制。从商业视角看，严格评估直接转化为竞争优势。\nAI 的非确定性催生了评估经济，这是一个由可观测性平台、持续监控、自动化评估与治理即服务构成的新生态。评估不再是阶段性任务，而是与开发并行的持续工程实践，标志着 AI 原生时代质量保障的新范式。\n9.2 AI 评估体系 9.2.1 评估方法的基础二分法 1、内在评估 vs 外在评估\n内在评估：侧重于孤立地评估模型输出的固有质量，而不考虑其在特定任务中的应用效果。评估的维度通常包括流畅性、连贯性、语法正确性以及事实准确性。\n外在评估：通过衡量模型在特定下游任务或应用中的表现来评估其质量。\n2、自动化评估 vs 人工评估\n自动化评估：利用计算指标或利用其他 AI 模型来对模型输出进行打分。\n人工评估：依赖人类评估员的判断来评估 AI 系统的输出质量，特别是在衡量帮助性、创造力、用户满意度等主观维度时。\n在实践中，最佳的评估策略通常是自动化和人工评估的混合模式，利用自动化的效率进行大规模初步筛选，并结合人工的深度洞察力对关键或模糊的案例进行精细评估。\n9.2.2 从静态到动态评估的演进 静态基准：静态基准是固定的、预先定义的数据集和任务组成。\n动态评估：动态评估旨在模拟真实世界场景的复杂性和不可预测性，通过变化的变量、意外的输入和演进的上下文来测试系统。主要的动态评估方法包括：基于模拟的测试、实时对抗性基准、程序化生成。\n9.2.3 现代 AI 评估的多范式全景 6 个主要的评估范式：基准测试范式、“Evals”范式、心理测量学范式、人机交互范式、形式化方法范式、社会技术范式。\n一个组织的评估栈，即其选择、组合和优先排序不同评估范式的策略，深刻地揭示了该组织在性能、用户价值和风险规避之间的权衡。\n9.2.4 构建一个整体性的评估体系 一个完整的评估体系应包含 8 个核心组件：\n性能指标，包括准确率、精确率、召回率、F1 分数等。 鲁棒性与泛化测试 偏见与公平性评估 可解释性 合理性与伦理考量 持续监控与模型飘移检测 决策框架 自动化与人在回路 9.3 基于 LLM 的自动化评估 9.3.1 传统指标的局限性 传统的自动化评估指标，其核心是基于词汇或短语的重叠度来计算分数，这种方法对于需要捕捉语义、风格、语气和创造力等细微差别的现代生成 AI 模型来说，存在根本性不足。\n",
+  "keywords": [
+    "AI白皮书"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n9.1 基于评估降低 AI 应用的不确定性 9.1.1 从确定性到不确定性 传统软件在很大程度上是确定性的，而 AI 应用其行为本质上是非确定性和概率性的。不确定性，就意味着对于相同的输入，它们可能产生不同的输出。\n传统的 QA 流程，专为可预测的、基于规则的系统而设计，已无法充分应对这些由数据驱动的、自适应系统的挑战。\n9.1.2 幻觉和不确定性的根因 AI 应用的核心功能是基于从海量数据中学到的统计模式，来预测序列中的下一个词，而非真正意义上的理解。这就导致了“幻觉”现象，即模型生成听起来合理但实际上不正确或无意义的输出。\n产生幻觉和不确定性的根本原因错综复杂：数据导致的缺陷、架构与建模的产物、错位与不确定性。\n9.1.3 AI 评估的重要些 从服务客户上看，评估是构建信任的核心机制。从商业视角看，严格评估直接转化为竞争优势。\nAI 的非确定性催生了评估经济，这是一个由可观测性平台、持续监控、自动化评估与治理即服务构成的新生态。评估不再是阶段性任务，而是与开发并行的持续工程实践，标志着 AI 原生时代质量保障的新范式。\n9.2 AI 评估体系 9.2.1 评估方法的基础二分法 1、内在评估 vs 外在评估\n内在评估：侧重于孤立地评估模型输出的固有质量，而不考虑其在特定任务中的应用效果。评估的维度通常包括流畅性、连贯性、语法正确性以及事实准确性。\n外在评估：通过衡量模型在特定下游任务或应用中的表现来评估其质量。\n2、自动化评估 vs 人工评估\n自动化评估：利用计算指标或利用其他 AI 模型来对模型输出进行打分。\n人工评估：依赖人类评估员的判断来评估 AI 系统的输出质量，特别是在衡量帮助性、创造力、用户满意度等主观维度时。\n在实践中，最佳的评估策略通常是自动化和人工评估的混合模式，利用自动化的效率进行大规模初步筛选，并结合人工的深度洞察力对关键或模糊的案例进行精细评估。\n9.2.2 从静态到动态评估的演进 静态基准：静态基准是固定的、预先定义的数据集和任务组成。\n动态评估：动态评估旨在模拟真实世界场景的复杂性和不可预测性，通过变化的变量、意外的输入和演进的上下文来测试系统。主要的动态评估方法包括：基于模拟的测试、实时对抗性基准、程序化生成。\n9.2.3 现代 AI 评估的多范式全景 6 个主要的评估范式：基准测试范式、“Evals”范式、心理测量学范式、人机交互范式、形式化方法范式、社会技术范式。\n一个组织的评估栈，即其选择、组合和优先排序不同评估范式的策略，深刻地揭示了该组织在性能、用户价值和风险规避之间的权衡。\n9.2.4 构建一个整体性的评估体系 一个完整的评估体系应包含 8 个核心组件：\n性能指标，包括准确率、精确率、召回率、F1 分数等。 鲁棒性与泛化测试 偏见与公平性评估 可解释性 合理性与伦理考量 持续监控与模型飘移检测 决策框架 自动化与人在回路 9.3 基于 LLM 的自动化评估 9.3.1 传统指标的局限性 传统的自动化评估指标，其核心是基于词汇或短语的重叠度来计算分数，这种方法对于需要捕捉语义、风格、语气和创造力等细微差别的现代生成 AI 模型来说，存在根本性不足。\n另一方面，虽然人工评估被视为评估质量的“黄金标准”，但其高昂的成本、漫长的周期和固有的主观性，使其难以适应 AI 技术快速迭代的开发节奏。\n9.3.2 LLM-as-a-Judge 范式介绍 LLM-as-a-Judge 范式，利用一个功能强大的大型语言模型来扮演裁判的角色，对另一个 AI 模型或应用的输出进行评分、排序或选择。\n核心应用场景：数据标注、实时验证、为模型优化提供反馈。\n9.3.3 LLM 裁判的评估模式 逐点评估：裁判独立地评估单个模型输出，并根据预定义的量表给出一个绝对分数。\n成对比较：裁判会同时看到两个来自不同模型的、匿名的输出，并被要求判断哪一个更好，或者两者是否相当。这是聊天机器人竞技场这样的众包评估平台所采用的核心方法。\n9.3.4 控制 LLM 裁判的负面影响 1、系统性偏见：位置偏见、冗长偏见、自我偏好偏见、情绪与语气偏见、评分粒度有限。\nLLM 裁判产生的定量分数看似是精确的、数据驱动的，但实际上它们是通过一个充满主观偏见的过程生成的。因此一个来自 LLM 裁判的排行榜分数，并非对模型质量的纯粹客观测量，而是对裁判模型内在偏好和价值取向的反映。\n2、递归依赖：能力天花板、推理幻觉。\n一个较弱的 LLM 裁判无法公正地评估一个比它更强的候选模型。随着 AI 模型变得越来越强大，在评估其安全性和可靠性时，对人类专家和红队演练的依赖将会增加，而不是减少。\n9.3.5 提升裁判可靠性的缓解策略 1、提示工程技术：思维链与分布推理、少样本提示、清晰的评分指南。\n2、结构化缓解措施：交换位置、基于参考的评分、结束裁判输出。\n3、基于模型的解决方案：微调、使用多个裁判。\n4、高质量数据集：数据集、Bad Case 集合。\n9.4 自动化评估落地实践 9.4.1 搭建评估系统的痛点 数据的采集、LLM Judger 自身的准确性问题、Ground Truth 的获取困难、特定领域黄金指标的定义与构建困难、评估成本高难以规模化、数据预处理的困难、从评估到可行动的断层。\n9.4.2 评估系统的不同 Level 9.4.3 云原生评估系统 阿里云云原生可观测方案提供了一站式的数据采集、存储、评估、语义检索能力。\n9.4.4 评估系统总结 云原生集成了一站式的 Trace 数据采集，以及前处理、评估、后处理结合在同一个计算引擎中，开发者可以在一个系统内完成所有的评估任务。\n参考资料：\nhttps://developer.aliyun.com/ebook/8479\n",
+  "wordCount" : "141",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-13T00:00:00Z",
+  "dateModified": "2026-01-13T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E8%AF%84%E4%BC%B0/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      AI 评估
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-13T00:00:00+00:00'>2026-01-13</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/'>人工智能</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/'>#AI白皮书</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="91-基于评估降低-ai-应用的不确定性">9.1 基于评估降低 AI 应用的不确定性<a hidden class="anchor" aria-hidden="true" href="#91-基于评估降低-ai-应用的不确定性">#</a></h1>
+<h2 id="911-从确定性到不确定性">9.1.1 从确定性到不确定性<a hidden class="anchor" aria-hidden="true" href="#911-从确定性到不确定性">#</a></h2>
+<p>传统软件在很大程度上是确定性的，而 AI 应用其行为本质上是非确定性和概率性的。不确定性，就意味着对于相同的输入，它们可能产生不同的输出。</p>
+<p>传统的 QA 流程，专为可预测的、基于规则的系统而设计，已无法充分应对这些由数据驱动的、自适应系统的挑战。</p>
+<h2 id="912-幻觉和不确定性的根因">9.1.2 幻觉和不确定性的根因<a hidden class="anchor" aria-hidden="true" href="#912-幻觉和不确定性的根因">#</a></h2>
+<p>AI 应用的核心功能是基于从海量数据中学到的统计模式，来预测序列中的下一个词，而非真正意义上的理解。这就导致了“幻觉”现象，即模型生成听起来合理但实际上不正确或无意义的输出。</p>
+<p>产生幻觉和不确定性的根本原因错综复杂：数据导致的缺陷、架构与建模的产物、错位与不确定性。</p>
+<h2 id="913-ai-评估的重要些">9.1.3 AI 评估的重要些<a hidden class="anchor" aria-hidden="true" href="#913-ai-评估的重要些">#</a></h2>
+<p>从服务客户上看，评估是构建信任的核心机制。从商业视角看，严格评估直接转化为竞争优势。</p>
+<p>AI 的非确定性催生了评估经济，这是一个由可观测性平台、持续监控、自动化评估与治理即服务构成的新生态。评估不再是阶段性任务，而是与开发并行的持续工程实践，标志着 AI 原生时代质量保障的新范式。</p>
+<h1 id="92-ai-评估体系">9.2 AI 评估体系<a hidden class="anchor" aria-hidden="true" href="#92-ai-评估体系">#</a></h1>
+<h2 id="921-评估方法的基础二分法">9.2.1 评估方法的基础二分法<a hidden class="anchor" aria-hidden="true" href="#921-评估方法的基础二分法">#</a></h2>
+<p>1、内在评估 vs 外在评估</p>
+<p>内在评估：侧重于孤立地评估模型输出的固有质量，而不考虑其在特定任务中的应用效果。评估的维度通常包括流畅性、连贯性、语法正确性以及事实准确性。</p>
+<p>外在评估：通过衡量模型在特定下游任务或应用中的表现来评估其质量。</p>
+<p>2、自动化评估 vs 人工评估</p>
+<p>自动化评估：利用计算指标或利用其他 AI 模型来对模型输出进行打分。</p>
+<p>人工评估：依赖人类评估员的判断来评估 AI 系统的输出质量，特别是在衡量帮助性、创造力、用户满意度等主观维度时。</p>
+<p>在实践中，最佳的评估策略通常是自动化和人工评估的混合模式，利用自动化的效率进行大规模初步筛选，并结合人工的深度洞察力对关键或模糊的案例进行精细评估。</p>
+<h2 id="922-从静态到动态评估的演进">9.2.2 从静态到动态评估的演进<a hidden class="anchor" aria-hidden="true" href="#922-从静态到动态评估的演进">#</a></h2>
+<p>静态基准：静态基准是固定的、预先定义的数据集和任务组成。</p>
+<p>动态评估：动态评估旨在模拟真实世界场景的复杂性和不可预测性，通过变化的变量、意外的输入和演进的上下文来测试系统。主要的动态评估方法包括：基于模拟的测试、实时对抗性基准、程序化生成。</p>
+<h2 id="923-现代-ai-评估的多范式全景">9.2.3 现代 AI 评估的多范式全景<a hidden class="anchor" aria-hidden="true" href="#923-现代-ai-评估的多范式全景">#</a></h2>
+<p>6 个主要的评估范式：基准测试范式、“Evals”范式、心理测量学范式、人机交互范式、形式化方法范式、社会技术范式。</p>
+<p>一个组织的评估栈，即其选择、组合和优先排序不同评估范式的策略，深刻地揭示了该组织在性能、用户价值和风险规避之间的权衡。</p>
+<h2 id="924-构建一个整体性的评估体系">9.2.4 构建一个整体性的评估体系<a hidden class="anchor" aria-hidden="true" href="#924-构建一个整体性的评估体系">#</a></h2>
+<p>一个完整的评估体系应包含 8 个核心组件：</p>
+<ul>
+<li>性能指标，包括准确率、精确率、召回率、F1 分数等。</li>
+<li>鲁棒性与泛化测试</li>
+<li>偏见与公平性评估</li>
+<li>可解释性</li>
+<li>合理性与伦理考量</li>
+<li>持续监控与模型飘移检测</li>
+<li>决策框架</li>
+<li>自动化与人在回路</li>
+</ul>
+<h1 id="93-基于-llm-的自动化评估">9.3 基于 LLM 的自动化评估<a hidden class="anchor" aria-hidden="true" href="#93-基于-llm-的自动化评估">#</a></h1>
+<h2 id="931-传统指标的局限性">9.3.1 传统指标的局限性<a hidden class="anchor" aria-hidden="true" href="#931-传统指标的局限性">#</a></h2>
+<p>传统的自动化评估指标，其核心是基于词汇或短语的重叠度来计算分数，这种方法对于需要捕捉语义、风格、语气和创造力等细微差别的现代生成 AI 模型来说，存在根本性不足。</p>
+<p>另一方面，虽然人工评估被视为评估质量的“黄金标准”，但其高昂的成本、漫长的周期和固有的主观性，使其难以适应 AI 技术快速迭代的开发节奏。</p>
+<h2 id="932-llm-as-a-judge-范式介绍">9.3.2 LLM-as-a-Judge 范式介绍<a hidden class="anchor" aria-hidden="true" href="#932-llm-as-a-judge-范式介绍">#</a></h2>
+<p>LLM-as-a-Judge 范式，利用一个功能强大的大型语言模型来扮演裁判的角色，对另一个 AI 模型或应用的输出进行评分、排序或选择。</p>
+<p>核心应用场景：数据标注、实时验证、为模型优化提供反馈。</p>
+<h2 id="933-llm-裁判的评估模式">9.3.3 LLM 裁判的评估模式<a hidden class="anchor" aria-hidden="true" href="#933-llm-裁判的评估模式">#</a></h2>
+<p>逐点评估：裁判独立地评估单个模型输出，并根据预定义的量表给出一个绝对分数。</p>
+<p>成对比较：裁判会同时看到两个来自不同模型的、匿名的输出，并被要求判断哪一个更好，或者两者是否相当。这是聊天机器人竞技场这样的众包评估平台所采用的核心方法。</p>
+<h2 id="934-控制-llm-裁判的负面影响">9.3.4 控制 LLM 裁判的负面影响<a hidden class="anchor" aria-hidden="true" href="#934-控制-llm-裁判的负面影响">#</a></h2>
+<p>1、系统性偏见：位置偏见、冗长偏见、自我偏好偏见、情绪与语气偏见、评分粒度有限。</p>
+<p>LLM 裁判产生的定量分数看似是精确的、数据驱动的，但实际上它们是通过一个充满主观偏见的过程生成的。因此一个来自 LLM 裁判的排行榜分数，并非对模型质量的纯粹客观测量，而是对裁判模型内在偏好和价值取向的反映。</p>
+<p>2、递归依赖：能力天花板、推理幻觉。</p>
+<p>一个较弱的 LLM 裁判无法公正地评估一个比它更强的候选模型。随着 AI 模型变得越来越强大，在评估其安全性和可靠性时，对人类专家和红队演练的依赖将会增加，而不是减少。</p>
+<h2 id="935-提升裁判可靠性的缓解策略">9.3.5 提升裁判可靠性的缓解策略<a hidden class="anchor" aria-hidden="true" href="#935-提升裁判可靠性的缓解策略">#</a></h2>
+<p>1、提示工程技术：思维链与分布推理、少样本提示、清晰的评分指南。</p>
+<p>2、结构化缓解措施：交换位置、基于参考的评分、结束裁判输出。</p>
+<p>3、基于模型的解决方案：微调、使用多个裁判。</p>
+<p>4、高质量数据集：数据集、Bad Case 集合。</p>
+<h1 id="94-自动化评估落地实践">9.4 自动化评估落地实践<a hidden class="anchor" aria-hidden="true" href="#94-自动化评估落地实践">#</a></h1>
+<h2 id="941-搭建评估系统的痛点">9.4.1 搭建评估系统的痛点<a hidden class="anchor" aria-hidden="true" href="#941-搭建评估系统的痛点">#</a></h2>
+<p>数据的采集、LLM Judger 自身的准确性问题、Ground Truth 的获取困难、特定领域黄金指标的定义与构建困难、评估成本高难以规模化、数据预处理的困难、从评估到可行动的断层。</p>
+<h2 id="942-评估系统的不同-level">9.4.2 评估系统的不同 Level<a hidden class="anchor" aria-hidden="true" href="#942-评估系统的不同-level">#</a></h2>
+<p><img loading="lazy" src="../assets/3dd559c2d4c84cc991aaba81469a6856.png"></p>
+<h2 id="943-云原生评估系统">9.4.3 云原生评估系统<a hidden class="anchor" aria-hidden="true" href="#943-云原生评估系统">#</a></h2>
+<p><img loading="lazy" src="../assets/28c036824cfb45859aef127aeb3690a3.png"></p>
+<p>阿里云云原生可观测方案提供了一站式的数据采集、存储、评估、语义检索能力。</p>
+<h2 id="944-评估系统总结">9.4.4 评估系统总结<a hidden class="anchor" aria-hidden="true" href="#944-评估系统总结">#</a></h2>
+<p>云原生集成了一站式的 Trace 数据采集，以及前处理、评估、后处理结合在同一个计算引擎中，开发者可以在一个系统内完成所有的评估任务。</p>
+<p>参考资料：</p>
+<p><a href="https://developer.aliyun.com/ebook/8479">https://developer.aliyun.com/ebook/8479</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/">AI白皮书</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90python%E5%AD%97%E5%85%B8%E5%92%8C%E9%9B%86%E5%90%88%E4%B8%8A/">
+    <span class="title">« 上一页</span>
+    <span>深度剖析 Python 字典和集合（上）</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B010%E6%B3%A8%E8%A7%A3/">
+    <span class="title">下一页 »</span>
+    <span>Java 官方笔记 10 注解</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#91-基于评估降低-ai-应用的不确定性">9.1 基于评估降低 AI 应用的不确定性</a>
+      <ul>
+        <li><a href="#911-从确定性到不确定性">9.1.1 从确定性到不确定性</a></li>
+        <li><a href="#912-幻觉和不确定性的根因">9.1.2 幻觉和不确定性的根因</a></li>
+        <li><a href="#913-ai-评估的重要些">9.1.3 AI 评估的重要些</a></li>
+      </ul>
+    </li>
+    <li><a href="#92-ai-评估体系">9.2 AI 评估体系</a>
+      <ul>
+        <li><a href="#921-评估方法的基础二分法">9.2.1 评估方法的基础二分法</a></li>
+        <li><a href="#922-从静态到动态评估的演进">9.2.2 从静态到动态评估的演进</a></li>
+        <li><a href="#923-现代-ai-评估的多范式全景">9.2.3 现代 AI 评估的多范式全景</a></li>
+        <li><a href="#924-构建一个整体性的评估体系">9.2.4 构建一个整体性的评估体系</a></li>
+      </ul>
+    </li>
+    <li><a href="#93-基于-llm-的自动化评估">9.3 基于 LLM 的自动化评估</a>
+      <ul>
+        <li><a href="#931-传统指标的局限性">9.3.1 传统指标的局限性</a></li>
+        <li><a href="#932-llm-as-a-judge-范式介绍">9.3.2 LLM-as-a-Judge 范式介绍</a></li>
+        <li><a href="#933-llm-裁判的评估模式">9.3.3 LLM 裁判的评估模式</a></li>
+        <li><a href="#934-控制-llm-裁判的负面影响">9.3.4 控制 LLM 裁判的负面影响</a></li>
+        <li><a href="#935-提升裁判可靠性的缓解策略">9.3.5 提升裁判可靠性的缓解策略</a></li>
+      </ul>
+    </li>
+    <li><a href="#94-自动化评估落地实践">9.4 自动化评估落地实践</a>
+      <ul>
+        <li><a href="#941-搭建评估系统的痛点">9.4.1 搭建评估系统的痛点</a></li>
+        <li><a href="#942-评估系统的不同-level">9.4.2 评估系统的不同 Level</a></li>
+        <li><a href="#943-云原生评估系统">9.4.3 云原生评估系统</a></li>
+        <li><a href="#944-评估系统总结">9.4.4 评估系统总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

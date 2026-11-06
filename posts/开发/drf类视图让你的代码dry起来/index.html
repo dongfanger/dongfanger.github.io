@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>DRF 类视图让你的代码 DRY 起来 | 测试开发刚哥</title>
+<meta name="keywords" content="Django">
+<meta name="description" content="刚开始写views.py模块的代码，一般都是用def定义的函数视图，不过 DRF 更推荐使用class定义的类视图，这能让我们的代码更符合 DRY（Don&rsquo;t Repeat Yourself）设计原则：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E7%B1%BB%E8%A7%86%E5%9B%BE%E8%AE%A9%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81dry%E8%B5%B7%E6%9D%A5/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E7%B1%BB%E8%A7%86%E5%9B%BE%E8%AE%A9%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81dry%E8%B5%B7%E6%9D%A5/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E7%B1%BB%E8%A7%86%E5%9B%BE%E8%AE%A9%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81dry%E8%B5%B7%E6%9D%A5/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="DRF 类视图让你的代码 DRY 起来">
+  <meta property="og:description" content="刚开始写views.py模块的代码，一般都是用def定义的函数视图，不过 DRF 更推荐使用class定义的类视图，这能让我们的代码更符合 DRY（Don’t Repeat Yourself）设计原则：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-09T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-09T00:00:00+00:00">
+    <meta property="article:tag" content="Django">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="DRF 类视图让你的代码 DRY 起来">
+  <meta name="twitter:description" content="刚开始写views.py模块的代码，一般都是用def定义的函数视图，不过 DRF 更推荐使用class定义的类视图，这能让我们的代码更符合 DRY（Don’t Repeat Yourself）设计原则：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "DRF 类视图让你的代码 DRY 起来",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E7%B1%BB%E8%A7%86%E5%9B%BE%E8%AE%A9%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81dry%E8%B5%B7%E6%9D%A5/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "DRF 类视图让你的代码 DRY 起来",
+  "name": "DRF 类视图让你的代码 DRY 起来",
+  "description": "刚开始写views.py模块的代码，一般都是用def定义的函数视图，不过 DRF 更推荐使用class定义的类视图，这能让我们的代码更符合 DRY（Don\u0026rsquo;t Repeat Yourself）设计原则：",
+  "keywords": [
+    "Django"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n刚开始写views.py模块的代码，一般都是用def定义的函数视图，不过 DRF 更推荐使用class定义的类视图，这能让我们的代码更符合 DRY（Don’t Repeat Yourself）设计原则：\n使用 APIView rest_framework.views.APIView是 DRF 封装的 API 视图，继承了django.views.generic.base.View：\n我们用它把函数视图改写成类视图，编辑snippets/views.py：\nfrom snippets.models import Snippet from snippets.serializers import SnippetSerializer from django.http import Http404 from rest_framework.views import APIView from rest_framework.response import Response from rest_framework import status class SnippetList(APIView): \"\"\" List all snippets, or create a new snippet. \"\"\" def get(self, request, format=None): snippets = Snippet.objects.all() serializer = SnippetSerializer(snippets, many=True) return Response(serializer.data) def post(self, request, format=None): serializer = SnippetSerializer(data=request.data) if serializer.is_valid(): serializer.save() return Response(serializer.data, status=status.HTTP_201_CREATED) return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) class SnippetDetail(APIView): \"\"\" Retrieve, update or delete a snippet instance. \"\"\" def get_object(self, pk): try: return Snippet.objects.get(pk=pk) except Snippet.DoesNotExist: raise Http404 def get(self, request, pk, format=None): snippet = self.get_object(pk) serializer = SnippetSerializer(snippet) return Response(serializer.data) def put(self, request, pk, format=None): snippet = self.get_object(pk) serializer = SnippetSerializer(snippet, data=request.data) if serializer.is_valid(): serializer.save() return Response(serializer.data) return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) def delete(self, request, pk, format=None): snippet = self.get_object(pk) snippet.delete() return Response(status=status.HTTP_204_NO_CONTENT) 类视图的代码跟函数视图是非常类似的，区别在于GET、POST等方法是用的函数而不是if语句，可以更好的解耦代码。\n改了views.py代码后，需要同时修改snippets/urls.py：\nfrom django.urls import path from rest_framework.urlpatterns import format_suffix_patterns from snippets import views urlpatterns = [ path('snippets/', views.SnippetList.as_view()), path('snippets//', views.SnippetDetail.as_view()), ] urlpatterns = format_suffix_patterns(urlpatterns) 为什么要加个as_view()方法？\n因为path()的参数必须是可调用的，在源码中能看到elif callable(view)：\ndef _path(route, view, kwargs=None, name=None, Pattern=None): if isinstance(view, (list, tuple)): # For include(...) processing. pattern = Pattern(route, is_endpoint=False) urlconf_module, app_name, namespace = view return URLResolver( pattern, urlconf_module, kwargs, app_name=app_name, namespace=namespace, ) # callable判断 elif callable(view): pattern = Pattern(route, name=name, is_endpoint=True) return URLPattern(pattern, view, kwargs, name) else: raise TypeError('view must be a callable or a list/tuple in the case of include().') as_view()方法返回了一个内部定义的可调用函数：\n@classonlymethod def as_view(cls, **initkwargs): \"\"\"Main entry point for a request-response process.\"\"\" for key in initkwargs: if key in cls.http_method_names: raise TypeError( 'The method name %s is not accepted as a keyword argument ' 'to %s().' % (key, cls.__name__) ) if not hasattr(cls, key): raise TypeError(\"%s() received an invalid keyword %r. as_view \" \"only accepts arguments that are already \" \"attributes of the class.\" % (cls.__name__, key)) # 内部定义了可调用函数 def view(request, *args, **kwargs): self = cls(**initkwargs) self.setup(request, *args, **kwargs) if not hasattr(self, 'request'): raise AttributeError( \"%s instance has no 'request' attribute. Did you override \" \"setup() and forget to call super()?\" % cls.__name__ ) return self.dispatch(request, *args, **kwargs) view.view_class = cls view.view_initkwargs = initkwargs # take name and docstring from class update_wrapper(view, cls, updated=()) # and possible attributes set by decorators # like csrf_exempt from dispatch update_wrapper(view, cls.dispatch, assigned=()) return view 使用 mixins DRF 提供了rest_framework.mixins模块，封装了类视图常用的增删改查方法：\n比如新增CreateModelMixin：\nclass CreateModelMixin: \"\"\" Create a model instance. \"\"\" def create(self, request, *args, **kwargs): serializer = self.get_serializer(data=request.data) serializer.is_valid(raise_exception=True) self.perform_create(serializer) headers = self.get_success_headers(serializer.data) return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers) def perform_create(self, serializer): serializer.save() def get_success_headers(self, data): try: return {'Location': str(data[api_settings.URL_FIELD_NAME])} except (TypeError, KeyError): return {} 类视图继承了 Mixin 后，可以直接使用它的.create()方法，类似的还有.list()、.retrieve()、.update()和.destroy()。我们按照这个思路来简化snippets/views.py代码：\nfrom snippets.models import Snippet from snippets.serializers import SnippetSerializer from rest_framework import mixins from rest_framework import generics class SnippetList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView): queryset = Snippet.objects.all() serializer_class = SnippetSerializer def get(self, request, *args, **kwargs): return self.list(request, *args, **kwargs) def post(self, request, *args, **kwargs): return self.create(request, *args, **kwargs) class SnippetDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView): queryset = Snippet.objects.all() serializer_class = SnippetSerializer def get(self, request, *args, **kwargs): return self.retrieve(request, *args, **kwargs) def put(self, request, *args, **kwargs): return self.update(request, *args, **kwargs) def delete(self, request, *args, **kwargs): return self.destroy(request, *args, **kwargs) 瞬间少了好多代码，真够 DRY 的。\n什么是 mixin？\n维基百科的解释：\nIn object-oriented programming languages, a mixin (or mix-in) is a class that contains methods for use by other classes without having to be the parent class of those other classes. 不太好理解。\n换句话说，mixin 类提供了一些方法，我们不会直接用这些方法，而是把它添加到其他类来使用。\n还是有点抽象。\n再简单点说，mixin 只不过是实现多重继承的一个技巧而已。\n这下应该清楚了。\n使用 generics 如果仔细看snippets/views.py的代码，就会发现我们用到了from rest_framework import generics：\n和generics.GenericAPIView：\n这是 DRF 提供的通用 API 类视图，mixins只提供了处理方法，views.py中的类要成为视图，还需要继承GenericAPIView，GenericAPIView继承了本文第一小节提到的rest_framework.views.APIView。除了GenericAPIView，我们还可以用其他的类视图进一步简化代码：\nfrom snippets.models import Snippet from snippets.serializers import SnippetSerializer from rest_framework import generics class SnippetList(generics.ListCreateAPIView): queryset = Snippet.objects.all() serializer_class = SnippetSerializer class SnippetDetail(generics.RetrieveUpdateDestroyAPIView): queryset = Snippet.objects.all() serializer_class = SnippetSerializer 看看ListCreateAPIView的源码：\nclass ListCreateAPIView(mixins.ListModelMixin, mixins.CreateModelMixin, GenericAPIView): \"\"\" Concrete view for listing a queryset or creating a model instance. \"\"\" def get(self, request, *args, **kwargs): return self.list(request, *args, **kwargs) def post(self, request, *args, **kwargs): return self.create(request, *args, **kwargs) 真 DRY！\n小结 学到这里，已经开始感受到了 Django REST framework 的强大之处了，我觉得学一个框架，不仅要看如何使用，还需要了解它的设计思路和底层实现，这样才能更好的总结为自己的编程思想，写出更漂亮的代码。\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/3-class-based-views/#tutorial-3-class-based-views\nhttps://stackoverflow.com/questions/533631/what-is-a-mixin-and-why-are-they-useful\nhttps://www.zhihu.com/question/20778853\n",
+  "wordCount" : "636",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-09T00:00:00Z",
+  "dateModified": "2026-01-09T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E7%B1%BB%E8%A7%86%E5%9B%BE%E8%AE%A9%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81dry%E8%B5%B7%E6%9D%A5/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      DRF 类视图让你的代码 DRY 起来
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/django/'>#Django</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>刚开始写<code>views.py</code>模块的代码，一般都是用<code>def</code>定义的函数视图，不过 DRF 更推荐使用<code>class</code>定义的类视图，这能让我们的代码更符合 DRY（Don&rsquo;t Repeat Yourself）设计原则：</p>
+<p><img loading="lazy" src="../assets/1f905e386f904a148c6c1e33b81380ca.png"></p>
+<h1 id="使用-apiview">使用 APIView<a hidden class="anchor" aria-hidden="true" href="#使用-apiview">#</a></h1>
+<p><code>rest_framework.views.APIView</code>是 DRF 封装的 API 视图，继承了<code>django.views.generic.base.View</code>：</p>
+<p><img loading="lazy" src="../assets/77693738ff514bc3b8b01a107c50a215.png"></p>
+<p>我们用它把函数视图改写成类视图，编辑<code>snippets/views.py</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">snippets.models</span> <span style="color:#cf222e">import</span> Snippet
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">snippets.serializers</span> <span style="color:#cf222e">import</span> SnippetSerializer
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.http</span> <span style="color:#cf222e">import</span> Http404
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework.views</span> <span style="color:#cf222e">import</span> APIView
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework.response</span> <span style="color:#cf222e">import</span> Response
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework</span> <span style="color:#cf222e">import</span> status
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">SnippetList</span><span style="color:#1f2328">(</span>APIView<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    List all snippets, or create a new snippet.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> <span style="color:#6639ba">format</span><span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        snippets <span style="color:#0550ae">=</span> Snippet<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>all<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        serializer <span style="color:#0550ae">=</span> SnippetSerializer<span style="color:#1f2328">(</span>snippets<span style="color:#1f2328">,</span> many<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">post</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> <span style="color:#6639ba">format</span><span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        serializer <span style="color:#0550ae">=</span> SnippetSerializer<span style="color:#1f2328">(</span>data<span style="color:#0550ae">=</span>request<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> serializer<span style="color:#0550ae">.</span>is_valid<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            serializer<span style="color:#0550ae">.</span>save<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">,</span> status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_201_CREATED<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>errors<span style="color:#1f2328">,</span> status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_400_BAD_REQUEST<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">SnippetDetail</span><span style="color:#1f2328">(</span>APIView<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Retrieve, update or delete a snippet instance.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get_object</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> pk<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> Snippet<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span>pk<span style="color:#0550ae">=</span>pk<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">except</span> Snippet<span style="color:#0550ae">.</span>DoesNotExist<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">raise</span> Http404
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> pk<span style="color:#1f2328">,</span> <span style="color:#6639ba">format</span><span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        snippet <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>get_object<span style="color:#1f2328">(</span>pk<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        serializer <span style="color:#0550ae">=</span> SnippetSerializer<span style="color:#1f2328">(</span>snippet<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">put</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> pk<span style="color:#1f2328">,</span> <span style="color:#6639ba">format</span><span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        snippet <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>get_object<span style="color:#1f2328">(</span>pk<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        serializer <span style="color:#0550ae">=</span> SnippetSerializer<span style="color:#1f2328">(</span>snippet<span style="color:#1f2328">,</span> data<span style="color:#0550ae">=</span>request<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> serializer<span style="color:#0550ae">.</span>is_valid<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            serializer<span style="color:#0550ae">.</span>save<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>errors<span style="color:#1f2328">,</span> status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_400_BAD_REQUEST<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">delete</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> pk<span style="color:#1f2328">,</span> <span style="color:#6639ba">format</span><span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        snippet <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>get_object<span style="color:#1f2328">(</span>pk<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        snippet<span style="color:#0550ae">.</span>delete<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_204_NO_CONTENT<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>类视图的代码跟函数视图是非常类似的，区别在于<code>GET</code>、<code>POST</code>等方法是用的函数而不是<code>if</code>语句，可以更好的解耦代码。</p>
+<p>改了<code>views.py</code>代码后，需要同时修改<code>snippets/urls.py</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">django.urls</span> <span style="color:#cf222e">import</span> path
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework.urlpatterns</span> <span style="color:#cf222e">import</span> format_suffix_patterns
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">snippets</span> <span style="color:#cf222e">import</span> views
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>urlpatterns <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;snippets/&#39;</span><span style="color:#1f2328">,</span> views<span style="color:#0550ae">.</span>SnippetList<span style="color:#0550ae">.</span>as_view<span style="color:#1f2328">()),</span>
+</span></span><span style="display:flex;"><span>    path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;snippets/&lt;int:pk&gt;/&#39;</span><span style="color:#1f2328">,</span> views<span style="color:#0550ae">.</span>SnippetDetail<span style="color:#0550ae">.</span>as_view<span style="color:#1f2328">()),</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>urlpatterns <span style="color:#0550ae">=</span> format_suffix_patterns<span style="color:#1f2328">(</span>urlpatterns<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p><strong>为什么要加个<code>as_view()</code>方法？</strong></p>
+<p>因为<code>path()</code>的参数必须是可调用的，在源码中能看到<code>elif callable(view)</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">_path</span><span style="color:#1f2328">(</span>route<span style="color:#1f2328">,</span> view<span style="color:#1f2328">,</span> kwargs<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> name<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> Pattern<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>view<span style="color:#1f2328">,</span> <span style="color:#1f2328">(</span><span style="color:#6639ba">list</span><span style="color:#1f2328">,</span> <span style="color:#6639ba">tuple</span><span style="color:#1f2328">)):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># For include(...) processing.</span>
+</span></span><span style="display:flex;"><span>        pattern <span style="color:#0550ae">=</span> Pattern<span style="color:#1f2328">(</span>route<span style="color:#1f2328">,</span> is_endpoint<span style="color:#0550ae">=</span><span style="color:#cf222e">False</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        urlconf_module<span style="color:#1f2328">,</span> app_name<span style="color:#1f2328">,</span> namespace <span style="color:#0550ae">=</span> view
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> URLResolver<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            pattern<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            urlconf_module<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            kwargs<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            app_name<span style="color:#0550ae">=</span>app_name<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            namespace<span style="color:#0550ae">=</span>namespace<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># callable判断</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">elif</span> callable<span style="color:#1f2328">(</span>view<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        pattern <span style="color:#0550ae">=</span> Pattern<span style="color:#1f2328">(</span>route<span style="color:#1f2328">,</span> name<span style="color:#0550ae">=</span>name<span style="color:#1f2328">,</span> is_endpoint<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> URLPattern<span style="color:#1f2328">(</span>pattern<span style="color:#1f2328">,</span> view<span style="color:#1f2328">,</span> kwargs<span style="color:#1f2328">,</span> name<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">raise</span> TypeError<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;view must be a callable or a list/tuple in the case of include().&#39;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p><code>as_view()</code>方法返回了一个内部定义的可调用函数：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@classonlymethod</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">as_view</span><span style="color:#1f2328">(</span><span style="color:#6a737d">cls</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>initkwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;Main entry point for a request-response process.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> key <span style="color:#0550ae">in</span> initkwargs<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> key <span style="color:#0550ae">in</span> <span style="color:#6a737d">cls</span><span style="color:#0550ae">.</span>http_method_names<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">raise</span> TypeError<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#39;The method name </span><span style="color:#0a3069">%s</span><span style="color:#0a3069"> is not accepted as a keyword argument &#39;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#39;to </span><span style="color:#0a3069">%s</span><span style="color:#0a3069">().&#39;</span> <span style="color:#0550ae">%</span> <span style="color:#1f2328">(</span>key<span style="color:#1f2328">,</span> <span style="color:#6a737d">cls</span><span style="color:#0550ae">.</span><span style="color:#953800">__name__</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> <span style="color:#6639ba">hasattr</span><span style="color:#1f2328">(</span><span style="color:#6a737d">cls</span><span style="color:#1f2328">,</span> key<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">raise</span> TypeError<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">%s</span><span style="color:#0a3069">() received an invalid keyword </span><span style="color:#0a3069">%r</span><span style="color:#0a3069">. as_view &#34;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#0a3069">&#34;only accepts arguments that are already &#34;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#0a3069">&#34;attributes of the class.&#34;</span> <span style="color:#0550ae">%</span> <span style="color:#1f2328">(</span><span style="color:#6a737d">cls</span><span style="color:#0550ae">.</span><span style="color:#953800">__name__</span><span style="color:#1f2328">,</span> key<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 内部定义了可调用函数</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">view</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span> <span style="color:#0550ae">=</span> <span style="color:#6a737d">cls</span><span style="color:#1f2328">(</span><span style="color:#0550ae">**</span>initkwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>setup<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> <span style="color:#6639ba">hasattr</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;request&#39;</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">raise</span> AttributeError<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;</span><span style="color:#0a3069">%s</span><span style="color:#0a3069"> instance has no &#39;request&#39; attribute. Did you override &#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;setup() and forget to call super()?&#34;</span> <span style="color:#0550ae">%</span> <span style="color:#6a737d">cls</span><span style="color:#0550ae">.</span><span style="color:#953800">__name__</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>dispatch<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    view<span style="color:#0550ae">.</span>view_class <span style="color:#0550ae">=</span> <span style="color:#6a737d">cls</span>
+</span></span><span style="display:flex;"><span>    view<span style="color:#0550ae">.</span>view_initkwargs <span style="color:#0550ae">=</span> initkwargs
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># take name and docstring from class</span>
+</span></span><span style="display:flex;"><span>    update_wrapper<span style="color:#1f2328">(</span>view<span style="color:#1f2328">,</span> <span style="color:#6a737d">cls</span><span style="color:#1f2328">,</span> updated<span style="color:#0550ae">=</span><span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># and possible attributes set by decorators</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># like csrf_exempt from dispatch</span>
+</span></span><span style="display:flex;"><span>    update_wrapper<span style="color:#1f2328">(</span>view<span style="color:#1f2328">,</span> <span style="color:#6a737d">cls</span><span style="color:#0550ae">.</span>dispatch<span style="color:#1f2328">,</span> assigned<span style="color:#0550ae">=</span><span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> view
+</span></span></code></pre></div><h1 id="使用-mixins">使用 mixins<a hidden class="anchor" aria-hidden="true" href="#使用-mixins">#</a></h1>
+<p>DRF 提供了<code>rest_framework.mixins</code>模块，封装了类视图常用的增删改查方法：</p>
+<p><img loading="lazy" src="../assets/d56fe6a1e285424da256b0519f941dca.png"></p>
+<p>比如新增<code>CreateModelMixin</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">CreateModelMixin</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Create a model instance.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">create</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        serializer <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>get_serializer<span style="color:#1f2328">(</span>data<span style="color:#0550ae">=</span>request<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        serializer<span style="color:#0550ae">.</span>is_valid<span style="color:#1f2328">(</span>raise_exception<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>perform_create<span style="color:#1f2328">(</span>serializer<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        headers <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>get_success_headers<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> Response<span style="color:#1f2328">(</span>serializer<span style="color:#0550ae">.</span>data<span style="color:#1f2328">,</span> status<span style="color:#0550ae">=</span>status<span style="color:#0550ae">.</span>HTTP_201_CREATED<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>headers<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">perform_create</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> serializer<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        serializer<span style="color:#0550ae">.</span>save<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get_success_headers</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> data<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#39;Location&#39;</span><span style="color:#1f2328">:</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>data<span style="color:#1f2328">[</span>api_settings<span style="color:#0550ae">.</span>URL_FIELD_NAME<span style="color:#1f2328">])}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">except</span> <span style="color:#1f2328">(</span>TypeError<span style="color:#1f2328">,</span> KeyError<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> <span style="color:#1f2328">{}</span>
+</span></span></code></pre></div><p>类视图继承了 Mixin 后，可以直接使用它的<code>.create()</code>方法，类似的还有<code>.list()</code>、<code>.retrieve()</code>、<code>.update()</code>和<code>.destroy()</code>。我们按照这个思路来简化<code>snippets/views.py</code>代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">snippets.models</span> <span style="color:#cf222e">import</span> Snippet
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">snippets.serializers</span> <span style="color:#cf222e">import</span> SnippetSerializer
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework</span> <span style="color:#cf222e">import</span> mixins
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework</span> <span style="color:#cf222e">import</span> generics
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">SnippetList</span><span style="color:#1f2328">(</span>mixins<span style="color:#0550ae">.</span>ListModelMixin<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                  mixins<span style="color:#0550ae">.</span>CreateModelMixin<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                  generics<span style="color:#0550ae">.</span>GenericAPIView<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    queryset <span style="color:#0550ae">=</span> Snippet<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>all<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    serializer_class <span style="color:#0550ae">=</span> SnippetSerializer
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>list<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">post</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>create<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">SnippetDetail</span><span style="color:#1f2328">(</span>mixins<span style="color:#0550ae">.</span>RetrieveModelMixin<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                    mixins<span style="color:#0550ae">.</span>UpdateModelMixin<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                    mixins<span style="color:#0550ae">.</span>DestroyModelMixin<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                    generics<span style="color:#0550ae">.</span>GenericAPIView<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    queryset <span style="color:#0550ae">=</span> Snippet<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>all<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    serializer_class <span style="color:#0550ae">=</span> SnippetSerializer
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>retrieve<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">put</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>update<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">delete</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>destroy<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>瞬间少了好多代码，真够 DRY 的。</p>
+<p><strong>什么是 mixin？</strong></p>
+<p>维基百科的解释：</p>
+<pre tabindex="0"><code>In object-oriented programming languages, a mixin (or mix-in) is a class that contains methods for use by other classes without having to be the parent class of those other classes.
+</code></pre><blockquote>
+<p>不太好理解。</p>
+</blockquote>
+<p>换句话说，mixin 类提供了一些方法，我们不会直接用这些方法，而是把它添加到其他类来使用。</p>
+<blockquote>
+<p>还是有点抽象。</p>
+</blockquote>
+<p>再简单点说，mixin 只不过是实现多重继承的一个技巧而已。</p>
+<blockquote>
+<p>这下应该清楚了。</p>
+</blockquote>
+<h1 id="使用-generics">使用 generics<a hidden class="anchor" aria-hidden="true" href="#使用-generics">#</a></h1>
+<p>如果仔细看<code>snippets/views.py</code>的代码，就会发现我们用到了<code>from rest_framework import generics</code>：</p>
+<p><img loading="lazy" src="../assets/6680c00b441249848ee81150f9b3be59.png"></p>
+<p>和<code>generics.GenericAPIView</code>：</p>
+<p><img loading="lazy" src="../assets/7bacf70d4c3145399be53d931a2dbde4.png"></p>
+<p>这是 DRF 提供的通用 API 类视图，<code>mixins</code>只提供了处理方法，<code>views.py</code>中的类要成为视图，还需要继承<code>GenericAPIView</code>，<code>GenericAPIView</code>继承了本文第一小节提到的<code>rest_framework.views.APIView</code>。除了<code>GenericAPIView</code>，我们还可以用其他的类视图进一步简化代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">snippets.models</span> <span style="color:#cf222e">import</span> Snippet
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">snippets.serializers</span> <span style="color:#cf222e">import</span> SnippetSerializer
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">rest_framework</span> <span style="color:#cf222e">import</span> generics
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">SnippetList</span><span style="color:#1f2328">(</span>generics<span style="color:#0550ae">.</span>ListCreateAPIView<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    queryset <span style="color:#0550ae">=</span> Snippet<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>all<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    serializer_class <span style="color:#0550ae">=</span> SnippetSerializer
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">SnippetDetail</span><span style="color:#1f2328">(</span>generics<span style="color:#0550ae">.</span>RetrieveUpdateDestroyAPIView<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    queryset <span style="color:#0550ae">=</span> Snippet<span style="color:#0550ae">.</span>objects<span style="color:#0550ae">.</span>all<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    serializer_class <span style="color:#0550ae">=</span> SnippetSerializer
+</span></span></code></pre></div><p>看看<code>ListCreateAPIView</code>的源码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ListCreateAPIView</span><span style="color:#1f2328">(</span>mixins<span style="color:#0550ae">.</span>ListModelMixin<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                        mixins<span style="color:#0550ae">.</span>CreateModelMixin<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                        GenericAPIView<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Concrete view for listing a queryset or creating a model instance.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">get</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>list<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">post</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>create<span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>真 DRY！</p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>学到这里，已经开始感受到了 Django REST framework 的强大之处了，我觉得学一个框架，不仅要看如何使用，还需要了解它的设计思路和底层实现，这样才能更好的总结为自己的编程思想，写出更漂亮的代码。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.django-rest-framework.org/tutorial/3-class-based-views/#tutorial-3-class-based-views">https://www.django-rest-framework.org/tutorial/3-class-based-views/#tutorial-3-class-based-views</a></p>
+<p><a href="https://stackoverflow.com/questions/533631/what-is-a-mixin-and-why-are-they-useful">https://stackoverflow.com/questions/533631/what-is-a-mixin-and-why-are-they-useful</a></p>
+<p><a href="https://www.zhihu.com/question/20778853">https://www.zhihu.com/question/20778853</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/django/">Django</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%B7%A5%E5%85%B7/">
+    <span class="title">« 上一页</span>
+    <span>AI 工具</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B06%E7%BB%A7%E6%89%BF/">
+    <span class="title">下一页 »</span>
+    <span>Java 官方笔记 6 继承</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#使用-apiview">使用 APIView</a></li>
+    <li><a href="#使用-mixins">使用 mixins</a></li>
+    <li><a href="#使用-generics">使用 generics</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

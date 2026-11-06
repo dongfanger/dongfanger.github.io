@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>长篇大论 Python 生成器 | 测试开发刚哥</title>
+<meta name="keywords" content="Python">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Python 生成器是什么
+一句话解释：包含了 yield 关键字的函数就是生成器，它的返回值是一个生成器对象。我简单画了个示意图：
+
+
+yield 相当于 return。
+函数遇到 yield 就暂停，保存当前信息，返回 yield 的值。
+在下次执行 next()时，从当前位置继续执行。
+
+
+比较有意思的事情是，曾经有人建议生成器函数不应该使用 def，而应该发明一个新的关键字比如 gen，但是 Python 之父 Guido 并没有同意这样做。
+
+生成器函数的工作原理
+先通过一个简单示例来说明生成器的行为：
+## 定义一个生成器
+&gt;&gt;&gt; def gen_123():
+...     yield 1
+...     yield 2
+...     yield 3
+...
+
+## 生成器本身是个函数
+&gt;&gt;&gt; gen_123
+&lt;function gen_123 at 0x0000019F60710790&gt;
+
+## 返回值是生成器对象
+&gt;&gt;&gt; gen_123()
+&lt;generator object gen_123 at 0x0000019F606AC040&gt;
+
+## 生成器也是迭代器
+&gt;&gt;&gt; for i in gen_123():
+...     print(i)
+...     
+1
+2
+3
+
+## 验证生成器也是迭代器，定义迭代器g
+&gt;&gt;&gt; g = gen_123()
+
+## 可以通过next()获取yield生成的下一个元素
+&gt;&gt;&gt; next(g)
+1
+&gt;&gt;&gt; next(g)
+2
+&gt;&gt;&gt; next(g)
+3
+&gt;&gt;&gt; next(g)
+Traceback (most recent call last):
+  File &#34;&lt;input&gt;&#34;, line 1, in &lt;module&gt;
+StopIteration
+生成器的原理就是：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E9%95%BF%E7%AF%87%E5%A4%A7%E8%AE%BApython%E7%94%9F%E6%88%90%E5%99%A8/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E9%95%BF%E7%AF%87%E5%A4%A7%E8%AE%BApython%E7%94%9F%E6%88%90%E5%99%A8/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E9%95%BF%E7%AF%87%E5%A4%A7%E8%AE%BApython%E7%94%9F%E6%88%90%E5%99%A8/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="长篇大论 Python 生成器">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Python 生成器是什么 一句话解释：包含了 yield 关键字的函数就是生成器，它的返回值是一个生成器对象。我简单画了个示意图：
+yield 相当于 return。 函数遇到 yield 就暂停，保存当前信息，返回 yield 的值。 在下次执行 next()时，从当前位置继续执行。 比较有意思的事情是，曾经有人建议生成器函数不应该使用 def，而应该发明一个新的关键字比如 gen，但是 Python 之父 Guido 并没有同意这样做。
+生成器函数的工作原理 先通过一个简单示例来说明生成器的行为：
+## 定义一个生成器 &gt;&gt;&gt; def gen_123(): ... yield 1 ... yield 2 ... yield 3 ... ## 生成器本身是个函数 &gt;&gt;&gt; gen_123 &lt;function gen_123 at 0x0000019F60710790&gt; ## 返回值是生成器对象 &gt;&gt;&gt; gen_123() &lt;generator object gen_123 at 0x0000019F606AC040&gt; ## 生成器也是迭代器 &gt;&gt;&gt; for i in gen_123(): ... print(i) ... 1 2 3 ## 验证生成器也是迭代器，定义迭代器g &gt;&gt;&gt; g = gen_123() ## 可以通过next()获取yield生成的下一个元素 &gt;&gt;&gt; next(g) 1 &gt;&gt;&gt; next(g) 2 &gt;&gt;&gt; next(g) 3 &gt;&gt;&gt; next(g) Traceback (most recent call last): File &#34;&lt;input&gt;&#34;, line 1, in &lt;module&gt; StopIteration 生成器的原理就是：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-30T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-30T00:00:00+00:00">
+    <meta property="article:tag" content="Python">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="长篇大论 Python 生成器">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Python 生成器是什么 一句话解释：包含了 yield 关键字的函数就是生成器，它的返回值是一个生成器对象。我简单画了个示意图：
+yield 相当于 return。 函数遇到 yield 就暂停，保存当前信息，返回 yield 的值。 在下次执行 next()时，从当前位置继续执行。 比较有意思的事情是，曾经有人建议生成器函数不应该使用 def，而应该发明一个新的关键字比如 gen，但是 Python 之父 Guido 并没有同意这样做。
+生成器函数的工作原理 先通过一个简单示例来说明生成器的行为：
+## 定义一个生成器 &gt;&gt;&gt; def gen_123(): ... yield 1 ... yield 2 ... yield 3 ... ## 生成器本身是个函数 &gt;&gt;&gt; gen_123 &lt;function gen_123 at 0x0000019F60710790&gt; ## 返回值是生成器对象 &gt;&gt;&gt; gen_123() &lt;generator object gen_123 at 0x0000019F606AC040&gt; ## 生成器也是迭代器 &gt;&gt;&gt; for i in gen_123(): ... print(i) ... 1 2 3 ## 验证生成器也是迭代器，定义迭代器g &gt;&gt;&gt; g = gen_123() ## 可以通过next()获取yield生成的下一个元素 &gt;&gt;&gt; next(g) 1 &gt;&gt;&gt; next(g) 2 &gt;&gt;&gt; next(g) 3 &gt;&gt;&gt; next(g) Traceback (most recent call last): File &#34;&lt;input&gt;&#34;, line 1, in &lt;module&gt; StopIteration 生成器的原理就是：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "长篇大论 Python 生成器",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E9%95%BF%E7%AF%87%E5%A4%A7%E8%AE%BApython%E7%94%9F%E6%88%90%E5%99%A8/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "长篇大论 Python 生成器",
+  "name": "长篇大论 Python 生成器",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nPython 生成器是什么 一句话解释：包含了 yield 关键字的函数就是生成器，它的返回值是一个生成器对象。我简单画了个示意图：\nyield 相当于 return。 函数遇到 yield 就暂停，保存当前信息，返回 yield 的值。 在下次执行 next()时，从当前位置继续执行。 比较有意思的事情是，曾经有人建议生成器函数不应该使用 def，而应该发明一个新的关键字比如 gen，但是 Python 之父 Guido 并没有同意这样做。\n生成器函数的工作原理 先通过一个简单示例来说明生成器的行为：\n## 定义一个生成器 \u0026gt;\u0026gt;\u0026gt; def gen_123(): ... yield 1 ... yield 2 ... yield 3 ... ## 生成器本身是个函数 \u0026gt;\u0026gt;\u0026gt; gen_123 \u0026lt;function gen_123 at 0x0000019F60710790\u0026gt; ## 返回值是生成器对象 \u0026gt;\u0026gt;\u0026gt; gen_123() \u0026lt;generator object gen_123 at 0x0000019F606AC040\u0026gt; ## 生成器也是迭代器 \u0026gt;\u0026gt;\u0026gt; for i in gen_123(): ... print(i) ... 1 2 3 ## 验证生成器也是迭代器，定义迭代器g \u0026gt;\u0026gt;\u0026gt; g = gen_123() ## 可以通过next()获取yield生成的下一个元素 \u0026gt;\u0026gt;\u0026gt; next(g) 1 \u0026gt;\u0026gt;\u0026gt; next(g) 2 \u0026gt;\u0026gt;\u0026gt; next(g) 3 \u0026gt;\u0026gt;\u0026gt; next(g) Traceback (most recent call last): File \u0026#34;\u0026lt;input\u0026gt;\u0026#34;, line 1, in \u0026lt;module\u0026gt; StopIteration 生成器的原理就是：\n",
+  "keywords": [
+    "Python"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nPython 生成器是什么 一句话解释：包含了 yield 关键字的函数就是生成器，它的返回值是一个生成器对象。我简单画了个示意图：\nyield 相当于 return。 函数遇到 yield 就暂停，保存当前信息，返回 yield 的值。 在下次执行 next()时，从当前位置继续执行。 比较有意思的事情是，曾经有人建议生成器函数不应该使用 def，而应该发明一个新的关键字比如 gen，但是 Python 之父 Guido 并没有同意这样做。\n生成器函数的工作原理 先通过一个简单示例来说明生成器的行为：\n## 定义一个生成器 \u003e\u003e\u003e def gen_123(): ... yield 1 ... yield 2 ... yield 3 ... ## 生成器本身是个函数 \u003e\u003e\u003e gen_123 \u003cfunction gen_123 at 0x0000019F60710790\u003e ## 返回值是生成器对象 \u003e\u003e\u003e gen_123() \u003cgenerator object gen_123 at 0x0000019F606AC040\u003e ## 生成器也是迭代器 \u003e\u003e\u003e for i in gen_123(): ... print(i) ... 1 2 3 ## 验证生成器也是迭代器，定义迭代器g \u003e\u003e\u003e g = gen_123() ## 可以通过next()获取yield生成的下一个元素 \u003e\u003e\u003e next(g) 1 \u003e\u003e\u003e next(g) 2 \u003e\u003e\u003e next(g) 3 \u003e\u003e\u003e next(g) Traceback (most recent call last): File \"\", line 1, in \u003cmodule\u003e StopIteration 生成器的原理就是：\n生成器函数会创建一个生成器对象。 把生成器传给 next()函数时，生成器函数会执行函数定义体中的下一个 yield 语句，返回产出的值，并在当前位置暂停。 函数的定义体返回时，外层的生成器对象会抛出 StopIteration 异常 yield 关键字一般是和 for 循环搭配使用的，在 for 循环中会隐式调用 next()函数。\n生成器的作用其实是解决内存的问题，比如我们都知道 Python 的正则表达式有一个re.findall()函数，它会把所有匹配到的元素都一次性写入内存中，假如匹配到的数据很多，就会占用大量的内存。为了解决这个问题，Python3 有一个re.finditer()函数，返回的就是一个生成器，取值时才生成数据放入内存中，能节省大量内存。\n标准库中的生成器函数 实现生成器时要知道标准库中有什么可用，否则很可能会重新发明轮子。有些是内置的，有些在 itertools 模块中，有些 functools 模块中。\n用于过滤的生成器函数\n从输入的可迭代对象中产出元素的子集，而且不修改元素本身。\n用于映射的生成器函数\n在输入的单个可迭代对象中的各个元素上做计算，然后返回结果。\n合并多个可迭代对象的生成器函数\n从输入的多个可迭代对象中产出元素。\n把输入的各个元素扩展成多个输出元素的生成器函数\n从一个元素中产出多个值，扩展输入的可迭代对象。\n用于重新排列元素的生成器函数\n产出输入的可迭代对象中的全部元素，不过会以某种方式重新排列。\nyield from yield from 是 Python3.3 新出现的句法，它的作用是把不同的生成器结合在一起使用。\n比如生成器函数需要产出另一个生成器生成的值，传统的解决办法是使用 for 循环：\ndef chain(*iterables): for it in iterables: for i in it: yield i s = \"ABC\" t = tuple(range(3)) print(list(chain(s, t))) # [\"A\", \"B\", \"C\", 0, 1, 2] 改成 yield from：\ndef chain(*iterables): for it in iterables: yield from i 完全代替了内层的 for 循环。\n参考资料：\n《流畅的 Python》第 14 章 可迭代的对象、迭代器和生成器\nhttps://www.runoob.com/python3/python3-iterator-generator.html\n",
+  "wordCount" : "196",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-30T00:00:00Z",
+  "dateModified": "2026-01-30T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E9%95%BF%E7%AF%87%E5%A4%A7%E8%AE%BApython%E7%94%9F%E6%88%90%E5%99%A8/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      长篇大论 Python 生成器
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-30T00:00:00+00:00'>2026-01-30</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/python/'>#Python</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="python-生成器是什么">Python 生成器是什么<a hidden class="anchor" aria-hidden="true" href="#python-生成器是什么">#</a></h1>
+<p>一句话解释：<strong>包含了 yield 关键字的函数就是生成器，它的返回值是一个生成器对象</strong>。我简单画了个示意图：</p>
+<p><img loading="lazy" src="../assets/844594b76a18450f830023cd07ea7bc2.png"></p>
+<ul>
+<li>yield 相当于 return。</li>
+<li>函数遇到 yield 就暂停，保存当前信息，返回 yield 的值。</li>
+<li>在下次执行 next()时，从当前位置继续执行。</li>
+</ul>
+<blockquote>
+<p>比较有意思的事情是，曾经有人建议生成器函数不应该使用 def，而应该发明一个新的关键字比如 gen，但是 Python 之父 Guido 并没有同意这样做。</p>
+</blockquote>
+<h1 id="生成器函数的工作原理">生成器函数的工作原理<a hidden class="anchor" aria-hidden="true" href="#生成器函数的工作原理">#</a></h1>
+<p>先通过一个简单示例来说明生成器的行为：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## 定义一个生成器</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#cf222e">def</span> <span style="color:#6639ba">gen_123</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>     <span style="color:#cf222e">yield</span> <span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>     <span style="color:#cf222e">yield</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>     <span style="color:#cf222e">yield</span> <span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 生成器本身是个函数</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> gen_123
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>function gen_123 at <span style="color:#0550ae">0x0000019F60710790</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 返回值是生成器对象</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> gen_123<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>generator <span style="color:#6639ba">object</span> gen_123 at <span style="color:#0550ae">0x0000019F606AC040</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 生成器也是迭代器</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#cf222e">for</span> i <span style="color:#0550ae">in</span> gen_123<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>     <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span>i<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>     
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 验证生成器也是迭代器，定义迭代器g</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> g <span style="color:#0550ae">=</span> gen_123<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 可以通过next()获取yield生成的下一个元素</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#6639ba">next</span><span style="color:#1f2328">(</span>g<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#6639ba">next</span><span style="color:#1f2328">(</span>g<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#6639ba">next</span><span style="color:#1f2328">(</span>g<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#6639ba">next</span><span style="color:#1f2328">(</span>g<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>Traceback <span style="color:#1f2328">(</span>most recent call last<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>  File <span style="color:#0a3069">&#34;&lt;input&gt;&#34;</span><span style="color:#1f2328">,</span> line <span style="color:#0550ae">1</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">in</span> <span style="color:#0550ae">&lt;</span>module<span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span>StopIteration
+</span></span></code></pre></div><p>生成器的原理就是：</p>
+<ol>
+<li>生成器函数会创建一个生成器对象。</li>
+<li>把生成器传给 next()函数时，生成器函数会执行函数定义体中的下一个 yield 语句，返回产出的值，并在当前位置暂停。</li>
+<li>函数的定义体返回时，外层的生成器对象会抛出 StopIteration 异常</li>
+</ol>
+<p>yield 关键字一般是和 for 循环搭配使用的，在 for 循环中会隐式调用 next()函数。</p>
+<p><strong>生成器的作用其实是解决内存的问题，比如我们都知道 Python 的正则表达式有一个<code>re.findall()</code>函数，它会把所有匹配到的元素都一次性写入内存中，假如匹配到的数据很多，就会占用大量的内存。为了解决这个问题，Python3 有一个<code>re.finditer()</code>函数，返回的就是一个生成器，取值时才生成数据放入内存中，能节省大量内存。</strong></p>
+<h1 id="标准库中的生成器函数">标准库中的生成器函数<a hidden class="anchor" aria-hidden="true" href="#标准库中的生成器函数">#</a></h1>
+<p>实现生成器时要知道标准库中有什么可用，否则很可能会重新发明轮子。有些是内置的，有些在 itertools 模块中，有些 functools 模块中。</p>
+<p><strong>用于过滤的生成器函数</strong></p>
+<p>从输入的可迭代对象中产出元素的子集，而且不修改元素本身。</p>
+<p><img loading="lazy" src="../assets/e05fd699bd4742c5ad15b782f5098600.png"></p>
+<p><strong>用于映射的生成器函数</strong></p>
+<p>在输入的单个可迭代对象中的各个元素上做计算，然后返回结果。</p>
+<p><img loading="lazy" src="../assets/ef213378b41a4858adec8bc2b7589b9d.png"></p>
+<p><strong>合并多个可迭代对象的生成器函数</strong></p>
+<p>从输入的多个可迭代对象中产出元素。</p>
+<p><img loading="lazy" src="../assets/198e8fb4743547ceb1c19e2581eab267.png"></p>
+<p><strong>把输入的各个元素扩展成多个输出元素的生成器函数</strong></p>
+<p>从一个元素中产出多个值，扩展输入的可迭代对象。</p>
+<p><img loading="lazy" src="../assets/93c99d83ab6b4196ba3575e0f8dbb398.png"></p>
+<p><strong>用于重新排列元素的生成器函数</strong></p>
+<p>产出输入的可迭代对象中的全部元素，不过会以某种方式重新排列。</p>
+<p><img loading="lazy" src="../assets/902f116d633341f8b9c2abce6cdd56c3.png"></p>
+<h1 id="yield-from">yield from<a hidden class="anchor" aria-hidden="true" href="#yield-from">#</a></h1>
+<p>yield from 是 Python3.3 新出现的句法，它的作用是把不同的生成器结合在一起使用。</p>
+<p>比如生成器函数需要产出另一个生成器生成的值，传统的解决办法是使用 for 循环：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">chain</span><span style="color:#1f2328">(</span><span style="color:#0550ae">*</span>iterables<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> it <span style="color:#0550ae">in</span> iterables<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> i <span style="color:#0550ae">in</span> it<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">yield</span> i
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>s <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;ABC&#34;</span>
+</span></span><span style="display:flex;"><span>t <span style="color:#0550ae">=</span> <span style="color:#6639ba">tuple</span><span style="color:#1f2328">(</span><span style="color:#6639ba">range</span><span style="color:#1f2328">(</span><span style="color:#0550ae">3</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#6639ba">list</span><span style="color:#1f2328">(</span>chain<span style="color:#1f2328">(</span>s<span style="color:#1f2328">,</span> t<span style="color:#1f2328">)))</span>  <span style="color:#57606a"># [&#34;A&#34;, &#34;B&#34;, &#34;C&#34;, 0, 1, 2]</span>
+</span></span></code></pre></div><p>改成 yield from：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">chain</span><span style="color:#1f2328">(</span><span style="color:#0550ae">*</span>iterables<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> it <span style="color:#0550ae">in</span> iterables<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">yield from</span> i
+</span></span></code></pre></div><p>完全代替了内层的 for 循环。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>《流畅的 Python》第 14 章 可迭代的对象、迭代器和生成器</p>
+<p><a href="https://www.runoob.com/python3/python3-iterator-generator.html">https://www.runoob.com/python3/python3-iterator-generator.html</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/python/">Python</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86%E5%99%A8/">
+    <span class="title">« 上一页</span>
+    <span>Python 上下文管理器</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%8F%AF%E8%BF%AD%E4%BB%A3%E7%9A%84%E5%AF%B9%E8%B1%A1%E4%B8%8E%E8%BF%AD%E4%BB%A3%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94/">
+    <span class="title">下一页 »</span>
+    <span>Python 可迭代的对象与迭代器的对比</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#python-生成器是什么">Python 生成器是什么</a></li>
+    <li><a href="#生成器函数的工作原理">生成器函数的工作原理</a></li>
+    <li><a href="#标准库中的生成器函数">标准库中的生成器函数</a></li>
+    <li><a href="#yield-from">yield from</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

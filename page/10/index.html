@@ -10,7 +10,7 @@
 <meta name="description" content="测试开发刚哥的技术博客">
 <meta name="author" content="测试开发刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -66,7 +66,11 @@
         document.querySelector("html").dataset.theme = 'light';
     }
 
-</script><meta property="og:url" content="https://dongfanger.github.io/">
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/">
   <meta property="og:site_name" content="测试开发刚哥">
   <meta property="og:title" content="测试开发刚哥">
   <meta property="og:description" content="测试开发刚哥的技术博客">
@@ -93,6 +97,10 @@
 	<meta name="generator" content="Hugo 0.168.0">
 </head>
 <body class="list" id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
@@ -153,125 +161,102 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">AI工具
+    <h2 class="entry-hint-parent">AI 工具
     </h2>
   </header>
   <div class="entry-content">
     <p> 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-5.1 AI工具简介 5.1.1 Function Calling Function Calling需要编写代码，并且存在规格碎片化、可靠性挑战、工程治理缺位、厂商锁定与迁移成本高等问题。
-5.1.2 MCP MCP，Model Context Protocol，模型上下文协议，是一个开放标准，帮助连接AI助手与数据所在的系统，包括内容存储库、业务工具和开发环境。
-MCP可以看作是AI应用程序的“USB-C端口”，就像USB-C为连接设备与各种外设提供了标准化方式，MCP为AI模型连接不同数据源和工具提供了标准化方法。
-MCP把工具（Tools）、资源（Resources/用于检索与长上下文读写）、提示（Prompts）、会话（Sessions）、取样/推理（Sampling）等能力统一纳入协议语义，并标准化“枚举-描述-请求-响应-权限-审计”的全链路。传输层上，MCP不限定具体载体，既可以通过HTTP/WebSocket，也可以通过stdio等方式交换消息。
-5.1.3 MCP就足够了吗 无论是RAG、Function Call还是MCP，其实都是为了让模型获取更多知识，调用更多工具来完成更复杂的事情。MCP并不是万能的，短期内存在不确定性与不同声音，国内是否成为事实标准亦未定。以MCP为协议底座，叠加AI工具接入的最佳实践与企业级安全治理，才能把“可接入”变成“可规模、可移植、可审计”的Agent能力。
-5.2 AI工具标准化 5.2.1 MCP协议介绍 MCP协议遵循客户端-服务器（Client-Server）架构，允许AI应用程序通过MCP客户端与多个MCP服务器建立连接。MCP架构包含以下几个部分：
-MCP Host：协调和管理一个或多个MCP客户端的AI应用程序，如Claude Desktop、Visual Studio Code等，需要通过MCP协议访问数据。
-MCP Client：MCP客户端，运行在MCP Host内部，负责与MCP Server建立并维护连接。MCP Host会为每一个MCP Server单独创建一个Client，Client与Server保持一对一连接。
-MCP Server：MCP服务器，轻量级程序，通过MCP协议公开特定功能。MCP协议规定了MCP Server可为Client提供工具、资源文件以及提示词模板。
-MCP协议采用JSON-RPC 2.0作为通信规范，所有消息均使用JSON格式进行序列化。消息类型包括：Request、Result、Error、Notification。示例如下：
-请求：
-响应：
-AI应用程序与MCP Server交互的整体流程如下：
-5.2.2 MCP的核心优势 标准化模型与工具的连接方式
-灵活的资源调度方式
-支持双向、异步通信
-支持能力共享
-构建方式便捷
-5.2.3 MCP面临的挑战 安全问题
-大规模应用问题
-集中管理问题
-5.2.4 可行的解决方案 1、AI网关解决MCP安全问题
-下一章将详细介绍AI网关。
-2、工具优选和语义检索提升批量MCP的调用质量、降低调用耗时
-工具优选：当模型请求在经过网关调用LLM时，携带含有大量工具的tool_calls数组时，网关侧基于Qwen3 Embedding和Qwen3 Reranker的方案，提供工具的精选能力，将tool_calls的数量压缩至目标数量，以提升模型响应速度与工具选择精确性。
-语义检索：基于Higress网关的WASM插件机制，通过创建一个“All-in-One”的MCP Server，将用户在网关实例中注册的所有MCP工具进行统一聚合和管理，并提供智能的语义化检索能力。
+5.1 AI 工具简介 5.1.1 Function Calling Function Calling 需要编写代码，并且存在规格碎片化、可靠性挑战、工程治理缺位、厂商锁定与迁移成本高等问题。
+5.1.2 MCP MCP，Model Context Protocol，模型上下文协议，是一个开放标准，帮助连接 AI 助手与数据所在的系统，包括内容存储库、业务工具和开发环境。
+MCP 可以看作是 AI 应用程序的“USB-C 端口”，就像 USB-C 为连接设备与各种外设提供了标准化方式，MCP 为 AI 模型连接不同数据源和工具提供了标准化方法。
+MCP 把工具（Tools）、资源（Resources/用于检索与长上下文读写）、提示（Prompts）、会话（Sessions）、取样/推理（Sampling）等能力统一纳入协议语义，并标准化“枚举-描述-请求-响应-权限-审计”的全链路。传输层上，MCP 不限定具体载体，既可以通过 HTTP/WebSocket，也可以通过 stdio 等方式交换消息。
+5.1.3 MCP 就足够了吗 无论是 RAG、Function Call 还是 MCP，其实都是为了让模型获取更多知识，调用更多工具来完成更复杂的事情。MCP 并不是万能的，短期内存在不确定性与不同声音，国内是否成为事实标准亦未定。以 MCP 为协议底座，叠加 AI 工具接入的最佳实践与企业级安全治理，才能把“可接入”变成“可规模、可移植、可审计”的 Agent 能力。
+5.2 AI 工具标准化 5.2.1 MCP 协议介绍 MCP 协议遵循客户端-服务器（Client-Server）架构，允许 AI 应用程序通过 MCP 客户端与多个 MCP 服务器建立连接。MCP 架构包含以下几个部分：
+MCP Host：协调和管理一个或多个 MCP 客户端的 AI 应用程序，如 Claude Desktop、Visual Studio Code 等，需要通过 MCP 协议访问数据。
+MCP Client：MCP 客户端，运行在 MCP Host 内部，负责与 MCP Server 建立并维护连接。MCP Host 会为每一个 MCP Server 单独创建一个 Client，Client 与 Server 保持一对一连接。
+MCP Server：MCP 服务器，轻量级程序，通过 MCP 协议公开特定功能。MCP 协议规定了 MCP Server 可为 Client 提供工具、资源文件以及提示词模板。
 ...</p>
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>107 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/ai%E6%8A%80%E6%9C%AF/'>AI技术</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/ai%E5%BC%80%E5%8F%91/'>#AI开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/'>#AI白皮书</a></footer>
-  <a class="entry-link" aria-label="post link to AI工具" href="https://dongfanger.github.io/posts/ai%E6%8A%80%E6%9C%AF/ai%E5%BC%80%E5%8F%91/005005-ai%E7%99%BD%E7%9A%AE%E4%B9%A6ai%E5%B7%A5%E5%85%B7/"></a>
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/'>人工智能</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/'>#AI白皮书</a></footer>
+  <a class="entry-link" aria-label="post link to AI 工具" href="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%B7%A5%E5%85%B7/"></a>
 </article>
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">DRF类视图让你的代码DRY起来
+    <h2 class="entry-hint-parent">DRF 类视图让你的代码 DRY 起来
     </h2>
   </header>
   <div class="entry-content">
-    <p>刚开始写views.py模块的代码，一般都是用def定义的函数视图，不过DRF更推荐使用class定义的类视图，这能让我们的代码更符合DRY（Don’t Repeat Yourself）设计原则：</p>
+    <p>刚开始写views.py模块的代码，一般都是用def定义的函数视图，不过 DRF 更推荐使用class定义的类视图，这能让我们的代码更符合 DRY（Don’t Repeat Yourself）设计原则：</p>
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>611 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/django/'>#Django</a></footer>
-  <a class="entry-link" aria-label="post link to DRF类视图让你的代码DRY起来" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/django/000009-djangodrf%E7%B1%BB%E8%A7%86%E5%9B%BE%E8%AE%A9%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81dry%E8%B5%B7%E6%9D%A5/"></a>
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/django/'>#Django</a></footer>
+  <a class="entry-link" aria-label="post link to DRF 类视图让你的代码 DRY 起来" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E7%B1%BB%E8%A7%86%E5%9B%BE%E8%AE%A9%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81dry%E8%B5%B7%E6%9D%A5/"></a>
 </article>
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">JavaWeb开发基础ServletFilter
+    <h2 class="entry-hint-parent">Java 官方笔记 6 继承
     </h2>
   </header>
   <div class="entry-content">
     <p> 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-Filter是什么 Filter用于对请求和响应进行预处理和后处理。Filter链（Filter Chain）允许多个Filter依次处理同一个请求和响应。
-Filter的使用场景 日志记录：记录请求和响应的详细信息，例如请求时间、响应时间、请求参数等 安全检查：检查用户是否有权限访问特定资源，例如验证用户身份、检查用户角色等 压缩：对响应内容进行压缩，例如使用GZIP压缩响应数据 字符编码设置：设置请求和响应的字符编码，例如将请求和响应的字符编码设置为UTF-8 输入验证：对请求参数进行验证，例如检查参数是否为空、参数格式是否正确等 Filter Interface Filter接口有3个方法：
-package javax.servlet; import java.io.IOException; public interface Filter { void init(FilterConfig var1) throws ServletException; void doFilter(ServletRequest var1, ServletResponse var2, FilterChain var3) throws IOException, ServletException; void destroy(); } 容器在启动时创建Filter实例，并调用其init(FilterConfig filterConfig)方法进行初始化。每次请求到达时，容器调用Filter的doFilter(ServletRequest request, ServletResponse response, FilterChain chain)方法进行过滤。容器在关闭时调用Filter的destroy()方法进行清理。
-Filter可以通过两种方式进行配置：
-1.在web.xml中配置：
-&lt;filter&gt; &lt;filter-name&gt;MyFilter&lt;/filter-name&gt; &lt;filter-class&gt;com.example.MyFilter&lt;/filter-class&gt; &lt;/filter&gt; &lt;filter-mapping&gt; &lt;filter-name&gt;MyFilter&lt;/filter-name&gt; &lt;url-pattern&gt;/*&lt;/url-pattern&gt; &lt;/filter-mapping&gt; 如果采用web.xml，那么去掉Filter只需要修改web.xml即可，不需要修改代码。
-web.xml在低版本Servlet是必须的，在高版本Servlet已经不再需要。
-2.使用注解配置：
-import javax.servlet.Filter; import javax.servlet.FilterChain; import javax.servlet.FilterConfig; import javax.servlet.ServletException; import javax.servlet.ServletRequest; import javax.servlet.ServletResponse; import javax.servlet.annotation.WebFilter; import java.io.IOException; @WebFilter(&#34;/*&#34;) public class MyFilter implements Filter { @Override public void init(FilterConfig filterConfig) throws ServletException { // 初始化操作 } @Override public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException { // 预处理操作 System.out.println(&#34;Request received at &#34; &#43; System.currentTimeMillis()); // 继续执行下一个过滤器或目标资源 chain.doFilter(request, response); // 后处理操作 System.out.println(&#34;Response sent at &#34; &#43; System.currentTimeMillis()); } @Override public void destroy() { // 清理操作 } } FilterChain Interface Filter接口的doFilter方法，第3个参数类型是FilterChain，它的定义如下：
-...</p>
-  </div>
-  <footer class="entry-footer">
-
-<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>443 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/javaweb%E5%BC%80%E5%8F%91/'>#JavaWeb开发</a></footer>
-  <a class="entry-link" aria-label="post link to JavaWeb开发基础ServletFilter" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/javaweb%E5%BC%80%E5%8F%91/000009-javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servletfilter/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Java官方笔记6继承
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p> 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-继承 Java只有单继承，最顶级的父类是Object。
-子类会继承父类的fields和methods，而不会继承constructors，因为constructors不属于methods，但是子类可以通过super调用父类的constructor。
+继承 Java 只有单继承，最顶级的父类是 Object。
+子类会继承父类的 fields 和 methods，而不会继承 constructors，因为 constructors 不属于 methods，但是子类可以通过 super 调用父类的 constructor。
 子类继承父类的范围是：public、protected、package-private
-隐式转换，子类转父类（只有1个爸爸）：
+隐式转换，子类转父类（只有 1 个爸爸）：
 Object obj = new MountainBike(); 显示转换，父类转子类（有多个子女，所以要明确指定）：
-MountainBike myBike = (MountainBike)obj; 类有field，而接口没有，所以在多继承时就有问题：如果多个类有相同的field，那么子类将不知道用哪一个，而接口不存在这个问题。Java不支持继承多个类，但是可以实现多个接口。
+MountainBike myBike = (MountainBike)obj; 类有 field，而接口没有，所以在多继承时就有问题：如果多个类有相同的 field，那么子类将不知道用哪一个，而接口不存在这个问题。Java 不支持继承多个类，但是可以实现多个接口。
 重载 子类的方法跟父类有完全相同的签名和返回类型（也可以是子类），将会覆盖父类方法Override。
-如果子类定义了1个static方法，跟父类完全相同，那么父类方法会被隐藏Hide。
-Override和Hide是不同的：
-public class Animal { public static void testClassMethod() { System.out.println(&#34;The static method in Animal&#34;); } public void testInstanceMethod() { System.out.println(&#34;The instance method in Animal&#34;); } } public class Cat extends Animal { public static void testClassMethod() { System.out.println(&#34;The static method in Cat&#34;); } public void testInstanceMethod() { System.out.println(&#34;The instance method in Cat&#34;); } public static void main(String[] args) { Cat myCat = new Cat(); Animal myAnimal = myCat; // 隐式转换 Animal.testClassMethod(); // 调的父类 myAnimal.testInstanceMethod(); // 父类对象引用，还是调的子类 } } The static method in Animal The instance method in Cat Override只会调子类方法，而Hide取决于调用方是父还是子，比如这里的myCat，隐式转换为父类Animal后，会调父类的static方法，而调的实例方法却是子类的。（如果不是隐式转换，而是直接给父类实例化，那肯定还是调父类方法）
+如果子类定义了 1 个 static 方法，跟父类完全相同，那么父类方法会被隐藏Hide。
+Override 和 Hide 是不同的：
+public class Animal { public static void testClassMethod() { System.out.println(&#34;The static method in Animal&#34;); } public void testInstanceMethod() { System.out.println(&#34;The instance method in Animal&#34;); } } public class Cat extends Animal { public static void testClassMethod() { System.out.println(&#34;The static method in Cat&#34;); } public void testInstanceMethod() { System.out.println(&#34;The instance method in Cat&#34;); } public static void main(String[] args) { Cat myCat = new Cat(); Animal myAnimal = myCat; // 隐式转换 Animal.testClassMethod(); // 调的父类 myAnimal.testInstanceMethod(); // 父类对象引用，还是调的子类 } } The static method in Animal The instance method in Cat Override 只会调子类方法，而 Hide 取决于调用方是父还是子，比如这里的 myCat，隐式转换为父类 Animal 后，会调父类的 static 方法，而调的实例方法却是子类的。（如果不是隐式转换，而是直接给父类实例化，那肯定还是调父类方法）
 ...</p>
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>612 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/java/'>#Java</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%AE%98%E6%96%B9/'>#官方</a></footer>
-  <a class="entry-link" aria-label="post link to Java官方笔记6继承" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/java/000009-%E5%AE%98%E6%96%B9java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B06%E7%BB%A7%E6%89%BF/"></a>
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/java/'>#Java</a></footer>
+  <a class="entry-link" aria-label="post link to Java 官方笔记 6 继承" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B06%E7%BB%A7%E6%89%BF/"></a>
 </article>
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">JMeter36个内置函数及11个新增函数介绍
+    <h2 class="entry-hint-parent">JavaWeb 开发基础 ServletFilter
     </h2>
   </header>
   <div class="entry-content">
-    <p>JMeter内置了36个函数，这些函数可以通过函数助手进行编辑和测试。了解这些函数，不仅能提高JMeter的使用熟练度，也有助于知晓测试工具或测试框架通用的函数有哪些，在自主设计时，作为参考借鉴。</p>
+    <p> 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Filter 是什么 Filter 用于对请求和响应进行预处理和后处理。Filter 链（Filter Chain）允许多个 Filter 依次处理同一个请求和响应。
+Filter 的使用场景 日志记录：记录请求和响应的详细信息，例如请求时间、响应时间、请求参数等 安全检查：检查用户是否有权限访问特定资源，例如验证用户身份、检查用户角色等 压缩：对响应内容进行压缩，例如使用 GZIP 压缩响应数据 字符编码设置：设置请求和响应的字符编码，例如将请求和响应的字符编码设置为 UTF-8 输入验证：对请求参数进行验证，例如检查参数是否为空、参数格式是否正确等 Filter Interface Filter 接口有 3 个方法：
+package javax.servlet; import java.io.IOException; public interface Filter { void init(FilterConfig var1) throws ServletException; void doFilter(ServletRequest var1, ServletResponse var2, FilterChain var3) throws IOException, ServletException; void destroy(); } 容器在启动时创建 Filter 实例，并调用其init(FilterConfig filterConfig)方法进行初始化。每次请求到达时，容器调用 Filter 的doFilter(ServletRequest request, ServletResponse response, FilterChain chain)方法进行过滤。容器在关闭时调用 Filter 的destroy()方法进行清理。
+...</p>
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>188 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/'>#性能测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jmeter/'>#JMeter</a></footer>
-  <a class="entry-link" aria-label="post link to JMeter36个内置函数及11个新增函数介绍" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/000009-jmeterjmeter36%E4%B8%AA%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0%E5%8F%8A11%E4%B8%AA%E6%96%B0%E5%A2%9E%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D/"></a>
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/javaweb/'>#JavaWeb</a></footer>
+  <a class="entry-link" aria-label="post link to JavaWeb 开发基础 ServletFilter" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servletfilter/"></a>
 </article>
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">Python骚操作从列表推导和生成器表达式开始
+    <h2 class="entry-hint-parent">JMeter36 个内置函数及 11 个新增函数介绍
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>JMeter 内置了 36 个函数，这些函数可以通过函数助手进行编辑和测试。了解这些函数，不仅能提高 JMeter 的使用熟练度，也有助于知晓测试工具或测试框架通用的函数有哪些，在自主设计时，作为参考借鉴。</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/'>#性能测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jmeter/'>#JMeter</a></footer>
+  <a class="entry-link" aria-label="post link to JMeter36 个内置函数及 11 个新增函数介绍" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter36%E4%B8%AA%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0%E5%8F%8A11%E4%B8%AA%E6%96%B0%E5%A2%9E%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Python 骚操作从列表推导和生成器表达式开始
     </h2>
   </header>
   <div class="entry-content">
@@ -285,23 +270,23 @@ public class Animal { public static void testClassMethod() { System.out.println(
 不可变序列，包括tuple、str、bytes。
 可变序列，包括list、bytearray、array.array、collection.deque、memoryview。
 下图左边是父类，右边是子类，可以看出可变序列是从不可变序列继承来的，扩展了可变方法：
-列表推导 Python语言魅力在于简洁，这能从最常见的创建列表体现出来，比如我们想把字符串&#34;abc&#34;转换成新列表[&#34;a&#34;, &#34;b&#34;, &#34;c&#34;]，常规写法：
-symbols = &#34;abc&#34; codes = [] for symbol in symbols: codes.append(symbol) print(codes) # [&#34;a&#34;, &#34;b&#34;, &#34;c&#34;] 用到了for循环和列表append方法。实际上可以不用append方法，直接：
-symbols = &#34;abc&#34; codes = [symbol for symbol in symbols] 这叫做列表推导，是更加Pythonic的写法。
-无论是编写效率还是可阅读性，列表推导都更胜一筹，可以说是构建列表的快捷方式。但是不能滥用，通用原则是，如果列表推导的代码超过了两行，就要考虑用append了。这不是规定，完全可以凭借自我喜好来选择。
+列表推导 Python 语言魅力在于简洁，这能从最常见的创建列表体现出来，比如我们想把字符串&#34;abc&#34;转换成新列表[&#34;a&#34;, &#34;b&#34;, &#34;c&#34;]，常规写法：
+symbols = &#34;abc&#34; codes = [] for symbol in symbols: codes.append(symbol) print(codes) # [&#34;a&#34;, &#34;b&#34;, &#34;c&#34;] 用到了 for 循环和列表 append 方法。实际上可以不用 append 方法，直接：
+symbols = &#34;abc&#34; codes = [symbol for symbol in symbols] 这叫做列表推导，是更加 Pythonic 的写法。
+无论是编写效率还是可阅读性，列表推导都更胜一筹，可以说是构建列表的快捷方式。但是不能滥用，通用原则是，如果列表推导的代码超过了两行，就要考虑用 append 了。这不是规定，完全可以凭借自我喜好来选择。
 笛卡尔积是指多个序列中元素所有组合，我们用列表推导来实现笛卡尔积：
 colors = [&#34;black&#34;, &#34;white&#34;] sizes = [&#34;S&#34;, &#34;M&#34;, &#34;L&#34;] tshirts = [(color, size) for color in colors for size in sizes] 一行代码搞定！Life is short，use Python，list comprehension is wonderful，amazing。
 ...</p>
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>245 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/python%E7%94%9F%E6%80%81/'>Python生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/python/'>#Python</a></footer>
-  <a class="entry-link" aria-label="post link to Python骚操作从列表推导和生成器表达式开始" href="https://dongfanger.github.io/posts/python%E7%94%9F%E6%80%81/python/000009-pythonpython%E9%AA%9A%E6%93%8D%E4%BD%9C%E4%BB%8E%E5%88%97%E8%A1%A8%E6%8E%A8%E5%AF%BC%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%BC%80%E5%A7%8B/"></a>
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/python/'>#Python</a></footer>
+  <a class="entry-link" aria-label="post link to Python 骚操作从列表推导和生成器表达式开始" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E9%AA%9A%E6%93%8D%E4%BD%9C%E4%BB%8E%E5%88%97%E8%A1%A8%E6%8E%A8%E5%AF%BC%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%BC%80%E5%A7%8B/"></a>
 </article>
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">SpringBoot官方笔记6消息
+    <h2 class="entry-hint-parent">SpringBoot 官方笔记 6 消息
     </h2>
   </header>
   <div class="entry-content">
@@ -309,27 +294,13 @@ colors = [&#34;black&#34;, &#34;white&#34;] sizes = [&#34;S&#34;, &#34;M&#34;, &
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>299 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/java%E7%94%9F%E6%80%81/'>Java生态</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/spring%E6%8A%80%E6%9C%AF%E6%A0%88/'>#Spring技术栈</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/spring/'>#Spring</a></footer>
-  <a class="entry-link" aria-label="post link to SpringBoot官方笔记6消息" href="https://dongfanger.github.io/posts/java%E7%94%9F%E6%80%81/spring%E6%8A%80%E6%9C%AF%E6%A0%88/000009-springspringboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B06%E6%B6%88%E6%81%AF/"></a>
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/spring/'>#Spring</a></footer>
+  <a class="entry-link" aria-label="post link to SpringBoot 官方笔记 6 消息" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B06%E6%B6%88%E6%81%AF/"></a>
 </article>
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">teprunner测试平台定时任务这次终于稳了
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>teprunner测试平台已经有一个多月没有更新了，主要原因是定时任务不够稳定，经过反复试错，找到了解决办法，这次终于稳定了。</p>
-  </div>
-  <footer class="entry-footer">
-
-<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>59 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/'>原创项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/teprunner/'>#Teprunner</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0/'>#开源平台</a></footer>
-  <a class="entry-link" aria-label="post link to teprunner测试平台定时任务这次终于稳了" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/teprunner/000009-%E5%BC%80%E6%BA%90%E5%B9%B3%E5%8F%B0teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%BF%99%E6%AC%A1%E7%BB%88%E4%BA%8E%E7%A8%B3%E4%BA%86/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">tep支持MVC架构实现用例数据分离
+    <h2 class="entry-hint-parent">tep 支持 MVC 架构实现用例数据分离
     </h2>
   </header>
   <div class="entry-content">
@@ -337,8 +308,22 @@ colors = [&#34;black&#34;, &#34;white&#34;] sizes = [&#34;S&#34;, &#34;M&#34;, &
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>218 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/'>原创项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/tep/'>#Tep</a></footer>
-  <a class="entry-link" aria-label="post link to tep支持MVC架构实现用例数据分离" href="https://dongfanger.github.io/posts/%E5%8E%9F%E5%88%9B%E9%A1%B9%E7%9B%AE/tep/000009-tep%E6%94%AF%E6%8C%81mvc%E6%9E%B6%E6%9E%84%E5%AE%9E%E7%8E%B0%E7%94%A8%E4%BE%8B%E6%95%B0%E6%8D%AE%E5%88%86%E7%A6%BB/"></a>
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/tep/'>#Tep</a></footer>
+  <a class="entry-link" aria-label="post link to tep 支持 MVC 架构实现用例数据分离" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E6%94%AF%E6%8C%81mvc%E6%9E%B6%E6%9E%84%E5%AE%9E%E7%8E%B0%E7%94%A8%E4%BE%8B%E6%95%B0%E6%8D%AE%E5%88%86%E7%A6%BB/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">teprunner 测试平台定时任务这次终于稳了
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>teprunner 测试平台已经有一个多月没有更新了，主要原因是定时任务不够稳定，经过反复试错，找到了解决办法，这次终于稳定了。</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/teprunner/'>#Teprunner</a></footer>
+  <a class="entry-link" aria-label="post link to teprunner 测试平台定时任务这次终于稳了" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%BF%99%E6%AC%A1%E7%BB%88%E4%BA%8E%E7%A8%B3%E4%BA%86/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -351,8 +336,8 @@ colors = [&#34;black&#34;, &#34;white&#34;] sizes = [&#34;S&#34;, &#34;M&#34;, &
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>6 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/'>读书与思考</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/'>#个人思考</a></footer>
-  <a class="entry-link" aria-label="post link to 自动化用例依赖问题，是个伪命题" href="https://dongfanger.github.io/posts/%E8%AF%BB%E4%B9%A6%E4%B8%8E%E6%80%9D%E8%80%83/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/000009-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98%E6%98%AF%E4%B8%AA%E4%BC%AA%E5%91%BD%E9%A2%98/"></a>
+<span title='2026-01-09T00:00:00+00:00'>2026-01-09</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%9A%8F%E7%AC%94/'>随笔</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E4%B8%AA%E4%BA%BA%E6%80%9D%E8%80%83/'>#个人思考</a></footer>
+  <a class="entry-link" aria-label="post link to 自动化用例依赖问题，是个伪命题" href="https://dongfanger.github.io/posts/%E9%9A%8F%E7%AC%94/%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98%E6%98%AF%E4%B8%AA%E4%BC%AA%E5%91%BD%E9%A2%98/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">
@@ -408,7 +393,61 @@ colors = [&#34;black&#34;, &#34;white&#34;] sizes = [&#34;S&#34;, &#34;M&#34;, &
         <polyline points="17 11 12 6 7 11"></polyline>
         <polyline points="17 18 12 13 7 18"></polyline>
     </svg>
-</a>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
 
 <script>
     let menu = document.getElementById('menu');

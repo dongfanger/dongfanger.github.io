@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JavaWeb 开发基础 Servlet 请求分发与重定向 | 测试开发刚哥</title>
+<meta name="keywords" content="JavaWeb">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+请求分发
+Servlet 的 RequestDispatcher 接口定义：
+package javax.servlet;
+
+import java.io.IOException;
+
+public interface RequestDispatcher {
+    String FORWARD_REQUEST_URI = &#34;javax.servlet.forward.request_uri&#34;;
+    String FORWARD_CONTEXT_PATH = &#34;javax.servlet.forward.context_path&#34;;
+    String FORWARD_PATH_INFO = &#34;javax.servlet.forward.path_info&#34;;
+    String FORWARD_SERVLET_PATH = &#34;javax.servlet.forward.servlet_path&#34;;
+    String FORWARD_QUERY_STRING = &#34;javax.servlet.forward.query_string&#34;;
+    String INCLUDE_REQUEST_URI = &#34;javax.servlet.include.request_uri&#34;;
+    String INCLUDE_CONTEXT_PATH = &#34;javax.servlet.include.context_path&#34;;
+    String INCLUDE_PATH_INFO = &#34;javax.servlet.include.path_info&#34;;
+    String INCLUDE_SERVLET_PATH = &#34;javax.servlet.include.servlet_path&#34;;
+    String INCLUDE_QUERY_STRING = &#34;javax.servlet.include.query_string&#34;;
+    String ERROR_EXCEPTION = &#34;javax.servlet.error.exception&#34;;
+    String ERROR_EXCEPTION_TYPE = &#34;javax.servlet.error.exception_type&#34;;
+    String ERROR_MESSAGE = &#34;javax.servlet.error.message&#34;;
+    String ERROR_REQUEST_URI = &#34;javax.servlet.error.request_uri&#34;;
+    String ERROR_SERVLET_NAME = &#34;javax.servlet.error.servlet_name&#34;;
+    String ERROR_STATUS_CODE = &#34;javax.servlet.error.status_code&#34;;
+
+    void forward(ServletRequest var1, ServletResponse var2) throws ServletException, IOException;
+
+    void include(ServletRequest var1, ServletResponse var2) throws ServletException, IOException;
+}
+它有 2 个方法，forward 和 include：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E8%AF%B7%E6%B1%82%E5%88%86%E5%8F%91%E4%B8%8E%E9%87%8D%E5%AE%9A%E5%90%91/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E8%AF%B7%E6%B1%82%E5%88%86%E5%8F%91%E4%B8%8E%E9%87%8D%E5%AE%9A%E5%90%91/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E8%AF%B7%E6%B1%82%E5%88%86%E5%8F%91%E4%B8%8E%E9%87%8D%E5%AE%9A%E5%90%91/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JavaWeb 开发基础 Servlet 请求分发与重定向">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+请求分发 Servlet 的 RequestDispatcher 接口定义：
+package javax.servlet; import java.io.IOException; public interface RequestDispatcher { String FORWARD_REQUEST_URI = &#34;javax.servlet.forward.request_uri&#34;; String FORWARD_CONTEXT_PATH = &#34;javax.servlet.forward.context_path&#34;; String FORWARD_PATH_INFO = &#34;javax.servlet.forward.path_info&#34;; String FORWARD_SERVLET_PATH = &#34;javax.servlet.forward.servlet_path&#34;; String FORWARD_QUERY_STRING = &#34;javax.servlet.forward.query_string&#34;; String INCLUDE_REQUEST_URI = &#34;javax.servlet.include.request_uri&#34;; String INCLUDE_CONTEXT_PATH = &#34;javax.servlet.include.context_path&#34;; String INCLUDE_PATH_INFO = &#34;javax.servlet.include.path_info&#34;; String INCLUDE_SERVLET_PATH = &#34;javax.servlet.include.servlet_path&#34;; String INCLUDE_QUERY_STRING = &#34;javax.servlet.include.query_string&#34;; String ERROR_EXCEPTION = &#34;javax.servlet.error.exception&#34;; String ERROR_EXCEPTION_TYPE = &#34;javax.servlet.error.exception_type&#34;; String ERROR_MESSAGE = &#34;javax.servlet.error.message&#34;; String ERROR_REQUEST_URI = &#34;javax.servlet.error.request_uri&#34;; String ERROR_SERVLET_NAME = &#34;javax.servlet.error.servlet_name&#34;; String ERROR_STATUS_CODE = &#34;javax.servlet.error.status_code&#34;; void forward(ServletRequest var1, ServletResponse var2) throws ServletException, IOException; void include(ServletRequest var1, ServletResponse var2) throws ServletException, IOException; } 它有 2 个方法，forward 和 include：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:tag" content="JavaWeb">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JavaWeb 开发基础 Servlet 请求分发与重定向">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+请求分发 Servlet 的 RequestDispatcher 接口定义：
+package javax.servlet; import java.io.IOException; public interface RequestDispatcher { String FORWARD_REQUEST_URI = &#34;javax.servlet.forward.request_uri&#34;; String FORWARD_CONTEXT_PATH = &#34;javax.servlet.forward.context_path&#34;; String FORWARD_PATH_INFO = &#34;javax.servlet.forward.path_info&#34;; String FORWARD_SERVLET_PATH = &#34;javax.servlet.forward.servlet_path&#34;; String FORWARD_QUERY_STRING = &#34;javax.servlet.forward.query_string&#34;; String INCLUDE_REQUEST_URI = &#34;javax.servlet.include.request_uri&#34;; String INCLUDE_CONTEXT_PATH = &#34;javax.servlet.include.context_path&#34;; String INCLUDE_PATH_INFO = &#34;javax.servlet.include.path_info&#34;; String INCLUDE_SERVLET_PATH = &#34;javax.servlet.include.servlet_path&#34;; String INCLUDE_QUERY_STRING = &#34;javax.servlet.include.query_string&#34;; String ERROR_EXCEPTION = &#34;javax.servlet.error.exception&#34;; String ERROR_EXCEPTION_TYPE = &#34;javax.servlet.error.exception_type&#34;; String ERROR_MESSAGE = &#34;javax.servlet.error.message&#34;; String ERROR_REQUEST_URI = &#34;javax.servlet.error.request_uri&#34;; String ERROR_SERVLET_NAME = &#34;javax.servlet.error.servlet_name&#34;; String ERROR_STATUS_CODE = &#34;javax.servlet.error.status_code&#34;; void forward(ServletRequest var1, ServletResponse var2) throws ServletException, IOException; void include(ServletRequest var1, ServletResponse var2) throws ServletException, IOException; } 它有 2 个方法，forward 和 include：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JavaWeb 开发基础 Servlet 请求分发与重定向",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E8%AF%B7%E6%B1%82%E5%88%86%E5%8F%91%E4%B8%8E%E9%87%8D%E5%AE%9A%E5%90%91/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JavaWeb 开发基础 Servlet 请求分发与重定向",
+  "name": "JavaWeb 开发基础 Servlet 请求分发与重定向",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n请求分发 Servlet 的 RequestDispatcher 接口定义：\npackage javax.servlet; import java.io.IOException; public interface RequestDispatcher { String FORWARD_REQUEST_URI = \u0026#34;javax.servlet.forward.request_uri\u0026#34;; String FORWARD_CONTEXT_PATH = \u0026#34;javax.servlet.forward.context_path\u0026#34;; String FORWARD_PATH_INFO = \u0026#34;javax.servlet.forward.path_info\u0026#34;; String FORWARD_SERVLET_PATH = \u0026#34;javax.servlet.forward.servlet_path\u0026#34;; String FORWARD_QUERY_STRING = \u0026#34;javax.servlet.forward.query_string\u0026#34;; String INCLUDE_REQUEST_URI = \u0026#34;javax.servlet.include.request_uri\u0026#34;; String INCLUDE_CONTEXT_PATH = \u0026#34;javax.servlet.include.context_path\u0026#34;; String INCLUDE_PATH_INFO = \u0026#34;javax.servlet.include.path_info\u0026#34;; String INCLUDE_SERVLET_PATH = \u0026#34;javax.servlet.include.servlet_path\u0026#34;; String INCLUDE_QUERY_STRING = \u0026#34;javax.servlet.include.query_string\u0026#34;; String ERROR_EXCEPTION = \u0026#34;javax.servlet.error.exception\u0026#34;; String ERROR_EXCEPTION_TYPE = \u0026#34;javax.servlet.error.exception_type\u0026#34;; String ERROR_MESSAGE = \u0026#34;javax.servlet.error.message\u0026#34;; String ERROR_REQUEST_URI = \u0026#34;javax.servlet.error.request_uri\u0026#34;; String ERROR_SERVLET_NAME = \u0026#34;javax.servlet.error.servlet_name\u0026#34;; String ERROR_STATUS_CODE = \u0026#34;javax.servlet.error.status_code\u0026#34;; void forward(ServletRequest var1, ServletResponse var2) throws ServletException, IOException; void include(ServletRequest var1, ServletResponse var2) throws ServletException, IOException; } 它有 2 个方法，forward 和 include：\n",
+  "keywords": [
+    "JavaWeb"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n请求分发 Servlet 的 RequestDispatcher 接口定义：\npackage javax.servlet; import java.io.IOException; public interface RequestDispatcher { String FORWARD_REQUEST_URI = \"javax.servlet.forward.request_uri\"; String FORWARD_CONTEXT_PATH = \"javax.servlet.forward.context_path\"; String FORWARD_PATH_INFO = \"javax.servlet.forward.path_info\"; String FORWARD_SERVLET_PATH = \"javax.servlet.forward.servlet_path\"; String FORWARD_QUERY_STRING = \"javax.servlet.forward.query_string\"; String INCLUDE_REQUEST_URI = \"javax.servlet.include.request_uri\"; String INCLUDE_CONTEXT_PATH = \"javax.servlet.include.context_path\"; String INCLUDE_PATH_INFO = \"javax.servlet.include.path_info\"; String INCLUDE_SERVLET_PATH = \"javax.servlet.include.servlet_path\"; String INCLUDE_QUERY_STRING = \"javax.servlet.include.query_string\"; String ERROR_EXCEPTION = \"javax.servlet.error.exception\"; String ERROR_EXCEPTION_TYPE = \"javax.servlet.error.exception_type\"; String ERROR_MESSAGE = \"javax.servlet.error.message\"; String ERROR_REQUEST_URI = \"javax.servlet.error.request_uri\"; String ERROR_SERVLET_NAME = \"javax.servlet.error.servlet_name\"; String ERROR_STATUS_CODE = \"javax.servlet.error.status_code\"; void forward(ServletRequest var1, ServletResponse var2) throws ServletException, IOException; void include(ServletRequest var1, ServletResponse var2) throws ServletException, IOException; } 它有 2 个方法，forward 和 include：\npublic void forward(ServletRequest request,ServletResponse response)throws ServletException,java.io.IOException: Forwards a request from a servlet to another resource (servlet, JSP file, or HTML file) on the server. public void include(ServletRequest request,ServletResponse response)throws ServletException,java.io.IOException: Includes the content of a resource (servlet, JSP page, or HTML file) in the response. forward 方法将请求从一个 Servlet 转发到另一个资源（Servlet、JSP 页面或 HTML 文件）。转发后，客户端的 URL 不会改变，且请求和响应对象在转发过程中保持不变。使用场景：\n在服务器内部资源之间传递请求 需要在处理请求时共享相同的请求和响应对象 include 方法将另一个资源的内容包含到当前响应中。与 forward 不同，include 不会终止当前 Servlet 的执行，而是将目标资源的输出包含在当前响应中。使用场景：\n在生成响应时需要包含其他资源的内容 需要在一个页面中动态地插入其他资源的内容 代码实践\n通过登录页面，输入用户名和密码，如果密码是 servlet，forward 到 welcome servlet，否则 include 到登录页面，展示错误信息。\nlogin.html 获取用户输入\n\u003cform action=\"go\" method=\"get\"\u003e Name:\u003cinput type=\"text\" name=\"userName\"/\u003e\u003cbr/\u003e Password:\u003cinput type=\"password\" name=\"userPass\"/\u003e\u003cbr/\u003e \u003cinput type=\"submit\" value=\"login\"/\u003e \u003c/form\u003e Simple.java Servlet 类，如果密码是 servlet，forward 到 welcome servlet\nimport javax.servlet.RequestDispatcher; import javax.servlet.ServletException; import javax.servlet.http.HttpServlet; import javax.servlet.http.HttpServletRequest; import javax.servlet.http.HttpServletResponse; import java.io.IOException; import java.io.PrintWriter; public class Simple extends HttpServlet { public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { response.setContentType(\"text/html\"); PrintWriter out = response.getWriter(); String p = request.getParameter(\"userPass\"); if (p.equals(\"servlet\")) { RequestDispatcher rd = request.getRequestDispatcher(\"welcome\"); rd.forward(request, response); } else { out.print(\"Sorry username or password error!\"); RequestDispatcher rd = request.getRequestDispatcher(\"login.html\"); rd.include(request, response); } } } WelcomeServlet.java Servlet 类，返回 welcome 信息\nimport javax.servlet.ServletException; import javax.servlet.http.HttpServlet; import javax.servlet.http.HttpServletRequest; import javax.servlet.http.HttpServletResponse; import java.io.IOException; import java.io.PrintWriter; public class WelcomeServlet extends HttpServlet { public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { response.setContentType(\"text/html\"); PrintWriter out = response.getWriter(); String n = request.getParameter(\"userName\"); out.print(\"Welcome \" + n); } } web.xml 部署描述文件，servlet 信息\n\u003c?xml version=\"1.0\" encoding=\"UTF-8\"?\u003e ",
+  "wordCount" : "501",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-05T00:00:00Z",
+  "dateModified": "2026-01-05T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E8%AF%B7%E6%B1%82%E5%88%86%E5%8F%91%E4%B8%8E%E9%87%8D%E5%AE%9A%E5%90%91/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      JavaWeb 开发基础 Servlet 请求分发与重定向
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-05T00:00:00+00:00'>2026-01-05</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/javaweb/'>#JavaWeb</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="请求分发">请求分发<a hidden class="anchor" aria-hidden="true" href="#请求分发">#</a></h1>
+<p>Servlet 的 RequestDispatcher 接口定义：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">package</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.IOException</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">interface</span> <span style="color:#1f2328">RequestDispatcher</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>FORWARD_REQUEST_URI<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.forward.request_uri&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>FORWARD_CONTEXT_PATH<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.forward.context_path&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>FORWARD_PATH_INFO<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.forward.path_info&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>FORWARD_SERVLET_PATH<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.forward.servlet_path&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>FORWARD_QUERY_STRING<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.forward.query_string&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>INCLUDE_REQUEST_URI<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.include.request_uri&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>INCLUDE_CONTEXT_PATH<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.include.context_path&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>INCLUDE_PATH_INFO<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.include.path_info&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>INCLUDE_SERVLET_PATH<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.include.servlet_path&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>INCLUDE_QUERY_STRING<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.include.query_string&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>ERROR_EXCEPTION<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.error.exception&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>ERROR_EXCEPTION_TYPE<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.error.exception_type&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>ERROR_MESSAGE<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.error.message&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>ERROR_REQUEST_URI<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.error.request_uri&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>ERROR_SERVLET_NAME<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.error.servlet_name&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>String<span style="color:#fff"> </span>ERROR_STATUS_CODE<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;javax.servlet.error.status_code&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">forward</span><span style="color:#1f2328">(</span>ServletRequest<span style="color:#fff"> </span>var1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletResponse<span style="color:#fff"> </span>var2<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>IOException<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">include</span><span style="color:#1f2328">(</span>ServletRequest<span style="color:#fff"> </span>var1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>ServletResponse<span style="color:#fff"> </span>var2<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>IOException<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>它有 2 个方法，forward 和 include：</p>
+<ol>
+<li><strong>public void forward(ServletRequest request,ServletResponse response)throws ServletException,java.io.IOException:</strong> Forwards a request from a servlet to another resource (servlet, JSP file, or HTML file) on the server.</li>
+<li><strong>public void include(ServletRequest request,ServletResponse response)throws ServletException,java.io.IOException:</strong> Includes the content of a resource (servlet, JSP page, or HTML file) in the response.</li>
+</ol>
+<p>forward 方法将请求从一个 Servlet 转发到另一个资源（Servlet、JSP 页面或 HTML 文件）。转发后，客户端的 URL 不会改变，且请求和响应对象在转发过程中保持不变。使用场景：</p>
+<ul>
+<li>在服务器内部资源之间传递请求</li>
+<li>需要在处理请求时共享相同的请求和响应对象</li>
+</ul>
+<p><img loading="lazy" src="../assets/60f8fb8bec4f49c986699c40c023bbb2.png"></p>
+<p>include 方法将另一个资源的内容包含到当前响应中。与 forward 不同，include 不会终止当前 Servlet 的执行，而是将目标资源的输出包含在当前响应中。使用场景：</p>
+<ul>
+<li>在生成响应时需要包含其他资源的内容</li>
+<li>需要在一个页面中动态地插入其他资源的内容</li>
+</ul>
+<p><img loading="lazy" src="../assets/59e344c388824fdcb14bfcc75b5a60ef.png"></p>
+<p><strong>代码实践</strong></p>
+<p>通过登录页面，输入用户名和密码，如果密码是 servlet，forward 到 welcome servlet，否则 include 到登录页面，展示错误信息。</p>
+<p><img loading="lazy" src="../assets/e333b503c9324361a1545542757690eb.png"></p>
+<p>login.html 获取用户输入</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#1f2328">&lt;</span><span style="color:#0550ae">form</span> <span style="color:#1f2328">action</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;go&#34;</span> <span style="color:#1f2328">method</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;get&#34;</span><span style="color:#1f2328">&gt;</span>
+</span></span><span style="display:flex;"><span>Name:<span style="color:#1f2328">&lt;</span><span style="color:#0550ae">input</span> <span style="color:#1f2328">type</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;text&#34;</span> <span style="color:#1f2328">name</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;userName&#34;</span><span style="color:#1f2328">/&gt;&lt;</span><span style="color:#0550ae">br</span><span style="color:#1f2328">/&gt;</span>
+</span></span><span style="display:flex;"><span>Password:<span style="color:#1f2328">&lt;</span><span style="color:#0550ae">input</span> <span style="color:#1f2328">type</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;password&#34;</span> <span style="color:#1f2328">name</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;userPass&#34;</span><span style="color:#1f2328">/&gt;&lt;</span><span style="color:#0550ae">br</span><span style="color:#1f2328">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">&lt;</span><span style="color:#0550ae">input</span> <span style="color:#1f2328">type</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;submit&#34;</span> <span style="color:#1f2328">value</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;login&#34;</span><span style="color:#1f2328">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">&lt;/</span><span style="color:#0550ae">form</span><span style="color:#1f2328">&gt;</span>
+</span></span></code></pre></div><p>Simple.java Servlet 类，如果密码是 servlet，forward 到 welcome servlet</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.RequestDispatcher</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.ServletException</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.HttpServlet</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.HttpServletRequest</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.HttpServletResponse</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.IOException</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.PrintWriter</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Simple</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>HttpServlet<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">doGet</span><span style="color:#1f2328">(</span>HttpServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>HttpServletResponse<span style="color:#fff"> </span>response<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>IOException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>response<span style="color:#1f2328">.</span><span style="color:#1f2328">setContentType</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;text/html&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>PrintWriter<span style="color:#fff"> </span>out<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>response<span style="color:#1f2328">.</span><span style="color:#1f2328">getWriter</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>p<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">.</span><span style="color:#1f2328">getParameter</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;userPass&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>p<span style="color:#1f2328">.</span><span style="color:#1f2328">equals</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;servlet&#34;</span><span style="color:#1f2328">))</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>RequestDispatcher<span style="color:#fff"> </span>rd<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">.</span><span style="color:#1f2328">getRequestDispatcher</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;welcome&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>rd<span style="color:#1f2328">.</span><span style="color:#1f2328">forward</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>response<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff"> </span><span style="color:#cf222e">else</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>out<span style="color:#1f2328">.</span><span style="color:#1f2328">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Sorry username or password error!&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>RequestDispatcher<span style="color:#fff"> </span>rd<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">.</span><span style="color:#1f2328">getRequestDispatcher</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;login.html&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>rd<span style="color:#1f2328">.</span><span style="color:#1f2328">include</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>response<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>WelcomeServlet.java Servlet 类，返回 welcome 信息</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.ServletException</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.HttpServlet</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.HttpServletRequest</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.HttpServletResponse</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.IOException</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.PrintWriter</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">WelcomeServlet</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>HttpServlet<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">doGet</span><span style="color:#1f2328">(</span>HttpServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>HttpServletResponse<span style="color:#fff"> </span>response<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>IOException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>response<span style="color:#1f2328">.</span><span style="color:#1f2328">setContentType</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;text/html&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>PrintWriter<span style="color:#fff"> </span>out<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>response<span style="color:#1f2328">.</span><span style="color:#1f2328">getWriter</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>n<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">.</span><span style="color:#1f2328">getParameter</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;userName&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>out<span style="color:#1f2328">.</span><span style="color:#1f2328">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Welcome &#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>n<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>web.xml 部署描述文件，servlet 信息</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#57606a">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;web-app</span> <span style="color:#1f2328">version=</span><span style="color:#0a3069">&#34;2.5&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">xmlns=</span><span style="color:#0a3069">&#34;http://java.sun.com/xml/ns/javaee&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">xmlns:xsi=</span><span style="color:#0a3069">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">xsi:schemaLocation=</span><span style="color:#0a3069">&#34;http://java.sun.com/xml/ns/javaee 
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&#34;</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;servlet&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;description&gt;</span>This is the description of my J2EE component<span style="color:#0550ae">&lt;/description&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;display-name&gt;</span>This is the display name of my J2EE component<span style="color:#0550ae">&lt;/display-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;servlet-name&gt;</span>Simple<span style="color:#0550ae">&lt;/servlet-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;servlet-class&gt;</span>Simple<span style="color:#0550ae">&lt;/servlet-class&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/servlet&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;servlet&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;description&gt;</span>This is the description of my J2EE component<span style="color:#0550ae">&lt;/description&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;display-name&gt;</span>This is the display name of my J2EE component<span style="color:#0550ae">&lt;/display-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;servlet-name&gt;</span>WelcomeServlet<span style="color:#0550ae">&lt;/servlet-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;servlet-class&gt;</span>WelcomeServlet<span style="color:#0550ae">&lt;/servlet-class&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/servlet&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;servlet-mapping&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;servlet-name&gt;</span>Simple<span style="color:#0550ae">&lt;/servlet-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;url-pattern&gt;</span>/go<span style="color:#0550ae">&lt;/url-pattern&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/servlet-mapping&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;servlet-mapping&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;servlet-name&gt;</span>WelcomeServlet<span style="color:#0550ae">&lt;/servlet-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;url-pattern&gt;</span>/welcome<span style="color:#0550ae">&lt;/url-pattern&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/servlet-mapping&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;welcome-file-list&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;welcome-file&gt;</span>login.html<span style="color:#0550ae">&lt;/welcome-file&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/welcome-file-list&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/web-app&gt;</span>
+</span></span></code></pre></div><blockquote>
+<p>web.xml 在低版本 Servlet 是必须的，在高版本 Servlet 已经不再需要。</p>
+</blockquote>
+<p>注意 Simple.java 的 else 逻辑：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>out<span style="color:#1f2328">.</span><span style="color:#1f2328">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Sorry username or password error!&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>RequestDispatcher<span style="color:#fff"> </span>rd<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">.</span><span style="color:#1f2328">getRequestDispatcher</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;login.html&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span>rd<span style="color:#1f2328">.</span><span style="color:#1f2328">include</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>response<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>如果把这里的 include 改为 forward，会发生什么？输出内容不会显示，因为 forward 方法会将控制权转交给 login.html，并且 login.html 的内容将替代当前响应内容。</p>
+<p>总结，用 include 方法时，当前 Servlet 的输出内容会保留，并且目标资源的内容会被包含在当前响应中。使用 forward 方法时，当前 Servlet 的执行将终止，控制权将交给目标资源，目标资源的内容将替代当前响应内容。</p>
+<h1 id="重定向">重定向<a hidden class="anchor" aria-hidden="true" href="#重定向">#</a></h1>
+<p>我们在浏览器看到的 302，就是重定向。通常在重定向后，会自动发起新的 HTTP 请求。</p>
+<p>HttpServletResponse 接口的 sendRedirect 方法：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">sendRedirect</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>var1<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>IOException<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.ServletException</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.HttpServlet</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.HttpServletRequest</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">javax.servlet.http.HttpServletResponse</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.IOException</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MySearcher</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>HttpServlet<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">protected</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">doGet</span><span style="color:#1f2328">(</span>HttpServletRequest<span style="color:#fff"> </span>request<span style="color:#1f2328">,</span><span style="color:#fff"> </span>HttpServletResponse<span style="color:#fff"> </span>response<span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>ServletException<span style="color:#1f2328">,</span><span style="color:#fff"> </span>IOException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>name<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>request<span style="color:#1f2328">.</span><span style="color:#1f2328">getParameter</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;name&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>response<span style="color:#1f2328">.</span><span style="color:#1f2328">sendRedirect</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;https://www.google.co.in/#q=&#34;</span><span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>name<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">  
+</span></span></span></code></pre></div><p>forward 和 sendRedirect 的区别如下：</p>
+<p><img loading="lazy" src="../assets/1e09001bafd74b16bf9998e3ff8703bc.png"></p>
+<p><img loading="lazy" src="../assets/26fda161d9f149afbfd821bd4411e845.png"></p>
+<ul>
+<li>
+<p>forward 是在服务端，sendRedirect 是在客户端</p>
+</li>
+<li>
+<p>forward 发送相同的 request 和 response 对象给另一个 servlet，sendRedirect 总是生成新的 request 和 response 对象</p>
+</li>
+<li>
+<p>forward 只能在服务器内部，sendRedirect 可以跨不同 Web 应用或服务器</p>
+</li>
+</ul>
+<p>总结，forward 适用于服务器内部资源之间的请求转发，效率较高，客户端 URL 不变。sendRedirect 适用于通知客户端资源位置改变或跨 Web 应用/服务器的请求转发，客户端 URL 会改变，有额外的网络开销。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.javatpoint.com/requestdispatcher-in-servlet">https://www.javatpoint.com/requestdispatcher-in-servlet</a></p>
+<p><a href="https://www.javatpoint.com/sendRedirect()-method">https://www.javatpoint.com/sendRedirect()-method</a></p>
+<p><a href="https://www.liaoxuefeng.com/wiki/1252599548343744/1328761739935778">https://www.liaoxuefeng.com/wiki/1252599548343744/1328761739935778</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/javaweb/">JavaWeb</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+    <span class="title">« 上一页</span>
+    <span>Java 官方笔记 2 面向对象编程基本概念</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E6%B5%8B%E8%AF%95%E8%AE%A1%E5%88%92%E9%85%8D%E7%BD%AE%E9%A1%B9%E8%A7%A3%E6%9E%90/">
+    <span class="title">下一页 »</span>
+    <span>JMeter 测试计划配置项解析</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#请求分发">请求分发</a></li>
+    <li><a href="#重定向">重定向</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

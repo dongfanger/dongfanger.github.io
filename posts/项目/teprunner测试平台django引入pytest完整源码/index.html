@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>teprunner 测试平台 Django 引入 pytest 完整源码 | 测试开发刚哥</title>
+<meta name="keywords" content="teprunner">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+本文开发内容
+pytest 登场！本文将在 Django 中引入 pytest，原理是先执行 tep startproject 命令创建 pytest 项目文件，然后从数据库中拉取代码写入文件，最后调用 pytest 命令运行用例。为了提高运行效率，用例运行是并行的，采用了多线程和多进程，两个都有，这在最后有个单独小结进行比较完整的说明。因为用例运行是异步的，所以前端并不知道什么时候执行完才能拿到运行结果，可以发多个 HTTP 请求轮询，但这种方式并不优雅，本文将采用 WebSocket 来实现用例结果查询。具体内容为：
+
+cases/&lt;int:pk&gt;/run运行用例接口
+ws/teprunner/cases/&lt;int:case_id&gt;/result/用例结果查询接口
+projects/&lt;int:pk&gt;/export下载项目环境接口
+前端添加 WebSocket 请求
+
+知识点涉及有点多：tep、pytest、同步、异步、多线程、多进程、回调函数、WebSocket、长连接、全双工、ASGI、WSGI、打 ZIP 包、文件字节流传输。
+编写后端代码
+编辑 requirements.txt，添加 tep 和 channels：
+tep==0.6.9
+channels==3.0.3
+tep 是用来创建 pytest 项目的，channels 是用来实现 WebSocket 的。
+编辑 teprunner/urls.py 文件，添加 HTTP 路由：
+
+首先实现 run 接口，新建 teprunner/views/run.py 文件：
+
+这是运行用例的主体流程：
+
+第一步从请求中获取用例 id、运行环境、运行人，这里演示了获取 user 数据的两种方式：接口传参和从 token 中解析。然后根据 project_id，run_env，user_id 定义了 pytest 项目的路径。
+第二步使用 tep startproject 创建项目文件，清空 fixtures 和 tests 目录，目的有两个：一是清掉 tep 默认 fixtures 和示例 cases，防止对平台产生干扰；二是保证每次运行目录都是干净的，就不用单独去处理前端手动删掉 fixture/case 后，文件残留的问题。然后从数据库中拉取环境变量、fixtures 等数据更新文件。
+起多个线程，分别执行用例，执行前先拉取用例代码写入文件，这里是单条用例运行，之所以要用 for 循环，是因为用例迟早是要批量执行，在设计时就考虑到，避免后面走弯路。然后删掉数据库运行结果，通过 subprocess 起子进程调用 pytest 命令，最后在线程的回调函数中根据 pytest_result 保存用例结果到数据库中。
+
+
+注意！run_case 接口不会直接返回结果，前端是用 WebSocket 来查询结果的。
+">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0django%E5%BC%95%E5%85%A5pytest%E5%AE%8C%E6%95%B4%E6%BA%90%E7%A0%81/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0django%E5%BC%95%E5%85%A5pytest%E5%AE%8C%E6%95%B4%E6%BA%90%E7%A0%81/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0django%E5%BC%95%E5%85%A5pytest%E5%AE%8C%E6%95%B4%E6%BA%90%E7%A0%81/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="teprunner 测试平台 Django 引入 pytest 完整源码">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+本文开发内容 pytest 登场！本文将在 Django 中引入 pytest，原理是先执行 tep startproject 命令创建 pytest 项目文件，然后从数据库中拉取代码写入文件，最后调用 pytest 命令运行用例。为了提高运行效率，用例运行是并行的，采用了多线程和多进程，两个都有，这在最后有个单独小结进行比较完整的说明。因为用例运行是异步的，所以前端并不知道什么时候执行完才能拿到运行结果，可以发多个 HTTP 请求轮询，但这种方式并不优雅，本文将采用 WebSocket 来实现用例结果查询。具体内容为：
+cases/&lt;int:pk&gt;/run运行用例接口 ws/teprunner/cases/&lt;int:case_id&gt;/result/用例结果查询接口 projects/&lt;int:pk&gt;/export下载项目环境接口 前端添加 WebSocket 请求 知识点涉及有点多：tep、pytest、同步、异步、多线程、多进程、回调函数、WebSocket、长连接、全双工、ASGI、WSGI、打 ZIP 包、文件字节流传输。
+编写后端代码 编辑 requirements.txt，添加 tep 和 channels：
+tep==0.6.9 channels==3.0.3 tep 是用来创建 pytest 项目的，channels 是用来实现 WebSocket 的。
+编辑 teprunner/urls.py 文件，添加 HTTP 路由：
+首先实现 run 接口，新建 teprunner/views/run.py 文件：
+这是运行用例的主体流程：
+第一步从请求中获取用例 id、运行环境、运行人，这里演示了获取 user 数据的两种方式：接口传参和从 token 中解析。然后根据 project_id，run_env，user_id 定义了 pytest 项目的路径。 第二步使用 tep startproject 创建项目文件，清空 fixtures 和 tests 目录，目的有两个：一是清掉 tep 默认 fixtures 和示例 cases，防止对平台产生干扰；二是保证每次运行目录都是干净的，就不用单独去处理前端手动删掉 fixture/case 后，文件残留的问题。然后从数据库中拉取环境变量、fixtures 等数据更新文件。 起多个线程，分别执行用例，执行前先拉取用例代码写入文件，这里是单条用例运行，之所以要用 for 循环，是因为用例迟早是要批量执行，在设计时就考虑到，避免后面走弯路。然后删掉数据库运行结果，通过 subprocess 起子进程调用 pytest 命令，最后在线程的回调函数中根据 pytest_result 保存用例结果到数据库中。 注意！run_case 接口不会直接返回结果，前端是用 WebSocket 来查询结果的。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:tag" content="Teprunner">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="teprunner 测试平台 Django 引入 pytest 完整源码">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+本文开发内容 pytest 登场！本文将在 Django 中引入 pytest，原理是先执行 tep startproject 命令创建 pytest 项目文件，然后从数据库中拉取代码写入文件，最后调用 pytest 命令运行用例。为了提高运行效率，用例运行是并行的，采用了多线程和多进程，两个都有，这在最后有个单独小结进行比较完整的说明。因为用例运行是异步的，所以前端并不知道什么时候执行完才能拿到运行结果，可以发多个 HTTP 请求轮询，但这种方式并不优雅，本文将采用 WebSocket 来实现用例结果查询。具体内容为：
+cases/&lt;int:pk&gt;/run运行用例接口 ws/teprunner/cases/&lt;int:case_id&gt;/result/用例结果查询接口 projects/&lt;int:pk&gt;/export下载项目环境接口 前端添加 WebSocket 请求 知识点涉及有点多：tep、pytest、同步、异步、多线程、多进程、回调函数、WebSocket、长连接、全双工、ASGI、WSGI、打 ZIP 包、文件字节流传输。
+编写后端代码 编辑 requirements.txt，添加 tep 和 channels：
+tep==0.6.9 channels==3.0.3 tep 是用来创建 pytest 项目的，channels 是用来实现 WebSocket 的。
+编辑 teprunner/urls.py 文件，添加 HTTP 路由：
+首先实现 run 接口，新建 teprunner/views/run.py 文件：
+这是运行用例的主体流程：
+第一步从请求中获取用例 id、运行环境、运行人，这里演示了获取 user 数据的两种方式：接口传参和从 token 中解析。然后根据 project_id，run_env，user_id 定义了 pytest 项目的路径。 第二步使用 tep startproject 创建项目文件，清空 fixtures 和 tests 目录，目的有两个：一是清掉 tep 默认 fixtures 和示例 cases，防止对平台产生干扰；二是保证每次运行目录都是干净的，就不用单独去处理前端手动删掉 fixture/case 后，文件残留的问题。然后从数据库中拉取环境变量、fixtures 等数据更新文件。 起多个线程，分别执行用例，执行前先拉取用例代码写入文件，这里是单条用例运行，之所以要用 for 循环，是因为用例迟早是要批量执行，在设计时就考虑到，避免后面走弯路。然后删掉数据库运行结果，通过 subprocess 起子进程调用 pytest 命令，最后在线程的回调函数中根据 pytest_result 保存用例结果到数据库中。 注意！run_case 接口不会直接返回结果，前端是用 WebSocket 来查询结果的。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "teprunner 测试平台 Django 引入 pytest 完整源码",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0django%E5%BC%95%E5%85%A5pytest%E5%AE%8C%E6%95%B4%E6%BA%90%E7%A0%81/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "teprunner 测试平台 Django 引入 pytest 完整源码",
+  "name": "teprunner 测试平台 Django 引入 pytest 完整源码",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n本文开发内容 pytest 登场！本文将在 Django 中引入 pytest，原理是先执行 tep startproject 命令创建 pytest 项目文件，然后从数据库中拉取代码写入文件，最后调用 pytest 命令运行用例。为了提高运行效率，用例运行是并行的，采用了多线程和多进程，两个都有，这在最后有个单独小结进行比较完整的说明。因为用例运行是异步的，所以前端并不知道什么时候执行完才能拿到运行结果，可以发多个 HTTP 请求轮询，但这种方式并不优雅，本文将采用 WebSocket 来实现用例结果查询。具体内容为：\ncases/\u0026lt;int:pk\u0026gt;/run运行用例接口 ws/teprunner/cases/\u0026lt;int:case_id\u0026gt;/result/用例结果查询接口 projects/\u0026lt;int:pk\u0026gt;/export下载项目环境接口 前端添加 WebSocket 请求 知识点涉及有点多：tep、pytest、同步、异步、多线程、多进程、回调函数、WebSocket、长连接、全双工、ASGI、WSGI、打 ZIP 包、文件字节流传输。\n编写后端代码 编辑 requirements.txt，添加 tep 和 channels：\ntep==0.6.9 channels==3.0.3 tep 是用来创建 pytest 项目的，channels 是用来实现 WebSocket 的。\n编辑 teprunner/urls.py 文件，添加 HTTP 路由：\n首先实现 run 接口，新建 teprunner/views/run.py 文件：\n这是运行用例的主体流程：\n第一步从请求中获取用例 id、运行环境、运行人，这里演示了获取 user 数据的两种方式：接口传参和从 token 中解析。然后根据 project_id，run_env，user_id 定义了 pytest 项目的路径。 第二步使用 tep startproject 创建项目文件，清空 fixtures 和 tests 目录，目的有两个：一是清掉 tep 默认 fixtures 和示例 cases，防止对平台产生干扰；二是保证每次运行目录都是干净的，就不用单独去处理前端手动删掉 fixture/case 后，文件残留的问题。然后从数据库中拉取环境变量、fixtures 等数据更新文件。 起多个线程，分别执行用例，执行前先拉取用例代码写入文件，这里是单条用例运行，之所以要用 for 循环，是因为用例迟早是要批量执行，在设计时就考虑到，避免后面走弯路。然后删掉数据库运行结果，通过 subprocess 起子进程调用 pytest 命令，最后在线程的回调函数中根据 pytest_result 保存用例结果到数据库中。 注意！run_case 接口不会直接返回结果，前端是用 WebSocket 来查询结果的。\n",
+  "keywords": [
+    "teprunner"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n本文开发内容 pytest 登场！本文将在 Django 中引入 pytest，原理是先执行 tep startproject 命令创建 pytest 项目文件，然后从数据库中拉取代码写入文件，最后调用 pytest 命令运行用例。为了提高运行效率，用例运行是并行的，采用了多线程和多进程，两个都有，这在最后有个单独小结进行比较完整的说明。因为用例运行是异步的，所以前端并不知道什么时候执行完才能拿到运行结果，可以发多个 HTTP 请求轮询，但这种方式并不优雅，本文将采用 WebSocket 来实现用例结果查询。具体内容为：\ncases//run运行用例接口 ws/teprunner/cases//result/用例结果查询接口 projects//export下载项目环境接口 前端添加 WebSocket 请求 知识点涉及有点多：tep、pytest、同步、异步、多线程、多进程、回调函数、WebSocket、长连接、全双工、ASGI、WSGI、打 ZIP 包、文件字节流传输。\n编写后端代码 编辑 requirements.txt，添加 tep 和 channels：\ntep==0.6.9 channels==3.0.3 tep 是用来创建 pytest 项目的，channels 是用来实现 WebSocket 的。\n编辑 teprunner/urls.py 文件，添加 HTTP 路由：\n首先实现 run 接口，新建 teprunner/views/run.py 文件：\n这是运行用例的主体流程：\n第一步从请求中获取用例 id、运行环境、运行人，这里演示了获取 user 数据的两种方式：接口传参和从 token 中解析。然后根据 project_id，run_env，user_id 定义了 pytest 项目的路径。 第二步使用 tep startproject 创建项目文件，清空 fixtures 和 tests 目录，目的有两个：一是清掉 tep 默认 fixtures 和示例 cases，防止对平台产生干扰；二是保证每次运行目录都是干净的，就不用单独去处理前端手动删掉 fixture/case 后，文件残留的问题。然后从数据库中拉取环境变量、fixtures 等数据更新文件。 起多个线程，分别执行用例，执行前先拉取用例代码写入文件，这里是单条用例运行，之所以要用 for 循环，是因为用例迟早是要批量执行，在设计时就考虑到，避免后面走弯路。然后删掉数据库运行结果，通过 subprocess 起子进程调用 pytest 命令，最后在线程的回调函数中根据 pytest_result 保存用例结果到数据库中。 注意！run_case 接口不会直接返回结果，前端是用 WebSocket 来查询结果的。\n图中很多函数和类是我封装的，一个一个拆解来看：\n这里定义了 Django 中存放 pytest 项目的目录文件，project_temp_name 是按照 project_id、env_name、user_id 来划分的，目的是让运行目录尽量隔离开来，不要相互影响，借鉴了 Docker 容器的思想，可以把这个目录视为用例运行容器。继续：\ntep startproject 命令创建 pytest 项目，pytest 文件有特定组织方式，比如 conftest.py 文件等，tep 提供了脚手架一条命令创建项目结构。继续：\nfixture_env_vars.py 里面存放了 tep 的环境变量，Django 这里每次都从数据库的 env_var 表中获取数据，动态更新到文件里面。setdefault 是个骚操作，这行代码等价于：\nif env_name in mapping.keys(): mapping[env_name][name] = value else: mapping[env_name] = {name: value} 继续：\n分别从数据库中获取代码写入 fixture 文件和 case 文件，把前端传参的运行环境写入 conf 文件。继续：\n清空 fixtures 目录，清空 tests 目录。继续：\npull_tep_files 是写环境变量，写 fixture 文件，写 conf 文件三步的集合，复用代码。pull_case_files 通过 yield 定义为了生成器，它和 list 的区别是不会一次把所有数据产生到内存中，而是每次用的时候产生一次，节约内存开销。delete_case_result 用于运行用例前删除 case_result 表里面已经存在的这条用例的数据。case_result 按照用例 id 和运行人存的多条，每个运行人都有一条属于自己的运行数据，避免数据相互干扰，返给前端的是运行时间最新的那一条！\n继续：\nsubprocess.getoutput()可以执行 shell 命令并返回执行结果，这里就拿到了 pytest 控制台日志，这个函数是在线程池中异步执行的，主线程不能一直等待它执行，所以需要有个回调函数，等它自己执行完了去调用这个回调函数。save_case_result 就是个回调函数，它的入参 pytest_result 等于 pytest_subprocess 函数返回的元组，拆包后就能拿到 outout、cmd、case_id、run_env、run_user_nickname，从中解析出 result 和 elapsed 后，就可以存库了，无则新增，有则更新。\nrun 接口做好了，再接口做下载环境接口，编辑 teprunner/views/project.py：\n打包的代码是从网上找的，把 source_dir 打包成 zip_filename 文件。继续：\nfile_iterator 函数也是网上找的，把二进制文件读取为字节流，传输给前端，需要使用 StreamingHttpResponse 对象并添加Content-Type和Content-Disposition。红框的代码跟 run 接口类似，区别在于目录换成了 export_temp_dir()，且不包含测试用例，生成 zip 文件后会把导出临时目录删掉，防止冲突。\n两个 HTTP 接口做完了，开始实现 WebSocket。WSGI 一种网关接口，是 Python 为了解决 Web 服务器端与客户端之间的通信问题而产生的，不支持 WebSocket；ASGI 是 WSGI 的扩展，意思是异步网关接口，支持 WebSocket。编辑 teprunnerbackend/urls.py 文件：\n添加了 WebSocket 路由。编辑 teprunnerbackend/asgi.py 文件：\n添加 websocket 的 URLRouter，http 保持默认。编辑 teprunnerbackend/settings.py 文件：\nINSTALLED_APPS 中添加 channels，继续：\n添加 ASGI 应用配置和 CHANNEL 配置。CHANNEL_LAYERS 是一种通信系统，允许多个 Consumer 实例之间互相通信，以及与外部 Django 程序实现互通。学习版这里使用的 InMemory。\n生产中不建议使用 InMemory，可能会有性能问题，而是应该使用 Redis：\nCHANNEL_LAYERS = { \"default\": { \"BACKEND\": \"channels_redis.core.RedisChannelLayer\", \"CONFIG\": { \"hosts\": [(\"127.0.0.1\", 6379)], }, }, } 最后，编辑 teprunner/views/case.py 文件：\nCaseResultView 是继承了 JsonWebsocketConsumer，可以接受和发送 JSON 的 WebSocket 消费者。这里只是简单使用了 channels 来实现用例结果查询，connect()在建立连接时，从 url 中拿到 case_id，作为房间名，在 channel_layer 中创建了房间。disconnect()在断开连接时，把房间从 channel_layer 中移除。继续：\nreceive_json 是在后端收到前端消息时调用的。WebSocket 是长连接，在建立连接后，不会断开，可以继续传递消息；WebSocket 是全双工，不只是客户端向服务器发消息，服务器也能向客户端发消息。这里服务端会给客户端发 4 次消息：\n第 1 次，返回用例描述和用例创建人。 第 2 次，准确说会有多次，当查询数据库没有结果时，会返回计时，前端效果是计时从 1s 递增。 第 3 次，如果查询数据库有结果，返回用例结果。 第 4 次，60s 后还没有结果，返回超时信息。 其中 CaseResult 是用order_by('-run_time')取的最新一条。最后的 self.close()不是必须的，这里加上是因为频繁建立和关闭连接时，如果只是前端发起 close()，后端可能会关闭不及时导致 channels 报错，后端也加上 close()能一定程度上避免报错。\n编写前端代码 新建.env文件：\n添加 HTTP 和 WebSocket 后端地址，里面以键值对的形式写出环境变量，键名需要以 VUE_APP_ 开头。vue-cli 打包时会自动寻找这些环境变量，注入到编辑上下文环境中。编辑 vue.config.js 文件：\n把 target 替换成.env里面的环境变量。\n编辑 views/teprunner/case/CaseResult.vue 文件：\nsocketUrl 用到了.env中的环境变量。通过 new WebSocket 创建 socket 对象，使用 send()发送消息，传了 token。onmessage 接收后端发过来的消息。\n每次打开弹窗建立 WebSocket 连接，每次关闭弹窗断开 WebSocket 连接：\n前后端是在以用例 id 作为房间名的房间中，相互传递消息的。多个浏览器的数据不会互串，因为 Django Server 默认是多线程！\n多线程和多进程 每次浏览器发起请求到 Django Server，Django 都会新起一个线程来处理，这是异步的，意味着多个浏览器连续发多个请求，每个请求的上下文都是独立的，也不会阻塞等待。\n如果 Server 不是用的 Django Server 而是用的 Nginx，需要结合 WSGI 才能实现多线程。\n在 WebSocket 通信时，每个房间都是单个线程自己创建的，数据不会互串，具体原理还没有研究，这个结论我是测试过的：修改后端代码返回随机值，多个浏览器打开同一个 Case 的结果，后打开的 Case 结果并不会影响已经打开的 Case 结果。\n同理，多个浏览器同时运行用例，默认它们就是并行不是串行的，不会存在等待执行的情况，从前面代码可以知道，pytest 命令是用 subprocess 子进程方式调用的，为了看到效果，我找了一个比较慢的 Case，用多个浏览器运行了一下：\n赤裸裸的多进程！pytest 多进程靠谱么？靠谱，因为 pytest-xdist 就只支持多进程，以下是截取的官方 Github 的 Issue：\nthreads 是线程，processes 是进程，pytest-xdist 没有使用线程。\n如果想要多台机器分布式运行用例，就要用 pytest-xdist。\n批量运行用例的情况略有不同，当批量运行用例时，前端只会有一个浏览器发起一次请求，让后端拿多个 Case 来运行，Django 只会分配一个线程来处理这个请求！如果我们在这个 View 里面只是 for 循环去运行用例，那么这些用例一定是串行的：虽然是用的 subprocess，但是启用 subprocess 的只有这一个线程，必须前一个执行完，才启动下一个。这就是为什么要再定义线程池的原因：\n本文还没有开发批量运行用例的模块，但后端已经实现了这个扩展，只需要再生成一个 CaseList 就能跑批量了。\n小结 本文把 pytest 引入到了测试平台中，已经可以跑 Case 了。文章涉及到的知识点有点繁杂，对我来说这一版也做了不少优化，反复实践和测试，参考资料加了很多。完整源码请到 GitHub 上获取，按照 README 命令就能直接把前后项目跑起来看效果。做到这里，teprunner 测试平台已经不是个花架子了，而是有着 pytest 内核引擎驱动的真测试平台。它一定不是你做测试平台的终点，但也许能成为做测试平台的起点，也许能成为撬动地球的支点。\n参考资料：\n前端源码 https://github.com/dongfanger/teprunner-frontend\n后端源码 https://github.com/dongfanger/teprunner-backend\nhttps://github.com/pytest-dev/pytest-xdist/issues/409\nhttps://blog.csdn.net/weixin_42329277/article/details/80741589\nhttps://www.cnblogs.com/xiao987334176/p/14361893.html\nhttps://juejin.cn/post/6844904195758243848\nhttps://segmentfault.com/q/1010000022975655\nhttps://channels.readthedocs.io/en/stable/topics/channel_layers.html\nhttps://segmentfault.com/a/1190000018096988\nhttps://www.jianshu.com/p/65807220b44a\n",
+  "wordCount" : "423",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-06T00:00:00Z",
+  "dateModified": "2026-01-06T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0django%E5%BC%95%E5%85%A5pytest%E5%AE%8C%E6%95%B4%E6%BA%90%E7%A0%81/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      teprunner 测试平台 Django 引入 pytest 完整源码
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-06T00:00:00+00:00'>2026-01-06</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/teprunner/'>#Teprunner</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="本文开发内容">本文开发内容<a hidden class="anchor" aria-hidden="true" href="#本文开发内容">#</a></h1>
+<p>pytest 登场！本文将在 Django 中引入 pytest，原理是先执行 tep startproject 命令创建 pytest 项目文件，然后从数据库中拉取代码写入文件，最后调用 pytest 命令运行用例。为了提高运行效率，用例运行是并行的，采用了多线程和多进程，两个都有，这在最后有个单独小结进行比较完整的说明。因为用例运行是异步的，所以前端并不知道什么时候执行完才能拿到运行结果，可以发多个 HTTP 请求轮询，但这种方式并不优雅，本文将采用 WebSocket 来实现用例结果查询。具体内容为：</p>
+<ul>
+<li><code>cases/&lt;int:pk&gt;/run</code>运行用例接口</li>
+<li><code>ws/teprunner/cases/&lt;int:case_id&gt;/result/</code>用例结果查询接口</li>
+<li><code>projects/&lt;int:pk&gt;/export</code>下载项目环境接口</li>
+<li>前端添加 WebSocket 请求</li>
+</ul>
+<p>知识点涉及有点多：tep、pytest、同步、异步、多线程、多进程、回调函数、WebSocket、长连接、全双工、ASGI、WSGI、打 ZIP 包、文件字节流传输。</p>
+<h1 id="编写后端代码">编写后端代码<a hidden class="anchor" aria-hidden="true" href="#编写后端代码">#</a></h1>
+<p>编辑 requirements.txt，添加 tep 和 channels：</p>
+<pre tabindex="0"><code>tep==0.6.9
+channels==3.0.3
+</code></pre><p>tep 是用来创建 pytest 项目的，channels 是用来实现 WebSocket 的。</p>
+<p>编辑 teprunner/urls.py 文件，添加 HTTP 路由：</p>
+<p><img loading="lazy" src="../assets/71e7cccd40254bb886c396048dadf6af.png"></p>
+<p>首先实现 run 接口，新建 teprunner/views/run.py 文件：</p>
+<p><img loading="lazy" src="../assets/1482f5173eb94926b01b3ad07a6385d0.png"></p>
+<p>这是运行用例的主体流程：</p>
+<ol>
+<li>第一步从请求中获取用例 id、运行环境、运行人，这里演示了获取 user 数据的两种方式：接口传参和从 token 中解析。然后根据 project_id，run_env，user_id 定义了 pytest 项目的路径。</li>
+<li>第二步使用 tep startproject 创建项目文件，清空 fixtures 和 tests 目录，目的有两个：一是清掉 tep 默认 fixtures 和示例 cases，防止对平台产生干扰；二是保证每次运行目录都是干净的，就不用单独去处理前端手动删掉 fixture/case 后，文件残留的问题。然后从数据库中拉取环境变量、fixtures 等数据更新文件。</li>
+<li>起多个线程，分别执行用例，执行前先拉取用例代码写入文件，这里是单条用例运行，之所以要用 for 循环，是因为用例迟早是要批量执行，在设计时就考虑到，避免后面走弯路。然后删掉数据库运行结果，通过 subprocess 起子进程调用 pytest 命令，最后在线程的回调函数中根据 pytest_result 保存用例结果到数据库中。</li>
+</ol>
+<blockquote>
+<p>注意！run_case 接口不会直接返回结果，前端是用 WebSocket 来查询结果的。</p>
+</blockquote>
+<p>图中很多函数和类是我封装的，一个一个拆解来看：</p>
+<p><img loading="lazy" src="../assets/87c46d8175da4b6bb0a65934443cfc15.png"></p>
+<p>这里定义了 Django 中存放 pytest 项目的目录文件，project_temp_name 是按照 project_id、env_name、user_id 来划分的，目的是让运行目录尽量隔离开来，不要相互影响，借鉴了 Docker 容器的思想，可以把这个目录视为用例运行容器。继续：</p>
+<p><img loading="lazy" src="../assets/722bf303d1954b17acf44d5ffec77b9f.png"></p>
+<p>tep startproject 命令创建 pytest 项目，pytest 文件有特定组织方式，比如 conftest.py 文件等，tep 提供了脚手架一条命令创建项目结构。继续：</p>
+<p><img loading="lazy" src="../assets/2d67ae2147504315972dea092501d3b0.png"></p>
+<p>fixture_env_vars.py 里面存放了 tep 的环境变量，Django 这里每次都从数据库的 env_var 表中获取数据，动态更新到文件里面。setdefault 是个骚操作，这行代码等价于：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">if</span> env_name <span style="color:#0550ae">in</span> mapping<span style="color:#0550ae">.</span>keys<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    mapping<span style="color:#1f2328">[</span>env_name<span style="color:#1f2328">][</span>name<span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> value
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    mapping<span style="color:#1f2328">[</span>env_name<span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>name<span style="color:#1f2328">:</span> value<span style="color:#1f2328">}</span>
+</span></span></code></pre></div><p>继续：</p>
+<p><img loading="lazy" src="../assets/f8475fdd82504e2d91977a43571c2eca.png"></p>
+<p>分别从数据库中获取代码写入 fixture 文件和 case 文件，把前端传参的运行环境写入 conf 文件。继续：</p>
+<p><img loading="lazy" src="../assets/dd57e6fa2537457783ff455741aadd16.png"></p>
+<p>清空 fixtures 目录，清空 tests 目录。继续：</p>
+<p><img loading="lazy" src="../assets/efcf49e2264f4fc7adcd548d1a684337.png"></p>
+<p>pull_tep_files 是写环境变量，写 fixture 文件，写 conf 文件三步的集合，复用代码。pull_case_files 通过 yield 定义为了生成器，它和 list 的区别是不会一次把所有数据产生到内存中，而是每次用的时候产生一次，节约内存开销。delete_case_result 用于运行用例前删除 case_result 表里面已经存在的这条用例的数据。case_result 按照用例 id 和运行人存的多条，每个运行人都有一条属于自己的运行数据，避免数据相互干扰，返给前端的是运行时间最新的那一条！</p>
+<p>继续：</p>
+<p><img loading="lazy" src="../assets/980539c2eed4477593219cebec3796da.png"></p>
+<p>subprocess.getoutput()可以执行 shell 命令并返回执行结果，这里就拿到了 pytest 控制台日志，这个函数是在线程池中异步执行的，主线程不能一直等待它执行，所以需要有个回调函数，等它自己执行完了去调用这个回调函数。save_case_result 就是个回调函数，它的入参 pytest_result 等于 pytest_subprocess 函数返回的元组，拆包后就能拿到 outout、cmd、case_id、run_env、run_user_nickname，从中解析出 result 和 elapsed 后，就可以存库了，无则新增，有则更新。</p>
+<p>run 接口做好了，再接口做下载环境接口，编辑 teprunner/views/project.py：</p>
+<p><img loading="lazy" src="../assets/72bf0e5f7e674d8482921741ebb8f928.png"></p>
+<p>打包的代码是从网上找的，把 source_dir 打包成 zip_filename 文件。继续：</p>
+<p><img loading="lazy" src="../assets/a50944e18d2345b88e7ccb728e47af84.png"></p>
+<p>file_iterator 函数也是网上找的，把二进制文件读取为字节流，传输给前端，需要使用 StreamingHttpResponse 对象并添加<code>Content-Type</code>和<code>Content-Disposition</code>。红框的代码跟 run 接口类似，区别在于目录换成了 export_temp_dir()，且不包含测试用例，生成 zip 文件后会把导出临时目录删掉，防止冲突。</p>
+<p>两个 HTTP 接口做完了，开始实现 WebSocket。WSGI 一种网关接口，是 Python 为了解决 Web 服务器端与客户端之间的通信问题而产生的，不支持 WebSocket；ASGI 是 WSGI 的扩展，意思是异步网关接口，支持 WebSocket。编辑 teprunnerbackend/urls.py 文件：</p>
+<p><img loading="lazy" src="../assets/ec702894023e4a068e14f158dbffe5c0.png"></p>
+<p>添加了 WebSocket 路由。编辑 teprunnerbackend/asgi.py 文件：</p>
+<p><img loading="lazy" src="../assets/48a80d492a1c42aeb7f9caed12be48dc.png"></p>
+<p>添加 websocket 的 URLRouter，http 保持默认。编辑 teprunnerbackend/settings.py 文件：</p>
+<p><img loading="lazy" src="../assets/84a0a9dcae3346829fa45e4ae0e60869.png"></p>
+<p>INSTALLED_APPS 中添加 channels，继续：</p>
+<p><img loading="lazy" src="../assets/b9e11ff4a40d467b901fb8ddedc6e89f.png"></p>
+<p>添加 ASGI 应用配置和 CHANNEL 配置。CHANNEL_LAYERS 是一种通信系统，允许多个 Consumer 实例之间互相通信，以及与外部 Django 程序实现互通。学习版这里使用的 InMemory。</p>
+<blockquote>
+<p>生产中不建议使用 InMemory，可能会有性能问题，而是应该使用 Redis：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>CHANNEL_LAYERS <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;default&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;BACKEND&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;channels_redis.core.RedisChannelLayer&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;CONFIG&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;hosts&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">[(</span><span style="color:#0a3069">&#34;127.0.0.1&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">6379</span><span style="color:#1f2328">)],</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></div></blockquote>
+<p>最后，编辑 teprunner/views/case.py 文件：</p>
+<p><img loading="lazy" src="../assets/222fe61ded944ec7a6d752c21e6d9e51.png"></p>
+<p>CaseResultView 是继承了 JsonWebsocketConsumer，可以接受和发送 JSON 的 WebSocket 消费者。这里只是简单使用了 channels 来实现用例结果查询，connect()在建立连接时，从 url 中拿到 case_id，作为房间名，在 channel_layer 中创建了房间。disconnect()在断开连接时，把房间从 channel_layer 中移除。继续：</p>
+<p><img loading="lazy" src="../assets/69c9b293afad4ef2ae2022eb660db993.png"></p>
+<p>receive_json 是在后端收到前端消息时调用的。WebSocket 是长连接，在建立连接后，不会断开，可以继续传递消息；WebSocket 是全双工，不只是客户端向服务器发消息，服务器也能向客户端发消息。这里服务端会给客户端发 4 次消息：</p>
+<ul>
+<li>第 1 次，返回用例描述和用例创建人。</li>
+<li>第 2 次，准确说会有多次，当查询数据库没有结果时，会返回计时，前端效果是计时从 1s 递增。</li>
+<li>第 3 次，如果查询数据库有结果，返回用例结果。</li>
+<li>第 4 次，60s 后还没有结果，返回超时信息。</li>
+</ul>
+<p>其中 CaseResult 是用<code>order_by('-run_time')</code>取的最新一条。最后的 self.close()不是必须的，这里加上是因为频繁建立和关闭连接时，如果只是前端发起 close()，后端可能会关闭不及时导致 channels 报错，后端也加上 close()能一定程度上避免报错。</p>
+<h1 id="编写前端代码">编写前端代码<a hidden class="anchor" aria-hidden="true" href="#编写前端代码">#</a></h1>
+<p>新建<code>.env</code>文件：</p>
+<p><img loading="lazy" src="../assets/8595c801265946d682d699013e048d52.png"></p>
+<p>添加 HTTP 和 WebSocket 后端地址，里面以键值对的形式写出环境变量，键名需要以 VUE_APP_ 开头。vue-cli 打包时会自动寻找这些环境变量，注入到编辑上下文环境中。编辑 vue.config.js 文件：</p>
+<p><img loading="lazy" src="../assets/b5cc5722866e4bb19702c0be035552bc.png"></p>
+<p>把 target 替换成<code>.env</code>里面的环境变量。</p>
+<p>编辑 views/teprunner/case/CaseResult.vue 文件：</p>
+<p><img loading="lazy" src="../assets/7ff8bd38883d4941b92b312c8ce18c83.png"></p>
+<p>socketUrl 用到了<code>.env</code>中的环境变量。通过 new WebSocket 创建 socket 对象，使用 send()发送消息，传了 token。onmessage 接收后端发过来的消息。</p>
+<p>每次打开弹窗建立 WebSocket 连接，每次关闭弹窗断开 WebSocket 连接：</p>
+<p><img loading="lazy" src="../assets/0bc8103aa87d4c08b75490bda40bd30a.png"></p>
+<p>前后端是在以用例 id 作为房间名的房间中，相互传递消息的。多个浏览器的数据不会互串，因为 Django Server 默认是多线程！</p>
+<h1 id="多线程和多进程">多线程和多进程<a hidden class="anchor" aria-hidden="true" href="#多线程和多进程">#</a></h1>
+<p>每次浏览器发起请求到 Django Server，Django 都会新起一个线程来处理，这是异步的，意味着多个浏览器连续发多个请求，每个请求的上下文都是独立的，也不会阻塞等待。</p>
+<blockquote>
+<p>如果 Server 不是用的 Django Server 而是用的 Nginx，需要结合 WSGI 才能实现多线程。</p>
+</blockquote>
+<p>在 WebSocket 通信时，每个房间都是单个线程自己创建的，数据不会互串，具体原理还没有研究，这个结论我是测试过的：修改后端代码返回随机值，多个浏览器打开同一个 Case 的结果，后打开的 Case 结果并不会影响已经打开的 Case 结果。</p>
+<p>同理，多个浏览器同时运行用例，默认它们就是并行不是串行的，不会存在等待执行的情况，从前面代码可以知道，pytest 命令是用 subprocess 子进程方式调用的，为了看到效果，我找了一个比较慢的 Case，用多个浏览器运行了一下：</p>
+<p><img loading="lazy" src="../assets/8849e6a0c7a04065b77ef34c4c376143.png"></p>
+<p>赤裸裸的多进程！pytest 多进程靠谱么？靠谱，因为 pytest-xdist 就只支持多进程，以下是截取的官方 Github 的 Issue：</p>
+<p><img loading="lazy" src="../assets/48fa536efdcf471a9d18cbff0db61d5c.png"></p>
+<p>threads 是线程，processes 是进程，pytest-xdist 没有使用线程。</p>
+<blockquote>
+<p>如果想要多台机器分布式运行用例，就要用 pytest-xdist。</p>
+</blockquote>
+<p>批量运行用例的情况略有不同，当批量运行用例时，前端只会有一个浏览器发起一次请求，让后端拿多个 Case 来运行，Django 只会分配一个线程来处理这个请求！如果我们在这个 View 里面只是 for 循环去运行用例，那么这些用例一定是串行的：虽然是用的 subprocess，但是启用 subprocess 的只有这一个线程，必须前一个执行完，才启动下一个。这就是为什么要再定义线程池的原因：</p>
+<p><img loading="lazy" src="../assets/82ba957f6a8a4dbfb4f3555b2104da4f.png"></p>
+<p>本文还没有开发批量运行用例的模块，但后端已经实现了这个扩展，只需要再生成一个 CaseList 就能跑批量了。</p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文把 pytest 引入到了测试平台中，已经可以跑 Case 了。文章涉及到的知识点有点繁杂，对我来说这一版也做了不少优化，反复实践和测试，参考资料加了很多。完整源码请到 GitHub 上获取，按照 README 命令就能直接把前后项目跑起来看效果。做到这里，teprunner 测试平台已经不是个花架子了，而是有着 pytest 内核引擎驱动的真测试平台。它一定不是你做测试平台的终点，但也许能成为做测试平台的起点，也许能成为撬动地球的支点。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>前端源码 <a href="https://github.com/dongfanger/teprunner-frontend">https://github.com/dongfanger/teprunner-frontend</a></p>
+<p>后端源码 <a href="https://github.com/dongfanger/teprunner-backend">https://github.com/dongfanger/teprunner-backend</a></p>
+<p><a href="https://github.com/pytest-dev/pytest-xdist/issues/409">https://github.com/pytest-dev/pytest-xdist/issues/409</a></p>
+<p><a href="https://blog.csdn.net/weixin_42329277/article/details/80741589">https://blog.csdn.net/weixin_42329277/article/details/80741589</a></p>
+<p><a href="https://www.cnblogs.com/xiao987334176/p/14361893.html">https://www.cnblogs.com/xiao987334176/p/14361893.html</a></p>
+<p><a href="https://juejin.cn/post/6844904195758243848">https://juejin.cn/post/6844904195758243848</a></p>
+<p><a href="https://segmentfault.com/q/1010000022975655">https://segmentfault.com/q/1010000022975655</a></p>
+<p><a href="https://channels.readthedocs.io/en/stable/topics/channel_layers.html">https://channels.readthedocs.io/en/stable/topics/channel_layers.html</a></p>
+<p><a href="https://segmentfault.com/a/1190000018096988">https://segmentfault.com/a/1190000018096988</a></p>
+<p><a href="https://www.jianshu.com/p/65807220b44a">https://www.jianshu.com/p/65807220b44a</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/teprunner/">Teprunner</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8Ffixtures%E7%94%A8%E4%BE%8B%E4%B8%89%E8%80%85%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB/">
+    <span class="title">« 上一页</span>
+    <span>tep 环境变量、fixtures、用例三者之间的关系</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%9A%8F%E7%AC%94/%E6%B5%8B%E8%AF%95%E5%B7%A5%E7%A8%8B%E5%B8%88%E7%9A%84%E6%88%90%E9%95%BF%E4%BD%93%E7%8E%B0%E5%9C%A82%E4%B8%AA%E5%9C%B0%E6%96%B9/">
+    <span class="title">下一页 »</span>
+    <span>测试工程师的成长，体现在 2 个地方</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#本文开发内容">本文开发内容</a></li>
+    <li><a href="#编写后端代码">编写后端代码</a></li>
+    <li><a href="#编写前端代码">编写前端代码</a></li>
+    <li><a href="#多线程和多进程">多线程和多进程</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JavaWeb 开发基础 Servlet 简介 | 测试开发刚哥</title>
+<meta name="keywords" content="JavaWeb">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Servlet 是什么？
+
+现在的 Java Web 开发，很少直接接触到 Servlet。在 Spring 项目中，Spring Boot 基于 Spring Framework，简化了 Spring 应用程序开发，Spring Framework 是一个全面的 Java 应用程序框架，其中包含 Spring MVC 模块，Spring MVC 封装了 Servlet，以实现 Web 功能。Servlet 不属于 Spirng 项目，而是 Java EE（后改名为 Jakarta EE）的一部分。
+
+Oracle 将 Java EE（Java SE 还自己保留）交给开源组织，Eclipse 基金会接手。但 Oracle 不允许开源组织使用 Java 名号，所以 Jakarta EE 名称于 2018.02.26 应运而生。
+
+Servlet 可以有很多种描述：
+
+
+Servlet 是一个技术，用来创建 Web 应用程序
+
+
+Servlet 是一个 API，提供了很多接口、类和文档
+
+
+Servlet 是一个接口，必须实现该接口来创建 Servlet
+
+
+Servlet 是一个类，位于服务端，接收请求，返回响应
+
+
+Servlet 是一个 Web 组件，用来创建动态 Web 页面
+
+">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%AE%80%E4%BB%8B/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%AE%80%E4%BB%8B/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%AE%80%E4%BB%8B/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JavaWeb 开发基础 Servlet 简介">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Servlet 是什么？ 现在的 Java Web 开发，很少直接接触到 Servlet。在 Spring 项目中，Spring Boot 基于 Spring Framework，简化了 Spring 应用程序开发，Spring Framework 是一个全面的 Java 应用程序框架，其中包含 Spring MVC 模块，Spring MVC 封装了 Servlet，以实现 Web 功能。Servlet 不属于 Spirng 项目，而是 Java EE（后改名为 Jakarta EE）的一部分。
+Oracle 将 Java EE（Java SE 还自己保留）交给开源组织，Eclipse 基金会接手。但 Oracle 不允许开源组织使用 Java 名号，所以 Jakarta EE 名称于 2018.02.26 应运而生。
+Servlet 可以有很多种描述：
+Servlet 是一个技术，用来创建 Web 应用程序
+Servlet 是一个 API，提供了很多接口、类和文档
+Servlet 是一个接口，必须实现该接口来创建 Servlet
+Servlet 是一个类，位于服务端，接收请求，返回响应
+Servlet 是一个 Web 组件，用来创建动态 Web 页面">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-02T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-02T00:00:00+00:00">
+    <meta property="article:tag" content="JavaWeb">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JavaWeb 开发基础 Servlet 简介">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Servlet 是什么？ 现在的 Java Web 开发，很少直接接触到 Servlet。在 Spring 项目中，Spring Boot 基于 Spring Framework，简化了 Spring 应用程序开发，Spring Framework 是一个全面的 Java 应用程序框架，其中包含 Spring MVC 模块，Spring MVC 封装了 Servlet，以实现 Web 功能。Servlet 不属于 Spirng 项目，而是 Java EE（后改名为 Jakarta EE）的一部分。
+Oracle 将 Java EE（Java SE 还自己保留）交给开源组织，Eclipse 基金会接手。但 Oracle 不允许开源组织使用 Java 名号，所以 Jakarta EE 名称于 2018.02.26 应运而生。
+Servlet 可以有很多种描述：
+Servlet 是一个技术，用来创建 Web 应用程序
+Servlet 是一个 API，提供了很多接口、类和文档
+Servlet 是一个接口，必须实现该接口来创建 Servlet
+Servlet 是一个类，位于服务端，接收请求，返回响应
+Servlet 是一个 Web 组件，用来创建动态 Web 页面">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JavaWeb 开发基础 Servlet 简介",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%AE%80%E4%BB%8B/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JavaWeb 开发基础 Servlet 简介",
+  "name": "JavaWeb 开发基础 Servlet 简介",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nServlet 是什么？ 现在的 Java Web 开发，很少直接接触到 Servlet。在 Spring 项目中，Spring Boot 基于 Spring Framework，简化了 Spring 应用程序开发，Spring Framework 是一个全面的 Java 应用程序框架，其中包含 Spring MVC 模块，Spring MVC 封装了 Servlet，以实现 Web 功能。Servlet 不属于 Spirng 项目，而是 Java EE（后改名为 Jakarta EE）的一部分。\nOracle 将 Java EE（Java SE 还自己保留）交给开源组织，Eclipse 基金会接手。但 Oracle 不允许开源组织使用 Java 名号，所以 Jakarta EE 名称于 2018.02.26 应运而生。\nServlet 可以有很多种描述：\nServlet 是一个技术，用来创建 Web 应用程序\nServlet 是一个 API，提供了很多接口、类和文档\nServlet 是一个接口，必须实现该接口来创建 Servlet\nServlet 是一个类，位于服务端，接收请求，返回响应\nServlet 是一个 Web 组件，用来创建动态 Web 页面\n",
+  "keywords": [
+    "JavaWeb"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nServlet 是什么？ 现在的 Java Web 开发，很少直接接触到 Servlet。在 Spring 项目中，Spring Boot 基于 Spring Framework，简化了 Spring 应用程序开发，Spring Framework 是一个全面的 Java 应用程序框架，其中包含 Spring MVC 模块，Spring MVC 封装了 Servlet，以实现 Web 功能。Servlet 不属于 Spirng 项目，而是 Java EE（后改名为 Jakarta EE）的一部分。\nOracle 将 Java EE（Java SE 还自己保留）交给开源组织，Eclipse 基金会接手。但 Oracle 不允许开源组织使用 Java 名号，所以 Jakarta EE 名称于 2018.02.26 应运而生。\nServlet 可以有很多种描述：\nServlet 是一个技术，用来创建 Web 应用程序\nServlet 是一个 API，提供了很多接口、类和文档\nServlet 是一个接口，必须实现该接口来创建 Servlet\nServlet 是一个类，位于服务端，接收请求，返回响应\nServlet 是一个 Web 组件，用来创建动态 Web 页面\nCGI 与 Servlet 在 Servlet 技术出现以前，Web 应用程序是通过 CGI（Common Gateway Interface），一种脚本语言，来实现的。\n但是 CGI 存在很多缺点：\n如果客户端增多，服务端响应会变慢\n对于每个请求，CGI 都会创建一个进程，进程数有限\n依赖 C、C++、perl 等编程语言\nServlet 技术出现以后，解决了很多 CGI 问题：\n性能：每个请求创建一个线程，而不是进程\n可移植性：因为使用了 Java 语言\n健壮性：JVM 管理 Servlet，无需关心内存泄漏、垃圾回收等\n安全性：因为使用了 Java 语言\n总的来说，Servlet 是 Server Applet，服务端小程序。它是单例多线程的，每个 Servlet 类在 Web 容器中只有一个实例，每次客户端请求，Web Server 都会从线程池中分配一个线程去创建 Servlet，每个请求由一个独立的线程处理，这些线程共享同一个 Servlet 实例，通过 HTTP 协议接收和响应来自 Web Client 的请求。\n参考资料：\nhttps://www.javatpoint.com/servlet-tutorial\n",
+  "wordCount" : "124",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-02T00:00:00Z",
+  "dateModified": "2026-01-02T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%AE%80%E4%BB%8B/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      JavaWeb 开发基础 Servlet 简介
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-02T00:00:00+00:00'>2026-01-02</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/javaweb/'>#JavaWeb</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="servlet-是什么">Servlet 是什么？<a hidden class="anchor" aria-hidden="true" href="#servlet-是什么">#</a></h1>
+<p><img loading="lazy" src="../assets/0863f0b88a9b4244b59573ab6e6655bd.png"></p>
+<p>现在的 Java Web 开发，很少直接接触到 Servlet。在 Spring 项目中，Spring Boot 基于 Spring Framework，简化了 Spring 应用程序开发，Spring Framework 是一个全面的 Java 应用程序框架，其中包含 Spring MVC 模块，Spring MVC 封装了 Servlet，以实现 Web 功能。Servlet 不属于 Spirng 项目，而是 Java EE（后改名为 Jakarta EE）的一部分。</p>
+<blockquote>
+<p>Oracle 将 Java EE（Java SE 还自己保留）交给开源组织，Eclipse 基金会接手。但 Oracle 不允许开源组织使用 Java 名号，所以 Jakarta EE 名称于 2018.02.26 应运而生。</p>
+</blockquote>
+<p>Servlet 可以有很多种描述：</p>
+<ul>
+<li>
+<p>Servlet 是一个技术，用来创建 Web 应用程序</p>
+</li>
+<li>
+<p>Servlet 是一个 API，提供了很多接口、类和文档</p>
+</li>
+<li>
+<p>Servlet 是一个接口，必须实现该接口来创建 Servlet</p>
+</li>
+<li>
+<p>Servlet 是一个类，位于服务端，接收请求，返回响应</p>
+</li>
+<li>
+<p>Servlet 是一个 Web 组件，用来创建动态 Web 页面</p>
+</li>
+</ul>
+<p><img loading="lazy" src="../assets/524e589b55a04b2795c7331558a7ee61.png"></p>
+<h1 id="cgi-与-servlet">CGI 与 Servlet<a hidden class="anchor" aria-hidden="true" href="#cgi-与-servlet">#</a></h1>
+<p>在 Servlet 技术出现以前，Web 应用程序是通过 CGI（Common Gateway Interface），一种脚本语言，来实现的。</p>
+<p><img loading="lazy" src="../assets/495c5d1c208d4ad7a9debb06e0dc9cbe.png"></p>
+<p>但是 CGI 存在很多缺点：</p>
+<ul>
+<li>
+<p>如果客户端增多，服务端响应会变慢</p>
+</li>
+<li>
+<p>对于每个请求，CGI 都会创建一个进程，进程数有限</p>
+</li>
+<li>
+<p>依赖 C、C++、perl 等编程语言</p>
+</li>
+</ul>
+<p>Servlet 技术出现以后，解决了很多 CGI 问题：</p>
+<ul>
+<li>
+<p>性能：每个请求创建一个线程，而不是进程</p>
+</li>
+<li>
+<p>可移植性：因为使用了 Java 语言</p>
+</li>
+<li>
+<p>健壮性：JVM 管理 Servlet，无需关心内存泄漏、垃圾回收等</p>
+</li>
+<li>
+<p>安全性：因为使用了 Java 语言</p>
+</li>
+</ul>
+<p><img loading="lazy" src="../assets/f63bbfd6ec814adcbea9122bff9d7c82.png"></p>
+<p>总的来说，Servlet 是 Server Applet，服务端小程序。它是单例多线程的，每个 Servlet 类在 Web 容器中只有一个实例，每次客户端请求，Web Server 都会从线程池中分配一个线程去创建 Servlet，每个请求由一个独立的线程处理，这些线程共享同一个 Servlet 实例，通过 HTTP 协议接收和响应来自 Web Client 的请求。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.javatpoint.com/servlet-tutorial">https://www.javatpoint.com/servlet-tutorial</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/javaweb/">JavaWeb</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E9%AB%98%E7%BA%A7%E7%BC%96%E7%A8%8B%E7%B2%BE%E5%8D%8E%E7%AC%94%E8%AE%B0/">
+    <span class="title">« 上一页</span>
+    <span>Java 高级编程精华笔记</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E6%98%AF%E5%A6%82%E4%BD%95%E8%BF%90%E8%A1%8C%E6%96%BD%E5%8E%8B%E7%9A%84/">
+    <span class="title">下一页 »</span>
+    <span>JMeter 是如何运行施压的</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#servlet-是什么">Servlet 是什么？</a></li>
+    <li><a href="#cgi-与-servlet">CGI 与 Servlet</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

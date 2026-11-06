@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>HttpRunner3 的$符号是如何解析的 | 测试开发刚哥</title>
+<meta name="keywords" content="HttpRunner">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+变量解析
+$符号在很多测试框架中都会拿来用做变量解析，大名鼎鼎的 JMeter 就有这个用法。HttpRunner3 也支持$符号，比如：
+Step(
+    RunRequest(&#34;登录&#34;)
+        .post(&#34;/login&#34;)
+        .with_headers(**{&#34;Content-Type&#34;: &#34;application/json&#34;})
+        .with_json({&#34;username&#34;: &#34;dongfanger&#34;, &#34;password&#34;: &#34;123456&#34;})
+        .extract()
+        .with_jmespath(&#34;body.token&#34;, &#34;token&#34;)
+        .validate()
+        .assert_equal(&#34;status_code&#34;, 200)
+),
+Step(
+    RunRequest(&#34;搜索商品&#34;)
+        .get(&#34;searchSku?skuName=电子书&#34;)
+        .with_headers(**{&#34;token&#34;: &#34;$token&#34;})
+        .extract()
+        .with_jmespath(&#34;body.skuId&#34;, &#34;skuId&#34;)
+        .with_jmespath(&#34;body.price&#34;, &#34;skuPrice&#34;)
+        .validate()
+        .assert_equal(&#34;status_code&#34;, 200)
+),
+从登录提取的变量token，在搜索商品中使用$token来引用。
+parser.py
+HttpRunner 对$符号的解析是在 parser.py 文件中实现的：
+
+这些方法可以分为四类：
+
+
+url
+build_url()
+
+
+变量
+extract_variables()  get_mapping_variable()  parse_variables_mapping()  regex_findall_variables()  parse_data()  parse_string()
+
+
+函数
+get_mapping_function()  parse_function_params()  regex_findall_functions()  parse_string_value()  parse_data()  parse_string()
+
+
+参数化（&quot;${parameterize(account.csv)}&quot;）
+parse_parameters()
+
+
+本文专门针对变量这一块源码来进行剖析。
+全局变量池
+HttpRunner3 在运行时的所有变量都是存储在__session_variables这个字典中的：
+
+在脚本开始时会把 config 的预设变量加载进来，然后会在执行 Step 测试步骤时，把各个步骤的变量也放到全局变量池里面。
+解析过程
+在 runner.py 的第 350 行代码能看到解析变量的调用：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/httprunner3%E7%9A%84%E7%AC%A6%E5%8F%B7%E6%98%AF%E5%A6%82%E4%BD%95%E8%A7%A3%E6%9E%90%E7%9A%84/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/httprunner3%E7%9A%84%E7%AC%A6%E5%8F%B7%E6%98%AF%E5%A6%82%E4%BD%95%E8%A7%A3%E6%9E%90%E7%9A%84/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/httprunner3%E7%9A%84%E7%AC%A6%E5%8F%B7%E6%98%AF%E5%A6%82%E4%BD%95%E8%A7%A3%E6%9E%90%E7%9A%84/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="HttpRunner3 的$符号是如何解析的">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+变量解析 $符号在很多测试框架中都会拿来用做变量解析，大名鼎鼎的 JMeter 就有这个用法。HttpRunner3 也支持$符号，比如：
+Step( RunRequest(&#34;登录&#34;) .post(&#34;/login&#34;) .with_headers(**{&#34;Content-Type&#34;: &#34;application/json&#34;}) .with_json({&#34;username&#34;: &#34;dongfanger&#34;, &#34;password&#34;: &#34;123456&#34;}) .extract() .with_jmespath(&#34;body.token&#34;, &#34;token&#34;) .validate() .assert_equal(&#34;status_code&#34;, 200) ), Step( RunRequest(&#34;搜索商品&#34;) .get(&#34;searchSku?skuName=电子书&#34;) .with_headers(**{&#34;token&#34;: &#34;$token&#34;}) .extract() .with_jmespath(&#34;body.skuId&#34;, &#34;skuId&#34;) .with_jmespath(&#34;body.price&#34;, &#34;skuPrice&#34;) .validate() .assert_equal(&#34;status_code&#34;, 200) ), 从登录提取的变量token，在搜索商品中使用$token来引用。
+parser.py HttpRunner 对$符号的解析是在 parser.py 文件中实现的：
+这些方法可以分为四类：
+url
+build_url()
+变量
+extract_variables() get_mapping_variable() parse_variables_mapping() regex_findall_variables() parse_data() parse_string()
+函数
+get_mapping_function() parse_function_params() regex_findall_functions() parse_string_value() parse_data() parse_string()
+参数化（&#34;${parameterize(account.csv)}&#34;）
+parse_parameters()
+本文专门针对变量这一块源码来进行剖析。
+全局变量池 HttpRunner3 在运行时的所有变量都是存储在__session_variables这个字典中的：
+在脚本开始时会把 config 的预设变量加载进来，然后会在执行 Step 测试步骤时，把各个步骤的变量也放到全局变量池里面。
+解析过程 在 runner.py 的第 350 行代码能看到解析变量的调用：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:tag" content="HttpRunner">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="HttpRunner3 的$符号是如何解析的">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+变量解析 $符号在很多测试框架中都会拿来用做变量解析，大名鼎鼎的 JMeter 就有这个用法。HttpRunner3 也支持$符号，比如：
+Step( RunRequest(&#34;登录&#34;) .post(&#34;/login&#34;) .with_headers(**{&#34;Content-Type&#34;: &#34;application/json&#34;}) .with_json({&#34;username&#34;: &#34;dongfanger&#34;, &#34;password&#34;: &#34;123456&#34;}) .extract() .with_jmespath(&#34;body.token&#34;, &#34;token&#34;) .validate() .assert_equal(&#34;status_code&#34;, 200) ), Step( RunRequest(&#34;搜索商品&#34;) .get(&#34;searchSku?skuName=电子书&#34;) .with_headers(**{&#34;token&#34;: &#34;$token&#34;}) .extract() .with_jmespath(&#34;body.skuId&#34;, &#34;skuId&#34;) .with_jmespath(&#34;body.price&#34;, &#34;skuPrice&#34;) .validate() .assert_equal(&#34;status_code&#34;, 200) ), 从登录提取的变量token，在搜索商品中使用$token来引用。
+parser.py HttpRunner 对$符号的解析是在 parser.py 文件中实现的：
+这些方法可以分为四类：
+url
+build_url()
+变量
+extract_variables() get_mapping_variable() parse_variables_mapping() regex_findall_variables() parse_data() parse_string()
+函数
+get_mapping_function() parse_function_params() regex_findall_functions() parse_string_value() parse_data() parse_string()
+参数化（&#34;${parameterize(account.csv)}&#34;）
+parse_parameters()
+本文专门针对变量这一块源码来进行剖析。
+全局变量池 HttpRunner3 在运行时的所有变量都是存储在__session_variables这个字典中的：
+在脚本开始时会把 config 的预设变量加载进来，然后会在执行 Step 测试步骤时，把各个步骤的变量也放到全局变量池里面。
+解析过程 在 runner.py 的第 350 行代码能看到解析变量的调用：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "HttpRunner3 的$符号是如何解析的",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/httprunner3%E7%9A%84%E7%AC%A6%E5%8F%B7%E6%98%AF%E5%A6%82%E4%BD%95%E8%A7%A3%E6%9E%90%E7%9A%84/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "HttpRunner3 的$符号是如何解析的",
+  "name": "HttpRunner3 的$符号是如何解析的",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n变量解析 $符号在很多测试框架中都会拿来用做变量解析，大名鼎鼎的 JMeter 就有这个用法。HttpRunner3 也支持$符号，比如：\nStep( RunRequest(\u0026#34;登录\u0026#34;) .post(\u0026#34;/login\u0026#34;) .with_headers(**{\u0026#34;Content-Type\u0026#34;: \u0026#34;application/json\u0026#34;}) .with_json({\u0026#34;username\u0026#34;: \u0026#34;dongfanger\u0026#34;, \u0026#34;password\u0026#34;: \u0026#34;123456\u0026#34;}) .extract() .with_jmespath(\u0026#34;body.token\u0026#34;, \u0026#34;token\u0026#34;) .validate() .assert_equal(\u0026#34;status_code\u0026#34;, 200) ), Step( RunRequest(\u0026#34;搜索商品\u0026#34;) .get(\u0026#34;searchSku?skuName=电子书\u0026#34;) .with_headers(**{\u0026#34;token\u0026#34;: \u0026#34;$token\u0026#34;}) .extract() .with_jmespath(\u0026#34;body.skuId\u0026#34;, \u0026#34;skuId\u0026#34;) .with_jmespath(\u0026#34;body.price\u0026#34;, \u0026#34;skuPrice\u0026#34;) .validate() .assert_equal(\u0026#34;status_code\u0026#34;, 200) ), 从登录提取的变量token，在搜索商品中使用$token来引用。\nparser.py HttpRunner 对$符号的解析是在 parser.py 文件中实现的：\n这些方法可以分为四类：\nurl\nbuild_url()\n变量\nextract_variables() get_mapping_variable() parse_variables_mapping() regex_findall_variables() parse_data() parse_string()\n函数\nget_mapping_function() parse_function_params() regex_findall_functions() parse_string_value() parse_data() parse_string()\n参数化（\u0026quot;${parameterize(account.csv)}\u0026quot;）\nparse_parameters()\n本文专门针对变量这一块源码来进行剖析。\n全局变量池 HttpRunner3 在运行时的所有变量都是存储在__session_variables这个字典中的：\n在脚本开始时会把 config 的预设变量加载进来，然后会在执行 Step 测试步骤时，把各个步骤的变量也放到全局变量池里面。\n解析过程 在 runner.py 的第 350 行代码能看到解析变量的调用：\n",
+  "keywords": [
+    "HttpRunner"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n变量解析 $符号在很多测试框架中都会拿来用做变量解析，大名鼎鼎的 JMeter 就有这个用法。HttpRunner3 也支持$符号，比如：\nStep( RunRequest(\"登录\") .post(\"/login\") .with_headers(**{\"Content-Type\": \"application/json\"}) .with_json({\"username\": \"dongfanger\", \"password\": \"123456\"}) .extract() .with_jmespath(\"body.token\", \"token\") .validate() .assert_equal(\"status_code\", 200) ), Step( RunRequest(\"搜索商品\") .get(\"searchSku?skuName=电子书\") .with_headers(**{\"token\": \"$token\"}) .extract() .with_jmespath(\"body.skuId\", \"skuId\") .with_jmespath(\"body.price\", \"skuPrice\") .validate() .assert_equal(\"status_code\", 200) ), 从登录提取的变量token，在搜索商品中使用$token来引用。\nparser.py HttpRunner 对$符号的解析是在 parser.py 文件中实现的：\n这些方法可以分为四类：\nurl\nbuild_url()\n变量\nextract_variables() get_mapping_variable() parse_variables_mapping() regex_findall_variables() parse_data() parse_string()\n函数\nget_mapping_function() parse_function_params() regex_findall_functions() parse_string_value() parse_data() parse_string()\n参数化（\"${parameterize(account.csv)}\"）\nparse_parameters()\n本文专门针对变量这一块源码来进行剖析。\n全局变量池 HttpRunner3 在运行时的所有变量都是存储在__session_variables这个字典中的：\n在脚本开始时会把 config 的预设变量加载进来，然后会在执行 Step 测试步骤时，把各个步骤的变量也放到全局变量池里面。\n解析过程 在 runner.py 的第 350 行代码能看到解析变量的调用：\n然后 parse_variables_mapping()函数需要仔细看：\ndef parse_variables_mapping( variables_mapping: VariablesMapping, functions_mapping: FunctionsMapping = None ) -\u003e VariablesMapping: parsed_variables: VariablesMapping = {} while len(parsed_variables) != len(variables_mapping): for var_name in variables_mapping: if var_name in parsed_variables: continue var_value = variables_mapping[var_name] variables = extract_variables(var_value) # check if reference variable itself if var_name in variables: # e.g. # variables_mapping = {\"token\": \"abc$token\"} # variables_mapping = {\"key\": [\"$key\", 2]} raise exceptions.VariableNotFound(var_name) # check if reference variable not in variables_mapping not_defined_variables = [ v_name for v_name in variables if v_name not in variables_mapping ] if not_defined_variables: # e.g. {\"varA\": \"123$varB\", \"varB\": \"456$varC\"} # e.g. {\"varC\": \"${sum_two($a, $b)}\"} raise exceptions.VariableNotFound(not_defined_variables) try: parsed_value = parse_data( var_value, parsed_variables, functions_mapping ) except exceptions.VariableNotFound: continue parsed_variables[var_name] = parsed_value return parsed_variables tests/parser_test.py有一段测试代码：\n建议打个断点，调试一把，就知道代码是怎么个原理了。\n大概思路是：最外层的 while 循环会比较已解析和未解析的存储字典长度，只有当所有的变量都解析到值以后，才会正常退出。拿示例代码来说，第一次循环只会解析出varC、a、b，第二次循环才会解析出varB，第三次循环解析出varA。\n循环内部，先是调用 extract_variables()方法解析出变量集合：\ndef extract_variables(content: Any) -\u003e Set: \"\"\" extract all variables in content recursively. \"\"\" if isinstance(content, (list, set, tuple)): variables = set() for item in content: variables = variables | extract_variables(item) return variables elif isinstance(content, dict): variables = set() for key, value in content.items(): variables = variables | extract_variables(value) return variables elif isinstance(content, str): return set(regex_findall_variables(content)) return set() regex_findall_variables()函数就是用来解析字符串的，采用的是正则匹配：\ndef regex_findall_variables(raw_string: Text) -\u003e List[Text]: \"\"\" extract all variable names from content, which is in format $variable Args: raw_string (str): string content Returns: list: variables list extracted from string content Examples: \u003e\u003e\u003e regex_findall_variables(\"$variable\") [\"variable\"] \u003e\u003e\u003e regex_findall_variables(\"/blog/$postid\") [\"postid\"] \u003e\u003e\u003e regex_findall_variables(\"/$var1/$var2\") [\"var1\", \"var2\"] \u003e\u003e\u003e regex_findall_variables(\"abc\") [] \"\"\" try: match_start_position = raw_string.index(\"$\", 0) except ValueError: return [] vars_list = [] while match_start_position \u003c len(raw_string): # Notice: notation priority # $$ \u003e $var # search $$ dollar_match = dolloar_regex_compile.match(raw_string, match_start_position) if dollar_match: match_start_position = dollar_match.end() continue # search variable like ${var} or $var var_match = variable_regex_compile.match(raw_string, match_start_position) if var_match: var_name = var_match.group(1) or var_match.group(2) vars_list.append(var_name) match_start_position = var_match.end() continue curr_position = match_start_position try: # find next $ location match_start_position = raw_string.index(\"$\", curr_position + 1) except ValueError: # break while loop break return vars_list 调用 extract_variables()方法解析出变量集合以后，就会进行异常校验：变量是否引用自己和变量未定义：\n如果校验通过就会调用 parse_data()解析出变量值，存入已解析的字典 parsed_variables 中。\nparse_data()和 parse_string()两个函数和主要流程无关了，它们的作用就是解析出变量值，感兴趣的读者朋友可以自行研究一下：\ndef parse_data( raw_data: Any, variables_mapping: VariablesMapping = None, functions_mapping: FunctionsMapping = None, ) -\u003e Any: \"\"\" parse raw data with evaluated variables mapping. Notice: variables_mapping should not contain any variable or function. \"\"\" if isinstance(raw_data, str): # content in string format may contains variables and functions variables_mapping = variables_mapping or {} functions_mapping = functions_mapping or {} # only strip whitespaces and tabs, \\n\\r is left because they maybe used in changeset raw_data = raw_data.strip(\" \\t\") return parse_string(raw_data, variables_mapping, functions_mapping) elif isinstance(raw_data, (list, set, tuple)): return [ parse_data(item, variables_mapping, functions_mapping) for item in raw_data ] elif isinstance(raw_data, dict): parsed_data = {} for key, value in raw_data.items(): parsed_key = parse_data(key, variables_mapping, functions_mapping) parsed_value = parse_data(value, variables_mapping, functions_mapping) parsed_data[parsed_key] = parsed_value return parsed_data else: # other types, e.g. None, int, float, bool return raw_data def parse_string( raw_string: Text, variables_mapping: VariablesMapping, functions_mapping: FunctionsMapping, ) -\u003e Any: \"\"\" parse string content with variables and functions mapping. Args: raw_string: raw string content to be parsed. variables_mapping: variables mapping. functions_mapping: functions mapping. Returns: str: parsed string content. Examples: \u003e\u003e\u003e raw_string = \"abc${add_one($num)}def\" \u003e\u003e\u003e variables_mapping = {\"num\": 3} \u003e\u003e\u003e functions_mapping = {\"add_one\": lambda x: x + 1} \u003e\u003e\u003e parse_string(raw_string, variables_mapping, functions_mapping) \"abc4def\" \"\"\" try: match_start_position = raw_string.index(\"$\", 0) parsed_string = raw_string[0:match_start_position] except ValueError: parsed_string = raw_string return parsed_string while match_start_position \u003c len(raw_string): # Notice: notation priority # $$ \u003e ${func($a, $b)} \u003e $var # search $$ dollar_match = dolloar_regex_compile.match(raw_string, match_start_position) if dollar_match: match_start_position = dollar_match.end() parsed_string += \"$\" continue # search function like ${func($a, $b)} func_match = function_regex_compile.match(raw_string, match_start_position) if func_match: func_name = func_match.group(1) func = get_mapping_function(func_name, functions_mapping) func_params_str = func_match.group(2) function_meta = parse_function_params(func_params_str) args = function_meta[\"args\"] kwargs = function_meta[\"kwargs\"] parsed_args = parse_data(args, variables_mapping, functions_mapping) parsed_kwargs = parse_data(kwargs, variables_mapping, functions_mapping) try: func_eval_value = func(*parsed_args, **parsed_kwargs) except Exception as ex: logger.error( f\"call function error:\\n\" f\"func_name: {func_name}\\n\" f\"args: {parsed_args}\\n\" f\"kwargs: {parsed_kwargs}\\n\" f\"{type(ex).__name__}: {ex}\" ) raise func_raw_str = \"${\" + func_name + f\"({func_params_str})\" + \"}\" if func_raw_str == raw_string: # raw_string is a function, e.g. \"${add_one(3)}\", return its eval value directly return func_eval_value # raw_string contains one or many functions, e.g. \"abc${add_one(3)}def\" parsed_string += str(func_eval_value) match_start_position = func_match.end() continue # search variable like ${var} or $var var_match = variable_regex_compile.match(raw_string, match_start_position) if var_match: var_name = var_match.group(1) or var_match.group(2) var_value = get_mapping_variable(var_name, variables_mapping) if f\"${var_name}\" == raw_string or \"${\" + var_name + \"}\" == raw_string: # raw_string is a variable, $var or ${var}, return its value directly return var_value # raw_string contains one or many variables, e.g. \"abc${var}def\" parsed_string += str(var_value) match_start_position = var_match.end() continue curr_position = match_start_position try: # find next $ location match_start_position = raw_string.index(\"$\", curr_position + 1) remain_string = raw_string[curr_position:match_start_position] except ValueError: remain_string = raw_string[curr_position:] # break while loop match_start_position = len(raw_string) parsed_string += remain_string return parsed_string 技术都是相通的 通过阅读源码可以发现，技术都是相通的。对于 HttpRunner 来说，它之所以要费这么大周章设计$符号，就是因为它的定位是要让不怎么会写代码的同学，也能使用 yaml 轻松写自动化。但是 V3 版本出来以后，官方强烈建议采用直接编写 Python 代码，但仍然遵循 yaml 这种约定，是不是反而成为了一种约束呢？跳出这个框架，直接编写 pytest，岂不是效率会更高一些？这些问题的答案需要我们根据自身特点和业务场景去把握了。就我个人而言，仍然且始终坚持，纯 Python 代码写自动化的方式。\n",
+  "wordCount" : "854",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-05T00:00:00Z",
+  "dateModified": "2026-01-05T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/httprunner3%E7%9A%84%E7%AC%A6%E5%8F%B7%E6%98%AF%E5%A6%82%E4%BD%95%E8%A7%A3%E6%9E%90%E7%9A%84/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      HttpRunner3 的$符号是如何解析的
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-05T00:00:00+00:00'>2026-01-05</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/httprunner/'>#HttpRunner</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="变量解析">变量解析<a hidden class="anchor" aria-hidden="true" href="#变量解析">#</a></h1>
+<p><code>$</code>符号在很多测试框架中都会拿来用做变量解析，大名鼎鼎的 JMeter 就有这个用法。HttpRunner3 也支持<code>$</code>符号，比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>Step<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    RunRequest<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;登录&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>post<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/login&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>with_headers<span style="color:#1f2328">(</span><span style="color:#0550ae">**</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>with_json<span style="color:#1f2328">({</span><span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;dongfanger&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;123456&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>extract<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>with_jmespath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;body.token&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>validate<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>assert_equal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;status_code&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">200</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>Step<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    RunRequest<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;搜索商品&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;searchSku?skuName=电子书&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>with_headers<span style="color:#1f2328">(</span><span style="color:#0550ae">**</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$token&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>extract<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>with_jmespath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;body.skuId&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>with_jmespath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;body.price&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;skuPrice&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>validate<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">.</span>assert_equal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;status_code&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">200</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">),</span>
+</span></span></code></pre></div><p>从<code>登录</code>提取的变量<code>token</code>，在<code>搜索商品</code>中使用<code>$token</code>来引用。</p>
+<h1 id="parserpy">parser.py<a hidden class="anchor" aria-hidden="true" href="#parserpy">#</a></h1>
+<p>HttpRunner 对<code>$</code>符号的解析是在 parser.py 文件中实现的：</p>
+<p><img loading="lazy" src="../assets/3881ed1c0d374c3da2d839e5d738265a.png"></p>
+<p>这些方法可以分为四类：</p>
+<ul>
+<li>
+<p>url</p>
+<p><code>build_url()</code></p>
+</li>
+<li>
+<p>变量</p>
+<p><code>extract_variables()</code>  <code>get_mapping_variable()</code>  <code>parse_variables_mapping()</code>  <code>regex_findall_variables()</code>  <code>parse_data()</code>  <code>parse_string()</code></p>
+</li>
+<li>
+<p>函数</p>
+<p><code>get_mapping_function()</code>  <code>parse_function_params()</code>  <code>regex_findall_functions()</code>  <code>parse_string_value()</code>  <code>parse_data()</code>  <code>parse_string()</code></p>
+</li>
+<li>
+<p>参数化（<code>&quot;${parameterize(account.csv)}&quot;</code>）</p>
+<p><code>parse_parameters()</code></p>
+</li>
+</ul>
+<p>本文专门针对<strong>变量</strong>这一块源码来进行剖析。</p>
+<h1 id="全局变量池">全局变量池<a hidden class="anchor" aria-hidden="true" href="#全局变量池">#</a></h1>
+<p>HttpRunner3 在运行时的所有变量都是存储在<code>__session_variables</code>这个字典中的：</p>
+<p><img loading="lazy" src="../assets/d8ba076be0004516a4f07e77a353c1b1.png"></p>
+<p>在脚本开始时会把 config 的预设变量加载进来，然后会在执行 Step 测试步骤时，把各个步骤的变量也放到全局变量池里面。</p>
+<h1 id="解析过程">解析过程<a hidden class="anchor" aria-hidden="true" href="#解析过程">#</a></h1>
+<p>在 runner.py 的第 350 行代码能看到解析变量的调用：</p>
+<p><img loading="lazy" src="../assets/3f98196457354490be91adcc5a1e1265.png"></p>
+<p>然后 parse_variables_mapping()函数需要仔细看：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">parse_variables_mapping</span><span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    variables_mapping<span style="color:#1f2328">:</span> VariablesMapping<span style="color:#1f2328">,</span> functions_mapping<span style="color:#1f2328">:</span> FunctionsMapping <span style="color:#0550ae">=</span> <span style="color:#cf222e">None</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span> <span style="color:#0550ae">-&gt;</span> VariablesMapping<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parsed_variables<span style="color:#1f2328">:</span> VariablesMapping <span style="color:#0550ae">=</span> <span style="color:#1f2328">{}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">while</span> <span style="color:#6639ba">len</span><span style="color:#1f2328">(</span>parsed_variables<span style="color:#1f2328">)</span> <span style="color:#0550ae">!=</span> <span style="color:#6639ba">len</span><span style="color:#1f2328">(</span>variables_mapping<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> var_name <span style="color:#0550ae">in</span> variables_mapping<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">if</span> var_name <span style="color:#0550ae">in</span> parsed_variables<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            var_value <span style="color:#0550ae">=</span> variables_mapping<span style="color:#1f2328">[</span>var_name<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>            variables <span style="color:#0550ae">=</span> extract_variables<span style="color:#1f2328">(</span>var_value<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># check if reference variable itself</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">if</span> var_name <span style="color:#0550ae">in</span> variables<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#57606a"># e.g.</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#57606a"># variables_mapping = {&#34;token&#34;: &#34;abc$token&#34;}</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#57606a"># variables_mapping = {&#34;key&#34;: [&#34;$key&#34;, 2]}</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">raise</span> exceptions<span style="color:#0550ae">.</span>VariableNotFound<span style="color:#1f2328">(</span>var_name<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># check if reference variable not in variables_mapping</span>
+</span></span><span style="display:flex;"><span>            not_defined_variables <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>                v_name <span style="color:#cf222e">for</span> v_name <span style="color:#0550ae">in</span> variables <span style="color:#cf222e">if</span> v_name <span style="color:#0550ae">not</span> <span style="color:#0550ae">in</span> variables_mapping
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">if</span> not_defined_variables<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#57606a"># e.g. {&#34;varA&#34;: &#34;123$varB&#34;, &#34;varB&#34;: &#34;456$varC&#34;}</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#57606a"># e.g. {&#34;varC&#34;: &#34;${sum_two($a, $b)}&#34;}</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">raise</span> exceptions<span style="color:#0550ae">.</span>VariableNotFound<span style="color:#1f2328">(</span>not_defined_variables<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                parsed_value <span style="color:#0550ae">=</span> parse_data<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>                    var_value<span style="color:#1f2328">,</span> parsed_variables<span style="color:#1f2328">,</span> functions_mapping
+</span></span><span style="display:flex;"><span>                <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">except</span> exceptions<span style="color:#0550ae">.</span>VariableNotFound<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            parsed_variables<span style="color:#1f2328">[</span>var_name<span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> parsed_value
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> parsed_variables
+</span></span></code></pre></div><p><code>tests/parser_test.py</code>有一段测试代码：</p>
+<p><img loading="lazy" src="../assets/7bab089e4766481aa140d052c87cdab1.png"></p>
+<p><strong>建议打个断点，调试一把，就知道代码是怎么个原理了。</strong></p>
+<p>大概思路是：最外层的 while 循环会比较已解析和未解析的存储字典长度，只有当所有的变量都解析到值以后，才会正常退出。拿示例代码来说，第一次循环只会解析出<code>varC</code>、<code>a</code>、<code>b</code>，第二次循环才会解析出<code>varB</code>，第三次循环解析出<code>varA</code>。</p>
+<p>循环内部，先是调用 extract_variables()方法解析出变量集合：</p>
+<p><img loading="lazy" src="../assets/81ef3c9c89cf4d60a8e8f951e693ad40.png"></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">extract_variables</span><span style="color:#1f2328">(</span>content<span style="color:#1f2328">:</span> Any<span style="color:#1f2328">)</span> <span style="color:#0550ae">-&gt;</span> Set<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34; extract all variables in content recursively.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>content<span style="color:#1f2328">,</span> <span style="color:#1f2328">(</span><span style="color:#6639ba">list</span><span style="color:#1f2328">,</span> <span style="color:#6639ba">set</span><span style="color:#1f2328">,</span> <span style="color:#6639ba">tuple</span><span style="color:#1f2328">)):</span>
+</span></span><span style="display:flex;"><span>        variables <span style="color:#0550ae">=</span> <span style="color:#6639ba">set</span><span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> item <span style="color:#0550ae">in</span> content<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            variables <span style="color:#0550ae">=</span> variables <span style="color:#0550ae">|</span> extract_variables<span style="color:#1f2328">(</span>item<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> variables
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">elif</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>content<span style="color:#1f2328">,</span> <span style="color:#6639ba">dict</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        variables <span style="color:#0550ae">=</span> <span style="color:#6639ba">set</span><span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> key<span style="color:#1f2328">,</span> value <span style="color:#0550ae">in</span> content<span style="color:#0550ae">.</span>items<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            variables <span style="color:#0550ae">=</span> variables <span style="color:#0550ae">|</span> extract_variables<span style="color:#1f2328">(</span>value<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> variables
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">elif</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>content<span style="color:#1f2328">,</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#6639ba">set</span><span style="color:#1f2328">(</span>regex_findall_variables<span style="color:#1f2328">(</span>content<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#6639ba">set</span><span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>regex_findall_variables()函数就是用来解析字符串的，采用的是正则匹配：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">regex_findall_variables</span><span style="color:#1f2328">(</span>raw_string<span style="color:#1f2328">:</span> Text<span style="color:#1f2328">)</span> <span style="color:#0550ae">-&gt;</span> List<span style="color:#1f2328">[</span>Text<span style="color:#1f2328">]:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34; extract all variable names from content, which is in format $variable
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Args:
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        raw_string (str): string content
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Returns:
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        list: variables list extracted from string content
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Examples:
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &gt;&gt;&gt; regex_findall_variables(&#34;$variable&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        [&#34;variable&#34;]
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &gt;&gt;&gt; regex_findall_variables(&#34;/blog/$postid&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        [&#34;postid&#34;]
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &gt;&gt;&gt; regex_findall_variables(&#34;/$var1/$var2&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        [&#34;var1&#34;, &#34;var2&#34;]
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &gt;&gt;&gt; regex_findall_variables(&#34;abc&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        []
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        match_start_position <span style="color:#0550ae">=</span> raw_string<span style="color:#0550ae">.</span>index<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">0</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">except</span> ValueError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    vars_list <span style="color:#0550ae">=</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">while</span> match_start_position <span style="color:#0550ae">&lt;</span> <span style="color:#6639ba">len</span><span style="color:#1f2328">(</span>raw_string<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># Notice: notation priority</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># $$ &gt; $var</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># search $$</span>
+</span></span><span style="display:flex;"><span>        dollar_match <span style="color:#0550ae">=</span> dolloar_regex_compile<span style="color:#0550ae">.</span><span style="color:#cf222e">match</span><span style="color:#1f2328">(</span>raw_string<span style="color:#1f2328">,</span> match_start_position<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> dollar_match<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            match_start_position <span style="color:#0550ae">=</span> dollar_match<span style="color:#0550ae">.</span>end<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># search variable like ${var} or $var</span>
+</span></span><span style="display:flex;"><span>        var_match <span style="color:#0550ae">=</span> variable_regex_compile<span style="color:#0550ae">.</span><span style="color:#cf222e">match</span><span style="color:#1f2328">(</span>raw_string<span style="color:#1f2328">,</span> match_start_position<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> var_match<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            var_name <span style="color:#0550ae">=</span> var_match<span style="color:#0550ae">.</span>group<span style="color:#1f2328">(</span><span style="color:#0550ae">1</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">or</span> var_match<span style="color:#0550ae">.</span>group<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            vars_list<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span>var_name<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            match_start_position <span style="color:#0550ae">=</span> var_match<span style="color:#0550ae">.</span>end<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        curr_position <span style="color:#0550ae">=</span> match_start_position
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># find next $ location</span>
+</span></span><span style="display:flex;"><span>            match_start_position <span style="color:#0550ae">=</span> raw_string<span style="color:#0550ae">.</span>index<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$&#34;</span><span style="color:#1f2328">,</span> curr_position <span style="color:#0550ae">+</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">except</span> ValueError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># break while loop</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">break</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> vars_list
+</span></span></code></pre></div><p>调用 extract_variables()方法解析出变量集合以后，就会进行异常校验：变量是否引用自己和变量未定义：</p>
+<p><img loading="lazy" src="../assets/b99114e0a27c4f669669460d5e0b3cdd.png"></p>
+<p>如果校验通过就会调用 parse_data()解析出变量值，存入已解析的字典 parsed_variables 中。</p>
+<p>parse_data()和 parse_string()两个函数和主要流程无关了，它们的作用就是解析出变量值，感兴趣的读者朋友可以自行研究一下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">parse_data</span><span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    raw_data<span style="color:#1f2328">:</span> Any<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    variables_mapping<span style="color:#1f2328">:</span> VariablesMapping <span style="color:#0550ae">=</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    functions_mapping<span style="color:#1f2328">:</span> FunctionsMapping <span style="color:#0550ae">=</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span> <span style="color:#0550ae">-&gt;</span> Any<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34; parse raw data with evaluated variables mapping.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        Notice: variables_mapping should not contain any variable or function.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>raw_data<span style="color:#1f2328">,</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># content in string format may contains variables and functions</span>
+</span></span><span style="display:flex;"><span>        variables_mapping <span style="color:#0550ae">=</span> variables_mapping <span style="color:#0550ae">or</span> <span style="color:#1f2328">{}</span>
+</span></span><span style="display:flex;"><span>        functions_mapping <span style="color:#0550ae">=</span> functions_mapping <span style="color:#0550ae">or</span> <span style="color:#1f2328">{}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># only strip whitespaces and tabs, \n\r is left because they maybe used in changeset</span>
+</span></span><span style="display:flex;"><span>        raw_data <span style="color:#0550ae">=</span> raw_data<span style="color:#0550ae">.</span>strip<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34; </span><span style="color:#0a3069">\t</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> parse_string<span style="color:#1f2328">(</span>raw_data<span style="color:#1f2328">,</span> variables_mapping<span style="color:#1f2328">,</span> functions_mapping<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">elif</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>raw_data<span style="color:#1f2328">,</span> <span style="color:#1f2328">(</span><span style="color:#6639ba">list</span><span style="color:#1f2328">,</span> <span style="color:#6639ba">set</span><span style="color:#1f2328">,</span> <span style="color:#6639ba">tuple</span><span style="color:#1f2328">)):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>            parse_data<span style="color:#1f2328">(</span>item<span style="color:#1f2328">,</span> variables_mapping<span style="color:#1f2328">,</span> functions_mapping<span style="color:#1f2328">)</span> <span style="color:#cf222e">for</span> item <span style="color:#0550ae">in</span> raw_data
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">elif</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>raw_data<span style="color:#1f2328">,</span> <span style="color:#6639ba">dict</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        parsed_data <span style="color:#0550ae">=</span> <span style="color:#1f2328">{}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> key<span style="color:#1f2328">,</span> value <span style="color:#0550ae">in</span> raw_data<span style="color:#0550ae">.</span>items<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            parsed_key <span style="color:#0550ae">=</span> parse_data<span style="color:#1f2328">(</span>key<span style="color:#1f2328">,</span> variables_mapping<span style="color:#1f2328">,</span> functions_mapping<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            parsed_value <span style="color:#0550ae">=</span> parse_data<span style="color:#1f2328">(</span>value<span style="color:#1f2328">,</span> variables_mapping<span style="color:#1f2328">,</span> functions_mapping<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            parsed_data<span style="color:#1f2328">[</span>parsed_key<span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> parsed_value
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> parsed_data
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># other types, e.g. None, int, float, bool</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> raw_data
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">parse_string</span><span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    raw_string<span style="color:#1f2328">:</span> Text<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    variables_mapping<span style="color:#1f2328">:</span> VariablesMapping<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    functions_mapping<span style="color:#1f2328">:</span> FunctionsMapping<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span> <span style="color:#0550ae">-&gt;</span> Any<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34; parse string content with variables and functions mapping.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Args:
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        raw_string: raw string content to be parsed.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        variables_mapping: variables mapping.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        functions_mapping: functions mapping.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Returns:
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        str: parsed string content.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Examples:
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &gt;&gt;&gt; raw_string = &#34;abc${add_one($num)}def&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &gt;&gt;&gt; variables_mapping = {&#34;num&#34;: 3}
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &gt;&gt;&gt; functions_mapping = {&#34;add_one&#34;: lambda x: x + 1}
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        &gt;&gt;&gt; parse_string(raw_string, variables_mapping, functions_mapping)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">            &#34;abc4def&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        match_start_position <span style="color:#0550ae">=</span> raw_string<span style="color:#0550ae">.</span>index<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">0</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        parsed_string <span style="color:#0550ae">=</span> raw_string<span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">:</span>match_start_position<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">except</span> ValueError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        parsed_string <span style="color:#0550ae">=</span> raw_string
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> parsed_string
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">while</span> match_start_position <span style="color:#0550ae">&lt;</span> <span style="color:#6639ba">len</span><span style="color:#1f2328">(</span>raw_string<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># Notice: notation priority</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># $$ &gt; ${func($a, $b)} &gt; $var</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># search $$</span>
+</span></span><span style="display:flex;"><span>        dollar_match <span style="color:#0550ae">=</span> dolloar_regex_compile<span style="color:#0550ae">.</span><span style="color:#cf222e">match</span><span style="color:#1f2328">(</span>raw_string<span style="color:#1f2328">,</span> match_start_position<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> dollar_match<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            match_start_position <span style="color:#0550ae">=</span> dollar_match<span style="color:#0550ae">.</span>end<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            parsed_string <span style="color:#0550ae">+=</span> <span style="color:#0a3069">&#34;$&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># search function like ${func($a, $b)}</span>
+</span></span><span style="display:flex;"><span>        func_match <span style="color:#0550ae">=</span> function_regex_compile<span style="color:#0550ae">.</span><span style="color:#cf222e">match</span><span style="color:#1f2328">(</span>raw_string<span style="color:#1f2328">,</span> match_start_position<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> func_match<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            func_name <span style="color:#0550ae">=</span> func_match<span style="color:#0550ae">.</span>group<span style="color:#1f2328">(</span><span style="color:#0550ae">1</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            func <span style="color:#0550ae">=</span> get_mapping_function<span style="color:#1f2328">(</span>func_name<span style="color:#1f2328">,</span> functions_mapping<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            func_params_str <span style="color:#0550ae">=</span> func_match<span style="color:#0550ae">.</span>group<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            function_meta <span style="color:#0550ae">=</span> parse_function_params<span style="color:#1f2328">(</span>func_params_str<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            args <span style="color:#0550ae">=</span> function_meta<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;args&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>            kwargs <span style="color:#0550ae">=</span> function_meta<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;kwargs&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>            parsed_args <span style="color:#0550ae">=</span> parse_data<span style="color:#1f2328">(</span>args<span style="color:#1f2328">,</span> variables_mapping<span style="color:#1f2328">,</span> functions_mapping<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            parsed_kwargs <span style="color:#0550ae">=</span> parse_data<span style="color:#1f2328">(</span>kwargs<span style="color:#1f2328">,</span> variables_mapping<span style="color:#1f2328">,</span> functions_mapping<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                func_eval_value <span style="color:#0550ae">=</span> func<span style="color:#1f2328">(</span><span style="color:#0550ae">*</span>parsed_args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>parsed_kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">except</span> Exception <span style="color:#cf222e">as</span> ex<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                logger<span style="color:#0550ae">.</span>error<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;call function error:</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;func_name: </span><span style="color:#0a3069">{</span>func_name<span style="color:#0a3069">}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;args: </span><span style="color:#0a3069">{</span>parsed_args<span style="color:#0a3069">}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;kwargs: </span><span style="color:#0a3069">{</span>parsed_kwargs<span style="color:#0a3069">}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">{</span><span style="color:#6639ba">type</span><span style="color:#1f2328">(</span>ex<span style="color:#1f2328">)</span><span style="color:#0550ae">.</span><span style="color:#953800">__name__</span><span style="color:#0a3069">}</span><span style="color:#0a3069">: </span><span style="color:#0a3069">{</span>ex<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">raise</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            func_raw_str <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;${&#34;</span> <span style="color:#0550ae">+</span> func_name <span style="color:#0550ae">+</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;(</span><span style="color:#0a3069">{</span>func_params_str<span style="color:#0a3069">}</span><span style="color:#0a3069">)&#34;</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;}&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">if</span> func_raw_str <span style="color:#0550ae">==</span> raw_string<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#57606a"># raw_string is a function, e.g. &#34;${add_one(3)}&#34;, return its eval value directly</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">return</span> func_eval_value
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># raw_string contains one or many functions, e.g. &#34;abc${add_one(3)}def&#34;</span>
+</span></span><span style="display:flex;"><span>            parsed_string <span style="color:#0550ae">+=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>func_eval_value<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            match_start_position <span style="color:#0550ae">=</span> func_match<span style="color:#0550ae">.</span>end<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># search variable like ${var} or $var</span>
+</span></span><span style="display:flex;"><span>        var_match <span style="color:#0550ae">=</span> variable_regex_compile<span style="color:#0550ae">.</span><span style="color:#cf222e">match</span><span style="color:#1f2328">(</span>raw_string<span style="color:#1f2328">,</span> match_start_position<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> var_match<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            var_name <span style="color:#0550ae">=</span> var_match<span style="color:#0550ae">.</span>group<span style="color:#1f2328">(</span><span style="color:#0550ae">1</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">or</span> var_match<span style="color:#0550ae">.</span>group<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            var_value <span style="color:#0550ae">=</span> get_mapping_variable<span style="color:#1f2328">(</span>var_name<span style="color:#1f2328">,</span> variables_mapping<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">if</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;$</span><span style="color:#0a3069">{</span>var_name<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span> <span style="color:#0550ae">==</span> raw_string <span style="color:#0550ae">or</span> <span style="color:#0a3069">&#34;${&#34;</span> <span style="color:#0550ae">+</span> var_name <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;}&#34;</span> <span style="color:#0550ae">==</span> raw_string<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#57606a"># raw_string is a variable, $var or ${var}, return its value directly</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">return</span> var_value
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># raw_string contains one or many variables, e.g. &#34;abc${var}def&#34;</span>
+</span></span><span style="display:flex;"><span>            parsed_string <span style="color:#0550ae">+=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>var_value<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            match_start_position <span style="color:#0550ae">=</span> var_match<span style="color:#0550ae">.</span>end<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        curr_position <span style="color:#0550ae">=</span> match_start_position
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># find next $ location</span>
+</span></span><span style="display:flex;"><span>            match_start_position <span style="color:#0550ae">=</span> raw_string<span style="color:#0550ae">.</span>index<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$&#34;</span><span style="color:#1f2328">,</span> curr_position <span style="color:#0550ae">+</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            remain_string <span style="color:#0550ae">=</span> raw_string<span style="color:#1f2328">[</span>curr_position<span style="color:#1f2328">:</span>match_start_position<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">except</span> ValueError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            remain_string <span style="color:#0550ae">=</span> raw_string<span style="color:#1f2328">[</span>curr_position<span style="color:#1f2328">:]</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># break while loop</span>
+</span></span><span style="display:flex;"><span>            match_start_position <span style="color:#0550ae">=</span> <span style="color:#6639ba">len</span><span style="color:#1f2328">(</span>raw_string<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        parsed_string <span style="color:#0550ae">+=</span> remain_string
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> parsed_string
+</span></span></code></pre></div><h1 id="技术都是相通的">技术都是相通的<a hidden class="anchor" aria-hidden="true" href="#技术都是相通的">#</a></h1>
+<p>通过阅读源码可以发现，技术都是相通的。对于 HttpRunner 来说，它之所以要费这么大周章设计<code>$</code>符号，就是因为它的定位是要让不怎么会写代码的同学，也能使用 yaml 轻松写自动化。但是 V3 版本出来以后，<strong>官方强烈建议采用直接编写 Python 代码</strong>，但仍然遵循 yaml 这种约定，是不是反而成为了一种约束呢？跳出这个框架，直接编写 pytest，岂不是效率会更高一些？这些问题的答案需要我们根据自身特点和业务场景去把握了。就我个人而言，仍然且始终坚持，纯 Python 代码写自动化的方式。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/httprunner/">HttpRunner</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/flask%E4%BD%BF%E7%94%A8sqlite%E6%95%B0%E6%8D%AE%E5%BA%93/">
+    <span class="title">« 上一页</span>
+    <span>Flask 使用 SQLite 数据库</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jacoco%E5%A2%9E%E9%87%8F%E8%A6%86%E7%9B%96%E7%8E%87%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/">
+    <span class="title">下一页 »</span>
+    <span>JaCoCo 增量覆盖率的基本实现原理</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#变量解析">变量解析</a></li>
+    <li><a href="#parserpy">parser.py</a></li>
+    <li><a href="#全局变量池">全局变量池</a></li>
+    <li><a href="#解析过程">解析过程</a></li>
+    <li><a href="#技术都是相通的">技术都是相通的</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

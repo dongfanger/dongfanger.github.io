@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>SpringBoot 官方笔记 2 使用 | 测试开发刚哥</title>
+<meta name="keywords" content="Spring">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Build Systems
+选择 Maven or Gradle，而不要 Ant（not particularly well supported）
+In practice, you do not need to provide a version for any of these dependencies (spring-boot-dependencies) in your build configuration, as Spring Boot manages that for you. When you upgrade Spring Boot itself, these dependencies are upgraded as well in a consistent way.
+Each release of Spring Boot is associated with a base version of the Spring Framework.
+Starters are a set of convenient dependency descriptors that you can include in your application.">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E4%BD%BF%E7%94%A8/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E4%BD%BF%E7%94%A8/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E4%BD%BF%E7%94%A8/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="SpringBoot 官方笔记 2 使用">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Build Systems 选择 Maven or Gradle，而不要 Ant（not particularly well supported）
+In practice, you do not need to provide a version for any of these dependencies (spring-boot-dependencies) in your build configuration, as Spring Boot manages that for you. When you upgrade Spring Boot itself, these dependencies are upgraded as well in a consistent way.
+Each release of Spring Boot is associated with a base version of the Spring Framework.
+Starters are a set of convenient dependency descriptors that you can include in your application.">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:tag" content="Spring">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="SpringBoot 官方笔记 2 使用">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Build Systems 选择 Maven or Gradle，而不要 Ant（not particularly well supported）
+In practice, you do not need to provide a version for any of these dependencies (spring-boot-dependencies) in your build configuration, as Spring Boot manages that for you. When you upgrade Spring Boot itself, these dependencies are upgraded as well in a consistent way.
+Each release of Spring Boot is associated with a base version of the Spring Framework.
+Starters are a set of convenient dependency descriptors that you can include in your application.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "SpringBoot 官方笔记 2 使用",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E4%BD%BF%E7%94%A8/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SpringBoot 官方笔记 2 使用",
+  "name": "SpringBoot 官方笔记 2 使用",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nBuild Systems 选择 Maven or Gradle，而不要 Ant（not particularly well supported）\nIn practice, you do not need to provide a version for any of these dependencies (spring-boot-dependencies) in your build configuration, as Spring Boot manages that for you. When you upgrade Spring Boot itself, these dependencies are upgraded as well in a consistent way.\nEach release of Spring Boot is associated with a base version of the Spring Framework.\nStarters are a set of convenient dependency descriptors that you can include in your application.\n",
+  "keywords": [
+    "Spring"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nBuild Systems 选择 Maven or Gradle，而不要 Ant（not particularly well supported）\nIn practice, you do not need to provide a version for any of these dependencies (spring-boot-dependencies) in your build configuration, as Spring Boot manages that for you. When you upgrade Spring Boot itself, these dependencies are upgraded as well in a consistent way.\nEach release of Spring Boot is associated with a base version of the Spring Framework.\nStarters are a set of convenient dependency descriptors that you can include in your application.\nstarter 命名区别：\nofficial spring-boot-starter-*\nthird-party thirdpartyproject-spring-boot-starter\nStructuring We generally recommend that you locate your main application class in a root package above other classes.\ncom +- example +- myapplication +- MyApplication.java | +- customer | +- Customer.java | +- CustomerController.java | +- CustomerService.java | +- CustomerRepository.java | +- order +- Order.java +- OrderController.java +- OrderService.java +- OrderRepository.java 实际项目见得多的是 controller、service 这样的 package，然后里面放多个文件。\nConfiguration Although it is possible to use SpringApplication with XML sources, we generally recommend that your primary source be a single @Configuration class.\nThe @Import annotation can be used to import additional configuration classes. Alternatively, you can use @ComponentScan to automatically pick up all Spring components, including @Configuration classes.\n（因为@SpringBootApplication 包含了@ComponentScan，所以能自动扫到@Configuration 的配置类）\n@ImportResource annotation to load XML configuration files.\nAuto-configuration Spring Boot auto-configuration attempts to automatically configure your Spring application based on the jar dependencies that you have added.\nFor example, if HSQLDB is on your classpath, and you have not manually configured any database connection beans, then Spring Boot auto-configures an in-memory database. If you add your own DataSource bean, the default embedded database support backs away.\nexclude auto-configuration：\n①annotation\nimport org.springframework.boot.autoconfigure.SpringBootApplication; import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration; @SpringBootApplication(exclude = { DataSourceAutoConfiguration.class }) public class MyApplication { } If the class is not on the classpath, you can use the excludeName attribute of the annotation and specify the fully qualified name instead.\n②property\nspring.autoconfigure.exclude Spring Beans and Dependency Injection Spring Beans 可以理解为功能模块\n@ComponentScan to find beans，all of your application components (@Component, @Service, @Repository, @Controller, and others) are automatically registered as Spring Beans.\nconstructor injection：\nimport org.springframework.stereotype.Service; @Service public class MyAccountService implements AccountService { private final RiskAssessor riskAssessor; public MyAccountService(RiskAssessor riskAssessor) { this.riskAssessor = riskAssessor; } // ... } If a bean has more than one constructor, you will need to mark the one you want Spring to use with @Autowired:\nimport java.io.PrintStream; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.stereotype.Service; @Service public class MyAccountService implements AccountService { private final RiskAssessor riskAssessor; private final PrintStream out; @Autowired public MyAccountService(RiskAssessor riskAssessor) { this.riskAssessor = riskAssessor; this.out = System.out; } public MyAccountService(RiskAssessor riskAssessor, PrintStream out) { this.riskAssessor = riskAssessor; this.out = out; } // ... } （更常见的做法是直接在类变量定义时使用@Autowired 或@Resource，省去 constructor）\n@SpringBootApplication @EnableAutoConfiguration: enable Spring Boot’s auto-configuration mechanism\n@ComponentScan: enable @Component scan on the package where the application is located (see the best practices)\n@SpringBootConfiguration: enable registration of extra beans in the context or the import of additional configuration classes. An alternative to Spring’s standard @Configuration that aids configuration detection in your integration tests.\nimport org.springframework.boot.SpringApplication; import org.springframework.boot.autoconfigure.SpringBootApplication; // Same as @SpringBootConfiguration @EnableAutoConfiguration @ComponentScan @SpringBootApplication public class MyApplication { public static void main(String[] args) { SpringApplication.run(MyApplication.class, args); } } Running jar 包：using an embedded HTTP server\nwar 包：your server\n参考资料：\nhttps://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using\n",
+  "wordCount" : "524",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-05T00:00:00Z",
+  "dateModified": "2026-01-05T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E4%BD%BF%E7%94%A8/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      SpringBoot 官方笔记 2 使用
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-05T00:00:00+00:00'>2026-01-05</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/spring/'>#Spring</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="build-systems">Build Systems<a hidden class="anchor" aria-hidden="true" href="#build-systems">#</a></h1>
+<p>选择 Maven or Gradle，而不要 Ant（not particularly well supported）</p>
+<p>In practice, you do not need to provide a <strong>version</strong> for any of these dependencies (spring-boot-dependencies) in your build configuration, as Spring Boot manages that for you. When you upgrade Spring Boot itself, these dependencies are upgraded as well in a consistent way.</p>
+<p>Each release of Spring Boot is associated with a base version of <strong>the Spring Framework</strong>.</p>
+<p><strong>Starters</strong> are a set of convenient dependency descriptors that you can include in your application.</p>
+<p>starter 命名区别：</p>
+<ul>
+<li>
+<p>official <code>spring-boot-starter-*</code></p>
+</li>
+<li>
+<p>third-party <code>thirdpartyproject-spring-boot-starter</code></p>
+</li>
+</ul>
+<h1 id="structuring">Structuring<a hidden class="anchor" aria-hidden="true" href="#structuring">#</a></h1>
+<p>We generally recommend that you locate your <strong>main application class</strong> in a root package above other classes.</p>
+<pre tabindex="0"><code>com
+ +- example
+     +- myapplication
+         +- MyApplication.java
+         |
+         +- customer
+         |   +- Customer.java
+         |   +- CustomerController.java
+         |   +- CustomerService.java
+         |   +- CustomerRepository.java
+         |
+         +- order
+             +- Order.java
+             +- OrderController.java
+             +- OrderService.java
+             +- OrderRepository.java
+</code></pre><p>实际项目见得多的是 controller、service 这样的 package，然后里面放多个文件。</p>
+<h1 id="configuration">Configuration<a hidden class="anchor" aria-hidden="true" href="#configuration">#</a></h1>
+<p>Although it is possible to use <code>SpringApplication</code> with XML sources, we generally recommend that your primary source be a single <code>@Configuration</code> class.</p>
+<p>The <code>@Import</code> annotation can be used to import additional configuration classes. Alternatively, you can use <code>@ComponentScan</code> to automatically pick up all Spring components, including <code>@Configuration</code> classes.</p>
+<p>（因为@SpringBootApplication 包含了@ComponentScan，所以能自动扫到@Configuration 的配置类）</p>
+<p><code>@ImportResource</code> annotation to load XML configuration files.</p>
+<h1 id="auto-configuration">Auto-configuration<a hidden class="anchor" aria-hidden="true" href="#auto-configuration">#</a></h1>
+<p>Spring Boot auto-configuration attempts to automatically configure your Spring application based on the jar dependencies that you have added.</p>
+<p>For example, if <code>HSQLDB</code> is on your classpath, and you have not manually configured any database connection beans, then Spring Boot <strong>auto-configures an in-memory database</strong>. If you <strong>add your own</strong> <code>DataSource</code> bean, the default embedded database support <strong>backs away</strong>.</p>
+<p>exclude auto-configuration：</p>
+<p>①annotation</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.autoconfigure.SpringBootApplication</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@SpringBootApplication</span><span style="color:#1f2328">(</span>exclude<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span>DataSourceAutoConfiguration<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#fff"> </span><span style="color:#1f2328">})</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyApplication</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>If the class is not on the classpath, you can use the <code>excludeName</code> attribute of the annotation and specify the fully qualified name instead.</p>
+<p>②property</p>
+<p><code>spring.autoconfigure.exclude</code> </p>
+<h1 id="spring-beans-and-dependency-injection">Spring Beans and Dependency Injection<a hidden class="anchor" aria-hidden="true" href="#spring-beans-and-dependency-injection">#</a></h1>
+<p> Spring Beans 可以理解为功能模块</p>
+<p><code>@ComponentScan</code> to find beans，all of your application components (<code>@Component</code>, <code>@Service</code>, <code>@Repository</code>, <code>@Controller</code>, and others) are automatically registered as Spring Beans.</p>
+<p><strong>constructor injection</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.stereotype.Service</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@Service</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyAccountService</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>AccountService<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>RiskAssessor<span style="color:#fff"> </span>riskAssessor<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">MyAccountService</span><span style="color:#1f2328">(</span>RiskAssessor<span style="color:#fff"> </span>riskAssessor<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">riskAssessor</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>riskAssessor<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// ...</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>If a bean has more than one constructor, you will need to mark the one you want Spring to use with <code>@Autowired</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.PrintStream</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.beans.factory.annotation.Autowired</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.stereotype.Service</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@Service</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyAccountService</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>AccountService<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>RiskAssessor<span style="color:#fff"> </span>riskAssessor<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>PrintStream<span style="color:#fff"> </span>out<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Autowired</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">MyAccountService</span><span style="color:#1f2328">(</span>RiskAssessor<span style="color:#fff"> </span>riskAssessor<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">riskAssessor</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>riskAssessor<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">MyAccountService</span><span style="color:#1f2328">(</span>RiskAssessor<span style="color:#fff"> </span>riskAssessor<span style="color:#1f2328">,</span><span style="color:#fff"> </span>PrintStream<span style="color:#fff"> </span>out<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">riskAssessor</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>riskAssessor<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>out<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// ...</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>（更常见的做法是直接在类变量定义时使用@Autowired 或@Resource，省去 constructor）</p>
+<h1 id="springbootapplication">@SpringBootApplication<a hidden class="anchor" aria-hidden="true" href="#springbootapplication">#</a></h1>
+<ul>
+<li>
+<p><code>@EnableAutoConfiguration</code>: enable <a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using.auto-configuration">Spring Boot’s auto-configuration mechanism</a></p>
+</li>
+<li>
+<p><code>@ComponentScan</code>: enable <code>@Component</code> scan on the package where the application is located (see <a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using.structuring-your-code">the best practices</a>)</p>
+</li>
+<li>
+<p><code>@SpringBootConfiguration</code>: enable registration of extra beans in the context or the import of additional configuration classes. An alternative to Spring’s standard <code>@Configuration</code> that aids <a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing.spring-boot-applications.detecting-configuration">configuration detection</a> in your integration tests.</p>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.SpringApplication</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.autoconfigure.SpringBootApplication</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// Same as @SpringBootConfiguration @EnableAutoConfiguration @ComponentScan</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@SpringBootApplication</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyApplication</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">main</span><span style="color:#1f2328">(</span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>args<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>SpringApplication<span style="color:#1f2328">.</span><span style="color:#1f2328">run</span><span style="color:#1f2328">(</span>MyApplication<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>args<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h1 id="running">Running<a hidden class="anchor" aria-hidden="true" href="#running">#</a></h1>
+<p>jar 包：using an embedded HTTP server</p>
+<p>war 包：your server</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using">https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/spring/">Spring</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6/">
+    <span class="title">« 上一页</span>
+    <span>pytest 参数化进阶</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep0.6.0%E6%9B%B4%E6%96%B0%E8%81%8A%E8%81%8Apytest%E5%8F%98%E9%87%8F%E6%8E%A5%E5%8F%A3%E7%94%A8%E4%BE%8B3%E4%B8%AA%E7%BA%A7%E5%88%AB%E5%A4%8D%E7%94%A8/">
+    <span class="title">下一页 »</span>
+    <span>tep0.6.0 更新聊聊 pytest 变量接口用例 3 个级别复用</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#build-systems">Build Systems</a></li>
+    <li><a href="#structuring">Structuring</a></li>
+    <li><a href="#configuration">Configuration</a></li>
+    <li><a href="#auto-configuration">Auto-configuration</a></li>
+    <li><a href="#spring-beans-and-dependency-injection">Spring Beans and Dependency Injection</a></li>
+    <li><a href="#springbootapplication">@SpringBootApplication</a></li>
+    <li><a href="#running">Running</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JMeter 元件作用域实践指南 | 测试开发刚哥</title>
+<meta name="keywords" content="性能测试, JMeter">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+从一个问题说起
+对于以下测试脚本：
+
+为了能调用进入房间接口，需要从考场接口获取考场 token。为了调用考场接口，需要从登陆接口获取登陆 token。元件说明如下：
+
+
+学生登录，提取登录${token}传入下个接口参数。
+
+
+添加 HTTP Header Manager：
+
+
+
+考场 token，提取考场${exam_token}传入下个接口参数。
+
+
+添加 HTTP Header Manager：
+
+
+
+进入房间
+
+
+貌似挺合理，HTTP Header Manager 会给下方的接口添加请求头，运行结果真的如我们所料么？
+运行顺序
+在回答这个问题之前，有必要搞懂 JMeter 元件的运行顺序，它是由 2 个维度来决定的：从上往下和元件类型。
+从上往下，即目录树从上往下。元件类型，分为 3 类：
+
+线程组、逻辑控制器。
+取样器。
+配置元件、前置处理器、定时器、后置处理器、断言、监听器。
+
+它们的运行顺序如下：
+
+
+配置元件（如果存在）
+
+
+前置处理器（如果存在）
+
+
+定时器（如果存在）
+
+
+取样器（如果存在）
+
+
+后置处理器（如果存在且取样器的结果不为空）
+
+
+断言（如果存在且取样器的结果不为空）
+
+
+监听器（如果存在且取样器的结果不为空）
+
+
+换句话说，假设我们新建了 1 个线程，想用这个线程去发请求。
+第一步，初始化配置，比如参数化、设置 Header、Cookie 等，用到配置元件。
+第二步，可能需要给线程加点参数，比如用户参数，用到前置处理器。
+第三步，在发送请求前可能会等待一段时间，用到定时器。
+第四步，发送请求，用到取样器。
+第五步，可能需要提取响应数据，比如正则表达式提取器、JMESPath 提取器，用到后置处理器。
+第六步，验证结果符合预期，用到断言。
+第七步，查看请求响应数据和测试结果，用到监听器。
+实践指南
+对于以下所列元件：
+
+JMeter 会按以下步骤运行：
+
+线程组（如果有多个线程组可以在测试计划设置是顺序执行还是同时执行）
+简单控制器（父节点）
+HTTP Cookie 管理器（配置元件）
+用户参数（前置处理器）
+Synchronizing Timer（定时器）
+HTTP 请求 1（取样器）
+正则表达式提取器（后置处理器）
+响应断言（断言）
+HTTP Cookie 管理器（配置元件）
+用户参数（前置处理器）
+Synchronizing Timer（定时器）
+HTTP 请求 2（取样器）
+正则表达式提取器（后置处理器）
+响应断言（断言）
+HTTP 请求 3（取样器）
+察看结果树（严格来讲是与第 6 步并行，也就是取样器之后）
+
+作用域
+其中有个观察作用域实际效果的关键元件：HTTP 请求 2，它的前后并没有元件，但是也被作用上了。在 JMeter 中，同一层级的元件具有相同的作用域！">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E5%85%83%E4%BB%B6%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E5%85%83%E4%BB%B6%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E5%85%83%E4%BB%B6%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="JMeter 元件作用域实践指南">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+从一个问题说起 对于以下测试脚本：
+为了能调用进入房间接口，需要从考场接口获取考场 token。为了调用考场接口，需要从登陆接口获取登陆 token。元件说明如下：
+学生登录，提取登录${token}传入下个接口参数。
+添加 HTTP Header Manager：
+考场 token，提取考场${exam_token}传入下个接口参数。
+添加 HTTP Header Manager：
+进入房间
+貌似挺合理，HTTP Header Manager 会给下方的接口添加请求头，运行结果真的如我们所料么？
+运行顺序 在回答这个问题之前，有必要搞懂 JMeter 元件的运行顺序，它是由 2 个维度来决定的：从上往下和元件类型。
+从上往下，即目录树从上往下。元件类型，分为 3 类：
+线程组、逻辑控制器。 取样器。 配置元件、前置处理器、定时器、后置处理器、断言、监听器。 它们的运行顺序如下：
+配置元件（如果存在）
+前置处理器（如果存在）
+定时器（如果存在）
+取样器（如果存在）
+后置处理器（如果存在且取样器的结果不为空）
+断言（如果存在且取样器的结果不为空）
+监听器（如果存在且取样器的结果不为空）
+换句话说，假设我们新建了 1 个线程，想用这个线程去发请求。
+第一步，初始化配置，比如参数化、设置 Header、Cookie 等，用到配置元件。
+第二步，可能需要给线程加点参数，比如用户参数，用到前置处理器。
+第三步，在发送请求前可能会等待一段时间，用到定时器。
+第四步，发送请求，用到取样器。
+第五步，可能需要提取响应数据，比如正则表达式提取器、JMESPath 提取器，用到后置处理器。
+第六步，验证结果符合预期，用到断言。
+第七步，查看请求响应数据和测试结果，用到监听器。
+实践指南 对于以下所列元件：
+JMeter 会按以下步骤运行：
+线程组（如果有多个线程组可以在测试计划设置是顺序执行还是同时执行） 简单控制器（父节点） HTTP Cookie 管理器（配置元件） 用户参数（前置处理器） Synchronizing Timer（定时器） HTTP 请求 1（取样器） 正则表达式提取器（后置处理器） 响应断言（断言） HTTP Cookie 管理器（配置元件） 用户参数（前置处理器） Synchronizing Timer（定时器） HTTP 请求 2（取样器） 正则表达式提取器（后置处理器） 响应断言（断言） HTTP 请求 3（取样器） 察看结果树（严格来讲是与第 6 步并行，也就是取样器之后） 作用域 其中有个观察作用域实际效果的关键元件：HTTP 请求 2，它的前后并没有元件，但是也被作用上了。在 JMeter 中，同一层级的元件具有相同的作用域！">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:tag" content="性能测试">
+    <meta property="article:tag" content="JMeter">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JMeter 元件作用域实践指南">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+从一个问题说起 对于以下测试脚本：
+为了能调用进入房间接口，需要从考场接口获取考场 token。为了调用考场接口，需要从登陆接口获取登陆 token。元件说明如下：
+学生登录，提取登录${token}传入下个接口参数。
+添加 HTTP Header Manager：
+考场 token，提取考场${exam_token}传入下个接口参数。
+添加 HTTP Header Manager：
+进入房间
+貌似挺合理，HTTP Header Manager 会给下方的接口添加请求头，运行结果真的如我们所料么？
+运行顺序 在回答这个问题之前，有必要搞懂 JMeter 元件的运行顺序，它是由 2 个维度来决定的：从上往下和元件类型。
+从上往下，即目录树从上往下。元件类型，分为 3 类：
+线程组、逻辑控制器。 取样器。 配置元件、前置处理器、定时器、后置处理器、断言、监听器。 它们的运行顺序如下：
+配置元件（如果存在）
+前置处理器（如果存在）
+定时器（如果存在）
+取样器（如果存在）
+后置处理器（如果存在且取样器的结果不为空）
+断言（如果存在且取样器的结果不为空）
+监听器（如果存在且取样器的结果不为空）
+换句话说，假设我们新建了 1 个线程，想用这个线程去发请求。
+第一步，初始化配置，比如参数化、设置 Header、Cookie 等，用到配置元件。
+第二步，可能需要给线程加点参数，比如用户参数，用到前置处理器。
+第三步，在发送请求前可能会等待一段时间，用到定时器。
+第四步，发送请求，用到取样器。
+第五步，可能需要提取响应数据，比如正则表达式提取器、JMESPath 提取器，用到后置处理器。
+第六步，验证结果符合预期，用到断言。
+第七步，查看请求响应数据和测试结果，用到监听器。
+实践指南 对于以下所列元件：
+JMeter 会按以下步骤运行：
+线程组（如果有多个线程组可以在测试计划设置是顺序执行还是同时执行） 简单控制器（父节点） HTTP Cookie 管理器（配置元件） 用户参数（前置处理器） Synchronizing Timer（定时器） HTTP 请求 1（取样器） 正则表达式提取器（后置处理器） 响应断言（断言） HTTP Cookie 管理器（配置元件） 用户参数（前置处理器） Synchronizing Timer（定时器） HTTP 请求 2（取样器） 正则表达式提取器（后置处理器） 响应断言（断言） HTTP 请求 3（取样器） 察看结果树（严格来讲是与第 6 步并行，也就是取样器之后） 作用域 其中有个观察作用域实际效果的关键元件：HTTP 请求 2，它的前后并没有元件，但是也被作用上了。在 JMeter 中，同一层级的元件具有相同的作用域！">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JMeter 元件作用域实践指南",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E5%85%83%E4%BB%B6%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JMeter 元件作用域实践指南",
+  "name": "JMeter 元件作用域实践指南",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n从一个问题说起 对于以下测试脚本：\n为了能调用进入房间接口，需要从考场接口获取考场 token。为了调用考场接口，需要从登陆接口获取登陆 token。元件说明如下：\n学生登录，提取登录${token}传入下个接口参数。\n添加 HTTP Header Manager：\n考场 token，提取考场${exam_token}传入下个接口参数。\n添加 HTTP Header Manager：\n进入房间\n貌似挺合理，HTTP Header Manager 会给下方的接口添加请求头，运行结果真的如我们所料么？\n运行顺序 在回答这个问题之前，有必要搞懂 JMeter 元件的运行顺序，它是由 2 个维度来决定的：从上往下和元件类型。\n从上往下，即目录树从上往下。元件类型，分为 3 类：\n线程组、逻辑控制器。 取样器。 配置元件、前置处理器、定时器、后置处理器、断言、监听器。 它们的运行顺序如下：\n配置元件（如果存在）\n前置处理器（如果存在）\n定时器（如果存在）\n取样器（如果存在）\n后置处理器（如果存在且取样器的结果不为空）\n断言（如果存在且取样器的结果不为空）\n监听器（如果存在且取样器的结果不为空）\n换句话说，假设我们新建了 1 个线程，想用这个线程去发请求。\n第一步，初始化配置，比如参数化、设置 Header、Cookie 等，用到配置元件。\n第二步，可能需要给线程加点参数，比如用户参数，用到前置处理器。\n第三步，在发送请求前可能会等待一段时间，用到定时器。\n第四步，发送请求，用到取样器。\n第五步，可能需要提取响应数据，比如正则表达式提取器、JMESPath 提取器，用到后置处理器。\n第六步，验证结果符合预期，用到断言。\n第七步，查看请求响应数据和测试结果，用到监听器。\n实践指南 对于以下所列元件：\nJMeter 会按以下步骤运行：\n线程组（如果有多个线程组可以在测试计划设置是顺序执行还是同时执行） 简单控制器（父节点） HTTP Cookie 管理器（配置元件） 用户参数（前置处理器） Synchronizing Timer（定时器） HTTP 请求 1（取样器） 正则表达式提取器（后置处理器） 响应断言（断言） HTTP Cookie 管理器（配置元件） 用户参数（前置处理器） Synchronizing Timer（定时器） HTTP 请求 2（取样器） 正则表达式提取器（后置处理器） 响应断言（断言） HTTP 请求 3（取样器） 察看结果树（严格来讲是与第 6 步并行，也就是取样器之后） 作用域 其中有个观察作用域实际效果的关键元件：HTTP 请求 2，它的前后并没有元件，但是也被作用上了。在 JMeter 中，同一层级的元件具有相同的作用域！\n",
+  "keywords": [
+    "性能测试", "JMeter"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n从一个问题说起 对于以下测试脚本：\n为了能调用进入房间接口，需要从考场接口获取考场 token。为了调用考场接口，需要从登陆接口获取登陆 token。元件说明如下：\n学生登录，提取登录${token}传入下个接口参数。\n添加 HTTP Header Manager：\n考场 token，提取考场${exam_token}传入下个接口参数。\n添加 HTTP Header Manager：\n进入房间\n貌似挺合理，HTTP Header Manager 会给下方的接口添加请求头，运行结果真的如我们所料么？\n运行顺序 在回答这个问题之前，有必要搞懂 JMeter 元件的运行顺序，它是由 2 个维度来决定的：从上往下和元件类型。\n从上往下，即目录树从上往下。元件类型，分为 3 类：\n线程组、逻辑控制器。 取样器。 配置元件、前置处理器、定时器、后置处理器、断言、监听器。 它们的运行顺序如下：\n配置元件（如果存在）\n前置处理器（如果存在）\n定时器（如果存在）\n取样器（如果存在）\n后置处理器（如果存在且取样器的结果不为空）\n断言（如果存在且取样器的结果不为空）\n监听器（如果存在且取样器的结果不为空）\n换句话说，假设我们新建了 1 个线程，想用这个线程去发请求。\n第一步，初始化配置，比如参数化、设置 Header、Cookie 等，用到配置元件。\n第二步，可能需要给线程加点参数，比如用户参数，用到前置处理器。\n第三步，在发送请求前可能会等待一段时间，用到定时器。\n第四步，发送请求，用到取样器。\n第五步，可能需要提取响应数据，比如正则表达式提取器、JMESPath 提取器，用到后置处理器。\n第六步，验证结果符合预期，用到断言。\n第七步，查看请求响应数据和测试结果，用到监听器。\n实践指南 对于以下所列元件：\nJMeter 会按以下步骤运行：\n线程组（如果有多个线程组可以在测试计划设置是顺序执行还是同时执行） 简单控制器（父节点） HTTP Cookie 管理器（配置元件） 用户参数（前置处理器） Synchronizing Timer（定时器） HTTP 请求 1（取样器） 正则表达式提取器（后置处理器） 响应断言（断言） HTTP Cookie 管理器（配置元件） 用户参数（前置处理器） Synchronizing Timer（定时器） HTTP 请求 2（取样器） 正则表达式提取器（后置处理器） 响应断言（断言） HTTP 请求 3（取样器） 察看结果树（严格来讲是与第 6 步并行，也就是取样器之后） 作用域 其中有个观察作用域实际效果的关键元件：HTTP 请求 2，它的前后并没有元件，但是也被作用上了。在 JMeter 中，同一层级的元件具有相同的作用域！\n简单控制器是一个执行单元，本身没有内容，它的作用是把元件进行分组：\n因为简单控制器通过分组给元件划分了层级，所以简单控制器下面的这些同层级元件，作用域相同，既会作用于 HTTP 请求 1，也会作用于 HTTP 请求 2。注意了！配置元件、前置处理器、定时器、后置处理器、断言、监听器，这六个组件，会作用到范围内的所有取样器。\n除了同级作用域，还有上下级，JMeter 的上级作用域包含下级作用域，但是下级是不能作用到上级。比如 HTTP 请求 3，简单控制器下级的元件，是不会作用到 HTTP 请求 3 的。\n回答开头的问题 HTTP Header Manager 是配置元件，会作用到范围内的所有取样器。这里有 2 个 HTTP Header Manager，都位于同一层级，它们会一起执行。在 JMeter 同一执行单元中，如果相同类型的元件有多个，那么它们会被当做一个一起执行！\n测试一下，把最后一个 HTTP Header Manager 的 authorization 重命名为 authorization2，查看考场接口的 Headers：\n两个 HTTP Header Manager 都作用上了。\n为了避免混乱，在实际使用时建议：\n根据先后顺序，从上往下合理的放置元件的顺序。 对于配置元件、前置处理器、定时器、后置处理器、断言这六类元件，它们都是为取样器服务的，如果只想作用于单个取样器，那么最好放在这个取样器的下级。 按照建议调整后的测试脚本如下：\nUser Defined Variables 和 CSV Data Set Config，是配置元件，且跟取样器同级，会同时作用到这 3 个取样器上面。\n小结 本文开头引入了我在实际工作中碰到的问题，为了解决，先搞懂了 JMeter 元件运行顺序，然后参考了实践指南，发现了同一层级作用域相同这个原理，总结出了使用建议，配置元件、前置处理器、定时器、后置处理器、断言这六类元件，最好放在取样器的下级，调整后脚本如期运行。\n",
+  "wordCount" : "156",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-04T00:00:00Z",
+  "dateModified": "2026-01-04T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E5%85%83%E4%BB%B6%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      JMeter 元件作用域实践指南
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-04T00:00:00+00:00'>2026-01-04</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/'>#性能测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jmeter/'>#JMeter</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="从一个问题说起">从一个问题说起<a hidden class="anchor" aria-hidden="true" href="#从一个问题说起">#</a></h1>
+<p>对于以下测试脚本：</p>
+<p><img loading="lazy" src="../assets/08bb056c95a34670a750060f1e04625a.png"></p>
+<p>为了能调用进入房间接口，需要从考场接口获取考场 token。为了调用考场接口，需要从登陆接口获取登陆 token。元件说明如下：</p>
+<ul>
+<li>
+<p>学生登录，提取登录<code>${token}</code>传入下个接口参数。</p>
+</li>
+<li>
+<p>添加 HTTP Header Manager：</p>
+<p><img loading="lazy" src="../assets/9f6015fb46ff4c3eba94cf40c38d5841.png"></p>
+</li>
+<li>
+<p>考场 token，提取考场<code>${exam_token}</code>传入下个接口参数。</p>
+</li>
+<li>
+<p>添加 HTTP Header Manager：</p>
+<p><img loading="lazy" src="../assets/4b3a68c97249434aae097fd43cada2f6.png"></p>
+</li>
+<li>
+<p>进入房间</p>
+</li>
+</ul>
+<p>貌似挺合理，HTTP Header Manager 会给下方的接口添加请求头，运行结果真的如我们所料么？</p>
+<h1 id="运行顺序">运行顺序<a hidden class="anchor" aria-hidden="true" href="#运行顺序">#</a></h1>
+<p>在回答这个问题之前，有必要搞懂 JMeter 元件的运行顺序，它是由 2 个维度来决定的：从上往下和元件类型。</p>
+<p>从上往下，即目录树从上往下。元件类型，分为 3 类：</p>
+<ul>
+<li>线程组、逻辑控制器。</li>
+<li>取样器。</li>
+<li>配置元件、前置处理器、定时器、后置处理器、断言、监听器。</li>
+</ul>
+<p>它们的运行顺序如下：</p>
+<ol>
+<li>
+<p>配置元件（如果存在）</p>
+</li>
+<li>
+<p>前置处理器（如果存在）</p>
+</li>
+<li>
+<p>定时器（如果存在）</p>
+</li>
+<li>
+<p>取样器（如果存在）</p>
+</li>
+<li>
+<p>后置处理器（如果存在且取样器的结果不为空）</p>
+</li>
+<li>
+<p>断言（如果存在且取样器的结果不为空）</p>
+</li>
+<li>
+<p>监听器（如果存在且取样器的结果不为空）</p>
+</li>
+</ol>
+<p>换句话说，假设我们新建了 1 个线程，想用这个线程去发请求。</p>
+<p>第一步，初始化配置，比如参数化、设置 Header、Cookie 等，用到配置元件。</p>
+<p>第二步，可能需要给线程加点参数，比如用户参数，用到前置处理器。</p>
+<p>第三步，在发送请求前可能会等待一段时间，用到定时器。</p>
+<p>第四步，发送请求，用到取样器。</p>
+<p>第五步，可能需要提取响应数据，比如正则表达式提取器、JMESPath 提取器，用到后置处理器。</p>
+<p>第六步，验证结果符合预期，用到断言。</p>
+<p>第七步，查看请求响应数据和测试结果，用到监听器。</p>
+<h1 id="实践指南">实践指南<a hidden class="anchor" aria-hidden="true" href="#实践指南">#</a></h1>
+<p>对于以下所列元件：</p>
+<p><img loading="lazy" src="../assets/107fe872d0c84a08a81dcb909d80a028.png"></p>
+<p>JMeter 会按以下步骤运行：</p>
+<ol>
+<li>线程组（如果有多个线程组可以在测试计划设置是顺序执行还是同时执行）</li>
+<li>简单控制器（父节点）</li>
+<li>HTTP Cookie 管理器（配置元件）</li>
+<li>用户参数（前置处理器）</li>
+<li>Synchronizing Timer（定时器）</li>
+<li>HTTP 请求 1（取样器）</li>
+<li>正则表达式提取器（后置处理器）</li>
+<li>响应断言（断言）</li>
+<li>HTTP Cookie 管理器（配置元件）</li>
+<li>用户参数（前置处理器）</li>
+<li>Synchronizing Timer（定时器）</li>
+<li>HTTP 请求 2（取样器）</li>
+<li>正则表达式提取器（后置处理器）</li>
+<li>响应断言（断言）</li>
+<li>HTTP 请求 3（取样器）</li>
+<li>察看结果树（严格来讲是与第 6 步并行，也就是取样器之后）</li>
+</ol>
+<h1 id="作用域">作用域<a hidden class="anchor" aria-hidden="true" href="#作用域">#</a></h1>
+<p>其中有个观察作用域实际效果的关键元件：HTTP 请求 2，它的前后并没有元件，但是也被作用上了。在 JMeter 中，同一层级的元件具有相同的作用域！</p>
+<blockquote>
+<p>简单控制器是一个执行单元，本身没有内容，它的作用是把元件进行分组：</p>
+<p><img loading="lazy" src="../assets/2d9714e0d4374ff8b708ff94fe42fba8.png"></p>
+</blockquote>
+<p>因为简单控制器通过分组给元件划分了层级，所以简单控制器下面的这些同层级元件，作用域相同，既会作用于 HTTP 请求 1，也会作用于 HTTP 请求 2。注意了！配置元件、前置处理器、定时器、后置处理器、断言、监听器，这六个组件，会作用到范围内的所有取样器。</p>
+<p>除了同级作用域，还有上下级，JMeter 的上级作用域包含下级作用域，但是下级是不能作用到上级。比如 HTTP 请求 3，简单控制器下级的元件，是不会作用到 HTTP 请求 3 的。</p>
+<h1 id="回答开头的问题">回答开头的问题<a hidden class="anchor" aria-hidden="true" href="#回答开头的问题">#</a></h1>
+<p><img loading="lazy" src="../assets/08bb056c95a34670a750060f1e04625a.png"></p>
+<p>HTTP Header Manager 是配置元件，会作用到范围内的所有取样器。这里有 2 个 HTTP Header Manager，都位于同一层级，它们会一起执行。在 JMeter 同一执行单元中，如果相同类型的元件有多个，那么它们会被当做一个一起执行！</p>
+<p>测试一下，把最后一个 HTTP Header Manager 的 authorization 重命名为 authorization2，查看考场接口的 Headers：</p>
+<p><img loading="lazy" src="../assets/5531d5f3fca346729217a5381b62a419.png"></p>
+<p>两个 HTTP Header Manager 都作用上了。</p>
+<p>为了避免混乱，在实际使用时建议：</p>
+<ul>
+<li>根据先后顺序，从上往下合理的放置元件的顺序。</li>
+<li>对于配置元件、前置处理器、定时器、后置处理器、断言这六类元件，它们都是为取样器服务的，如果只想作用于单个取样器，那么最好放在这个取样器的下级。</li>
+</ul>
+<p>按照建议调整后的测试脚本如下：</p>
+<p><img loading="lazy" src="../assets/16d103c76eba4a258c27b2dda95ac900.png"></p>
+<blockquote>
+<p>User Defined Variables 和 CSV Data Set Config，是配置元件，且跟取样器同级，会同时作用到这 3 个取样器上面。</p>
+</blockquote>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文开头引入了我在实际工作中碰到的问题，为了解决，先搞懂了 JMeter 元件运行顺序，然后参考了实践指南，发现了同一层级作用域相同这个原理，总结出了使用建议，配置元件、前置处理器、定时器、后置处理器、断言这六类元件，最好放在取样器的下级，调整后脚本如期运行。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/">性能测试</a></li>
+      <li><a href="https://dongfanger.github.io/tags/jmeter/">JMeter</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servlet%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/">
+    <span class="title">« 上一页</span>
+    <span>JavaWeb 开发基础 Servlet 生命周期与工作原理</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/junit5%E7%9A%84tagfilterorderlifecycle/">
+    <span class="title">下一页 »</span>
+    <span>JUnit5 的 Tag、Filter、Order、Lifecycle</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#从一个问题说起">从一个问题说起</a></li>
+    <li><a href="#运行顺序">运行顺序</a></li>
+    <li><a href="#实践指南">实践指南</a></li>
+    <li><a href="#作用域">作用域</a></li>
+    <li><a href="#回答开头的问题">回答开头的问题</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

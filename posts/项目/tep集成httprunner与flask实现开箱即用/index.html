@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>tep 集成 HttpRunner 与 Flask 实现开箱即用 | 测试开发刚哥</title>
+<meta name="keywords" content="tep">
+<meta name="description" content="大家好，我是刚哥。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E9%9B%86%E6%88%90httprunner%E4%B8%8Eflask%E5%AE%9E%E7%8E%B0%E5%BC%80%E7%AE%B1%E5%8D%B3%E7%94%A8/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E9%9B%86%E6%88%90httprunner%E4%B8%8Eflask%E5%AE%9E%E7%8E%B0%E5%BC%80%E7%AE%B1%E5%8D%B3%E7%94%A8/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E9%9B%86%E6%88%90httprunner%E4%B8%8Eflask%E5%AE%9E%E7%8E%B0%E5%BC%80%E7%AE%B1%E5%8D%B3%E7%94%A8/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="tep 集成 HttpRunner 与 Flask 实现开箱即用">
+  <meta property="og:description" content="大家好，我是刚哥。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-08T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-08T00:00:00+00:00">
+    <meta property="article:tag" content="Tep">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="tep 集成 HttpRunner 与 Flask 实现开箱即用">
+  <meta name="twitter:description" content="大家好，我是刚哥。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "tep 集成 HttpRunner 与 Flask 实现开箱即用",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E9%9B%86%E6%88%90httprunner%E4%B8%8Eflask%E5%AE%9E%E7%8E%B0%E5%BC%80%E7%AE%B1%E5%8D%B3%E7%94%A8/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "tep 集成 HttpRunner 与 Flask 实现开箱即用",
+  "name": "tep 集成 HttpRunner 与 Flask 实现开箱即用",
+  "description": "大家好，我是刚哥。",
+  "keywords": [
+    "tep"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n大家好，我是刚哥。\n趁着元旦假期最后一天，有着大把时间，奔着把 tep 做大做强的目标，好好学习了一波。在开始正文之前，先回答可能会问到的两个问题。第一个问题是为什么要集成 HttpRunner？因为我最近在思考如何给 tep 做分层设计，参考了我司现有的接口自动化平台，它的设计是每个用例有很多测试步骤，可以针对用例设置预设变量，然后在测试步骤中引用。正当我准备自己开发类似功能时，想到了 HttpRunner，我记得 HttpRunner 第 3 版是建议直接编写 pytest 代码而非以前的 ymal 或 json 文件了。大有所获，HttpRunner 正是以这种方式编写的代码，而且和 pytest 有很好的结合，很符合 tep 要集成的第三方包的希望。第二个问题是为什么要集成 Flask？刚开始只是我用来调试代码的，等到把 Mock 写完以后，想到可能大家也需要调试代码，就把它做到 tep 里面了，并且附带了测试用例的示例代码，安装完以后就能一键运行，开箱即用，美滋滋。归根结底，都是为了把 tep 做大做强。\ntep0.9.3 正式发布 要体验 HttpRunner 和 Flask，需要先安装或升级到 tep0.9.3。\n安装：\npip install tep 升级：\npip install -U tep 或者指定版本：\npip install tep==0.9.3 安装 tep 时会顺带安装 HttpRunner 和 Flask，安装完以后就可以执行命令初始化项目：\ntep startproject demo093 输出：\nD:\\PycharmProjects\u003etep startproject demo093 2022-01-03 16:07:31.929 | INFO | tep.scaffold:create_scaffold:53 - Create new project: demo093 Project root dir: D:\\PycharmProjects\\demo093 Created folder: demo093 Created folder: demo093\\fixtures Created folder: demo093\\tests Created folder: demo093\\files Created folder: demo093\\reports Created folder: demo093\\utils Created file: demo093\\.gitignore Created file: demo093\\conf.yaml Created file: demo093\\conftest.py Created file: demo093\\pytest.ini Created file: demo093\\fixtures\\__init__.py Created file: demo093\\fixtures\\fixture_admin.py Created file: demo093\\fixtures\\fixture_env_vars.py Created file: demo093\\fixtures\\fixture_login.py Created file: demo093\\fixtures\\fixture_your_name.py Created file: demo093\\tests\\__init__.py Created file: demo093\\tests\\test_login.py Created file: demo093\\tests\\test_post.py Created file: demo093\\tests\\test_mysql.py Created file: demo093\\tests\\test_request.py Created file: demo093\\tests\\test_login_pay.py Created file: demo093\\tests\\test_login_pay_httprunner.py Created file: demo093\\utils\\__init__.py Created file: demo093\\utils\\flask_mock_api.py 修改了fixture_env_vars.py里面的 domain 为http://127.0.0.1:5000，这是Flask启动后的默认地址。 修改了fixture_login.py里面的登录 url 和 username，跟 Flask 的 Mock 对应。 新增了utils\\flask_mock_api.py，直接启动 Mock 服务。 新增了tests\\test_login_pay.py，用例数据一体开发模式，登录到下单流程的示例代码，可以一键运行成功。 新增了tests\\test_login_pay_httprunner.py，HttpRunner 开发模式，登录到下单流程的示例代码，可以一键运行成功。 新版 README.md 之前 tep 的 README 是全英文的，这次我也决定不装了，改成中文 ，丰富了内容，大家可以对 tep 有个全新和全面的了解啦。以下是全文：\ntep tep是Try Easy Pytest 的首字母缩写，是一款基于 pytest 测试框架的测试工具，集成了各种实用的第三方包和优秀的自动化测试设计思想，帮你快速实现自动化项目落地。\n安装 支持 Python3.6 以上，推荐 Python3.8 以上。\n标准安装：\n$ pip install tep 国内镜像：\n$ pip --default-timeout=600 install -i https://pypi.tuna.tsinghua.edu.cn/simple tep 检查安装成功：\n$ tep -V # 或者 tep --version 0.2.3 快速创建项目 tep 提供了脚手架，预置了项目结构和代码，打开 cmd，使用startproject命令快速创建项目：\ntep startproject project_name 并且提供了-venv参数，在项目初始化时，可以同时创建一个虚拟环境（推荐）：\ntep startproject project_name -venv 输出测试报告 tep 提供了--tep-reports参数来生成 allure 测试报告：\npytest --tep-reports 报告文件存放在根目录的reports/中。\nMock 服务 tep 自带了一个 Flask 应用（utils/flask_mock_api.py），提供了登录到下单流程的 5 个接口，启动后即可一键运行示例中的测试用例。\n三种开发模式 tep 兼容三种开发模式：用例数据一体（适合新手）、用例数据分离（适合老手）、HttpRunner（新老皆宜）。\n①用例数据一体，示例代码如下所示：\nimport jmespath from tep.client import request def test(env_vars, login): # 搜索商品 response = request( \"get\", url=env_vars.domain + \"/searchSku\", headers={\"token\": login.token}, params={\"skuName\": \"电子书\"} ) sku_id = jmespath.search(\"skuId\", response.json()) sku_price = jmespath.search(\"price\", response.json()) assert response.status_code \u003c 400 # 添加购物车 sku_num = 3 response = request( \"post\", url=env_vars.domain + \"/addCart\", headers={\"token\": login.token}, json={\"skuId\": sku_id, \"skuNum\": sku_num} ) total_price = jmespath.search(\"totalPrice\", response.json()) assert response.status_code \u003c 400 # 下单 response = request( \"post\", url=env_vars.domain + \"/order\", headers={\"token\": login.token}, json={\"skuId\": sku_id, \"price\": sku_price, \"skuNum\": sku_num, \"totalPrice\": total_price} ) order_id = jmespath.search(\"orderId\", response.json()) assert response.status_code \u003c 400 # 支付 response = request( \"post\", url=env_vars.domain + \"/pay\", headers={\"token\": login.token}, json={\"orderId\": order_id, \"payAmount\": \"6.9\"} ) assert response.status_code \u003c 400 assert response.json()[\"success\"] == \"true\" 更多内容请参考《如何使用 teprunner 测试平台编写从登录到下单的大流程接口自动化用例》\n②用例数据分离\n开发中，敬请期待… ③HttpRunner，示例代码如下所示：\nfrom httprunner import HttpRunner, Config, Step, RunRequest class TestLoginPay(HttpRunner): config = ( Config(\"登录到下单流程\") .variables( **{ \"skuNum\": \"3\" } ) .base_url(\"http://127.0.0.1:5000\") ) teststeps = [ Step( RunRequest(\"登录\") .post(\"/login\") .with_headers(**{\"Content-Type\": \"application/json\"}) .with_json({\"username\": \"dongfanger\", \"password\": \"123456\"}) .extract() .with_jmespath(\"body.token\", \"token\") .validate() .assert_equal(\"status_code\", 200) ), Step( RunRequest(\"搜索商品\") .get(\"searchSku?skuName=电子书\") .with_headers(**{\"token\": \"$token\"}) .extract() .with_jmespath(\"body.skuId\", \"skuId\") .with_jmespath(\"body.price\", \"skuPrice\") .validate() .assert_equal(\"status_code\", 200) ), Step( RunRequest(\"添加购物车\") .post(\"/addCart\") .with_headers(**{\"Content-Type\": \"application/json\", \"token\": \"$token\"}) .with_json({\"skuId\": \"$skuId\", \"skuNum\": \"$skuNum\"}) .extract() .with_jmespath(\"body.totalPrice\", \"totalPrice\") .validate() .assert_equal(\"status_code\", 200) ), Step( RunRequest(\"下单\") .post(\"/order\") .with_headers(**{\"Content-Type\": \"application/json\", \"token\": \"$token\"}) .with_json({\"skuId\": \"$skuId\", \"price\": \"$skuPrice\", \"skuNum\": \"$skuNum\", \"totalPrice\": \"$totalPrice\"}) .extract() .with_jmespath(\"body.orderId\", \"orderId\") .validate() .assert_equal(\"status_code\", 200) ), Step( RunRequest(\"支付\") .post(\"/pay\") .with_headers(**{\"Content-Type\": \"application/json\", \"token\": \"$token\"}) .with_json({\"orderId\": \"$orderId\", \"payAmount\": \"6.9\"}) .validate() .assert_equal(\"status_code\", 200) .assert_equal(\"body.success\", \"true\") ), ] 用户手册 https://dongfanger.gitee.io/blog/chapters/tep.html\n联系我 https://dongfanger.gitee.io/blog/more.html\n",
+  "wordCount" : "481",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-08T00:00:00Z",
+  "dateModified": "2026-01-08T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E9%9B%86%E6%88%90httprunner%E4%B8%8Eflask%E5%AE%9E%E7%8E%B0%E5%BC%80%E7%AE%B1%E5%8D%B3%E7%94%A8/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      tep 集成 HttpRunner 与 Flask 实现开箱即用
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-08T00:00:00+00:00'>2026-01-08</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/tep/'>#Tep</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>大家好，我是刚哥。</p>
+<p>趁着元旦假期最后一天，有着大把时间，奔着把 tep 做大做强的目标，好好学习了一波。在开始正文之前，先回答可能会问到的两个问题。第一个问题是<strong>为什么要集成 HttpRunner？<strong>因为我最近在思考如何给 tep 做分层设计，参考了我司现有的接口自动化平台，它的设计是每个用例有很多测试步骤，可以针对用例设置预设变量，然后在测试步骤中引用。正当我准备自己开发类似功能时，想到了 HttpRunner，我记得 HttpRunner 第 3 版是建议直接编写 pytest 代码而非以前的 ymal 或 json 文件了。大有所获，HttpRunner 正是以这种方式编写的代码，而且</strong>和 pytest 有很好的结合</strong>，很符合 tep 要集成的第三方包的希望。第二个问题是<strong>为什么要集成 Flask？<strong>刚开始只是我用来调试代码的，等到把 Mock 写完以后，想到可能大家也需要调试代码，就把它做到 tep 里面了，并且附带了测试用例的示例代码，安装完以后就能一键运行，<strong>开箱即用</strong>，美滋滋。归根结底，都是为了</strong>把 tep 做大做强</strong>。</p>
+<h1 id="tep093-正式发布">tep0.9.3 正式发布<a hidden class="anchor" aria-hidden="true" href="#tep093-正式发布">#</a></h1>
+<p>要体验 HttpRunner 和 Flask，需要先安装或升级到 tep0.9.3。</p>
+<p>安装：</p>
+<pre tabindex="0"><code>pip install tep 
+</code></pre><p>升级：</p>
+<pre tabindex="0"><code>pip install -U tep
+</code></pre><p>或者指定版本：</p>
+<pre tabindex="0"><code>pip install tep==0.9.3
+</code></pre><p>安装 tep 时会顺带安装 HttpRunner 和 Flask，安装完以后就可以执行命令初始化项目：</p>
+<pre tabindex="0"><code>tep startproject demo093
+</code></pre><p>输出：</p>
+<pre tabindex="0"><code>D:\PycharmProjects&gt;tep startproject demo093
+2022-01-03 16:07:31.929 | INFO     | tep.scaffold:create_scaffold:53 - Create new project: demo093
+Project root dir: D:\PycharmProjects\demo093
+
+Created folder: demo093
+Created folder: demo093\fixtures
+Created folder: demo093\tests
+Created folder: demo093\files
+Created folder: demo093\reports
+Created folder: demo093\utils
+Created file: demo093\.gitignore
+Created file: demo093\conf.yaml
+Created file: demo093\conftest.py
+Created file: demo093\pytest.ini
+Created file: demo093\fixtures\__init__.py
+Created file: demo093\fixtures\fixture_admin.py
+Created file: demo093\fixtures\fixture_env_vars.py
+Created file: demo093\fixtures\fixture_login.py
+Created file: demo093\fixtures\fixture_your_name.py
+Created file: demo093\tests\__init__.py
+Created file: demo093\tests\test_login.py
+Created file: demo093\tests\test_post.py
+Created file: demo093\tests\test_mysql.py
+Created file: demo093\tests\test_request.py
+Created file: demo093\tests\test_login_pay.py
+Created file: demo093\tests\test_login_pay_httprunner.py
+Created file: demo093\utils\__init__.py
+Created file: demo093\utils\flask_mock_api.py
+</code></pre><ul>
+<li>修改了<code>fixture_env_vars.py</code>里面的 domain 为http://127.0.0.1:5000，这是Flask启动后的默认地址。</li>
+<li>修改了<code>fixture_login.py</code>里面的登录 url 和 username，跟 Flask 的 Mock 对应。</li>
+<li>新增了<code>utils\flask_mock_api.py</code>，直接启动 Mock 服务。</li>
+<li>新增了<code>tests\test_login_pay.py</code>，用例数据一体开发模式，登录到下单流程的示例代码，<strong>可以一键运行成功</strong>。</li>
+<li>新增了<code>tests\test_login_pay_httprunner.py</code>，HttpRunner 开发模式，登录到下单流程的示例代码，<strong>可以一键运行成功</strong>。</li>
+</ul>
+<h1 id="新版-readmemd">新版 README.md<a hidden class="anchor" aria-hidden="true" href="#新版-readmemd">#</a></h1>
+<p>之前 tep 的 README 是全英文的，这次我也决定不装了，改成中文 ，丰富了内容，大家可以对 tep 有个全新和全面的了解啦。以下是全文：</p>
+<h1 id="tep">tep<a hidden class="anchor" aria-hidden="true" href="#tep">#</a></h1>
+<p><code>tep</code>是<strong>T</strong>ry <strong>E</strong>asy <strong>P</strong>ytest 的首字母缩写，是一款基于 pytest 测试框架的测试工具，集成了各种实用的第三方包和优秀的自动化测试设计思想，帮你快速实现自动化项目落地。</p>
+<h1 id="安装">安装<a hidden class="anchor" aria-hidden="true" href="#安装">#</a></h1>
+<p>支持 Python3.6 以上，推荐 Python3.8 以上。</p>
+<p>标准安装：</p>
+<pre tabindex="0"><code>$ pip install tep
+</code></pre><p>国内镜像：</p>
+<pre tabindex="0"><code>$ pip --default-timeout=600 install -i https://pypi.tuna.tsinghua.edu.cn/simple tep
+</code></pre><p>检查安装成功：</p>
+<pre tabindex="0"><code>$ tep -V  # 或者 tep --version
+0.2.3
+</code></pre><h1 id="快速创建项目">快速创建项目<a hidden class="anchor" aria-hidden="true" href="#快速创建项目">#</a></h1>
+<p>tep 提供了脚手架，预置了项目结构和代码，打开 cmd，使用<code>startproject</code>命令快速创建项目：</p>
+<pre tabindex="0"><code>tep startproject project_name
+</code></pre><p>并且提供了<code>-venv</code>参数，在项目初始化时，可以同时创建一个虚拟环境（推荐）：</p>
+<pre tabindex="0"><code>tep startproject project_name -venv
+</code></pre><h1 id="输出测试报告">输出测试报告<a hidden class="anchor" aria-hidden="true" href="#输出测试报告">#</a></h1>
+<p>tep 提供了<code>--tep-reports</code>参数来生成 allure 测试报告：</p>
+<pre tabindex="0"><code>pytest  --tep-reports
+</code></pre><p>报告文件存放在根目录的<code>reports/</code>中。</p>
+<h1 id="mock-服务">Mock 服务<a hidden class="anchor" aria-hidden="true" href="#mock-服务">#</a></h1>
+<p>tep 自带了一个 Flask 应用（<code>utils/flask_mock_api.py</code>），提供了登录到下单流程的 5 个接口，启动后即可一键运行示例中的测试用例。</p>
+<h1 id="三种开发模式">三种开发模式<a hidden class="anchor" aria-hidden="true" href="#三种开发模式">#</a></h1>
+<p>tep 兼容三种开发模式：用例数据一体（适合新手）、用例数据分离（适合老手）、HttpRunner（新老皆宜）。</p>
+<p>①用例数据一体，示例代码如下所示：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">jmespath</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep.client</span> <span style="color:#cf222e">import</span> request
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">(</span>env_vars<span style="color:#1f2328">,</span> login<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 搜索商品</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;get&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        url<span style="color:#0550ae">=</span>env_vars<span style="color:#0550ae">.</span>domain <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/searchSku&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        headers<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> login<span style="color:#0550ae">.</span>token<span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>        params<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;skuName&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;电子书&#34;</span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    sku_id <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>    sku_price <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;price&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 添加购物车</span>
+</span></span><span style="display:flex;"><span>    sku_num <span style="color:#0550ae">=</span> <span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        url<span style="color:#0550ae">=</span>env_vars<span style="color:#0550ae">.</span>domain <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/addCart&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        headers<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> login<span style="color:#0550ae">.</span>token<span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>        json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">:</span> sku_id<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> sku_num<span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    total_price <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 下单</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        url<span style="color:#0550ae">=</span>env_vars<span style="color:#0550ae">.</span>domain <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/order&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        headers<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> login<span style="color:#0550ae">.</span>token<span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>        json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">:</span> sku_id<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;price&#34;</span><span style="color:#1f2328">:</span> sku_price<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> sku_num<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">:</span> total_price<span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    order_id <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 支付</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        url<span style="color:#0550ae">=</span>env_vars<span style="color:#0550ae">.</span>domain <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/pay&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        headers<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> login<span style="color:#0550ae">.</span>token<span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>        json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">:</span> order_id<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;payAmount&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;6.9&#34;</span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">()[</span><span style="color:#0a3069">&#34;success&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;true&#34;</span>
+</span></span></code></pre></div><p>更多内容请参考<a href="https://dongfanger.gitee.io/blog/teprunner/012-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%BC%96%E5%86%99%E4%BB%8E%E7%99%BB%E5%BD%95%E5%88%B0%E4%B8%8B%E5%8D%95%E7%9A%84%E5%A4%A7%E6%B5%81%E7%A8%8B%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B.html">《如何使用 teprunner 测试平台编写从登录到下单的大流程接口自动化用例》</a></p>
+<p>②用例数据分离</p>
+<p>开发中，敬请期待&hellip;
+③HttpRunner，示例代码如下所示：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">httprunner</span> <span style="color:#cf222e">import</span> HttpRunner<span style="color:#1f2328">,</span> Config<span style="color:#1f2328">,</span> Step<span style="color:#1f2328">,</span> RunRequest
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TestLoginPay</span><span style="color:#1f2328">(</span>HttpRunner<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    config <span style="color:#0550ae">=</span> <span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        Config<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;登录到下单流程&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">.</span>variables<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">**</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;3&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">.</span>base_url<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;http://127.0.0.1:5000&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    teststeps <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>        Step<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            RunRequest<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;登录&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>post<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/login&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_headers<span style="color:#1f2328">(</span><span style="color:#0550ae">**</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_json<span style="color:#1f2328">({</span><span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;dongfanger&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;123456&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>extract<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_jmespath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;body.token&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>validate<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>assert_equal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;status_code&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">200</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        Step<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            RunRequest<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;搜索商品&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;searchSku?skuName=电子书&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_headers<span style="color:#1f2328">(</span><span style="color:#0550ae">**</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$token&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>extract<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_jmespath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;body.skuId&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_jmespath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;body.price&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;skuPrice&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>validate<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>assert_equal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;status_code&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">200</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        Step<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            RunRequest<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;添加购物车&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>post<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/addCart&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_headers<span style="color:#1f2328">(</span><span style="color:#0550ae">**</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                                 <span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$token&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_json<span style="color:#1f2328">({</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$skuId&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$skuNum&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>extract<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_jmespath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;body.totalPrice&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>validate<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>assert_equal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;status_code&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">200</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        Step<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            RunRequest<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;下单&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>post<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/order&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_headers<span style="color:#1f2328">(</span><span style="color:#0550ae">**</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                                 <span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$token&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_json<span style="color:#1f2328">({</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$skuId&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;price&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$skuPrice&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$skuNum&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$totalPrice&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>extract<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_jmespath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;body.orderId&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>validate<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>assert_equal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;status_code&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">200</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        Step<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            RunRequest<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;支付&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>post<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/pay&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_headers<span style="color:#1f2328">(</span><span style="color:#0550ae">**</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                                 <span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$token&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>with_json<span style="color:#1f2328">({</span><span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$orderId&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;payAmount&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;6.9&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>validate<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>assert_equal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;status_code&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">200</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">.</span>assert_equal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;body.success&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;true&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">]</span>
+</span></span></code></pre></div><h1 id="用户手册">用户手册<a hidden class="anchor" aria-hidden="true" href="#用户手册">#</a></h1>
+<p><a href="https://dongfanger.gitee.io/blog/chapters/tep.html">https://dongfanger.gitee.io/blog/chapters/tep.html</a></p>
+<h1 id="联系我">联系我<a hidden class="anchor" aria-hidden="true" href="#联系我">#</a></h1>
+<p><a href="https://dongfanger.gitee.io/blog/more.html">https://dongfanger.gitee.io/blog/more.html</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/tep/">Tep</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B05data/">
+    <span class="title">« 上一页</span>
+    <span>SpringBoot 官方笔记 5Data</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E7%BC%96%E5%86%99%E7%AD%89%E4%BD%93%E9%AA%8C%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8D%87%E7%BA%A7/">
+    <span class="title">下一页 »</span>
+    <span>teprunner 测试平台用例编写等体验响应式升级</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#tep093-正式发布">tep0.9.3 正式发布</a></li>
+    <li><a href="#新版-readmemd">新版 README.md</a></li>
+    <li><a href="#tep">tep</a></li>
+    <li><a href="#安装">安装</a></li>
+    <li><a href="#快速创建项目">快速创建项目</a></li>
+    <li><a href="#输出测试报告">输出测试报告</a></li>
+    <li><a href="#mock-服务">Mock 服务</a></li>
+    <li><a href="#三种开发模式">三种开发模式</a></li>
+    <li><a href="#用户手册">用户手册</a></li>
+    <li><a href="#联系我">联系我</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

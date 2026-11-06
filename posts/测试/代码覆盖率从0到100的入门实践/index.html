@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>代码覆盖率从 0 到 100 的入门实践 | 测试开发刚哥</title>
+<meta name="keywords" content="白盒测试, JaCoCo">
+<meta name="description" content="JaCoCo 全称是Java Code Coverage，Java 代码覆盖率，广泛运用于各种测试平台对 Java 代码的全量覆盖率和增量覆盖率进行统计，分析代码行差异，度量单元测试效果。Jacoco 也是精准测试的技术实现手段之一。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87%E4%BB%8E0%E5%88%B0100%E7%9A%84%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87%E4%BB%8E0%E5%88%B0100%E7%9A%84%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87%E4%BB%8E0%E5%88%B0100%E7%9A%84%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="代码覆盖率从 0 到 100 的入门实践">
+  <meta property="og:description" content="JaCoCo 全称是Java Code Coverage，Java 代码覆盖率，广泛运用于各种测试平台对 Java 代码的全量覆盖率和增量覆盖率进行统计，分析代码行差异，度量单元测试效果。Jacoco 也是精准测试的技术实现手段之一。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:tag" content="白盒测试">
+    <meta property="article:tag" content="JaCoCo">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="代码覆盖率从 0 到 100 的入门实践">
+  <meta name="twitter:description" content="JaCoCo 全称是Java Code Coverage，Java 代码覆盖率，广泛运用于各种测试平台对 Java 代码的全量覆盖率和增量覆盖率进行统计，分析代码行差异，度量单元测试效果。Jacoco 也是精准测试的技术实现手段之一。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "代码覆盖率从 0 到 100 的入门实践",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87%E4%BB%8E0%E5%88%B0100%E7%9A%84%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "代码覆盖率从 0 到 100 的入门实践",
+  "name": "代码覆盖率从 0 到 100 的入门实践",
+  "description": "JaCoCo 全称是Java Code Coverage，Java 代码覆盖率，广泛运用于各种测试平台对 Java 代码的全量覆盖率和增量覆盖率进行统计，分析代码行差异，度量单元测试效果。Jacoco 也是精准测试的技术实现手段之一。",
+  "keywords": [
+    "白盒测试", "JaCoCo"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nJaCoCo 全称是Java Code Coverage，Java 代码覆盖率，广泛运用于各种测试平台对 Java 代码的全量覆盖率和增量覆盖率进行统计，分析代码行差异，度量单元测试效果。Jacoco 也是精准测试的技术实现手段之一。\n入门实践的目标是写点简单代码，再加点单元测试，把 JaCoCo 跑起来，输出测试报告，看代码覆盖率是怎么回事，了解基本的运行流程。\n先写点简单代码：\npublic class Add { public int add(int a, int b) { if (a == 1 \u0026\u0026 b == 1) { return a + b; } return 0; } } 再加点单元测试，这里先加一个什么都不做的单元测试，按理说代码覆盖率会是 0：\nimport org.junit.Test; public class AddTest { @Test public void notCovered() { } } 如何把 Jacoco 跑起来呢？我先尝试了 Maven 插件的方式，在 pom.xml 中引入依赖和添加配置：\njunit junit 4.12 test org.jacoco jacoco-maven-plugin 0.8.7 8 8 org.jacoco jacoco-maven-plugin 0.8.7 default-prepare-agent prepare-agent default-report report 引入了 junit 和 jacoco-maven-plugin 两个依赖。 插件中配置了两个 execution，并指定了两个 goal，prepare-agent（插桩）和 report（报告）。 然后执行 maven 的 install，如果是在 IDEA 中可以直接点击按钮：\n在 target 下就能看到 html 报告了：\n打开看果然代码覆盖率是 0：\n修改一下单元测试：\nimport org.junit.Test; public class AddTest { @Test public void covered() { Add addDemo = new Add(); addDemo.add(1, 1); addDemo.add(1, 2); addDemo.add(2, 2); } @Test public void notCovered() { } } 先maven clean以后再 install，就能看到：\n覆盖率 100%了。一共有 4 行需要覆盖的代码行：\n至于为什么需要 4 行，以及我添加的单元测试为什么能够 100%覆盖，文字描述有点说不清楚。可以关注我的 B 站，搜索 dongfanger 关注，我会进行相关的演示和说明。\n参考资料：\nJacoco 官网 Maven 示例 https://www.jacoco.org/jacoco/trunk/doc/maven.html\nJacoco 报告详解 https://blog.csdn.net/sayoko06/article/details/99312875\n",
+  "wordCount" : "181",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-03T00:00:00Z",
+  "dateModified": "2026-01-03T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87%E4%BB%8E0%E5%88%B0100%E7%9A%84%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      代码覆盖率从 0 到 100 的入门实践
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-03T00:00:00+00:00'>2026-01-03</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/'>#白盒测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jacoco/'>#JaCoCo</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>JaCoCo 全称是<strong>Ja</strong>va <strong>Co</strong>de <strong>Co</strong>verage，Java 代码覆盖率，广泛运用于各种测试平台对 Java 代码的全量覆盖率和增量覆盖率进行统计，分析代码行差异，度量单元测试效果。Jacoco 也是精准测试的技术实现手段之一。</p>
+<p>入门实践的目标是写点简单代码，再加点单元测试，把 JaCoCo 跑起来，输出测试报告，看代码覆盖率是怎么回事，了解基本的运行流程。</p>
+<p>先写点简单代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Add</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span><span style="color:#6639ba">add</span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>a<span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>b<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>a<span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span>1<span style="color:#fff"> </span><span style="color:#0550ae">&amp;&amp;</span><span style="color:#fff"> </span>b<span style="color:#fff"> </span><span style="color:#0550ae">==</span><span style="color:#fff"> </span>1<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>a<span style="color:#fff"> </span><span style="color:#0550ae">+</span><span style="color:#fff"> </span>b<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span>0<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>再加点单元测试，这里先加一个什么都不做的单元测试，按理说代码覆盖率会是 0：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.Test</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">AddTest</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">notCovered</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>如何把 Jacoco 跑起来呢？我先尝试了 Maven 插件的方式，在 pom.xml 中引入依赖和添加配置：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;dependencies&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;groupId&gt;</span>junit<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;artifactId&gt;</span>junit<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;version&gt;</span>4.12<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;scope&gt;</span>test<span style="color:#0550ae">&lt;/scope&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;groupId&gt;</span>org.jacoco<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;artifactId&gt;</span>jacoco-maven-plugin<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;version&gt;</span>0.8.7<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/dependencies&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;properties&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;maven.compiler.source&gt;</span>8<span style="color:#0550ae">&lt;/maven.compiler.source&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;maven.compiler.target&gt;</span>8<span style="color:#0550ae">&lt;/maven.compiler.target&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/properties&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;build&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;plugins&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;plugin&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;groupId&gt;</span>org.jacoco<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;artifactId&gt;</span>jacoco-maven-plugin<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;version&gt;</span>0.8.7<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;executions&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0550ae">&lt;execution&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;id&gt;</span>default-prepare-agent<span style="color:#0550ae">&lt;/id&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;goals&gt;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#0550ae">&lt;goal&gt;</span>prepare-agent<span style="color:#0550ae">&lt;/goal&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;/goals&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0550ae">&lt;/execution&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0550ae">&lt;execution&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;id&gt;</span>default-report<span style="color:#0550ae">&lt;/id&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;goals&gt;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#0550ae">&lt;goal&gt;</span>report<span style="color:#0550ae">&lt;/goal&gt;</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#0550ae">&lt;/goals&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#0550ae">&lt;/execution&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0550ae">&lt;/executions&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;/plugin&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;/plugins&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/build&gt;</span>
+</span></span></code></pre></div><ul>
+<li>引入了 junit 和 jacoco-maven-plugin 两个依赖。</li>
+<li>插件中配置了两个 execution，并指定了两个 goal，prepare-agent（插桩）和 report（报告）。</li>
+</ul>
+<p>然后执行 maven 的 install，如果是在 IDEA 中可以直接点击按钮：</p>
+<p><img loading="lazy" src="../assets/a31f5bfa90bc4153b954f7bd6075da68.png"></p>
+<p>在 target 下就能看到 html 报告了：</p>
+<p><img loading="lazy" src="../assets/85a56e7b684046beba760481b5487bb6.png"></p>
+<p>打开看果然代码覆盖率是 0：</p>
+<p><img loading="lazy" src="../assets/93183de5fc97448eb7bc1fffbf1142bd.png"></p>
+<p>修改一下单元测试：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.Test</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">AddTest</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">covered</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>Add<span style="color:#fff"> </span>addDemo<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Add<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>addDemo<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>1<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>addDemo<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>2<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>addDemo<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span>2<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">notCovered</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>先<strong>maven clean</strong>以后再 install，就能看到：</p>
+<p><img loading="lazy" src="../assets/b11422625a854d1caca8ffe9517b5464.png"></p>
+<p>覆盖率 100%了。一共有 4 行需要覆盖的代码行：</p>
+<p><img loading="lazy" src="../assets/9d1b847d33ab4915a4aa4bb7ce2ef2ed.png"></p>
+<p>至于为什么需要 4 行，以及我添加的单元测试为什么能够 100%覆盖，文字描述有点说不清楚。可以关注我的 B 站，搜索 dongfanger 关注，我会进行相关的演示和说明。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>Jacoco 官网 Maven 示例 <a href="https://www.jacoco.org/jacoco/trunk/doc/maven.html">https://www.jacoco.org/jacoco/trunk/doc/maven.html</a></p>
+<p>Jacoco 报告详解 <a href="https://blog.csdn.net/sayoko06/article/details/99312875">https://blog.csdn.net/sayoko06/article/details/99312875</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/">白盒测试</a></li>
+      <li><a href="https://dongfanger.github.io/tags/jacoco/">JaCoCo</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/webdriver%E4%BD%BF%E7%94%A8%E5%B7%B2%E6%89%93%E5%BC%80%E8%BF%87%E7%9A%84chrome/">
+    <span class="title">« 上一页</span>
+    <span>webdriver 使用已打开过的 chrome</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%85%B3%E4%BA%8Efastapi%E5%BC%82%E6%AD%A5%E5%B9%B6%E5%8F%91%E7%9A%84%E6%8A%80%E6%9C%AF%E8%83%8C%E6%99%AF%E5%92%8C%E7%BB%86%E8%8A%82/">
+    <span class="title">下一页 »</span>
+    <span>关于 FastAPI 异步并发的技术背景和细节</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar">
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

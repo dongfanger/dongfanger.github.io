@@ -10,7 +10,7 @@
 <meta name="description" content="测试开发刚哥的技术博客">
 <meta name="author" content="测试开发刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/tags/jacoco/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.eb1bdb431ab6f6b75e6097ab8d81581c4ca333d2262bd24e5d93cbf916910c08.css" integrity="sha256-6xvbQxq29rdeYJerjYFYHEyjM9ImK9JOXZPL&#43;RaRDAg=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -65,7 +65,11 @@
         document.querySelector("html").dataset.theme = 'light';
     }
 
-</script><meta property="og:url" content="https://dongfanger.github.io/tags/jacoco/">
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/tags/jacoco/">
   <meta property="og:site_name" content="测试开发刚哥">
   <meta property="og:title" content="JaCoCo">
   <meta property="og:description" content="测试开发刚哥的技术博客">
@@ -78,6 +82,10 @@
 
 </head>
 <body class="list" id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
@@ -135,18 +143,7 @@
     </nav>
 </header>
 <main class="main"> 
-<header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/tags/">标签</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
+<header class="page-header">
   <h1>
     JaCoCo
     <a href="/tags/jacoco/index.xml" title="RSS" aria-label="RSS">
@@ -162,74 +159,61 @@
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">JaCoCo增量覆盖率的基本实现原理
+    <h2 class="entry-hint-parent">JaCoCo 增量覆盖率的基本实现原理
     </h2>
   </header>
   <div class="entry-content">
     <p> 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-什么是增量覆盖率 如图所示，在master分支提交了HelloController，然后从master拉了个新分支test；提交了第1次代码，增加了WorldController；提交了第2次代码，增加了DonController。增量的获取方式有两种：
-版本对比：在分支上，第2次提交和第1次提交版本对比的增量代码，就是DonController；第2次提交和刚从master拉取分支时版本对比的增量代码，除了DonController还有WorldController；
-分支对比：把test分支和master分支进行对比，增量代码就是DonController和WorldController；
+什么是增量覆盖率 如图所示，在 master 分支提交了 HelloController，然后从 master 拉了个新分支 test；提交了第 1 次代码，增加了 WorldController；提交了第 2 次代码，增加了 DonController。增量的获取方式有两种：
+版本对比：在分支上，第 2 次提交和第 1 次提交版本对比的增量代码，就是 DonController；第 2 次提交和刚从 master 拉取分支时版本对比的增量代码，除了 DonController 还有 WorldController；
+分支对比：把 test 分支和 master 分支进行对比，增量代码就是 DonController 和 WorldController；
 增量，就是通过版本对比或分支对比，多出来的新增加的那部分代码。覆盖率是指程序运行以后，有多少代码被执行到了，除以总的代码数算出来的，即覆盖率=执行代码行数/总代码行数。增量覆盖率是针对增量代码来计算的，也就是增量覆盖率=执行代码行数/增量代码行数。
-基本实现原理 使用JaCoCo的On-the-fly模式，以tcpserver方式启动，将远程机器的覆盖率数据通过TCP通信dump到本地jacoco.exec文件，二次开发JaCoCo源码，实现增量覆盖率分析和输出HTML报告。
-JaCoCo默认覆盖率 JaCoCo是一个开源的覆盖率工具，它的On-the-fly模式，无须侵入应用启动脚本，只需在JVM中通过-javaagent参数指定jar文件启动的代理程序，代理程序在ClassLoader装载一个class前判断是否需要注入class文件，将统计代码插入class，覆盖率分析就可以在JVM执行的过程中完成。
-启动脚本示例：
-java -javaagent:jacocoagent.jar -jar target/app.jar 默认情况下，JaCoCo会在JVM停掉以后，生成覆盖率数据，一个jacoco.exec文件。
-官方手册也有相关说明：
-output默认为file：At VM termination execution data is written to the file specified in the destfile attribute。这种方式有2个局限，一是必须停掉应用；二是只能把覆盖率数据生成到本地文件。
-output还有另外一个选项，tcpserver：
-java -javaagent:jacocoagent.jar=output=tcpserver,address=0.0.0.0,port=2014 -jar target/app.jar address：服务端地址；
-port：服务端端口；
-通过这种方式启动后，会同时启动一个TCP服务端，使用lsof -i :2014命令查看端口进程：
-然后就能通过TCP通信，来获取覆盖率数据，也就是所谓的”dump“。
-代码片段：
-@Override public void dump(String dumpPath, String ip, int port) throws IOException { dumpPath = FileUtil.getAbsolutePath(dumpPath); if (!FileUtil.exist(dumpPath)) { FileUtil.mkdir(dumpPath); } FileOutputStream localFile = new FileOutputStream(dumpPath &#43; File.separator &#43; &#34;jacoco.exec&#34;); ExecutionDataWriter localWriter = new ExecutionDataWriter(localFile); SocketAddress socketAddress = new InetSocketAddress(ip, port); Socket socket = new Socket(); try { socket.connect(socketAddress, 10000); RemoteControlWriter writer = new RemoteControlWriter(socket.getOutputStream()); RemoteControlReader reader = new RemoteControlReader(socket.getInputStream()); reader.setSessionInfoVisitor(localWriter); reader.setExecutionDataVisitor(localWriter); log.info(&#34;开始dump:{} {}&#34;, ip, port); writer.visitDumpCommand(true, false); if (!reader.read()) { log.error(&#34;Socket closed unexpectedly&#34;); throw new IOException(&#34;Socket closed unexpectedly.&#34;); } log.info(&#34;dump完成:{} {}&#34;, ip, port); } catch (Exception e) { log.info(&#34;dump失败:{}&#34;, e.getMessage()); } finally { socket.close(); localFile.close(); } } dump经过TCP通信，将远程机器的覆盖率数据取到本地后，生成jacoco.exec文件，然后可以使用jacococli.jar生成HTML报告：
+基本实现原理 使用 JaCoCo 的 On-the-fly 模式，以 tcpserver 方式启动，将远程机器的覆盖率数据通过 TCP 通信 dump 到本地 jacoco.exec 文件，二次开发 JaCoCo 源码，实现增量覆盖率分析和输出 HTML 报告。
+JaCoCo 默认覆盖率 JaCoCo 是一个开源的覆盖率工具，它的 On-the-fly 模式，无须侵入应用启动脚本，只需在 JVM 中通过-javaagent 参数指定 jar 文件启动的代理程序，代理程序在 ClassLoader 装载一个 class 前判断是否需要注入 class 文件，将统计代码插入 class，覆盖率分析就可以在 JVM 执行的过程中完成。
 ...</p>
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-05T00:00:00+00:00'>2026-01-05</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>270 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/'>#白盒测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jacoco/'>#JaCoCo</a></footer>
-  <a class="entry-link" aria-label="post link to JaCoCo增量覆盖率的基本实现原理" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000005-jacocojacoco%E5%A2%9E%E9%87%8F%E8%A6%86%E7%9B%96%E7%8E%87%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/"></a>
+<span title='2026-01-05T00:00:00+00:00'>2026-01-05</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/'>#白盒测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jacoco/'>#JaCoCo</a></footer>
+  <a class="entry-link" aria-label="post link to JaCoCo 增量覆盖率的基本实现原理" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jacoco%E5%A2%9E%E9%87%8F%E8%A6%86%E7%9B%96%E7%8E%87%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">SpringBoot接入JaCoCo实践教程
+    <h2 class="entry-hint-parent">SpringBoot 接入 JaCoCo 实践教程
     </h2>
   </header>
   <div class="entry-content">
     <p> 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-静态接入和动态接入 SpingBoot可以通过2种方式接入JaCoCo：Maven和Agent。Maven方式是静态接入，在编译时计算代码覆盖率。Agent方式是动态接入，服务启起来以后，能实时根据代码命中情况计算代码覆盖率。
+静态接入和动态接入 SpingBoot 可以通过 2 种方式接入 JaCoCo：Maven 和 Agent。Maven 方式是静态接入，在编译时计算代码覆盖率。Agent 方式是动态接入，服务启起来以后，能实时根据代码命中情况计算代码覆盖率。
 教程代码已上传开源项目：https://github.com/dongfanger/mini
-Maven pom.xml添加依赖：
+Maven pom.xml 添加依赖：
 &lt;dependency&gt; &lt;groupId&gt;org.jacoco&lt;/groupId&gt; &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt; &lt;version&gt;0.8.7&lt;/version&gt; &lt;/dependency&gt; 添加配置：
-&lt;build&gt; &lt;plugins&gt; &lt;plugin&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt; &lt;version&gt;${project.parent.version}&lt;/version&gt; &lt;/plugin&gt; &lt;plugin&gt; &lt;groupId&gt;org.jacoco&lt;/groupId&gt; &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt; &lt;version&gt;0.8.7&lt;/version&gt; &lt;executions&gt; &lt;execution&gt; &lt;id&gt;default-prepare-agent&lt;/id&gt; &lt;goals&gt; &lt;goal&gt;prepare-agent&lt;/goal&gt; &lt;/goals&gt; &lt;/execution&gt; &lt;execution&gt; &lt;id&gt;default-report&lt;/id&gt; &lt;goals&gt; &lt;goal&gt;report&lt;/goal&gt; &lt;/goals&gt; &lt;/execution&gt; &lt;/executions&gt; &lt;/plugin&gt; &lt;/plugins&gt; &lt;/build&gt; 点击maven的install：
+&lt;build&gt; &lt;plugins&gt; &lt;plugin&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt; &lt;version&gt;${project.parent.version}&lt;/version&gt; &lt;/plugin&gt; &lt;plugin&gt; &lt;groupId&gt;org.jacoco&lt;/groupId&gt; &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt; &lt;version&gt;0.8.7&lt;/version&gt; &lt;executions&gt; &lt;execution&gt; &lt;id&gt;default-prepare-agent&lt;/id&gt; &lt;goals&gt; &lt;goal&gt;prepare-agent&lt;/goal&gt; &lt;/goals&gt; &lt;/execution&gt; &lt;execution&gt; &lt;id&gt;default-report&lt;/id&gt; &lt;goals&gt; &lt;goal&gt;report&lt;/goal&gt; &lt;/goals&gt; &lt;/execution&gt; &lt;/executions&gt; &lt;/plugin&gt; &lt;/plugins&gt; &lt;/build&gt; 点击 maven 的 install：
 target/site/jacoco目录下就生成了覆盖率报告：
-Agent 下载jacoco文件后解压，提取2个文件：
-使用命令启动SpringBoot，启动参数添加-javaagent：
-java -javaagent:jacoco/jacocoagent.jar -jar target/mini-0.0.1-SNAPSHOT.jar 此时会生成1个jacoco.exec文件，这个文件就是覆盖率数据文件，采用以下命令根据数据文件生成HTML报告：
-java -jar jacoco/jacococli.jar report jacoco.exec --classfiles ./target/classes/ --sourcefiles ./src/main/java/ --html ./report 接下来就来验证动态特性。把report目录和jacoco.exec都删了，因为jacoco每次部署只能分析一次。把服务停掉后，重新启动。这一次不直接分析，而是先用postman调一下接口：
-然后再分析一把：
+Agent 下载 jacoco 文件后解压，提取 2 个文件：
+使用命令启动 SpringBoot，启动参数添加-javaagent：
+java -javaagent:jacoco/jacocoagent.jar -jar target/mini-0.0.1-SNAPSHOT.jar 此时会生成 1 个jacoco.exec文件，这个文件就是覆盖率数据文件，采用以下命令根据数据文件生成 HTML 报告：
 ...</p>
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-04T00:00:00+00:00'>2026-01-04</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>64 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/'>#白盒测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jacoco/'>#JaCoCo</a></footer>
-  <a class="entry-link" aria-label="post link to SpringBoot接入JaCoCo实践教程" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000004-jacocospringboot%E6%8E%A5%E5%85%A5jacoco%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B/"></a>
+<span title='2026-01-04T00:00:00+00:00'>2026-01-04</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/'>#白盒测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jacoco/'>#JaCoCo</a></footer>
+  <a class="entry-link" aria-label="post link to SpringBoot 接入 JaCoCo 实践教程" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/springboot%E6%8E%A5%E5%85%A5jacoco%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">代码覆盖率从0到100的入门实践
+    <h2 class="entry-hint-parent">代码覆盖率从 0 到 100 的入门实践
     </h2>
   </header>
   <div class="entry-content">
-    <p>JaCoCo全称是Java Code Coverage，Java代码覆盖率，广泛运用于各种测试平台对Java代码的全量覆盖率和增量覆盖率进行统计，分析代码行差异，度量单元测试效果。Jacoco也是精准测试的技术实现手段之一。</p>
+    <p>JaCoCo 全称是Java Code Coverage，Java 代码覆盖率，广泛运用于各种测试平台对 Java 代码的全量覆盖率和增量覆盖率进行统计，分析代码行差异，度量单元测试效果。Jacoco 也是精准测试的技术实现手段之一。</p>
   </div>
   <footer class="entry-footer">
 
-<span title='2026-01-03T00:00:00+00:00'>2026-01-03</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>135 字</span>&nbsp;·&nbsp;<span>测试开发刚哥</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/'>测试专题</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/'>#白盒测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jacoco/'>#JaCoCo</a></footer>
-  <a class="entry-link" aria-label="post link to 代码覆盖率从0到100的入门实践" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95%E4%B8%93%E9%A2%98/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/000003-jacoco%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87%E4%BB%8E0%E5%88%B0100%E7%9A%84%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5/"></a>
+<span title='2026-01-03T00:00:00+00:00'>2026-01-03</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95/'>#白盒测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/jacoco/'>#JaCoCo</a></footer>
+  <a class="entry-link" aria-label="post link to 代码覆盖率从 0 到 100 的入门实践" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87%E4%BB%8E0%E5%88%B0100%E7%9A%84%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5/"></a>
 </article>
     </main>
     
@@ -250,7 +234,61 @@ java -jar jacoco/jacococli.jar report jacoco.exec --classfiles ./target/classes/
         <polyline points="17 11 12 6 7 11"></polyline>
         <polyline points="17 18 12 13 7 18"></polyline>
     </svg>
-</a>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
 
 <script>
     let menu = document.getElementById('menu');

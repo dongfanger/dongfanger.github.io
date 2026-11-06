@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>AI 应用开发框架 | 测试开发刚哥</title>
+<meta name="keywords" content="AI白皮书">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+3.1 智能体的定义与主流开发范式
+3.1.1 什么是智能体
+智能体（Agent）可以理解为一个具备自主理解、规划、记忆和工具使用能力的数字化实体。
+我们在前面了解到 LLM、MCP，它们和 Agent 是啥关系呢？LLM 是“大脑”，Agent 是“身体”，Agent 通过 MCP 协议访问外部能力（Tools / Resources）。
+【纯LLM交互】
+用户：帮我分析main.py文件
+LLM：我无法直接访问文件，请您将文件内容粘贴给我
+
+
+【Agent交互】
+用户：帮我分析main.py文件
+Agent：我来读取并分析这个文件
+      → 调用文件读取工具
+      → 分析代码结构
+      → 提供详细分析报告
+智能体让 AI 从一个只会内容生成的语言模型，进化成一个具备自主规划能力的行动者。
+3.1.2 智能体的主流开发范式
+
+
+简单 LLM 应用：直接调用模型 API 实现内容生成
+
+
+单智能体：增加 RAG、Tool、Memory 等，让模型具备与特定环境交互的能力
+
+
+工作流：将应用拆分，形成多个独立子智能体，再按照预定义的流程编排起来
+
+
+多智能体系统：相比于工作流，多智能体系统采用的是模型驱动的、对话式的流程编排，各个子智能体具备更多的自主决策权
+
+
+3.1.3 单智能体
+典型的单智能体架构如下：
+
+单智能体非常依赖底层模型能力。
+3.1.4 工作流
+1、Chain - 链式工作流
+
+每一步由一个独立的 LLM 调用完成，并将上一阶段的输出作为下一阶段的输入。
+2、Routing - 路由工作流
+
+对输入进行分类，将它们分派到专门设计的下游任务或处理路径。
+3.1.5 多智能体系统
+
+由多个具备一定自治能力的 Agent 组成，每个 Agent 有自己的角色、能力或工具使用范围。它们之间可以通过消息或上下文进行交互，协同完成复杂目标。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="AI 应用开发框架">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+3.1 智能体的定义与主流开发范式 3.1.1 什么是智能体 智能体（Agent）可以理解为一个具备自主理解、规划、记忆和工具使用能力的数字化实体。
+我们在前面了解到 LLM、MCP，它们和 Agent 是啥关系呢？LLM 是“大脑”，Agent 是“身体”，Agent 通过 MCP 协议访问外部能力（Tools / Resources）。
+【纯LLM交互】 用户：帮我分析main.py文件 LLM：我无法直接访问文件，请您将文件内容粘贴给我 【Agent交互】 用户：帮我分析main.py文件 Agent：我来读取并分析这个文件 → 调用文件读取工具 → 分析代码结构 → 提供详细分析报告 智能体让 AI 从一个只会内容生成的语言模型，进化成一个具备自主规划能力的行动者。
+3.1.2 智能体的主流开发范式 简单 LLM 应用：直接调用模型 API 实现内容生成
+单智能体：增加 RAG、Tool、Memory 等，让模型具备与特定环境交互的能力
+工作流：将应用拆分，形成多个独立子智能体，再按照预定义的流程编排起来
+多智能体系统：相比于工作流，多智能体系统采用的是模型驱动的、对话式的流程编排，各个子智能体具备更多的自主决策权
+3.1.3 单智能体 典型的单智能体架构如下：
+单智能体非常依赖底层模型能力。
+3.1.4 工作流 1、Chain - 链式工作流
+每一步由一个独立的 LLM 调用完成，并将上一阶段的输出作为下一阶段的输入。
+2、Routing - 路由工作流
+对输入进行分类，将它们分派到专门设计的下游任务或处理路径。
+3.1.5 多智能体系统 由多个具备一定自治能力的 Agent 组成，每个 Agent 有自己的角色、能力或工具使用范围。它们之间可以通过消息或上下文进行交互，协同完成复杂目标。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-07T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-07T00:00:00+00:00">
+    <meta property="article:tag" content="AI白皮书">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AI 应用开发框架">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+3.1 智能体的定义与主流开发范式 3.1.1 什么是智能体 智能体（Agent）可以理解为一个具备自主理解、规划、记忆和工具使用能力的数字化实体。
+我们在前面了解到 LLM、MCP，它们和 Agent 是啥关系呢？LLM 是“大脑”，Agent 是“身体”，Agent 通过 MCP 协议访问外部能力（Tools / Resources）。
+【纯LLM交互】 用户：帮我分析main.py文件 LLM：我无法直接访问文件，请您将文件内容粘贴给我 【Agent交互】 用户：帮我分析main.py文件 Agent：我来读取并分析这个文件 → 调用文件读取工具 → 分析代码结构 → 提供详细分析报告 智能体让 AI 从一个只会内容生成的语言模型，进化成一个具备自主规划能力的行动者。
+3.1.2 智能体的主流开发范式 简单 LLM 应用：直接调用模型 API 实现内容生成
+单智能体：增加 RAG、Tool、Memory 等，让模型具备与特定环境交互的能力
+工作流：将应用拆分，形成多个独立子智能体，再按照预定义的流程编排起来
+多智能体系统：相比于工作流，多智能体系统采用的是模型驱动的、对话式的流程编排，各个子智能体具备更多的自主决策权
+3.1.3 单智能体 典型的单智能体架构如下：
+单智能体非常依赖底层模型能力。
+3.1.4 工作流 1、Chain - 链式工作流
+每一步由一个独立的 LLM 调用完成，并将上一阶段的输出作为下一阶段的输入。
+2、Routing - 路由工作流
+对输入进行分类，将它们分派到专门设计的下游任务或处理路径。
+3.1.5 多智能体系统 由多个具备一定自治能力的 Agent 组成，每个 Agent 有自己的角色、能力或工具使用范围。它们之间可以通过消息或上下文进行交互，协同完成复杂目标。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "AI 应用开发框架",
+      "item": "https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI 应用开发框架",
+  "name": "AI 应用开发框架",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n3.1 智能体的定义与主流开发范式 3.1.1 什么是智能体 智能体（Agent）可以理解为一个具备自主理解、规划、记忆和工具使用能力的数字化实体。\n我们在前面了解到 LLM、MCP，它们和 Agent 是啥关系呢？LLM 是“大脑”，Agent 是“身体”，Agent 通过 MCP 协议访问外部能力（Tools / Resources）。\n【纯LLM交互】 用户：帮我分析main.py文件 LLM：我无法直接访问文件，请您将文件内容粘贴给我 【Agent交互】 用户：帮我分析main.py文件 Agent：我来读取并分析这个文件 → 调用文件读取工具 → 分析代码结构 → 提供详细分析报告 智能体让 AI 从一个只会内容生成的语言模型，进化成一个具备自主规划能力的行动者。\n3.1.2 智能体的主流开发范式 简单 LLM 应用：直接调用模型 API 实现内容生成\n单智能体：增加 RAG、Tool、Memory 等，让模型具备与特定环境交互的能力\n工作流：将应用拆分，形成多个独立子智能体，再按照预定义的流程编排起来\n多智能体系统：相比于工作流，多智能体系统采用的是模型驱动的、对话式的流程编排，各个子智能体具备更多的自主决策权\n3.1.3 单智能体 典型的单智能体架构如下：\n单智能体非常依赖底层模型能力。\n3.1.4 工作流 1、Chain - 链式工作流\n每一步由一个独立的 LLM 调用完成，并将上一阶段的输出作为下一阶段的输入。\n2、Routing - 路由工作流\n对输入进行分类，将它们分派到专门设计的下游任务或处理路径。\n3.1.5 多智能体系统 由多个具备一定自治能力的 Agent 组成，每个 Agent 有自己的角色、能力或工具使用范围。它们之间可以通过消息或上下文进行交互，协同完成复杂目标。\n",
+  "keywords": [
+    "AI白皮书"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n3.1 智能体的定义与主流开发范式 3.1.1 什么是智能体 智能体（Agent）可以理解为一个具备自主理解、规划、记忆和工具使用能力的数字化实体。\n我们在前面了解到 LLM、MCP，它们和 Agent 是啥关系呢？LLM 是“大脑”，Agent 是“身体”，Agent 通过 MCP 协议访问外部能力（Tools / Resources）。\n【纯LLM交互】 用户：帮我分析main.py文件 LLM：我无法直接访问文件，请您将文件内容粘贴给我 【Agent交互】 用户：帮我分析main.py文件 Agent：我来读取并分析这个文件 → 调用文件读取工具 → 分析代码结构 → 提供详细分析报告 智能体让 AI 从一个只会内容生成的语言模型，进化成一个具备自主规划能力的行动者。\n3.1.2 智能体的主流开发范式 简单 LLM 应用：直接调用模型 API 实现内容生成\n单智能体：增加 RAG、Tool、Memory 等，让模型具备与特定环境交互的能力\n工作流：将应用拆分，形成多个独立子智能体，再按照预定义的流程编排起来\n多智能体系统：相比于工作流，多智能体系统采用的是模型驱动的、对话式的流程编排，各个子智能体具备更多的自主决策权\n3.1.3 单智能体 典型的单智能体架构如下：\n单智能体非常依赖底层模型能力。\n3.1.4 工作流 1、Chain - 链式工作流\n每一步由一个独立的 LLM 调用完成，并将上一阶段的输出作为下一阶段的输入。\n2、Routing - 路由工作流\n对输入进行分类，将它们分派到专门设计的下游任务或处理路径。\n3.1.5 多智能体系统 由多个具备一定自治能力的 Agent 组成，每个 Agent 有自己的角色、能力或工具使用范围。它们之间可以通过消息或上下文进行交互，协同完成复杂目标。\n3.2 开发一个简单的智能体 3.2.1 智能体框架选型 Python：LangChain、LlamaIndex、AutoGen、CrewAI，开源的 Google ADK、Strands 等，阿里云开源的 AgentScope 等\nJava：Spring AI Alibaba 等\n这本白皮书是阿里出的，后面就用 Spring AI Alibaba 为例进行介绍。\n3.2.2 Spring AI Alibaba 中的 Agent 定义 React Agent，采用 ReAct 模式，将推理（Reasoning）和行动（Action）交错进行，形成一个动态的“思考-行动-观察”循环。\n思考（Thought）：LLM 分析当前的任务目标、已有的信息和可用的工具，然后生成一个关于下一步应该做什么的推理过程或计划。这个思路过程通常会以自然语言文本展示，解释了它的决策逻辑。\n行动（Action）：智能体决定调用的外部工具（如搜索引擎、数据库查询 API 或自定义函数）。它会生成结构化的指令，明确指出要调用的工具名称和所需的参数。\n观察（Observation）：应用程序执行工具调用，并将返回的结果（如搜索结果、API 响应或函数返回值）作为观察信息反馈给智能体。\n循环迭代：智能体收到观察结果，和之前的“思考”、任务目标结合，进入新一轮的思考阶段。它会评估上一步行动的结果是否使其更接近最终目标，并据此规划下一步的行动。\n3.2.3 示例代码与 Agentic API 1、快速定义一个简单的 Agent\n2、引导 Agent 的行为（设置 Prompt 提示词）\ninstruction 包括以下信息：\n核心任务或目标\n性格或角色\n行为约束\n如何及何时使用工具\n期望的输出格式\n第四章上下文工程将介绍更多 instruction 编写技巧。\n3、更多高级设置：为 Agent 配置工具、模型参数等\nLLM 会根据当前的对话内容和自身的指令，利用工具的函数/工具名称、描述（来自文档字符串或 description 字段）以及参数结构（Schemas）来决定调用哪一个工具。\n3.3 工作流与多智能体 3.3.1 Spring AI Alibab 中的多智能体类型 总体上分为三种 Agent 类型：\nReactAgent：基本智能体\nFlowAgent：包含多个 ReactAgent，按照特定流程协作\nSequentialAgent 串行\nParallelAgent 并行\nLoopAgent 循环\nLlmRoutingAgent 大模型决策\nA2ARemoteAgent：分布式 Agent\n3.3.2 工作流 - SequentialAgent Agent 依次执行，上一个 Agent 的输出会作为下一个 Agent 的输入。\n示例，开发一个文章协作助手的智能体：\n先定义了 2 个 ReactAgent，然后定义了 1 个 SequentialAgent 将它们串联起来。\n3.3.3 工作流 - ParallelAgent 并行执行的工作流模式。\n示例，开发一个智能搜索助手的智能体：\n3.3.4 工作流 - LoopAgent 在指定的迭代次数内重复运行一系列代理，或者直到满足终止条件。\n3.3.5 多智能体系统 - LlmRoutingAgent 通过模型决策下一个子智能体走向。\n内置 prompt：\n具体示例代码：\n3.4 从单进程到分布式部署 通过将 Sub-Agent 进行独立部署和维护，同时多个 Sub-Agent 间通过远程调用代替内存调用的方式，实现各个 Sub-Agent 独立迭代和维护。\n3.4.1 什么是 A2A 协议 A2A 协议，Agent2Agent，是 Google 在开源社区中推出的分布式智能体之间的统一通信协议。\n1、A2A 协议中的角色\n用户（User）\nA2A 客户端（Client Agent）\nA2A 服务端（Remote Agent）\n2、A2A 协议中的元素\n智能体卡片（Agent Card）\n任务（Task）\n消息（Message）\n产出物（Artifact）\n内容块（Part）\n3、A2A 协议中的交互机制\n轮询（Polling）\n流式传输（Streaming）\n推送通知（Push Notification）\n3.4.2 A2A 协议的工作流 1、发现 A2A Server 的 AgentCard\n2、A2A 授权和权限认证\n3、发起 A2A 请求\n同步请求\n流式请求\n3.4.3 基于 Nacos A2A Registry 的自动注册与发现 A2A 工作流程的首个步骤就是进行远端 Agent 的 AgentCard 获取和发现。\n1、AgentCard 的作用\nAgentCard 是 A2A Server 的数字名片，为发现与交互提供必要信息，包括以下内容：\n身份信息：名称、描述、服务提供方。\n服务端点：远端 Agent 的访问 URL，包含完整的域名/IP，端口，URI 等。\n协议能力：支持的协议功能（如流式传输 streaming 或推送通知 pushNotifications）。\n认证方式：交互所需的鉴权机制（如 Bearer 令牌、OAuth2）。\n技能列表：智能体可执行的任务或功能（AgentSkill 对象），含技能 ID、名称、描述、输入/输出模式及示例。\nA2A Client 通过 AgentCard 判断远端 Agent 是否适配当前任务、如何构建请求以及安全通信方式。\n2、AgentCard 的获取方式\n直接配置\n固定 URI（Well-Known URI）\n另外还有第三种方式，注册中心。\n3.4.4 Nacos A2A 注册中心 由注册中心维护 AgentCard 集合，客户端通过查询条件（如技能、标签、提供方）检索目标。\nNacos 还支持对 Agent 的版本进行管理和快速回滚。Nacos 除了作为 A2A 注册中心，还可以作为 MCP 服务的注册中心，以及 Prompt 的动态管理中心。\n3.5 消息驱动的智能体开发模式 AI 云原生架构下的消息队列必须具备以下特点：\n支持长会话与大消息体的消息中枢。\n实现削峰填谷、定速消费的智能调度能力。\n提供优先级、权重控制的分级事件驱动机制。\n构建高可靠、可恢复的 Agent 编排引擎。\n3.5.1 消息模型提升 AI 通信效率 RocketMQ 提出了一种创新的轻量化架构：\n核心理念是：为每个会话或问题，动态创建一个独立的轻量级主题（Lite-Topic）。\n以客户端与 AI 服务建立会话为例，系统自动创建一个以 SessionID 命名的专属队列，所有会话历史、上下文和中间结果均以消息形式在该主题中有序流转。\n这一架构提供了四大核心能力：\n百万级 Lite-Topic 支持：单集群管理百万级 Lite-Topic，每个会话独立 Topic，高并发下会话隔离，性能无损。\n全自动轻量管理：Lite-Topic 按需动态创建，连接断开后自动回收。\n大消息体传输能力：支持数十 MB 以上消息，可承载长 Prompt、图像、文档等。\n严格顺序消息保障：在单队列内保证消息有序，确保 LLM 流式输出的 token 顺序不乱。\n轻量级发送\nQueue 的消息是某个 Broker 专属的，一个 Lite-Topic 的发送只会到一台 Broker，而不是轮询发送。\n轻量级订阅\n以 client_ID 维度维护订阅关系，管理消费进度。新增互斥消费模式。TTL 到期后自动删除订阅关系。\n消息分发策略\n客户端发起读请求不再指定 Topic，而是 Broker 根据 client_ID 识别订阅关系，并返回多个 Topic 的多条消息。\n引入 Topic ready set，在 POP 请求处理时直接访问就绪的 topic。\n当订阅上线、新消息发送、消息 ACK 后仍有消息、order Lock 释放时往 Topic ready set 进行 add 操作。\n3.5.2 基于消息驱动的智能化资源调度 核心能力：\n天然削峰填谷，保护 AI 算力：消息队列可缓存突发请求。\n定速消费，精准控制算力使用：支持为消费者组设置消费配额。\n优先级调度，实现智能资源分配：抢占式优先级，权重动态分配。\n3.6 基于统一元数据的 AI 协同开发模式 AI 时代，可以基于统一元数据，所有交付物都使用 HTML 格式，每个角色的产出可以直接被下游角色使用，并且在开发全流程的每个环节都基于 AI 提效。\n统一元数据需要长期建设，包括设计系统、组件库、API 规范、状态管理等。从建立需求即代码的团队协作基准开始，从组件契约标准化入手，逐步构建跨工具链的智能开发环境。\n参考资料：\nhttps://developer.aliyun.com/ebook/8479\n",
+  "wordCount" : "417",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-07T00:00:00Z",
+  "dateModified": "2026-01-07T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      AI 应用开发框架
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-07T00:00:00+00:00'>2026-01-07</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/'>人工智能</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/'>#AI白皮书</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="31-智能体的定义与主流开发范式">3.1 智能体的定义与主流开发范式<a hidden class="anchor" aria-hidden="true" href="#31-智能体的定义与主流开发范式">#</a></h1>
+<h2 id="311-什么是智能体">3.1.1 什么是智能体<a hidden class="anchor" aria-hidden="true" href="#311-什么是智能体">#</a></h2>
+<p>智能体（Agent）可以理解为一个具备自主理解、规划、记忆和工具使用能力的数字化实体。</p>
+<p>我们在前面了解到 LLM、MCP，它们和 Agent 是啥关系呢？LLM 是“大脑”，Agent 是“身体”，Agent 通过 MCP 协议访问外部能力（Tools / Resources）。</p>
+<pre tabindex="0"><code>【纯LLM交互】
+用户：帮我分析main.py文件
+LLM：我无法直接访问文件，请您将文件内容粘贴给我
+
+
+【Agent交互】
+用户：帮我分析main.py文件
+Agent：我来读取并分析这个文件
+      → 调用文件读取工具
+      → 分析代码结构
+      → 提供详细分析报告
+</code></pre><p>智能体让 AI 从一个只会内容生成的语言模型，进化成一个具备自主规划能力的行动者。</p>
+<h2 id="312-智能体的主流开发范式">3.1.2 智能体的主流开发范式<a hidden class="anchor" aria-hidden="true" href="#312-智能体的主流开发范式">#</a></h2>
+<ul>
+<li>
+<p>简单 LLM 应用：直接调用模型 API 实现内容生成</p>
+</li>
+<li>
+<p>单智能体：增加 RAG、Tool、Memory 等，让模型具备与特定环境交互的能力</p>
+</li>
+<li>
+<p>工作流：将应用拆分，形成多个独立子智能体，再按照预定义的流程编排起来</p>
+</li>
+<li>
+<p>多智能体系统：相比于工作流，多智能体系统采用的是模型驱动的、对话式的流程编排，各个子智能体具备更多的自主决策权</p>
+</li>
+</ul>
+<h2 id="313-单智能体">3.1.3 单智能体<a hidden class="anchor" aria-hidden="true" href="#313-单智能体">#</a></h2>
+<p>典型的单智能体架构如下：</p>
+<p><img loading="lazy" src="../assets/dfdbcb60c81c415ca4763d131989544d.png"></p>
+<p>单智能体非常依赖底层模型能力。</p>
+<h2 id="314-工作流">3.1.4 工作流<a hidden class="anchor" aria-hidden="true" href="#314-工作流">#</a></h2>
+<p><strong>1、Chain - 链式工作流</strong></p>
+<p><img loading="lazy" src="../assets/349d721c73e24cccb1c6c9a580b50483.png"></p>
+<p>每一步由一个独立的 LLM 调用完成，并将上一阶段的输出作为下一阶段的输入。</p>
+<p><strong>2、Routing - 路由工作流</strong></p>
+<p><img loading="lazy" src="../assets/4d806716b58b47e192a3c249d4c8c721.png"></p>
+<p>对输入进行分类，将它们分派到专门设计的下游任务或处理路径。</p>
+<h2 id="315-多智能体系统">3.1.5 多智能体系统<a hidden class="anchor" aria-hidden="true" href="#315-多智能体系统">#</a></h2>
+<p><img loading="lazy" src="../assets/09efbc8c281c4735ba94b14d6fcc05a7.png"></p>
+<p>由多个具备一定自治能力的 Agent 组成，每个 Agent 有自己的角色、能力或工具使用范围。它们之间可以通过消息或上下文进行交互，协同完成复杂目标。</p>
+<h1 id="32-开发一个简单的智能体">3.2 开发一个简单的智能体<a hidden class="anchor" aria-hidden="true" href="#32-开发一个简单的智能体">#</a></h1>
+<h2 id="321-智能体框架选型">3.2.1 智能体框架选型<a hidden class="anchor" aria-hidden="true" href="#321-智能体框架选型">#</a></h2>
+<p>Python：LangChain、LlamaIndex、AutoGen、CrewAI，开源的 Google ADK、Strands 等，阿里云开源的 AgentScope 等</p>
+<p>Java：Spring AI Alibaba 等</p>
+<p>这本白皮书是阿里出的，后面就用 Spring AI Alibaba 为例进行介绍。</p>
+<h2 id="322-spring-ai-alibaba-中的-agent-定义">3.2.2 Spring AI Alibaba 中的 Agent 定义<a hidden class="anchor" aria-hidden="true" href="#322-spring-ai-alibaba-中的-agent-定义">#</a></h2>
+<p>React Agent，采用 ReAct 模式，将推理（Reasoning）和行动（Action）交错进行，形成一个动态的“思考-行动-观察”循环。</p>
+<p><img loading="lazy" src="../assets/e1ff37e35ad04f3690aa56cafc0f3cee.png"></p>
+<p><strong>思考（Thought）</strong>：LLM 分析当前的任务目标、已有的信息和可用的工具，然后生成一个关于下一步应该做什么的推理过程或计划。这个思路过程通常会以自然语言文本展示，解释了它的决策逻辑。</p>
+<p><strong>行动（Action）</strong>：智能体决定调用的外部工具（如搜索引擎、数据库查询 API 或自定义函数）。它会生成结构化的指令，明确指出要调用的工具名称和所需的参数。</p>
+<p><strong>观察（Observation）</strong>：应用程序执行工具调用，并将返回的结果（如搜索结果、API 响应或函数返回值）作为观察信息反馈给智能体。</p>
+<p><strong>循环迭代</strong>：智能体收到观察结果，和之前的“思考”、任务目标结合，进入新一轮的思考阶段。它会评估上一步行动的结果是否使其更接近最终目标，并据此规划下一步的行动。</p>
+<h2 id="323-示例代码与-agentic-api">3.2.3 示例代码与 Agentic API<a hidden class="anchor" aria-hidden="true" href="#323-示例代码与-agentic-api">#</a></h2>
+<p><strong>1、快速定义一个简单的 Agent</strong></p>
+<p><img loading="lazy" src="../assets/6548388edc054830afc6f350c53a30c1.png"></p>
+<p><strong>2、引导 Agent 的行为（设置 Prompt 提示词）</strong></p>
+<p><img loading="lazy" src="../assets/b0125fb8c4ee4b72a553d246c7d7cbd5.png"></p>
+<p>instruction 包括以下信息：</p>
+<ul>
+<li>
+<p>核心任务或目标</p>
+</li>
+<li>
+<p>性格或角色</p>
+</li>
+<li>
+<p>行为约束</p>
+</li>
+<li>
+<p>如何及何时使用工具</p>
+</li>
+<li>
+<p>期望的输出格式</p>
+</li>
+</ul>
+<p>第四章上下文工程将介绍更多 instruction 编写技巧。</p>
+<p><strong>3、更多高级设置：为 Agent 配置工具、模型参数等</strong></p>
+<p><img loading="lazy" src="../assets/c627e3e3120845c288d2fdd487558ddd.png"></p>
+<p>LLM 会根据当前的对话内容和自身的指令，利用工具的函数/工具名称、描述（来自文档字符串或 description 字段）以及参数结构（Schemas）来决定调用哪一个工具。</p>
+<h1 id="33-工作流与多智能体">3.3 工作流与多智能体<a hidden class="anchor" aria-hidden="true" href="#33-工作流与多智能体">#</a></h1>
+<h2 id="331-spring-ai-alibab-中的多智能体类型">3.3.1 Spring AI Alibab 中的多智能体类型<a hidden class="anchor" aria-hidden="true" href="#331-spring-ai-alibab-中的多智能体类型">#</a></h2>
+<p><img loading="lazy" src="../assets/070fbc8e0b7a49c895f7850eb7d7cc1f.png"></p>
+<p><img loading="lazy" src="../assets/a7ca732dff69427788162ee347ac2cae.png"></p>
+<p>总体上分为三种 Agent 类型：</p>
+<p><strong>ReactAgent</strong>：基本智能体</p>
+<p><strong>FlowAgent</strong>：包含多个 ReactAgent，按照特定流程协作</p>
+<ul>
+<li>
+<p>SequentialAgent 串行</p>
+</li>
+<li>
+<p>ParallelAgent 并行</p>
+</li>
+<li>
+<p>LoopAgent 循环</p>
+</li>
+<li>
+<p>LlmRoutingAgent 大模型决策</p>
+</li>
+</ul>
+<p><strong>A2ARemoteAgent</strong>：分布式 Agent</p>
+<h2 id="332-工作流---sequentialagent">3.3.2 工作流 - SequentialAgent<a hidden class="anchor" aria-hidden="true" href="#332-工作流---sequentialagent">#</a></h2>
+<p><img loading="lazy" src="../assets/3f9c28f27c8740ba8c97a70d3cf1bbd6.png"></p>
+<p>Agent 依次执行，上一个 Agent 的输出会作为下一个 Agent 的输入。</p>
+<p>示例，开发一个文章协作助手的智能体：</p>
+<p><img loading="lazy" src="../assets/06da68dac313480588a79f598549b27c.png"></p>
+<p><img loading="lazy" src="../assets/3972d8e8b4084e198fc42643175608bd.png"></p>
+<p>先定义了 2 个 ReactAgent，然后定义了 1 个 SequentialAgent 将它们串联起来。</p>
+<h2 id="333-工作流---parallelagent">3.3.3 工作流 - ParallelAgent<a hidden class="anchor" aria-hidden="true" href="#333-工作流---parallelagent">#</a></h2>
+<p><img loading="lazy" src="../assets/353bf4078f884fc8a476d5180bae4032.png"></p>
+<p>并行执行的工作流模式。</p>
+<p>示例，开发一个智能搜索助手的智能体：</p>
+<p><img loading="lazy" src="../assets/0f944eb9a1e44df68a7d04d64dcbaf87.png"></p>
+<p><img loading="lazy" src="../assets/f0406a7248a4407894a2e391e649f1c7.png"></p>
+<p><img loading="lazy" src="../assets/73f59b29fc634a9d8e9ff3db28038159.png"></p>
+<p><img loading="lazy" src="../assets/b9087eda0b9e41f99099c5df82f6e4ea.png"></p>
+<h2 id="334-工作流---loopagent">3.3.4 工作流 - LoopAgent<a hidden class="anchor" aria-hidden="true" href="#334-工作流---loopagent">#</a></h2>
+<p><img loading="lazy" src="../assets/92efb3f8a0154f24a2616e37f7f48e12.png"></p>
+<p>在指定的迭代次数内重复运行一系列代理，或者直到满足终止条件。</p>
+<p><img loading="lazy" src="../assets/80e332a7daec40e58c78a86d2ce7a7bf.png"></p>
+<h2 id="335-多智能体系统---llmroutingagent">3.3.5 多智能体系统 - LlmRoutingAgent<a hidden class="anchor" aria-hidden="true" href="#335-多智能体系统---llmroutingagent">#</a></h2>
+<p><img loading="lazy" src="../assets/9f9e42a2397e42afbd6a4abacaa7545e.png"></p>
+<p>通过模型决策下一个子智能体走向。</p>
+<p>内置 prompt：</p>
+<p><img loading="lazy" src="../assets/10505d6e9c5d4b179aef76dff8a8b81b.png"></p>
+<p>具体示例代码：</p>
+<p><img loading="lazy" src="../assets/7b794c710df24b82841732a4d04b8d69.png"></p>
+<p><img loading="lazy" src="../assets/d2c18e8825c9468fa098d495c6aae722.png"></p>
+<h1 id="34-从单进程到分布式部署">3.4 从单进程到分布式部署<a hidden class="anchor" aria-hidden="true" href="#34-从单进程到分布式部署">#</a></h1>
+<p><img loading="lazy" src="../assets/88a14980f74f4b4797253a9fce6d1c77.png"></p>
+<p>通过将 Sub-Agent 进行独立部署和维护，同时多个 Sub-Agent 间通过远程调用代替内存调用的方式，实现各个 Sub-Agent 独立迭代和维护。</p>
+<h2 id="341-什么是-a2a-协议">3.4.1 什么是 A2A 协议<a hidden class="anchor" aria-hidden="true" href="#341-什么是-a2a-协议">#</a></h2>
+<p>A2A 协议，Agent2Agent，是 Google 在开源社区中推出的分布式智能体之间的统一通信协议。</p>
+<p><strong>1、A2A 协议中的角色</strong></p>
+<ul>
+<li>
+<p>用户（User）</p>
+</li>
+<li>
+<p>A2A 客户端（Client Agent）</p>
+</li>
+<li>
+<p>A2A 服务端（Remote Agent）</p>
+</li>
+</ul>
+<p><strong>2、A2A 协议中的元素</strong></p>
+<ul>
+<li>
+<p>智能体卡片（Agent Card）</p>
+</li>
+<li>
+<p>任务（Task）</p>
+</li>
+<li>
+<p>消息（Message）</p>
+</li>
+<li>
+<p>产出物（Artifact）</p>
+</li>
+<li>
+<p>内容块（Part）</p>
+</li>
+</ul>
+<p><strong>3、A2A 协议中的交互机制</strong></p>
+<ul>
+<li>
+<p>轮询（Polling）</p>
+</li>
+<li>
+<p>流式传输（Streaming）</p>
+</li>
+<li>
+<p>推送通知（Push Notification）</p>
+</li>
+</ul>
+<h2 id="342-a2a-协议的工作流">3.4.2 A2A 协议的工作流<a hidden class="anchor" aria-hidden="true" href="#342-a2a-协议的工作流">#</a></h2>
+<p><strong>1、发现 A2A Server 的 AgentCard</strong></p>
+<p><img loading="lazy" src="../assets/b8fc280c68164d50a960872ccb77f7de.png"></p>
+<p><strong>2、A2A 授权和权限认证</strong></p>
+<p><img loading="lazy" src="../assets/0b9d05c2badf4f54beae6160d2fbc1b9.png"></p>
+<p><strong>3、发起 A2A 请求</strong></p>
+<p><strong>同步请求</strong></p>
+<p><img loading="lazy" src="../assets/1e1b8fee074441e39e12e1531f592373.png"></p>
+<p><strong>流式请求</strong></p>
+<p><img loading="lazy" src="../assets/bb6a78fbd3eb473ab0bf133eb2577fe8.png"></p>
+<h2 id="343-基于-nacos-a2a-registry-的自动注册与发现">3.4.3 基于 Nacos A2A Registry 的自动注册与发现<a hidden class="anchor" aria-hidden="true" href="#343-基于-nacos-a2a-registry-的自动注册与发现">#</a></h2>
+<p>A2A 工作流程的首个步骤就是进行远端 Agent 的 AgentCard 获取和发现。</p>
+<p><strong>1、AgentCard 的作用</strong></p>
+<p>AgentCard 是 A2A Server 的数字名片，为发现与交互提供必要信息，包括以下内容：</p>
+<ul>
+<li>
+<p>身份信息：名称、描述、服务提供方。</p>
+</li>
+<li>
+<p>服务端点：远端 Agent 的访问 URL，包含完整的域名/IP，端口，URI 等。</p>
+</li>
+<li>
+<p>协议能力：支持的协议功能（如流式传输 streaming 或推送通知 pushNotifications）。</p>
+</li>
+<li>
+<p>认证方式：交互所需的鉴权机制（如 Bearer 令牌、OAuth2）。</p>
+</li>
+<li>
+<p>技能列表：智能体可执行的任务或功能（AgentSkill 对象），含技能 ID、名称、描述、输入/输出模式及示例。</p>
+</li>
+</ul>
+<p>A2A Client 通过 AgentCard 判断远端 Agent 是否适配当前任务、如何构建请求以及安全通信方式。</p>
+<p><strong>2、AgentCard 的获取方式</strong></p>
+<p><strong>直接配置</strong></p>
+<p><img loading="lazy" src="../assets/fdce7fd24a7548d794d8e4a5de7b867d.png"></p>
+<p><strong>固定 URI（Well-Known URI）</strong></p>
+<p><img loading="lazy" src="../assets/8d6509f86a6841ef9d47a7c0984b002d.png"></p>
+<p>另外还有第三种方式，注册中心。</p>
+<h2 id="344-nacos-a2a-注册中心">3.4.4 Nacos A2A 注册中心<a hidden class="anchor" aria-hidden="true" href="#344-nacos-a2a-注册中心">#</a></h2>
+<p><img loading="lazy" src="../assets/54b9dfdb2c8844dc9b246bd22ccb097d.png"></p>
+<p>由注册中心维护 AgentCard 集合，客户端通过查询条件（如技能、标签、提供方）检索目标。</p>
+<p><img loading="lazy" src="../assets/5dbe70559d2a4ede9295c6db558f22cd.png"></p>
+<p>Nacos 还支持对 Agent 的版本进行管理和快速回滚。Nacos 除了作为 A2A 注册中心，还可以作为 MCP 服务的注册中心，以及 Prompt 的动态管理中心。</p>
+<h1 id="35-消息驱动的智能体开发模式">3.5 消息驱动的智能体开发模式<a hidden class="anchor" aria-hidden="true" href="#35-消息驱动的智能体开发模式">#</a></h1>
+<p>AI 云原生架构下的消息队列必须具备以下特点：</p>
+<ul>
+<li>
+<p>支持长会话与大消息体的消息中枢。</p>
+</li>
+<li>
+<p>实现削峰填谷、定速消费的智能调度能力。</p>
+</li>
+<li>
+<p>提供优先级、权重控制的分级事件驱动机制。</p>
+</li>
+<li>
+<p>构建高可靠、可恢复的 Agent 编排引擎。</p>
+</li>
+</ul>
+<h2 id="351-消息模型提升-ai-通信效率">3.5.1 消息模型提升 AI 通信效率<a hidden class="anchor" aria-hidden="true" href="#351-消息模型提升-ai-通信效率">#</a></h2>
+<p>RocketMQ 提出了一种创新的轻量化架构：</p>
+<p><img loading="lazy" src="../assets/e818cfaf5afc42ab94430a32cc06edb5.png"></p>
+<p>核心理念是：为每个会话或问题，动态创建一个独立的轻量级主题（Lite-Topic）。</p>
+<p>以客户端与 AI 服务建立会话为例，系统自动创建一个以 SessionID 命名的专属队列，所有会话历史、上下文和中间结果均以消息形式在该主题中有序流转。</p>
+<p>这一架构提供了四大核心能力：</p>
+<ul>
+<li>
+<p>百万级 Lite-Topic 支持：单集群管理百万级 Lite-Topic，每个会话独立 Topic，高并发下会话隔离，性能无损。</p>
+</li>
+<li>
+<p>全自动轻量管理：Lite-Topic 按需动态创建，连接断开后自动回收。</p>
+</li>
+<li>
+<p>大消息体传输能力：支持数十 MB 以上消息，可承载长 Prompt、图像、文档等。</p>
+</li>
+<li>
+<p>严格顺序消息保障：在单队列内保证消息有序，确保 LLM 流式输出的 token 顺序不乱。</p>
+</li>
+</ul>
+<p><strong>轻量级发送</strong></p>
+<p>Queue 的消息是某个 Broker 专属的，一个 Lite-Topic 的发送只会到一台 Broker，而不是轮询发送。</p>
+<p><strong>轻量级订阅</strong></p>
+<p>以 client_ID 维度维护订阅关系，管理消费进度。新增互斥消费模式。TTL 到期后自动删除订阅关系。</p>
+<p><strong>消息分发策略</strong></p>
+<p><img loading="lazy" src="../assets/3d03b33f9f1047d4b175d6d62a1b70bd.png"></p>
+<ul>
+<li>
+<p>客户端发起读请求不再指定 Topic，而是 Broker 根据 client_ID 识别订阅关系，并返回多个 Topic 的多条消息。</p>
+</li>
+<li>
+<p>引入 Topic ready set，在 POP 请求处理时直接访问就绪的 topic。</p>
+</li>
+<li>
+<p>当订阅上线、新消息发送、消息 ACK 后仍有消息、order Lock 释放时往 Topic ready set 进行 add 操作。</p>
+</li>
+</ul>
+<h2 id="352-基于消息驱动的智能化资源调度">3.5.2 基于消息驱动的智能化资源调度<a hidden class="anchor" aria-hidden="true" href="#352-基于消息驱动的智能化资源调度">#</a></h2>
+<p>核心能力：</p>
+<ul>
+<li>
+<p>天然削峰填谷，保护 AI 算力：消息队列可缓存突发请求。</p>
+</li>
+<li>
+<p>定速消费，精准控制算力使用：支持为消费者组设置消费配额。</p>
+</li>
+<li>
+<p>优先级调度，实现智能资源分配：抢占式优先级，权重动态分配。</p>
+</li>
+</ul>
+<h1 id="36-基于统一元数据的-ai-协同开发模式">3.6 基于统一元数据的 AI 协同开发模式<a hidden class="anchor" aria-hidden="true" href="#36-基于统一元数据的-ai-协同开发模式">#</a></h1>
+<p><img loading="lazy" src="../assets/d551ce4f9adb439c945157e99b7aff97.png"></p>
+<p>AI 时代，可以基于统一元数据，所有交付物都使用 HTML 格式，每个角色的产出可以直接被下游角色使用，并且在开发全流程的每个环节都基于 AI 提效。</p>
+<p><img loading="lazy" src="../assets/633bd094e08a4151ab2bdca7e52781cd.png"></p>
+<p>统一元数据需要长期建设，包括设计系统、组件库、API 规范、状态管理等。从建立需求即代码的团队协作基准开始，从组件契约标准化入手，逐步构建跨工具链的智能开发环境。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://developer.aliyun.com/ebook/8479">https://developer.aliyun.com/ebook/8479</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/">AI白皮书</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/">
+    <span class="title">« 上一页</span>
+    <span>上下文工程</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/allure%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A%E5%AE%8C%E6%95%B4%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+    <span class="title">下一页 »</span>
+    <span>Allure 测试报告完整学习笔记</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#31-智能体的定义与主流开发范式">3.1 智能体的定义与主流开发范式</a>
+      <ul>
+        <li><a href="#311-什么是智能体">3.1.1 什么是智能体</a></li>
+        <li><a href="#312-智能体的主流开发范式">3.1.2 智能体的主流开发范式</a></li>
+        <li><a href="#313-单智能体">3.1.3 单智能体</a></li>
+        <li><a href="#314-工作流">3.1.4 工作流</a></li>
+        <li><a href="#315-多智能体系统">3.1.5 多智能体系统</a></li>
+      </ul>
+    </li>
+    <li><a href="#32-开发一个简单的智能体">3.2 开发一个简单的智能体</a>
+      <ul>
+        <li><a href="#321-智能体框架选型">3.2.1 智能体框架选型</a></li>
+        <li><a href="#322-spring-ai-alibaba-中的-agent-定义">3.2.2 Spring AI Alibaba 中的 Agent 定义</a></li>
+        <li><a href="#323-示例代码与-agentic-api">3.2.3 示例代码与 Agentic API</a></li>
+      </ul>
+    </li>
+    <li><a href="#33-工作流与多智能体">3.3 工作流与多智能体</a>
+      <ul>
+        <li><a href="#331-spring-ai-alibab-中的多智能体类型">3.3.1 Spring AI Alibab 中的多智能体类型</a></li>
+        <li><a href="#332-工作流---sequentialagent">3.3.2 工作流 - SequentialAgent</a></li>
+        <li><a href="#333-工作流---parallelagent">3.3.3 工作流 - ParallelAgent</a></li>
+        <li><a href="#334-工作流---loopagent">3.3.4 工作流 - LoopAgent</a></li>
+        <li><a href="#335-多智能体系统---llmroutingagent">3.3.5 多智能体系统 - LlmRoutingAgent</a></li>
+      </ul>
+    </li>
+    <li><a href="#34-从单进程到分布式部署">3.4 从单进程到分布式部署</a>
+      <ul>
+        <li><a href="#341-什么是-a2a-协议">3.4.1 什么是 A2A 协议</a></li>
+        <li><a href="#342-a2a-协议的工作流">3.4.2 A2A 协议的工作流</a></li>
+        <li><a href="#343-基于-nacos-a2a-registry-的自动注册与发现">3.4.3 基于 Nacos A2A Registry 的自动注册与发现</a></li>
+        <li><a href="#344-nacos-a2a-注册中心">3.4.4 Nacos A2A 注册中心</a></li>
+      </ul>
+    </li>
+    <li><a href="#35-消息驱动的智能体开发模式">3.5 消息驱动的智能体开发模式</a>
+      <ul>
+        <li><a href="#351-消息模型提升-ai-通信效率">3.5.1 消息模型提升 AI 通信效率</a></li>
+        <li><a href="#352-基于消息驱动的智能化资源调度">3.5.2 基于消息驱动的智能化资源调度</a></li>
+      </ul>
+    </li>
+    <li><a href="#36-基于统一元数据的-ai-协同开发模式">3.6 基于统一元数据的 AI 协同开发模式</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

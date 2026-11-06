@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>幂等测试 | 测试开发刚哥</title>
+<meta name="keywords" content="后端测试">
+<meta name="description" content="连续调用两次，第一次提交成功，第二次会被驳回——串行重复，系统是防住了的。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E5%B9%82%E7%AD%89%E6%B5%8B%E8%AF%95/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E5%B9%82%E7%AD%89%E6%B5%8B%E8%AF%95/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E5%B9%82%E7%AD%89%E6%B5%8B%E8%AF%95/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="幂等测试">
+  <meta property="og:description" content="连续调用两次，第一次提交成功，第二次会被驳回——串行重复，系统是防住了的。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:tag" content="后端测试">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="幂等测试">
+  <meta name="twitter:description" content="连续调用两次，第一次提交成功，第二次会被驳回——串行重复，系统是防住了的。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "幂等测试",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E5%B9%82%E7%AD%89%E6%B5%8B%E8%AF%95/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "幂等测试",
+  "name": "幂等测试",
+  "description": "连续调用两次，第一次提交成功，第二次会被驳回——串行重复，系统是防住了的。",
+  "keywords": [
+    "后端测试"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n连续调用两次，第一次提交成功，第二次会被驳回——串行重复，系统是防住了的。\n但这个 BUG 是在任务调度时触发的，任务高并发模式下，并行调用了提交申请接口，两个请求几乎同时进来，最终出现了两个都提交成功的申请单。\n一、幂等测试是什么 重复：连续请求、超时重试、消息重发\n并发：极短时间内，1 毫秒，同时有多个请求\n重复和并发的区别在于，两个请求的时间间隔，重复的请求之间有间隔，并发的请求之间几乎没有间隔。\n很多代码只能防住重复，却防不了并发。在制定测试策略时，要考虑并发幂等的处理。\n二、两种实现方式的漏洞 方式 1：先查后写的空窗 这是最经典的一种“假幂等”。下面用支付回调来举例，订单支付成功后给用户发优惠券。\ndef pay_callback(order_no): if db.get(order_no) is None: # 并发时两个请求都查到 None db.insert(order_no) grant_coupon(order_no) # 于是券发了两张 return \"success\" db.get(order_no)，两个并发请求都查到空，都会进到 if 分支，造成重复执行，幂等失效。支付成功后发了两张券。\n换成状态机也是一样的问题。数据库已经存在记录，靠状态值来判断该不该发券：\ndef pay_callback(order_no): record = db.query(\"SELECT status FROM pay_record WHERE order_no = ?\", order_no) if record.status == 'INIT': # ← 应用层判断 db.execute(\"UPDATE pay_record SET status = 'PAID' WHERE order_no = ?\", order_no) grant_coupon(order_no) # 发券 两个并发请求同时读到’INIT’，都能通过 if 判断，都能执行完，券还是发了两张。\n根因是同一个：先查后写，查和写分成两步，中间有个时间空窗。并发的两个请求都挤在空窗里通过了检查，于是都往下执行。\n方式 2：分布式锁的释放 def pay_callback(order_no): with lock(order_no): exists = db.get(order_no) is not None # 锁只盖住这一句 # ← 锁在这里就释放了! if not exists: db.insert(order_no) grant_coupon(order_no) # 发券在锁外面 return \"success\" 加了分布式锁，但是锁的粒度没有覆盖整个业务，两个并发请求还是都能执行完，也防不住幂等。\n三、幂等怎么测 幂等测试的本质，同一个请求，不管发几次、怎么发，实际结果都跟发一次一样。\n哪些场景涉及到幂等？\n串行重复请求，比如用户连续点击多次 并行请求 消息重试，超时或异常（最容易忽略） 有哪些幂等测试手段？\n相同参数连续调多次 使用多线程/JMeter 并发压测 在“检查”和“执行”之间插延迟，把毫秒级竞争窗口加大 第 1 次超时或报错后再调 执行到一半中断再重试 重复发送相同的消息体 幂等标识的值边界，比如 requestId 空值/超长/特殊字符 幂等验证哪些结果？\n重复请求返回相同结果 结果数据不翻倍（重点） 不同幂等 key 视为不同请求 四、幂等处理的正确姿势 核心：数据库。\nRedis 分布式锁会超时释放、进程崩溃丢锁、主从切换失效，只能减少冲突，无法保证真的幂等。\n真正的幂等是数据库的原子性。\n# 方式：把判断放进 SQL，一条语句的原子性 rows = db.execute(\"\"\" UPDATE pay_record SET status = 'PAID' WHERE order_no = ? AND status = 'INIT' \"\"\", order_no) if rows == 0: return \"已处理\" # 别人改过了，我不是第一个 grant_coupon(order_no) # 只有改成功的那个才发券 return \"success\" 要说明的是，这条 SQL 解决的是并发下的重复执行——同一时刻只有一个请求能把 INIT 改成 PAID，从根上杜绝了发两张券。\n但它没解决另一个问题：改状态成功、grant_coupon 却失败了。这属于「后置动作失败」，要靠事务、本地消息表、或发券失败的补偿重试来兜底，跟幂等没关系。\n在做幂等测试时，多从并发角度考虑。\n",
+  "wordCount" : "173",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-03T00:00:00Z",
+  "dateModified": "2026-01-03T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E5%B9%82%E7%AD%89%E6%B5%8B%E8%AF%95/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      幂等测试
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-03T00:00:00+00:00'>2026-01-03</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/'>#后端测试</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>连续调用两次，第一次提交成功，第二次会被驳回——串行重复，系统是防住了的。</p>
+<p>但这个 BUG 是在任务调度时触发的，任务高并发模式下，并行调用了提交申请接口，两个请求几乎同时进来，最终出现了两个都提交成功的申请单。</p>
+<h1 id="一幂等测试是什么">一、幂等测试是什么<a hidden class="anchor" aria-hidden="true" href="#一幂等测试是什么">#</a></h1>
+<p>重复：连续请求、超时重试、消息重发</p>
+<p>并发：极短时间内，1 毫秒，同时有多个请求</p>
+<p>重复和并发的区别在于，两个请求的时间间隔，重复的请求之间有间隔，并发的请求之间几乎没有间隔。</p>
+<p>很多代码只能防住重复，却防不了并发。在制定测试策略时，要考虑并发幂等的处理。</p>
+<h1 id="二两种实现方式的漏洞">二、两种实现方式的漏洞<a hidden class="anchor" aria-hidden="true" href="#二两种实现方式的漏洞">#</a></h1>
+<h2 id="方式-1先查后写的空窗">方式 1：先查后写的空窗<a hidden class="anchor" aria-hidden="true" href="#方式-1先查后写的空窗">#</a></h2>
+<p>这是最经典的一种“假幂等”。下面用支付回调来举例，订单支付成功后给用户发优惠券。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">pay_callback</span><span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> db<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span> <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>      <span style="color:#57606a"># 并发时两个请求都查到 None</span>
+</span></span><span style="display:flex;"><span>        db<span style="color:#0550ae">.</span>insert<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        grant_coupon<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span>         <span style="color:#57606a"># 于是券发了两张</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;success&#34;</span>
+</span></span></code></pre></div><p>db.get(order_no)，两个并发请求都查到空，都会进到 if 分支，造成重复执行，幂等失效。支付成功后发了两张券。</p>
+<p>换成状态机也是一样的问题。数据库已经存在记录，靠状态值来判断该不该发券：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">pay_callback</span><span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    record <span style="color:#0550ae">=</span> db<span style="color:#0550ae">.</span>query<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;SELECT status FROM pay_record WHERE order_no = ?&#34;</span><span style="color:#1f2328">,</span> order_no<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> record<span style="color:#0550ae">.</span>status <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;INIT&#39;</span><span style="color:#1f2328">:</span>           <span style="color:#57606a"># ← 应用层判断</span>
+</span></span><span style="display:flex;"><span>        db<span style="color:#0550ae">.</span>execute<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;UPDATE pay_record SET status = &#39;PAID&#39; WHERE order_no = ?&#34;</span><span style="color:#1f2328">,</span> order_no<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        grant_coupon<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span>            <span style="color:#57606a"># 发券</span>
+</span></span></code></pre></div><p>两个并发请求同时读到&rsquo;INIT&rsquo;，都能通过 if 判断，都能执行完，券还是发了两张。</p>
+<p>根因是同一个：先查后写，查和写分成两步，中间有个时间空窗。并发的两个请求都挤在空窗里通过了检查，于是都往下执行。</p>
+<h2 id="方式-2分布式锁的释放">方式 2：分布式锁的释放<a hidden class="anchor" aria-hidden="true" href="#方式-2分布式锁的释放">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">pay_callback</span><span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">with</span> lock<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        exists <span style="color:#0550ae">=</span> db<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span> <span style="color:#0550ae">is</span> <span style="color:#0550ae">not</span> <span style="color:#cf222e">None</span>   <span style="color:#57606a"># 锁只盖住这一句</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># ← 锁在这里就释放了!</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> exists<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        db<span style="color:#0550ae">.</span>insert<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        grant_coupon<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span>                   <span style="color:#57606a"># 发券在锁外面</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;success&#34;</span>
+</span></span></code></pre></div><p>加了分布式锁，但是锁的粒度没有覆盖整个业务，两个并发请求还是都能执行完，也防不住幂等。</p>
+<h1 id="三幂等怎么测">三、幂等怎么测<a hidden class="anchor" aria-hidden="true" href="#三幂等怎么测">#</a></h1>
+<p>幂等测试的本质，同一个请求，不管发几次、怎么发，实际结果都跟发一次一样。</p>
+<p>哪些场景涉及到幂等？</p>
+<ul>
+<li>串行重复请求，比如用户连续点击多次</li>
+<li>并行请求</li>
+<li>消息重试，超时或异常（最容易忽略）</li>
+</ul>
+<p>有哪些幂等测试手段？</p>
+<ul>
+<li>相同参数连续调多次</li>
+<li>使用多线程/JMeter 并发压测</li>
+<li>在“检查”和“执行”之间插延迟，把毫秒级竞争窗口加大</li>
+<li>第 1 次超时或报错后再调</li>
+<li>执行到一半中断再重试</li>
+<li>重复发送相同的消息体</li>
+<li>幂等标识的值边界，比如 requestId 空值/超长/特殊字符</li>
+</ul>
+<p>幂等验证哪些结果？</p>
+<ul>
+<li>重复请求返回相同结果</li>
+<li>结果数据不翻倍（重点）</li>
+<li>不同幂等 key 视为不同请求</li>
+</ul>
+<h1 id="四幂等处理的正确姿势">四、幂等处理的正确姿势<a hidden class="anchor" aria-hidden="true" href="#四幂等处理的正确姿势">#</a></h1>
+<p>核心：数据库。</p>
+<p>Redis 分布式锁会超时释放、进程崩溃丢锁、主从切换失效，只能减少冲突，无法保证真的幂等。</p>
+<p>真正的幂等是数据库的原子性。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a"># 方式：把判断放进 SQL，一条语句的原子性</span>
+</span></span><span style="display:flex;"><span>rows <span style="color:#0550ae">=</span> db<span style="color:#0550ae">.</span>execute<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    UPDATE pay_record SET status = &#39;PAID&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    WHERE order_no = ? AND status = &#39;INIT&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span><span style="color:#1f2328">,</span> order_no<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span> rows <span style="color:#0550ae">==</span> <span style="color:#0550ae">0</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;已处理&#34;</span>          <span style="color:#57606a"># 别人改过了，我不是第一个</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>grant_coupon<span style="color:#1f2328">(</span>order_no<span style="color:#1f2328">)</span>       <span style="color:#57606a"># 只有改成功的那个才发券</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;success&#34;</span>
+</span></span></code></pre></div><p>要说明的是，这条 SQL 解决的是并发下的重复执行——同一时刻只有一个请求能把 INIT 改成 PAID，从根上杜绝了发两张券。</p>
+<blockquote>
+<p>但它没解决另一个问题：改状态成功、grant_coupon 却失败了。这属于「后置动作失败」，要靠事务、本地消息表、或发券失败的补偿重试来兜底，跟幂等没关系。</p>
+</blockquote>
+<p>在做幂等测试时，多从并发角度考虑。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E5%90%8E%E7%AB%AF%E6%B5%8B%E8%AF%95/">后端测试</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E6%A1%86%E6%9E%B6v2.0.0%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97/">
+    <span class="title">« 上一页</span>
+    <span>框架 V2.0.0 开发指南</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%88%B7%E5%AE%8C3%E4%B8%AAjava%E6%95%99%E7%A8%8B%E5%90%8E%E4%B8%8D%E5%86%8D%E7%8A%B9%E8%B1%AB/">
+    <span class="title">下一页 »</span>
+    <span>刷完 3 个 Java 教程后不再犹豫</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#一幂等测试是什么">一、幂等测试是什么</a></li>
+    <li><a href="#二两种实现方式的漏洞">二、两种实现方式的漏洞</a>
+      <ul>
+        <li><a href="#方式-1先查后写的空窗">方式 1：先查后写的空窗</a></li>
+        <li><a href="#方式-2分布式锁的释放">方式 2：分布式锁的释放</a></li>
+      </ul>
+    </li>
+    <li><a href="#三幂等怎么测">三、幂等怎么测</a></li>
+    <li><a href="#四幂等处理的正确姿势">四、幂等处理的正确姿势</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

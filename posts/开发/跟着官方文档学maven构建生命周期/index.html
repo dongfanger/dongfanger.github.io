@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>跟着官方文档学 Maven 构建生命周期 | 测试开发刚哥</title>
+<meta name="keywords" content="Maven">
+<meta name="description" content="在 IntelliJ IDEA 中，显示了 Maven 的 Lifecycle：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E8%B7%9F%E7%9D%80%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3%E5%AD%A6maven%E6%9E%84%E5%BB%BA%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E8%B7%9F%E7%9D%80%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3%E5%AD%A6maven%E6%9E%84%E5%BB%BA%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E8%B7%9F%E7%9D%80%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3%E5%AD%A6maven%E6%9E%84%E5%BB%BA%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="跟着官方文档学 Maven 构建生命周期">
+  <meta property="og:description" content="在 IntelliJ IDEA 中，显示了 Maven 的 Lifecycle：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-13T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-13T00:00:00+00:00">
+    <meta property="article:tag" content="Maven">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="跟着官方文档学 Maven 构建生命周期">
+  <meta name="twitter:description" content="在 IntelliJ IDEA 中，显示了 Maven 的 Lifecycle：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "跟着官方文档学 Maven 构建生命周期",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E8%B7%9F%E7%9D%80%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3%E5%AD%A6maven%E6%9E%84%E5%BB%BA%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "跟着官方文档学 Maven 构建生命周期",
+  "name": "跟着官方文档学 Maven 构建生命周期",
+  "description": "在 IntelliJ IDEA 中，显示了 Maven 的 Lifecycle：",
+  "keywords": [
+    "Maven"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n在 IntelliJ IDEA 中，显示了 Maven 的 Lifecycle：\n只需要学习这些命令，就能构建一个 Maven 项目。\n三个内置生命周期 Maven 内置了三个生命周期：clean、default 和 site。生命周期是由多个顺序执行的阶段组成，它们的关系和说明如下：\nclean 清理文件。\npre-clean clean 前置阶段 clean 移除上次构建生成的所有文件 post-clean clean 后置阶段 default 主要生命周期，用来构建应用。\nvalidate 验证项目正确，必要信息有效 initialize 初始化构建状态，比如设置属性或创建目录 generate-sources 生成编译的源代码 process-sources 处理源代码，比如过滤任意值 generate-resources 生成包中的资源文件 process-resources 复制和处理资源文件到目标目录，为打开做准备 compile 编译项目的源码 process-classes 后处理（post-process）编译源代码生成的文件，比如给 Java class 文件做 bytecode enhancement generate-test-sources 生成编译的测试代码 process-test-sources 处理测试代码，比如过滤任意值 generate-test-resources 创建测试需要的资源 process-test-resources 复制和处理资源文件到测试目录 test-compile 编译测试代码到测试目录 process-test-classes 后处理（post-process）编译测试代码生成的文件，比如给 Java class 文件做 bytecode enhancement test 使用单元测试框架（如 JUnit）执行测试，这些测试不能依赖已经打包（packaged）或部署（deployed）的代码 prepare-package 打包前准备，一般会生成处理过的未打包的前置版本包 package 将编译后的代码进行打包，比如 jar 包、war 包 pre-integration-test 集成测试前置阶段，比如创建环境 integration-test 集成测试，在环境中进行测试 post-integration-test 集成测试后置阶段，比如清理环境 verify 验证包有效且质量达标 install 安装包到本地仓库，以便于本地项目依赖 deploy 复制包到远程仓库，共享给其他人使用 site 一般用来创建文档。\npre-site 前置阶段 site 生成项目的网站文档 post-site 后置阶段 site-deploy 把生成的网站文档部署到 web 服务器 命令行执行 Maven 提供了一个mvn命令，把它的路径（如D:\\Program Files\\JetBrains\\IntelliJ IDEA 2020.3.3\\plugins\\maven\\lib\\maven3\\bin）添加到环境变量就能直接使用。\nmvn verify 如果不知道执行什么命令，可以执行这条命令，它会把前置命令都执行了：validate，compile，test，package。同时也会执行代码检查比如 checkstyle，以及集成测试。 mvn clean deploy 常用来清理构建部署到仓库，如果项目有多个子模块，Maven 会遍历所有模块执行。 对于pre-*, post-*, process-*等短横线命名的阶段则不能使用命令行直接执行，它们主要用来生成中间结果。比如单元测试覆盖率工具 Jacoco 和执行容器插件 Docker 可能会绑定到pre-integration-test来准备集成测试环境，然后在post-integration-test来收集覆盖率统计或者销毁容器。Failsafe 和 Code coverage 插件绑定到了integration-test和verify两个阶段，在verify执行后生成测试报告。如果执行verify是没有问题的，但是如果直接执行integration-test，就可能导致无法生成测试报告，甚至集成测试环境也没有被彻底清理。\nIntelliJ IDEA 集成了所有没有短横线命名的这些可以直接执行的命令。\nPlugin Goals Maven 除了生命周期的阶段，还提供了一个更精细的任务，叫做插件目标（Plugin Goals）。示例：\nmvn clean dependency:copy-dependencies package dependency:copy-dependencies就是一个插件目标，表达式为plugin:goal。\n其实阶段都是由插件目标组成的，Maven 默认进行了绑定，比如clean:clean、compiler:compile、deploy:deploy等。package 阶段打包类型不同插件目标也有区别：jar:jar、war:war。\n一个典型的打 jar 包的阶段和插件目标如下图所示：\nPlugin Plugin 是用来给 Maven 提供 goals 的，比如 Compiler plugin 包括 2 个 goals：compile用来编译 main 源代码，testCompile用来编译测试代码。Plugin 在 pom.xml 中进行配置，比如：\n",
+  "wordCount" : "275",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-13T00:00:00Z",
+  "dateModified": "2026-01-13T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E8%B7%9F%E7%9D%80%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3%E5%AD%A6maven%E6%9E%84%E5%BB%BA%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      跟着官方文档学 Maven 构建生命周期
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-13T00:00:00+00:00'>2026-01-13</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/maven/'>#Maven</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>在 IntelliJ IDEA 中，显示了 Maven 的 Lifecycle：</p>
+<p><img loading="lazy" src="../assets/c7c910eda46248e28654e36b32525b14.png"></p>
+<p>只需要学习这些命令，就能构建一个 Maven 项目。</p>
+<h1 id="三个内置生命周期">三个内置生命周期<a hidden class="anchor" aria-hidden="true" href="#三个内置生命周期">#</a></h1>
+<p>Maven 内置了三个生命周期：clean、default 和 site。生命周期是由多个<strong>顺序执行的阶段</strong>组成，它们的关系和说明如下：</p>
+<h2 id="clean">clean<a hidden class="anchor" aria-hidden="true" href="#clean">#</a></h2>
+<p>清理文件。</p>
+<ul>
+<li>pre-clean clean 前置阶段</li>
+<li><strong>clean</strong> 移除上次构建生成的所有文件</li>
+<li>post-clean clean 后置阶段</li>
+</ul>
+<h2 id="default">default<a hidden class="anchor" aria-hidden="true" href="#default">#</a></h2>
+<p>主要生命周期，用来构建应用。</p>
+<ul>
+<li><strong>validate</strong> 验证项目正确，必要信息有效</li>
+<li>initialize 初始化构建状态，比如设置属性或创建目录</li>
+<li>generate-sources 生成编译的源代码</li>
+<li>process-sources 处理源代码，比如过滤任意值</li>
+<li>generate-resources 生成包中的资源文件</li>
+<li>process-resources 复制和处理资源文件到目标目录，为打开做准备</li>
+<li><strong>compile</strong> 编译项目的源码</li>
+<li>process-classes 后处理（post-process）编译源代码生成的文件，比如给 Java class 文件做 bytecode enhancement</li>
+<li>generate-test-sources 生成编译的测试代码</li>
+<li>process-test-sources 处理测试代码，比如过滤任意值</li>
+<li>generate-test-resources 创建测试需要的资源</li>
+<li>process-test-resources 复制和处理资源文件到测试目录</li>
+<li>test-compile 编译测试代码到测试目录</li>
+<li>process-test-classes 后处理（post-process）编译测试代码生成的文件，比如给 Java class 文件做 bytecode enhancement</li>
+<li><strong>test</strong> 使用单元测试框架（如 JUnit）执行测试，这些测试不能依赖已经打包（packaged）或部署（deployed）的代码</li>
+<li>prepare-package 打包前准备，一般会生成处理过的未打包的前置版本包</li>
+<li><strong>package</strong> 将编译后的代码进行打包，比如 jar 包、war 包</li>
+<li>pre-integration-test 集成测试前置阶段，比如创建环境</li>
+<li>integration-test 集成测试，在环境中进行测试</li>
+<li>post-integration-test 集成测试后置阶段，比如清理环境</li>
+<li><strong>verify</strong> 验证包有效且质量达标</li>
+<li><strong>install</strong> 安装包到本地仓库，以便于本地项目依赖</li>
+<li><strong>deploy</strong> 复制包到远程仓库，共享给其他人使用</li>
+</ul>
+<h2 id="site">site<a hidden class="anchor" aria-hidden="true" href="#site">#</a></h2>
+<p>一般用来创建文档。</p>
+<ul>
+<li>pre-site 前置阶段</li>
+<li><strong>site</strong> 生成项目的网站文档</li>
+<li>post-site 后置阶段</li>
+<li>site-deploy 把生成的网站文档部署到 web 服务器</li>
+</ul>
+<h1 id="命令行执行">命令行执行<a hidden class="anchor" aria-hidden="true" href="#命令行执行">#</a></h1>
+<p>Maven 提供了一个<code>mvn</code>命令，把它的路径（如<code>D:\Program Files\JetBrains\IntelliJ IDEA 2020.3.3\plugins\maven\lib\maven3\bin</code>）添加到环境变量就能直接使用。</p>
+<ul>
+<li><code>mvn verify</code> 如果不知道执行什么命令，可以执行这条命令，它会把前置命令都执行了：validate，compile，test，package。同时也会执行代码检查比如 checkstyle，以及集成测试。</li>
+<li><code>mvn clean deploy</code> 常用来清理构建部署到仓库，如果项目有多个子模块，Maven 会遍历所有模块执行。</li>
+</ul>
+<p>对于<code>pre-*</code>, <code>post-*</code>, <code>process-*</code>等短横线命名的阶段则不能使用命令行直接执行，它们主要用来生成中间结果。比如单元测试覆盖率工具 Jacoco 和执行容器插件 Docker 可能会绑定到<code>pre-integration-test</code>来准备集成测试环境，然后在<code>post-integration-test</code>来收集覆盖率统计或者销毁容器。Failsafe 和 Code coverage 插件绑定到了<code>integration-test</code>和<code>verify</code>两个阶段，在<code>verify</code>执行后生成测试报告。如果执行<code>verify</code>是没有问题的，但是如果直接执行<code>integration-test</code>，就可能导致无法生成测试报告，甚至集成测试环境也没有被彻底清理。</p>
+<p><strong>IntelliJ IDEA 集成了所有没有短横线命名的这些可以直接执行的命令。</strong></p>
+<h1 id="plugin-goals">Plugin Goals<a hidden class="anchor" aria-hidden="true" href="#plugin-goals">#</a></h1>
+<p>Maven 除了生命周期的阶段，还提供了一个更精细的任务，叫做插件目标（Plugin Goals）。示例：</p>
+<pre tabindex="0"><code>mvn clean dependency:copy-dependencies package
+</code></pre><p><code>dependency:copy-dependencies</code>就是一个插件目标，表达式为<code>plugin:goal</code>。</p>
+<p>其实<strong>阶段都是由插件目标组成的</strong>，Maven 默认进行了绑定，比如<code>clean:clean</code>、<code>compiler:compile</code>、<code>deploy:deploy</code>等。package 阶段打包类型不同插件目标也有区别：<code>jar:jar</code>、<code>war:war</code>。</p>
+<p>一个典型的打 jar 包的阶段和插件目标如下图所示：</p>
+<p><img loading="lazy" src="../assets/08a6674be4db480aa606ed40c1e95519.png"></p>
+<h1 id="plugin">Plugin<a hidden class="anchor" aria-hidden="true" href="#plugin">#</a></h1>
+<p>Plugin 是用来给 Maven 提供 goals 的，比如 Compiler plugin 包括 2 个 goals：<code>compile</code>用来编译 main 源代码，<code>testCompile</code>用来编译测试代码。Plugin 在 pom.xml 中进行配置，比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;project</span> <span style="color:#1f2328">xmlns=</span><span style="color:#0a3069">&#34;http://maven.apache.org/POM/4.0.0&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">xmlns:xsi=</span><span style="color:#0a3069">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">xsi:schemaLocation=</span><span style="color:#0a3069">&#34;http://maven.apache.org/POM/4.0.0
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  http://maven.apache.org/xsd/maven-4.0.0.xsd&#34;</span><span style="color:#0550ae">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;modelVersion&gt;</span>4.0.0<span style="color:#0550ae">&lt;/modelVersion&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;groupId&gt;</span>com.companyname.projectgroup<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;artifactId&gt;</span>project<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;version&gt;</span>1.0<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;build&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;plugins&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;plugin&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;groupId&gt;</span>org.apache.maven.plugins<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;artifactId&gt;</span>maven-antrun-plugin<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;version&gt;</span>1.1<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;executions&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#0550ae">&lt;execution&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;id&gt;</span>id.validate<span style="color:#0550ae">&lt;/id&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;phase&gt;</span>validate<span style="color:#0550ae">&lt;/phase&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;goals&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;goal&gt;</span>run<span style="color:#0550ae">&lt;/goal&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;/goals&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;configuration&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;tasks&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;echo&gt;</span>validate phase<span style="color:#0550ae">&lt;/echo&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;/tasks&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;/configuration&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#0550ae">&lt;/execution&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#0550ae">&lt;execution&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;id&gt;</span>id.compile<span style="color:#0550ae">&lt;/id&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;phase&gt;</span>compile<span style="color:#0550ae">&lt;/phase&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;goals&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;goal&gt;</span>run<span style="color:#0550ae">&lt;/goal&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;/goals&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;configuration&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;tasks&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;echo&gt;</span>compile phase<span style="color:#0550ae">&lt;/echo&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;/tasks&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;/configuration&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#0550ae">&lt;/execution&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#0550ae">&lt;execution&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;id&gt;</span>id.test<span style="color:#0550ae">&lt;/id&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;phase&gt;</span>test<span style="color:#0550ae">&lt;/phase&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;goals&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;goal&gt;</span>run<span style="color:#0550ae">&lt;/goal&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;/goals&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;configuration&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;tasks&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;echo&gt;</span>test phase<span style="color:#0550ae">&lt;/echo&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;/tasks&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;/configuration&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#0550ae">&lt;/execution&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#0550ae">&lt;execution&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;id&gt;</span>id.package<span style="color:#0550ae">&lt;/id&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;phase&gt;</span>package<span style="color:#0550ae">&lt;/phase&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;goals&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;goal&gt;</span>run<span style="color:#0550ae">&lt;/goal&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;/goals&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;configuration&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;tasks&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;echo&gt;</span>package phase<span style="color:#0550ae">&lt;/echo&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;/tasks&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;/configuration&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#0550ae">&lt;/execution&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#0550ae">&lt;execution&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;id&gt;</span>id.deploy<span style="color:#0550ae">&lt;/id&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;phase&gt;</span>deploy<span style="color:#0550ae">&lt;/phase&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;goals&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;goal&gt;</span>run<span style="color:#0550ae">&lt;/goal&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;/goals&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;configuration&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;tasks&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#0550ae">&lt;echo&gt;</span>deploy phase<span style="color:#0550ae">&lt;/echo&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;/tasks&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&lt;/configuration&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#0550ae">&lt;/execution&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/executions&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/plugin&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/plugins&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/build&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/project&gt;</span>
+</span></span></code></pre></div><p>多个 goals 按配置的先后顺序运行。executions 用来对 goals 进行配置，也可以添加 id 进行标识。</p>
+<blockquote>
+<p>实际的配置会复杂许多，可以参考开源项目：</p>
+<p><a href="https://github.com/metersphere/metersphere">https://github.com/metersphere/metersphere</a></p>
+<p><a href="https://github.com/macrozheng/mall">https://github.com/macrozheng/mall</a></p>
+</blockquote>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文介绍了 Maven 内置的三个生命周期，生命周期是由多个阶段组成，IntelliJ IDEA 集成了所有没有短横线命名的这些可以直接执行的阶段。阶段是由阶段目标（Plugin Goals）构成的，在 pom.xml 中进行配置。pom.xml 是 Maven 一个很重要很常用的文件。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html">https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html</a></p>
+<p><a href="https://www.runoob.com/maven/maven-build-life-cycle.html">https://www.runoob.com/maven/maven-build-life-cycle.html</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/maven/">Maven</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E6%89%A9%E5%B1%95java%E8%AF%B7%E6%B1%82/">
+    <span class="title">« 上一页</span>
+    <span>JMeter 扩展 Java 请求</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%9A%8F%E7%AC%94/%E6%8A%80%E6%9C%AF%E5%9E%8B%E6%B5%8B%E8%AF%95%E7%9A%84%E4%BC%98%E5%8A%BF/">
+    <span class="title">下一页 »</span>
+    <span>技术型测试的优势</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#三个内置生命周期">三个内置生命周期</a>
+      <ul>
+        <li><a href="#clean">clean</a></li>
+        <li><a href="#default">default</a></li>
+        <li><a href="#site">site</a></li>
+      </ul>
+    </li>
+    <li><a href="#命令行执行">命令行执行</a></li>
+    <li><a href="#plugin-goals">Plugin Goals</a></li>
+    <li><a href="#plugin">Plugin</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

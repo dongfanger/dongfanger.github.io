@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Allure&#43;Maven&#43;JUnit5 配置实践 | 测试开发刚哥</title>
+<meta name="keywords" content="Allure, Maven, JUnit5">
+<meta name="description" content="为什么要用 JUnit5？">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/allure&#43;maven&#43;junit5%E9%85%8D%E7%BD%AE%E5%AE%9E%E8%B7%B5/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/allure&#43;maven&#43;junit5%E9%85%8D%E7%BD%AE%E5%AE%9E%E8%B7%B5/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/allure&#43;maven&#43;junit5%E9%85%8D%E7%BD%AE%E5%AE%9E%E8%B7%B5/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Allure&#43;Maven&#43;JUnit5 配置实践">
+  <meta property="og:description" content="为什么要用 JUnit5？">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-20T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-20T00:00:00+00:00">
+    <meta property="article:tag" content="Allure">
+    <meta property="article:tag" content="Maven">
+    <meta property="article:tag" content="JUnit5">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Allure&#43;Maven&#43;JUnit5 配置实践">
+  <meta name="twitter:description" content="为什么要用 JUnit5？">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Allure+Maven+JUnit5 配置实践",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/allure+maven+junit5%E9%85%8D%E7%BD%AE%E5%AE%9E%E8%B7%B5/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Allure+Maven+JUnit5 配置实践",
+  "name": "Allure\u002bMaven\u002bJUnit5 配置实践",
+  "description": "为什么要用 JUnit5？",
+  "keywords": [
+    "Allure", "Maven", "JUnit5"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n为什么要用 JUnit5？\n我最近把接口平台不好实现的自动化，在本地写了个 Java 小项目来实现了，集成 Allure 发现 IntelliJ IDEA 2024.3.2 (Community Edition)的 surefire 只能识别 junit，现象是在 mvn test 时会打印：\n[INFO] --- surefire:3.2.3:test (default-test) @ auto --- [INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider 无法通过 IDEA 配置把 junit 换成 testng。同时断言时 junit 的错误提示也能到具体数据类型，而 testng 不会：\norg.opentest4j.AssertionFailedError: expected: java.lang.String@667025e1\u003c3\u003e but was: java.lang.Integer@23b2b751\u003c3\u003e Expected :3 Actual :3 怎么配置？\n第一步是要让mvn test命令执行后，能生成 allure 的结果数据，一堆 json 文件。参考官网教程：\nhttps://allurereport.org/docs/junit5/\n配置 pom.xml 即可。\n第二步是要把结果数据生成 HTML 报告并在浏览器打开。\n方式 1是 plugin 插件，不需要手动下载安装包：\nio.qameta.allure allure-maven 2.12.0 ${allure.version} ${project.build.directory}/allure-results 配置后，Maven 会在根目录生成.allure文件夹，就是运行文件了，执行命令即可：\nmvn allure:serve 方式 2是单独安装 Allure，参考官网说明：\nhttps://allurereport.org/docs/install/\n安装后使用命令allure serve。\n最后分享 1 个小技巧，我用的 IntelliJ IDEA 2024.3.2 (Community Edition)支持 Markdown 文件执行命令，也就是在.md文件里面输入这 3 行：\nIDEA 会在左侧出现绿色运行小箭头，点击就可以执行。\n",
+  "wordCount" : "103",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-20T00:00:00Z",
+  "dateModified": "2026-01-20T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/allure+maven+junit5%E9%85%8D%E7%BD%AE%E5%AE%9E%E8%B7%B5/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Allure&#43;Maven&#43;JUnit5 配置实践
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-20T00:00:00+00:00'>2026-01-20</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/allure/'>#Allure</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/maven/'>#Maven</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/junit5/'>#JUnit5</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p><strong>为什么要用 JUnit5？</strong></p>
+<p>我最近把接口平台不好实现的自动化，在本地写了个 Java 小项目来实现了，集成 Allure 发现 IntelliJ IDEA 2024.3.2 (Community Edition)的 surefire 只能识别 junit，现象是在 mvn test 时会打印：</p>
+<pre tabindex="0"><code>[INFO] --- surefire:3.2.3:test (default-test) @ auto ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+</code></pre><p>无法通过 IDEA 配置把 junit 换成 testng。同时断言时 junit 的错误提示也能到具体数据类型，而 testng 不会：</p>
+<pre tabindex="0"><code>org.opentest4j.AssertionFailedError: expected: java.lang.String@667025e1&lt;3&gt; but was: java.lang.Integer@23b2b751&lt;3&gt;
+Expected :3
+Actual   :3
+</code></pre><p><strong>怎么配置？</strong></p>
+<p><strong>第一步</strong>是要让<code>mvn test</code>命令执行后，能生成 allure 的结果数据，一堆 json 文件。参考官网教程：</p>
+<p><a href="https://allurereport.org/docs/junit5/">https://allurereport.org/docs/junit5/</a></p>
+<p>配置 pom.xml 即可。</p>
+<p><strong>第二步</strong>是要把结果数据生成 HTML 报告并在浏览器打开。</p>
+<p><strong>方式 1</strong>是 plugin 插件，不需要手动下载安装包：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;plugin&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;groupId&gt;</span>io.qameta.allure<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;artifactId&gt;</span>allure-maven<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;version&gt;</span>2.12.0<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;configuration&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;reportVersion&gt;</span>${allure.version}<span style="color:#0550ae">&lt;/reportVersion&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;resultsDirectory&gt;</span>${project.build.directory}/allure-results<span style="color:#0550ae">&lt;/resultsDirectory&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/configuration&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/plugin&gt;</span>
+</span></span></code></pre></div><p>配置后，Maven 会在根目录生成<code>.allure</code>文件夹，就是运行文件了，执行命令即可：</p>
+<pre tabindex="0"><code>mvn allure:serve
+</code></pre><p><strong>方式 2</strong>是单独安装 Allure，参考官网说明：</p>
+<p><a href="https://allurereport.org/docs/install/">https://allurereport.org/docs/install/</a></p>
+<p>安装后使用命令<code>allure serve</code>。</p>
+<p><strong>最后分享 1 个小技巧</strong>，我用的 IntelliJ IDEA 2024.3.2 (Community Edition)支持 Markdown 文件执行命令，也就是在<code>.md</code>文件里面输入这 3 行：</p>
+<p><img loading="lazy" src="../assets/a20f860b9a614f3db0a3d5f8958b5921.png"></p>
+<p>IDEA 会在左侧出现绿色运行小箭头，点击就可以执行。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/allure/">Allure</a></li>
+      <li><a href="https://dongfanger.github.io/tags/maven/">Maven</a></li>
+      <li><a href="https://dongfanger.github.io/tags/junit5/">JUnit5</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E9%9A%8F%E7%AC%94/%E5%9D%9A%E6%8C%81%E8%87%AA%E5%B7%B1%E5%86%99%E6%96%87%E7%AB%A0%E7%9A%84%E6%84%8F%E4%B9%89/">
+    <span class="title">« 上一页</span>
+    <span>坚持自己写文章的意义</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%85%B3%E4%BA%8Epython%E9%97%AD%E5%8C%85%E7%9A%84%E4%B8%80%E5%88%87/">
+    <span class="title">下一页 »</span>
+    <span>关于 Python 闭包的一切</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar">
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

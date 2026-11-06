@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Python 函数装饰器基础知识 | 测试开发刚哥</title>
+<meta name="keywords" content="Python">
+<meta name="description" content="函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Python 函数装饰器基础知识">
+  <meta property="og:description" content="函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-19T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-19T00:00:00+00:00">
+    <meta property="article:tag" content="Python">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Python 函数装饰器基础知识">
+  <meta name="twitter:description" content="函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Python 函数装饰器基础知识",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python 函数装饰器基础知识",
+  "name": "Python 函数装饰器基础知识",
+  "description": "函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。",
+  "keywords": [
+    "Python"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。\n函数装饰器是什么 函数装饰器是一个可调用对象，它的参数是另外一个函数。比如：\n@decorate def target(): print(\"running target()\") 跟下面代码效果是一样的：\ndef target(): print(\"running target()\") target = decorate(target) 简单实现@decorate:\ndef decorate(func): def inner(): print(\"running inner()\") return inner 测试一下：\n\u003e\u003e\u003e target() running inner() \u003e\u003e\u003e target \u003cfunction decorate.\u003clocals\u003e.inner at 0x04899D18\u003e 新的 target 是 decorate(target)返回的 inner 函数。\n因为装饰器只是代码优化的一种手段，不像 if 语句 for 语句那样，决定了程序流程，所以严格来说，装饰器只是语法糖。它有两个特性，一是能把被装饰的函数替换成其他函数，二是装饰器在加载模块时立即执行。\n装饰器在导入时执行 若想真正理解装饰器，需要区分导入时和运行时。函数装饰器在导入模块时立即执行，而被装饰的函数只在明确调用时运行。\n接下来通过示例对这个特性进行说明，新建 registration.py 模块：\nregistry = [] def register(func): # 装饰器函数也可以不定义内部函数 print(\"running register(%s)\" % func) registry.append(func) return func @register def f1(): print(\"running f1()\") @register def f2(): print(\"running f2()\") def f3(): print(\"running f3()\") def main(): print(\"running main()\") print(\"registry -\u003e\", registry) f1() f2() f3() if __name__ == \"__main__\": main() 从结果能看出来：\n@register 作用到 f1 和 f2 上，在导入时，在 main()调用前就执行了。 f3 没有装饰器，就没有在 main()调用前执行@register。 在 main()调用后，明确调用 f1()、f2()、f3()才执行函数。 import 模块能看得更明显：\n\u003e\u003e\u003e import registration running register(\u003cfunction f1 at 0x0189A730\u003e) running register(\u003cfunction f2 at 0x0189A6E8\u003e) 装饰器在导入时就执行了。\n使用装饰器改进策略模式 在《Python 设计模式知多少》文章中提到了装饰器可以更优雅的实现策略模式的最佳策略，它的实现代码如下：\npromos = [] def promotion(promo_func): promos.append(promo_func) return promo_func @promotion def fidelity(order): \"\"\"5% discount for customers with 1000 or more fidelity points\"\"\" return order.total() * .05 if order.customer.fidelity \u003e= 1000 else 0 @promotion def bulk_item(order): \"\"\"10% discount for each LineItem with 20 or more units\"\"\" discount = 0 for item in order.cart: if item.quantity \u003e= 20: discount += item.total() * .1 return discount @promotion def large_order(order): \"\"\"7% discount for orders with 10 or more distinct items\"\"\" distinct_items = {item.product for item in order.cart} if len(distinct_items) \u003e= 10: return order.total() * .07 return 0 def best_promo(order): \"\"\"Select best discount available \"\"\" return max(promo(order) for promo in promos) 它解决了\"如果想要添加新的促销策略，那么要定义相应函数并添加到 promos 列表中\"这个缺陷，并有更多优点：\n新的促销策略，用@promotion 装饰器即可添加。 促销策略函数不用以_promo 结尾，可以任意命令。 促销策略可以在任意模块定义，只需要使用@promotion 装饰器即可。 小结 本文首先介绍了函数装饰器是一个可调用对象，它的参数是另外一个函数。严格来说，它只是语法糖。要理解装饰器，需要区别导入时和运行时，装饰器在导入时就会执行。最后使用装饰器对策略模式的最佳策略进行了优化。为了进一步学习函数装饰器，得先明白另外一个很重要的概念：闭包。\n参考资料：\n《流畅的 Python》\n",
+  "wordCount" : "250",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-19T00:00:00Z",
+  "dateModified": "2026-01-19T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Python 函数装饰器基础知识
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-19T00:00:00+00:00'>2026-01-19</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/python/'>#Python</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。</p>
+<h1 id="函数装饰器是什么">函数装饰器是什么<a hidden class="anchor" aria-hidden="true" href="#函数装饰器是什么">#</a></h1>
+<p>函数装饰器是一个可调用对象，它的参数是另外一个函数。比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@decorate</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">target</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;running target()&#34;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>跟下面代码效果是一样的：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">target</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;running target()&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>target <span style="color:#0550ae">=</span> decorate<span style="color:#1f2328">(</span>target<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>简单实现@decorate:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">decorate</span><span style="color:#1f2328">(</span>func<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">inner</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;running inner()&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> inner
+</span></span></code></pre></div><p>测试一下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> target<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>running inner<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> target
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;</span>function decorate<span style="color:#0550ae">.&lt;</span><span style="color:#6639ba">locals</span><span style="color:#0550ae">&gt;.</span>inner at <span style="color:#0550ae">0x04899D18</span><span style="color:#0550ae">&gt;</span>
+</span></span></code></pre></div><p><strong>新的 target 是 decorate(target)返回的 inner 函数</strong>。</p>
+<p>因为装饰器只是代码优化的一种手段，不像 if 语句 for 语句那样，决定了程序流程，所以严格来说，装饰器只是语法糖。<strong>它有两个特性</strong>，一是能把被装饰的函数替换成其他函数，二是装饰器在加载模块时立即执行。</p>
+<h1 id="装饰器在导入时执行">装饰器在导入时执行<a hidden class="anchor" aria-hidden="true" href="#装饰器在导入时执行">#</a></h1>
+<p>若想真正理解装饰器，需要区分导入时和运行时。<strong>函数装饰器在导入模块时立即执行，而被装饰的函数只在明确调用时运行。</strong></p>
+<p>接下来通过示例对这个特性进行说明，新建 registration.py 模块：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>registry <span style="color:#0550ae">=</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">register</span><span style="color:#1f2328">(</span>func<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 装饰器函数也可以不定义内部函数</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;running register(</span><span style="color:#0a3069">%s</span><span style="color:#0a3069">)&#34;</span> <span style="color:#0550ae">%</span> func<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    registry<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span>func<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> func
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@register</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">f1</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;running f1()&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@register</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">f2</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;running f2()&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">f3</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;running f3()&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">main</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;running main()&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;registry -&gt;&#34;</span><span style="color:#1f2328">,</span> registry<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    f1<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    f2<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    f3<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span> <span style="color:#953800">__name__</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;__main__&#34;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    main<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>从结果能看出来：</p>
+<p><img loading="lazy" src="../assets/09fd0a72d8fb4c1191741a993dffcd46.png"></p>
+<ul>
+<li>@register 作用到 f1 和 f2 上，在导入时，在 main()调用前就执行了。</li>
+<li>f3 没有装饰器，就没有在 main()调用前执行@register。</li>
+<li>在 main()调用后，明确调用 f1()、f2()、f3()才执行函数。</li>
+</ul>
+<p>import 模块能看得更明显：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> <span style="color:#cf222e">import</span> <span style="color:#24292e">registration</span>
+</span></span><span style="display:flex;"><span>running register<span style="color:#1f2328">(</span><span style="color:#0550ae">&lt;</span>function f1 at <span style="color:#0550ae">0x0189A730</span><span style="color:#0550ae">&gt;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>running register<span style="color:#1f2328">(</span><span style="color:#0550ae">&lt;</span>function f2 at <span style="color:#0550ae">0x0189A6E8</span><span style="color:#0550ae">&gt;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>装饰器在导入时就执行了。</p>
+<h1 id="使用装饰器改进策略模式">使用装饰器改进策略模式<a hidden class="anchor" aria-hidden="true" href="#使用装饰器改进策略模式">#</a></h1>
+<p>在《Python 设计模式知多少》文章中提到了装饰器可以更优雅的实现策略模式的最佳策略，它的实现代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>promos <span style="color:#0550ae">=</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">promotion</span><span style="color:#1f2328">(</span>promo_func<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    promos<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span>promo_func<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> promo_func
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@promotion</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">fidelity</span><span style="color:#1f2328">(</span>order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;5</span><span style="color:#0a3069">% d</span><span style="color:#0a3069">iscount for customers with 1000 or more fidelity points&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> order<span style="color:#0550ae">.</span>total<span style="color:#1f2328">()</span> <span style="color:#0550ae">*</span> <span style="color:#0550ae">.05</span> <span style="color:#cf222e">if</span> order<span style="color:#0550ae">.</span>customer<span style="color:#0550ae">.</span>fidelity <span style="color:#0550ae">&gt;=</span> <span style="color:#0550ae">1000</span> <span style="color:#cf222e">else</span> <span style="color:#0550ae">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@promotion</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">bulk_item</span><span style="color:#1f2328">(</span>order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;10</span><span style="color:#0a3069">% d</span><span style="color:#0a3069">iscount for each LineItem with 20 or more units&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    discount <span style="color:#0550ae">=</span> <span style="color:#0550ae">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> item <span style="color:#0550ae">in</span> order<span style="color:#0550ae">.</span>cart<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> item<span style="color:#0550ae">.</span>quantity <span style="color:#0550ae">&gt;=</span> <span style="color:#0550ae">20</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            discount <span style="color:#0550ae">+=</span> item<span style="color:#0550ae">.</span>total<span style="color:#1f2328">()</span> <span style="color:#0550ae">*</span> <span style="color:#0550ae">.1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> discount
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@promotion</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">large_order</span><span style="color:#1f2328">(</span>order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;7</span><span style="color:#0a3069">% d</span><span style="color:#0a3069">iscount for orders with 10 or more distinct items&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    distinct_items <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>item<span style="color:#0550ae">.</span>product <span style="color:#cf222e">for</span> item <span style="color:#0550ae">in</span> order<span style="color:#0550ae">.</span>cart<span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#6639ba">len</span><span style="color:#1f2328">(</span>distinct_items<span style="color:#1f2328">)</span> <span style="color:#0550ae">&gt;=</span> <span style="color:#0550ae">10</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> order<span style="color:#0550ae">.</span>total<span style="color:#1f2328">()</span> <span style="color:#0550ae">*</span> <span style="color:#0550ae">.07</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0550ae">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">best_promo</span><span style="color:#1f2328">(</span>order<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;Select best discount available
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#6639ba">max</span><span style="color:#1f2328">(</span>promo<span style="color:#1f2328">(</span>order<span style="color:#1f2328">)</span> <span style="color:#cf222e">for</span> promo <span style="color:#0550ae">in</span> promos<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>它解决了&quot;如果想要添加新的促销策略，那么要定义相应函数并添加到 promos 列表中&quot;这个缺陷，并有更多优点：</p>
+<ul>
+<li>新的促销策略，用@promotion 装饰器即可添加。</li>
+<li>促销策略函数不用以_promo 结尾，可以任意命令。</li>
+<li>促销策略可以在任意模块定义，只需要使用@promotion 装饰器即可。</li>
+</ul>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文首先介绍了函数装饰器是一个可调用对象，它的参数是另外一个函数。严格来说，它只是语法糖。要理解装饰器，需要区别导入时和运行时，装饰器在导入时就会执行。最后使用装饰器对策略模式的最佳策略进行了优化。为了进一步学习函数装饰器，得先明白另外一个很重要的概念：闭包。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>《流畅的 Python》</p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/python/">Python</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/python%E5%A4%84%E7%90%86%E6%8E%A5%E5%8F%A3%E6%95%B0%E6%8D%AE%E8%BF%99%E4%B8%AA%E5%87%BD%E6%95%B0%E5%A4%AA%E9%A6%99%E4%BA%86/">
+    <span class="title">« 上一页</span>
+    <span>Python 处理接口数据，这个函数太香了</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%9A%8F%E7%AC%94/%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E7%8B%AC%E7%AB%8B%E8%BF%98%E6%98%AF%E7%94%A8%E4%BE%8B%E5%A4%8D%E7%94%A8/">
+    <span class="title">下一页 »</span>
+    <span>接口自动化，用例独立还是用例复用</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#函数装饰器是什么">函数装饰器是什么</a></li>
+    <li><a href="#装饰器在导入时执行">装饰器在导入时执行</a></li>
+    <li><a href="#使用装饰器改进策略模式">使用装饰器改进策略模式</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

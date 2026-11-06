@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>年度大版本，tep3 回归纯粹 Python 接口测试框架 | 测试开发刚哥</title>
+<meta name="keywords" content="tep">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+回顾
+tep 是基于 pytest 开发的接口测试框架，上个版本从小工具升级为了关键字驱动框架，通过 pystats 发现最近半年仍然有 4000&#43;人次在安装使用 tep。时隔 1 年后，我对 tep 进行了一次大版本改造，抛弃 tep2 的 Java 代码风格，重新回归到 tep1 的纯粹 Python 风格。
+纯粹 Python
+所谓纯粹 Python，体现在两个方面，一个方面是 tep 源码进行了重写，更加 Pythonic，自动化用例写起来也更加简单易懂；另一方面是抛弃了依赖 Java 的 Allure 和依赖 C&#43;&#43;的 loguru，分别使用 Python 技术栈的 pytest-html 和 logging 替代。
+tep3 版本
+简介
+tep 是 Try Easy Pytest 的首字母缩写，帮你轻松上手 pytest。
+框架特点：
+
+基于 pytest 封装，成熟、稳定且扩展性强。
+框架完全由 Python 构建，没有混杂其他语言。
+原生 Python 语法，学习 Python，零成本使用框架。
+HAR 包转换 pytest 用例。
+
+安装
+支持 Python3.8 以上版本">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%B9%B4%E5%BA%A6%E5%A4%A7%E7%89%88%E6%9C%ACtep3%E5%9B%9E%E5%BD%92%E7%BA%AF%E7%B2%B9python%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%B9%B4%E5%BA%A6%E5%A4%A7%E7%89%88%E6%9C%ACtep3%E5%9B%9E%E5%BD%92%E7%BA%AF%E7%B2%B9python%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%B9%B4%E5%BA%A6%E5%A4%A7%E7%89%88%E6%9C%ACtep3%E5%9B%9E%E5%BD%92%E7%BA%AF%E7%B2%B9python%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="年度大版本，tep3 回归纯粹 Python 接口测试框架">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+回顾 tep 是基于 pytest 开发的接口测试框架，上个版本从小工具升级为了关键字驱动框架，通过 pystats 发现最近半年仍然有 4000&#43;人次在安装使用 tep。时隔 1 年后，我对 tep 进行了一次大版本改造，抛弃 tep2 的 Java 代码风格，重新回归到 tep1 的纯粹 Python 风格。
+纯粹 Python 所谓纯粹 Python，体现在两个方面，一个方面是 tep 源码进行了重写，更加 Pythonic，自动化用例写起来也更加简单易懂；另一方面是抛弃了依赖 Java 的 Allure 和依赖 C&#43;&#43;的 loguru，分别使用 Python 技术栈的 pytest-html 和 logging 替代。
+tep3 版本 简介 tep 是 Try Easy Pytest 的首字母缩写，帮你轻松上手 pytest。
+框架特点：
+基于 pytest 封装，成熟、稳定且扩展性强。 框架完全由 Python 构建，没有混杂其他语言。 原生 Python 语法，学习 Python，零成本使用框架。 HAR 包转换 pytest 用例。 安装 支持 Python3.8 以上版本">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-18T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-18T00:00:00+00:00">
+    <meta property="article:tag" content="Tep">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="年度大版本，tep3 回归纯粹 Python 接口测试框架">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+回顾 tep 是基于 pytest 开发的接口测试框架，上个版本从小工具升级为了关键字驱动框架，通过 pystats 发现最近半年仍然有 4000&#43;人次在安装使用 tep。时隔 1 年后，我对 tep 进行了一次大版本改造，抛弃 tep2 的 Java 代码风格，重新回归到 tep1 的纯粹 Python 风格。
+纯粹 Python 所谓纯粹 Python，体现在两个方面，一个方面是 tep 源码进行了重写，更加 Pythonic，自动化用例写起来也更加简单易懂；另一方面是抛弃了依赖 Java 的 Allure 和依赖 C&#43;&#43;的 loguru，分别使用 Python 技术栈的 pytest-html 和 logging 替代。
+tep3 版本 简介 tep 是 Try Easy Pytest 的首字母缩写，帮你轻松上手 pytest。
+框架特点：
+基于 pytest 封装，成熟、稳定且扩展性强。 框架完全由 Python 构建，没有混杂其他语言。 原生 Python 语法，学习 Python，零成本使用框架。 HAR 包转换 pytest 用例。 安装 支持 Python3.8 以上版本">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "年度大版本，tep3 回归纯粹 Python 接口测试框架",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%B9%B4%E5%BA%A6%E5%A4%A7%E7%89%88%E6%9C%ACtep3%E5%9B%9E%E5%BD%92%E7%BA%AF%E7%B2%B9python%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "年度大版本，tep3 回归纯粹 Python 接口测试框架",
+  "name": "年度大版本，tep3 回归纯粹 Python 接口测试框架",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n回顾 tep 是基于 pytest 开发的接口测试框架，上个版本从小工具升级为了关键字驱动框架，通过 pystats 发现最近半年仍然有 4000+人次在安装使用 tep。时隔 1 年后，我对 tep 进行了一次大版本改造，抛弃 tep2 的 Java 代码风格，重新回归到 tep1 的纯粹 Python 风格。\n纯粹 Python 所谓纯粹 Python，体现在两个方面，一个方面是 tep 源码进行了重写，更加 Pythonic，自动化用例写起来也更加简单易懂；另一方面是抛弃了依赖 Java 的 Allure 和依赖 C++的 loguru，分别使用 Python 技术栈的 pytest-html 和 logging 替代。\ntep3 版本 简介 tep 是 Try Easy Pytest 的首字母缩写，帮你轻松上手 pytest。\n框架特点：\n基于 pytest 封装，成熟、稳定且扩展性强。 框架完全由 Python 构建，没有混杂其他语言。 原生 Python 语法，学习 Python，零成本使用框架。 HAR 包转换 pytest 用例。 安装 支持 Python3.8 以上版本\n",
+  "keywords": [
+    "tep"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n回顾 tep 是基于 pytest 开发的接口测试框架，上个版本从小工具升级为了关键字驱动框架，通过 pystats 发现最近半年仍然有 4000+人次在安装使用 tep。时隔 1 年后，我对 tep 进行了一次大版本改造，抛弃 tep2 的 Java 代码风格，重新回归到 tep1 的纯粹 Python 风格。\n纯粹 Python 所谓纯粹 Python，体现在两个方面，一个方面是 tep 源码进行了重写，更加 Pythonic，自动化用例写起来也更加简单易懂；另一方面是抛弃了依赖 Java 的 Allure 和依赖 C++的 loguru，分别使用 Python 技术栈的 pytest-html 和 logging 替代。\ntep3 版本 简介 tep 是 Try Easy Pytest 的首字母缩写，帮你轻松上手 pytest。\n框架特点：\n基于 pytest 封装，成熟、稳定且扩展性强。 框架完全由 Python 构建，没有混杂其他语言。 原生 Python 语法，学习 Python，零成本使用框架。 HAR 包转换 pytest 用例。 安装 支持 Python3.8 以上版本\n创建虚拟环境：python -m venv venv\n激活虚拟环境，Windows 用户：activate.bat Mac 用户：source venv/bin/activate\n安装 tep：pip install tep\n验证安装成功：tep -V\n目录结构 data file fixture report scripts tests .gitignore conftest.py pytest.ini run.py tep new demo就能快速创建项目名称为demo的项目脚手架。\n用例示范 简单的请求：\nfrom tep import request def test(): response = request(\"get\", url=\"http://httpbin.org/status/200\") assert response.status_code == 200 复杂的场景：\nfrom tep import request from tep import v from data.global_data import GlobalData class Data: v({ \"domain\": GlobalData.domain, \"skuNum\": 2, \"payAmount\": 0.2 }) body_add_cart = '{\"skuId\":\"${skuId}\",\"skuNum\":${skuNum}}' body_order = '{\"skuId\":\"${skuId}\",\"price\":${skuPrice},\"skuNum\":${skuNum},\"totalPrice\":${totalPrice}}' body_pay = '{\"orderId\":\"${orderId}\",\"payAmount\":${payAmount}}' def test(): url = v(\"${domain}/searchSku?skuName=book\") response = request(\"get\", url=url, headers=GlobalData.headers) assert response.status_code \u003c 400 v(\"skuId\", response.jsonpath(\"$.skuId\")[0]) v(\"skuPrice\", response.jsonpath(\"$.price\")[0]) url = v(\"${domain}/addCart\") body = v(Data.body_add_cart) response = request(\"post\", url=url, headers=GlobalData.headers, json=body) assert response.status_code \u003c 400 v(\"skuNum\", response.jsonpath(\"$.skuNum\")[0]) v(\"totalPrice\", response.jsonpath(\"$.totalPrice\")[0]) url = v(\"${domain}/order\") body = v(Data.body_order) response = request(\"post\", url=url, headers=GlobalData.headers, json=body) assert response.status_code \u003c 400 v(\"orderId\", response.jsonpath(\"$.orderId\")[0]) url = v(\"${domain}/pay\") body = v(Data.body_pay) response = request(\"post\", url=url, headers=GlobalData.headers, json=body) assert response.status_code \u003c 400 assert response.jsonpath(\"$.success\")[0] == \"true\" 用例和数据 数据怎么存放，这里给出了一个参考方案，在用例内定义class Data，然后通过类变量存放数据。不同的项目，不同的场景，不同的参数，可以考虑不一样的存放方式。\ntep 函数 不同于以往的 fixture 封装，tep 内部没有再定义 fixture，而是对外暴露函数：\n__all__ = [ \"request\", \"v\", \"run\", \"har2case\" ] 在使用时 import 即可，更容易理解。\n函数 v() 这是我认为 tep3 的最大亮点。函数 v()根据不同的入参，有不同的含义：\n传入字典类型：初始化变量池\n传入字符串：解析变量\n传入 2 个参数：设置变量\n变量值支持占位符写法${}，参考 JMeter 或 HttpRunner。\n通过函数 v()来管理变量，用例代码清爽了不少。\nfixture fixture 在创建脚手架时，自动生成了 3 个：\nfixture_login\nfixture_login_xdist\nfixture_mysql\n主要用于生成数据和执行 setup/teardown，更多用法可以深入学习 pytest fixture。\nhar2case 抓取 har 包后，可以快速转换为自动化用例：\nimport os from tep import har2case from tep.config import Config def test(): har2case({ \"har\": os.path.join(Config().FILE_DIR, \"har\", \"flow.har\"), \"dir\": os.path.join(Config().TESTS_DIR, \"generated\"), \"overwrite\": 1 }) 同时支持批量替换：\nimport os from tep import har2case from tep.config import Config def test(): har2case({ \"har\": os.path.join(Config().FILE_DIR, \"har\", \"flow.har\"), \"dir\": os.path.join(Config().TESTS_DIR, \"generated\"), \"overwrite\": 1, \"var\": {\"domain\": \"http://127.0.0.1:5000\"}, \"url\": {\"http://127.0.0.1:5000\": \"${domain}\"}, \"headers\": {\"Content-Type\": \"application/json\", \"Cookie\": \"de2e3ffu29\"} }) 测试报告 run.py入口执行，设置report后即可生成：\nfrom tep import run if __name__ == '__main__': run({ \"path\": [\"test_flow.py\"], # Relative path to tests, file or directory \"report\": 1 # Generate html report, 0: False, 1: True }) 更多内容请安装 tep 体验或查看源码阅读。\n源码 tep3 https://github.com/dongfanger/tep\ntep2 https://github.com/dongfanger/tep/tree/2.2.4\ntep1 https://github.com/dongfanger/tep/tree/1.0.0\n欢迎大家讨论，对于接口测试框架，你有什么想法呢。\n",
+  "wordCount" : "378",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-18T00:00:00Z",
+  "dateModified": "2026-01-18T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%B9%B4%E5%BA%A6%E5%A4%A7%E7%89%88%E6%9C%ACtep3%E5%9B%9E%E5%BD%92%E7%BA%AF%E7%B2%B9python%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      年度大版本，tep3 回归纯粹 Python 接口测试框架
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-18T00:00:00+00:00'>2026-01-18</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/tep/'>#Tep</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="回顾">回顾<a hidden class="anchor" aria-hidden="true" href="#回顾">#</a></h1>
+<p>tep 是基于 pytest 开发的接口测试框架，上个版本从小工具升级为了关键字驱动框架，通过 pystats 发现最近半年仍然有 4000+人次在安装使用 tep。时隔 1 年后，我对 tep 进行了一次大版本改造，抛弃 tep2 的 Java 代码风格，重新回归到 tep1 的纯粹 Python 风格。</p>
+<h1 id="纯粹-python">纯粹 Python<a hidden class="anchor" aria-hidden="true" href="#纯粹-python">#</a></h1>
+<p>所谓纯粹 Python，体现在两个方面，一个方面是 tep 源码进行了重写，更加 Pythonic，自动化用例写起来也更加简单易懂；另一方面是抛弃了依赖 Java 的 Allure 和依赖 C++的 loguru，分别使用 Python 技术栈的 pytest-html 和 logging 替代。</p>
+<h1 id="tep3-版本">tep3 版本<a hidden class="anchor" aria-hidden="true" href="#tep3-版本">#</a></h1>
+<h2 id="简介">简介<a hidden class="anchor" aria-hidden="true" href="#简介">#</a></h2>
+<p>tep 是 Try Easy Pytest 的首字母缩写，帮你轻松上手 pytest。</p>
+<p>框架特点：</p>
+<ul>
+<li>基于 pytest 封装，成熟、稳定且扩展性强。</li>
+<li>框架完全由 Python 构建，没有混杂其他语言。</li>
+<li>原生 Python 语法，学习 Python，零成本使用框架。</li>
+<li>HAR 包转换 pytest 用例。</li>
+</ul>
+<h2 id="安装">安装<a hidden class="anchor" aria-hidden="true" href="#安装">#</a></h2>
+<p>支持 Python3.8 以上版本</p>
+<p>创建虚拟环境：<code>python -m venv venv</code></p>
+<p>激活虚拟环境，Windows 用户：<code>activate.bat</code> Mac 用户：<code>source venv/bin/activate</code></p>
+<p>安装 tep：<code>pip install tep</code></p>
+<p>验证安装成功：<code>tep -V</code></p>
+<h2 id="目录结构">目录结构<a hidden class="anchor" aria-hidden="true" href="#目录结构">#</a></h2>
+<pre tabindex="0"><code>data
+file
+fixture
+report
+scripts
+tests
+.gitignore
+conftest.py
+pytest.ini
+run.py
+</code></pre><p><code>tep new demo</code>就能快速创建项目名称为<code>demo</code>的项目脚手架。</p>
+<h2 id="用例示范">用例示范<a hidden class="anchor" aria-hidden="true" href="#用例示范">#</a></h2>
+<p>简单的请求：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep</span> <span style="color:#cf222e">import</span> request
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;get&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;http://httpbin.org/status/200&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">==</span> <span style="color:#0550ae">200</span>
+</span></span></code></pre></div><p>复杂的场景：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep</span> <span style="color:#cf222e">import</span> request
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep</span> <span style="color:#cf222e">import</span> v
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">data.global_data</span> <span style="color:#cf222e">import</span> GlobalData
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Data</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    v<span style="color:#1f2328">({</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">:</span> GlobalData<span style="color:#0550ae">.</span>domain<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">2</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;payAmount&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">0.2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>    body_add_cart <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;{&#34;skuId&#34;:&#34;$</span><span style="color:#0a3069">{skuId}</span><span style="color:#0a3069">&#34;,&#34;skuNum&#34;:$</span><span style="color:#0a3069">{skuNum}</span><span style="color:#0a3069">}&#39;</span>
+</span></span><span style="display:flex;"><span>    body_order <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;{&#34;skuId&#34;:&#34;$</span><span style="color:#0a3069">{skuId}</span><span style="color:#0a3069">&#34;,&#34;price&#34;:$</span><span style="color:#0a3069">{skuPrice}</span><span style="color:#0a3069">,&#34;skuNum&#34;:$</span><span style="color:#0a3069">{skuNum}</span><span style="color:#0a3069">,&#34;totalPrice&#34;:$</span><span style="color:#0a3069">{totalPrice}</span><span style="color:#0a3069">}&#39;</span>
+</span></span><span style="display:flex;"><span>    body_pay <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;{&#34;orderId&#34;:&#34;$</span><span style="color:#0a3069">{orderId}</span><span style="color:#0a3069">&#34;,&#34;payAmount&#34;:$</span><span style="color:#0a3069">{payAmount}</span><span style="color:#0a3069">}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    url <span style="color:#0550ae">=</span> v<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$</span><span style="color:#0a3069">{domain}</span><span style="color:#0a3069">/searchSku?skuName=book&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;get&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>GlobalData<span style="color:#0550ae">.</span>headers<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>    v<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.skuId&#34;</span><span style="color:#1f2328">)[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span>    v<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;skuPrice&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.price&#34;</span><span style="color:#1f2328">)[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    url <span style="color:#0550ae">=</span> v<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$</span><span style="color:#0a3069">{domain}</span><span style="color:#0a3069">/addCart&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> v<span style="color:#1f2328">(</span>Data<span style="color:#0550ae">.</span>body_add_cart<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>GlobalData<span style="color:#0550ae">.</span>headers<span style="color:#1f2328">,</span> json<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>    v<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.skuNum&#34;</span><span style="color:#1f2328">)[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span>    v<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.totalPrice&#34;</span><span style="color:#1f2328">)[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    url <span style="color:#0550ae">=</span> v<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$</span><span style="color:#0a3069">{domain}</span><span style="color:#0a3069">/order&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> v<span style="color:#1f2328">(</span>Data<span style="color:#0550ae">.</span>body_order<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>GlobalData<span style="color:#0550ae">.</span>headers<span style="color:#1f2328">,</span> json<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>    v<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.orderId&#34;</span><span style="color:#1f2328">)[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    url <span style="color:#0550ae">=</span> v<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$</span><span style="color:#0a3069">{domain}</span><span style="color:#0a3069">/pay&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> v<span style="color:#1f2328">(</span>Data<span style="color:#0550ae">.</span>body_pay<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span> url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">,</span> headers<span style="color:#0550ae">=</span>GlobalData<span style="color:#0550ae">.</span>headers<span style="color:#1f2328">,</span> json<span style="color:#0550ae">=</span>body<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>jsonpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$.success&#34;</span><span style="color:#1f2328">)[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;true&#34;</span>
+</span></span></code></pre></div><h1 id="用例和数据">用例和数据<a hidden class="anchor" aria-hidden="true" href="#用例和数据">#</a></h1>
+<p>数据怎么存放，这里给出了一个参考方案，在用例内定义<code>class Data</code>，然后通过类变量存放数据。不同的项目，不同的场景，不同的参数，可以考虑不一样的存放方式。</p>
+<h2 id="tep-函数">tep 函数<a hidden class="anchor" aria-hidden="true" href="#tep-函数">#</a></h2>
+<p>不同于以往的 fixture 封装，tep 内部没有再定义 fixture，而是对外暴露函数：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>__all__ <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;request&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;v&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;run&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;har2case&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>在使用时 import 即可，更容易理解。</p>
+<h2 id="函数-v">函数 v()<a hidden class="anchor" aria-hidden="true" href="#函数-v">#</a></h2>
+<p>这是我认为 tep3 的最大亮点。函数 v()根据不同的入参，有不同的含义：</p>
+<ul>
+<li>
+<p>传入字典类型：初始化变量池</p>
+</li>
+<li>
+<p>传入字符串：解析变量</p>
+</li>
+<li>
+<p>传入 2 个参数：设置变量</p>
+</li>
+</ul>
+<p>变量值支持占位符写法<code>${}</code>，参考 JMeter 或 HttpRunner。</p>
+<p>通过函数 v()来管理变量，用例代码清爽了不少。</p>
+<h1 id="fixture">fixture<a hidden class="anchor" aria-hidden="true" href="#fixture">#</a></h1>
+<p>fixture 在创建脚手架时，自动生成了 3 个：</p>
+<ul>
+<li>
+<p><code>fixture_login</code></p>
+</li>
+<li>
+<p><code>fixture_login_xdist</code></p>
+</li>
+<li>
+<p><code>fixture_mysql</code></p>
+</li>
+</ul>
+<p>主要用于生成数据和执行 setup/teardown，更多用法可以深入学习 pytest fixture。</p>
+<h2 id="har2case">har2case<a hidden class="anchor" aria-hidden="true" href="#har2case">#</a></h2>
+<p>抓取 har 包后，可以快速转换为自动化用例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">os</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep</span> <span style="color:#cf222e">import</span> har2case
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep.config</span> <span style="color:#cf222e">import</span> Config
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    har2case<span style="color:#1f2328">({</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;har&#34;</span><span style="color:#1f2328">:</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>Config<span style="color:#1f2328">()</span><span style="color:#0550ae">.</span>FILE_DIR<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;har&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;flow.har&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;dir&#34;</span><span style="color:#1f2328">:</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>Config<span style="color:#1f2328">()</span><span style="color:#0550ae">.</span>TESTS_DIR<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;generated&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;overwrite&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">})</span>
+</span></span></code></pre></div><p>同时支持批量替换：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">os</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep</span> <span style="color:#cf222e">import</span> har2case
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep.config</span> <span style="color:#cf222e">import</span> Config
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    har2case<span style="color:#1f2328">({</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;har&#34;</span><span style="color:#1f2328">:</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>Config<span style="color:#1f2328">()</span><span style="color:#0550ae">.</span>FILE_DIR<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;har&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;flow.har&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;dir&#34;</span><span style="color:#1f2328">:</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>Config<span style="color:#1f2328">()</span><span style="color:#0550ae">.</span>TESTS_DIR<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;generated&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;overwrite&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;var&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;http://127.0.0.1:5000&#34;</span><span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;url&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;http://127.0.0.1:5000&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;$</span><span style="color:#0a3069">{domain}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;headers&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;Cookie&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;de2e3ffu29&#34;</span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">})</span>
+</span></span></code></pre></div><h2 id="测试报告">测试报告<a hidden class="anchor" aria-hidden="true" href="#测试报告">#</a></h2>
+<p><code>run.py</code>入口执行，设置<code>report</code>后即可生成：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep</span> <span style="color:#cf222e">import</span> run
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span> <span style="color:#953800">__name__</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;__main__&#39;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    run<span style="color:#1f2328">({</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;path&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;test_flow.py&#34;</span><span style="color:#1f2328">],</span>  <span style="color:#57606a"># Relative path to tests, file or directory</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;report&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">1</span>  <span style="color:#57606a"># Generate html report, 0: False, 1: True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">})</span>
+</span></span></code></pre></div><p>更多内容请安装 tep 体验或查看源码阅读。</p>
+<h1 id="源码">源码<a hidden class="anchor" aria-hidden="true" href="#源码">#</a></h1>
+<p>tep3 <a href="https://github.com/dongfanger/tep">https://github.com/dongfanger/tep</a></p>
+<p>tep2 <a href="https://github.com/dongfanger/tep/tree/2.2.4">https://github.com/dongfanger/tep/tree/2.2.4</a></p>
+<p>tep1 <a href="https://github.com/dongfanger/tep/tree/1.0.0">https://github.com/dongfanger/tep/tree/1.0.0</a></p>
+<p>欢迎大家讨论，对于接口测试框架，你有什么想法呢。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/tep/">Tep</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E4%BA%8C%E5%88%B7java%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B/">
+    <span class="title">« 上一页</span>
+    <span>二刷 Java 官方教程</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%9A%8F%E7%AC%94/%E6%80%8E%E4%B9%88%E7%BB%99%E5%88%AB%E4%BA%BA%E8%AE%B2%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84/">
+    <span class="title">下一页 »</span>
+    <span>怎么给别人讲系统架构</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#回顾">回顾</a></li>
+    <li><a href="#纯粹-python">纯粹 Python</a></li>
+    <li><a href="#tep3-版本">tep3 版本</a>
+      <ul>
+        <li><a href="#简介">简介</a></li>
+        <li><a href="#安装">安装</a></li>
+        <li><a href="#目录结构">目录结构</a></li>
+        <li><a href="#用例示范">用例示范</a></li>
+      </ul>
+    </li>
+    <li><a href="#用例和数据">用例和数据</a>
+      <ul>
+        <li><a href="#tep-函数">tep 函数</a></li>
+        <li><a href="#函数-v">函数 v()</a></li>
+      </ul>
+    </li>
+    <li><a href="#fixture">fixture</a>
+      <ul>
+        <li><a href="#har2case">har2case</a></li>
+        <li><a href="#测试报告">测试报告</a></li>
+      </ul>
+    </li>
+    <li><a href="#源码">源码</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

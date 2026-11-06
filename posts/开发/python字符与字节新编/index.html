@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Python 字符与字节新编 | 测试开发刚哥</title>
+<meta name="keywords" content="Python">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+字符
+字符是一个信息单位，简单来讲就是一个字母、数字、标点符号、汉字等。
+字符的最佳定义是 Unicode 字符：
+
+它是一个全球化的标准，能表示世界上所有语言的字符。Unicode 字符的标识（码位）是以 4~6 个十六进制数字表示的，并且加前缀U&#43;。
+字节
+字节是计算机信息计量单位，一个字节代表八个比特，存储的数值范围为 0~255。
+
+字节跳动（ByteDance）互联网公司的字节就是这个字节。
+
+字节是机器的，字符是人类的。
+把人类字符转换为机器字节时使用的算法叫做编码，反之叫做解码。
+算法不同，字节与字符的关系也不同：
+
+bytes 和 bytearray
+字节实际上是个二进制序列。不可变 bytes 类型和可变 bytearray 类型是用来存储二进制序列的，它们的示例如下：
+&gt;&gt;&gt; cafe = bytes(&#34;café&#34;, encoding=&#34;utf_8&#34;)
+&gt;&gt;&gt; cafe
+b&#39;caf\xc3\xa9&#39;
+&gt;&gt;&gt; cafe[0]
+99
+&gt;&gt;&gt; cafe[:1]
+b&#39;c&#39;
+&gt;&gt;&gt; cafe_arr = bytearray(cafe)
+&gt;&gt;&gt; cafe_arr
+bytearray(b&#39;caf\xc3\xa9&#39;)
+&gt;&gt;&gt; cafe_arr[-1:]
+bytearray(b&#39;\xa9&#39;)
+特别的是 cafe[0]返回了整数，cafe[:1]返回了二进制序列，这是因为s[0] == s[:1]只对 str 类型成立，而对于其他类型来说，s[i]返回一个元素，s[i:i&#43;1]返回一个相同类型的序列。
+二进制序列实际上是整数序列。它们的字面量表示法包含 ASCII 字符（ASCII 只能表示英文体系的字符），比如 cafe 的b&#39;caf\xc3\xa9&#39;，具体规则是：
+
+从空格到~的字符直接使用 ASCII 字符
+制表符\t、换行符\n、回车符\r、转义符\\
+其他字符用十六进制转义序列，比如\x00空字节
+
+构建 bytes 和 bytearray 对象的方式有以下几种：
+
+一个 str 对象和一个 encoding 关键字参数
+一个可迭代对象，数值在 0~255
+一个实现了缓冲协议的对象，如 bytes、bytearray、memoryview、array.array
+
+memoryview 和 struct
+memoryview 允许在二进制数据结构之间共享内存，struct 能从序列中提取结构化信息。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%AD%97%E7%AC%A6%E4%B8%8E%E5%AD%97%E8%8A%82%E6%96%B0%E7%BC%96/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%AD%97%E7%AC%A6%E4%B8%8E%E5%AD%97%E8%8A%82%E6%96%B0%E7%BC%96/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%AD%97%E7%AC%A6%E4%B8%8E%E5%AD%97%E8%8A%82%E6%96%B0%E7%BC%96/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Python 字符与字节新编">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+字符 字符是一个信息单位，简单来讲就是一个字母、数字、标点符号、汉字等。
+字符的最佳定义是 Unicode 字符：
+它是一个全球化的标准，能表示世界上所有语言的字符。Unicode 字符的标识（码位）是以 4~6 个十六进制数字表示的，并且加前缀U&#43;。
+字节 字节是计算机信息计量单位，一个字节代表八个比特，存储的数值范围为 0~255。
+字节跳动（ByteDance）互联网公司的字节就是这个字节。
+字节是机器的，字符是人类的。
+把人类字符转换为机器字节时使用的算法叫做编码，反之叫做解码。
+算法不同，字节与字符的关系也不同：
+bytes 和 bytearray 字节实际上是个二进制序列。不可变 bytes 类型和可变 bytearray 类型是用来存储二进制序列的，它们的示例如下：
+&gt;&gt;&gt; cafe = bytes(&#34;café&#34;, encoding=&#34;utf_8&#34;) &gt;&gt;&gt; cafe b&#39;caf\xc3\xa9&#39; &gt;&gt;&gt; cafe[0] 99 &gt;&gt;&gt; cafe[:1] b&#39;c&#39; &gt;&gt;&gt; cafe_arr = bytearray(cafe) &gt;&gt;&gt; cafe_arr bytearray(b&#39;caf\xc3\xa9&#39;) &gt;&gt;&gt; cafe_arr[-1:] bytearray(b&#39;\xa9&#39;) 特别的是 cafe[0]返回了整数，cafe[:1]返回了二进制序列，这是因为s[0] == s[:1]只对 str 类型成立，而对于其他类型来说，s[i]返回一个元素，s[i:i&#43;1]返回一个相同类型的序列。
+二进制序列实际上是整数序列。它们的字面量表示法包含 ASCII 字符（ASCII 只能表示英文体系的字符），比如 cafe 的b&#39;caf\xc3\xa9&#39;，具体规则是：
+从空格到~的字符直接使用 ASCII 字符 制表符\t、换行符\n、回车符\r、转义符\\ 其他字符用十六进制转义序列，比如\x00空字节 构建 bytes 和 bytearray 对象的方式有以下几种：
+一个 str 对象和一个 encoding 关键字参数 一个可迭代对象，数值在 0~255 一个实现了缓冲协议的对象，如 bytes、bytearray、memoryview、array.array memoryview 和 struct memoryview 允许在二进制数据结构之间共享内存，struct 能从序列中提取结构化信息。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-22T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-22T00:00:00+00:00">
+    <meta property="article:tag" content="Python">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Python 字符与字节新编">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+字符 字符是一个信息单位，简单来讲就是一个字母、数字、标点符号、汉字等。
+字符的最佳定义是 Unicode 字符：
+它是一个全球化的标准，能表示世界上所有语言的字符。Unicode 字符的标识（码位）是以 4~6 个十六进制数字表示的，并且加前缀U&#43;。
+字节 字节是计算机信息计量单位，一个字节代表八个比特，存储的数值范围为 0~255。
+字节跳动（ByteDance）互联网公司的字节就是这个字节。
+字节是机器的，字符是人类的。
+把人类字符转换为机器字节时使用的算法叫做编码，反之叫做解码。
+算法不同，字节与字符的关系也不同：
+bytes 和 bytearray 字节实际上是个二进制序列。不可变 bytes 类型和可变 bytearray 类型是用来存储二进制序列的，它们的示例如下：
+&gt;&gt;&gt; cafe = bytes(&#34;café&#34;, encoding=&#34;utf_8&#34;) &gt;&gt;&gt; cafe b&#39;caf\xc3\xa9&#39; &gt;&gt;&gt; cafe[0] 99 &gt;&gt;&gt; cafe[:1] b&#39;c&#39; &gt;&gt;&gt; cafe_arr = bytearray(cafe) &gt;&gt;&gt; cafe_arr bytearray(b&#39;caf\xc3\xa9&#39;) &gt;&gt;&gt; cafe_arr[-1:] bytearray(b&#39;\xa9&#39;) 特别的是 cafe[0]返回了整数，cafe[:1]返回了二进制序列，这是因为s[0] == s[:1]只对 str 类型成立，而对于其他类型来说，s[i]返回一个元素，s[i:i&#43;1]返回一个相同类型的序列。
+二进制序列实际上是整数序列。它们的字面量表示法包含 ASCII 字符（ASCII 只能表示英文体系的字符），比如 cafe 的b&#39;caf\xc3\xa9&#39;，具体规则是：
+从空格到~的字符直接使用 ASCII 字符 制表符\t、换行符\n、回车符\r、转义符\\ 其他字符用十六进制转义序列，比如\x00空字节 构建 bytes 和 bytearray 对象的方式有以下几种：
+一个 str 对象和一个 encoding 关键字参数 一个可迭代对象，数值在 0~255 一个实现了缓冲协议的对象，如 bytes、bytearray、memoryview、array.array memoryview 和 struct memoryview 允许在二进制数据结构之间共享内存，struct 能从序列中提取结构化信息。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Python 字符与字节新编",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%AD%97%E7%AC%A6%E4%B8%8E%E5%AD%97%E8%8A%82%E6%96%B0%E7%BC%96/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python 字符与字节新编",
+  "name": "Python 字符与字节新编",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n字符 字符是一个信息单位，简单来讲就是一个字母、数字、标点符号、汉字等。\n字符的最佳定义是 Unicode 字符：\n它是一个全球化的标准，能表示世界上所有语言的字符。Unicode 字符的标识（码位）是以 4~6 个十六进制数字表示的，并且加前缀U+。\n字节 字节是计算机信息计量单位，一个字节代表八个比特，存储的数值范围为 0~255。\n字节跳动（ByteDance）互联网公司的字节就是这个字节。\n字节是机器的，字符是人类的。\n把人类字符转换为机器字节时使用的算法叫做编码，反之叫做解码。\n算法不同，字节与字符的关系也不同：\nbytes 和 bytearray 字节实际上是个二进制序列。不可变 bytes 类型和可变 bytearray 类型是用来存储二进制序列的，它们的示例如下：\n\u0026gt;\u0026gt;\u0026gt; cafe = bytes(\u0026#34;café\u0026#34;, encoding=\u0026#34;utf_8\u0026#34;) \u0026gt;\u0026gt;\u0026gt; cafe b\u0026#39;caf\\xc3\\xa9\u0026#39; \u0026gt;\u0026gt;\u0026gt; cafe[0] 99 \u0026gt;\u0026gt;\u0026gt; cafe[:1] b\u0026#39;c\u0026#39; \u0026gt;\u0026gt;\u0026gt; cafe_arr = bytearray(cafe) \u0026gt;\u0026gt;\u0026gt; cafe_arr bytearray(b\u0026#39;caf\\xc3\\xa9\u0026#39;) \u0026gt;\u0026gt;\u0026gt; cafe_arr[-1:] bytearray(b\u0026#39;\\xa9\u0026#39;) 特别的是 cafe[0]返回了整数，cafe[:1]返回了二进制序列，这是因为s[0] == s[:1]只对 str 类型成立，而对于其他类型来说，s[i]返回一个元素，s[i:i+1]返回一个相同类型的序列。\n二进制序列实际上是整数序列。它们的字面量表示法包含 ASCII 字符（ASCII 只能表示英文体系的字符），比如 cafe 的b'caf\\xc3\\xa9'，具体规则是：\n从空格到~的字符直接使用 ASCII 字符 制表符\\t、换行符\\n、回车符\\r、转义符\\\\ 其他字符用十六进制转义序列，比如\\x00空字节 构建 bytes 和 bytearray 对象的方式有以下几种：\n一个 str 对象和一个 encoding 关键字参数 一个可迭代对象，数值在 0~255 一个实现了缓冲协议的对象，如 bytes、bytearray、memoryview、array.array memoryview 和 struct memoryview 允许在二进制数据结构之间共享内存，struct 能从序列中提取结构化信息。\n",
+  "keywords": [
+    "Python"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n字符 字符是一个信息单位，简单来讲就是一个字母、数字、标点符号、汉字等。\n字符的最佳定义是 Unicode 字符：\n它是一个全球化的标准，能表示世界上所有语言的字符。Unicode 字符的标识（码位）是以 4~6 个十六进制数字表示的，并且加前缀U+。\n字节 字节是计算机信息计量单位，一个字节代表八个比特，存储的数值范围为 0~255。\n字节跳动（ByteDance）互联网公司的字节就是这个字节。\n字节是机器的，字符是人类的。\n把人类字符转换为机器字节时使用的算法叫做编码，反之叫做解码。\n算法不同，字节与字符的关系也不同：\nbytes 和 bytearray 字节实际上是个二进制序列。不可变 bytes 类型和可变 bytearray 类型是用来存储二进制序列的，它们的示例如下：\n\u003e\u003e\u003e cafe = bytes(\"café\", encoding=\"utf_8\") \u003e\u003e\u003e cafe b'caf\\xc3\\xa9' \u003e\u003e\u003e cafe[0] 99 \u003e\u003e\u003e cafe[:1] b'c' \u003e\u003e\u003e cafe_arr = bytearray(cafe) \u003e\u003e\u003e cafe_arr bytearray(b'caf\\xc3\\xa9') \u003e\u003e\u003e cafe_arr[-1:] bytearray(b'\\xa9') 特别的是 cafe[0]返回了整数，cafe[:1]返回了二进制序列，这是因为s[0] == s[:1]只对 str 类型成立，而对于其他类型来说，s[i]返回一个元素，s[i:i+1]返回一个相同类型的序列。\n二进制序列实际上是整数序列。它们的字面量表示法包含 ASCII 字符（ASCII 只能表示英文体系的字符），比如 cafe 的b'caf\\xc3\\xa9'，具体规则是：\n从空格到~的字符直接使用 ASCII 字符 制表符\\t、换行符\\n、回车符\\r、转义符\\\\ 其他字符用十六进制转义序列，比如\\x00空字节 构建 bytes 和 bytearray 对象的方式有以下几种：\n一个 str 对象和一个 encoding 关键字参数 一个可迭代对象，数值在 0~255 一个实现了缓冲协议的对象，如 bytes、bytearray、memoryview、array.array memoryview 和 struct memoryview 允许在二进制数据结构之间共享内存，struct 能从序列中提取结构化信息。\n示例如下，提取一个 GIF 图像的宽度和高度：\nimport struct with open(\"filter.gif\", \"rb\") as fp: img = memoryview(fp.read()) ## 这里不会复制字节序列，因为用的memoryview header = img[:10] print(bytes(header)) # b'GIF89a+\\x02\\xe6\\x00' ## \u003c是小字节序，3s3s是两个3字节序列，HH是两个16位二进制整数 ## 类型、版本、宽度、高度 struct.unpack(\"\u003c3s3sHH\", header) # (b'GIF', b'89a', 555, 230) ## 删除引用，释放memoryview实例所占的内存 del header del img 小结 本文介绍了字符和字节的概念以及它们之间的关系，一个字符对应一个或多个字节。字符是人类的，字节是机器的，编码就是人类字符转换为机器字节，反之叫做解码。然后分别介绍了二进制序列的类型 bytes 和 bytearray，和二进制序列的工具 memoryview 和 struct。\n参考资料：\n《流畅的 Python》\nhttp://www.ruanyifeng.com/blog/2007/10/ascii_unicode_and_utf-8.html\nhttps://zh.wikipedia.org/wiki/%E5%AD%97%E7%AC%A6_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)\nhttps://home.unicode.org/\nhttps://zh.wikipedia.org/wiki/%E5%AD%97%E8%8A%82\nhttps://www.runoob.com/w3cnote/byte-character.html\n",
+  "wordCount" : "140",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-22T00:00:00Z",
+  "dateModified": "2026-01-22T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%AD%97%E7%AC%A6%E4%B8%8E%E5%AD%97%E8%8A%82%E6%96%B0%E7%BC%96/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Python 字符与字节新编
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-22T00:00:00+00:00'>2026-01-22</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/python/'>#Python</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="字符">字符<a hidden class="anchor" aria-hidden="true" href="#字符">#</a></h1>
+<p>字符是一个信息单位，简单来讲就是一个字母、数字、标点符号、汉字等。</p>
+<p>字符的最佳定义是 Unicode 字符：</p>
+<p><img loading="lazy" src="../assets/5d31243c097a48d2a67ca1babd4e29de.png"></p>
+<p>它是一个全球化的标准，能表示世界上所有语言的字符。Unicode 字符的标识（码位）是以 4~6 个十六进制数字表示的，并且加前缀<code>U+</code>。</p>
+<h1 id="字节">字节<a hidden class="anchor" aria-hidden="true" href="#字节">#</a></h1>
+<p>字节是计算机信息计量单位，一个字节代表八个比特，存储的数值范围为 0~255。</p>
+<blockquote>
+<p>字节跳动（ByteDance）互联网公司的字节就是这个字节。</p>
+</blockquote>
+<p><strong>字节是机器的，字符是人类的。</strong></p>
+<p>把人类字符转换为机器字节时使用的算法叫做编码，反之叫做解码。</p>
+<p>算法不同，字节与字符的关系也不同：</p>
+<p><img loading="lazy" src="../assets/47d654a43ce442f7bd95d463894f20c2.png"></p>
+<h1 id="bytes-和-bytearray">bytes 和 bytearray<a hidden class="anchor" aria-hidden="true" href="#bytes-和-bytearray">#</a></h1>
+<p>字节实际上是个二进制序列。不可变 bytes 类型和可变 bytearray 类型是用来存储二进制序列的，它们的示例如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> cafe <span style="color:#0550ae">=</span> <span style="color:#6639ba">bytes</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;café&#34;</span><span style="color:#1f2328">,</span> encoding<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;utf_8&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> cafe
+</span></span><span style="display:flex;"><span><span style="color:#0a3069">b</span><span style="color:#0a3069">&#39;caf</span><span style="color:#0a3069">\xc3\xa9</span><span style="color:#0a3069">&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> cafe<span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">99</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> cafe<span style="color:#1f2328">[:</span><span style="color:#0550ae">1</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#0a3069">b</span><span style="color:#0a3069">&#39;c&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> cafe_arr <span style="color:#0550ae">=</span> <span style="color:#6639ba">bytearray</span><span style="color:#1f2328">(</span>cafe<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> cafe_arr
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">bytearray</span><span style="color:#1f2328">(</span><span style="color:#0a3069">b</span><span style="color:#0a3069">&#39;caf</span><span style="color:#0a3069">\xc3\xa9</span><span style="color:#0a3069">&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&gt;&gt;&gt;</span> cafe_arr<span style="color:#1f2328">[</span><span style="color:#0550ae">-</span><span style="color:#0550ae">1</span><span style="color:#1f2328">:]</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">bytearray</span><span style="color:#1f2328">(</span><span style="color:#0a3069">b</span><span style="color:#0a3069">&#39;</span><span style="color:#0a3069">\xa9</span><span style="color:#0a3069">&#39;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>特别的是 cafe[0]返回了整数，cafe[:1]返回了二进制序列，这是因为<strong>s[0] == s[:1]只对 str 类型成立</strong>，而对于其他类型来说，s[i]返回一个元素，s[i:i+1]返回一个相同类型的序列。</p>
+<p>二进制序列实际上是整数序列。它们的字面量表示法包含 ASCII 字符（ASCII 只能表示英文体系的字符），比如 cafe 的<code>b'caf\xc3\xa9'</code>，具体规则是：</p>
+<ul>
+<li>从空格到<code>~</code>的字符直接使用 ASCII 字符</li>
+<li>制表符<code>\t</code>、换行符<code>\n</code>、回车符<code>\r</code>、转义符<code>\\</code></li>
+<li>其他字符用十六进制转义序列，比如<code>\x00</code>空字节</li>
+</ul>
+<p>构建 bytes 和 bytearray 对象的方式有以下几种：</p>
+<ol>
+<li>一个 str 对象和一个 encoding 关键字参数</li>
+<li>一个可迭代对象，数值在 0~255</li>
+<li>一个实现了缓冲协议的对象，如 bytes、bytearray、memoryview、array.array</li>
+</ol>
+<h1 id="memoryview-和-struct">memoryview 和 struct<a hidden class="anchor" aria-hidden="true" href="#memoryview-和-struct">#</a></h1>
+<p>memoryview 允许在二进制数据结构之间共享内存，struct 能从序列中提取结构化信息。</p>
+<p>示例如下，提取一个 GIF 图像的宽度和高度：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">struct</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">with</span> <span style="color:#6639ba">open</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;filter.gif&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;rb&#34;</span><span style="color:#1f2328">)</span> <span style="color:#cf222e">as</span> fp<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    img <span style="color:#0550ae">=</span> <span style="color:#6639ba">memoryview</span><span style="color:#1f2328">(</span>fp<span style="color:#0550ae">.</span>read<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 这里不会复制字节序列，因为用的memoryview</span>
+</span></span><span style="display:flex;"><span>header <span style="color:#0550ae">=</span> img<span style="color:#1f2328">[:</span><span style="color:#0550ae">10</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#6639ba">bytes</span><span style="color:#1f2328">(</span>header<span style="color:#1f2328">))</span>  <span style="color:#57606a"># b&#39;GIF89a+\x02\xe6\x00&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## &lt;是小字节序，3s3s是两个3字节序列，HH是两个16位二进制整数</span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 类型、版本、宽度、高度</span>
+</span></span><span style="display:flex;"><span>struct<span style="color:#0550ae">.</span>unpack<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&lt;3s3sHH&#34;</span><span style="color:#1f2328">,</span> header<span style="color:#1f2328">)</span>  <span style="color:#57606a"># (b&#39;GIF&#39;, b&#39;89a&#39;, 555, 230)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 删除引用，释放memoryview实例所占的内存</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">del</span> header
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">del</span> img
+</span></span></code></pre></div><h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文介绍了字符和字节的概念以及它们之间的关系，一个字符对应一个或多个字节。字符是人类的，字节是机器的，编码就是人类字符转换为机器字节，反之叫做解码。然后分别介绍了二进制序列的类型 bytes 和 bytearray，和二进制序列的工具 memoryview 和 struct。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>《流畅的 Python》</p>
+<p><a href="http://www.ruanyifeng.com/blog/2007/10/ascii_unicode_and_utf-8.html">http://www.ruanyifeng.com/blog/2007/10/ascii_unicode_and_utf-8.html</a></p>
+<p><a href="https://zh.wikipedia.org/wiki/%E5%AD%97%E7%AC%A6_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)">https://zh.wikipedia.org/wiki/%E5%AD%97%E7%AC%A6_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)</a></p>
+<p><a href="https://home.unicode.org/">https://home.unicode.org/</a></p>
+<p><a href="https://zh.wikipedia.org/wiki/%E5%AD%97%E8%8A%82">https://zh.wikipedia.org/wiki/%E5%AD%97%E8%8A%82</a></p>
+<p><a href="https://www.runoob.com/w3cnote/byte-character.html">https://www.runoob.com/w3cnote/byte-character.html</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/python/">Python</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E7%BC%96%E8%A7%A3%E7%A0%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%96%87%E6%9C%AC%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/">
+    <span class="title">« 上一页</span>
+    <span>Python 编解码问题与文本文件处理</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%9A%8F%E7%AC%94/%E5%B7%A5%E4%BD%9C%E6%B1%87%E6%8A%A5%E6%B5%81%E6%B0%B4%E8%B4%A6-vs-%E9%97%AE%E9%A2%98%E9%A9%B1%E5%8A%A8%E7%9A%84%E6%80%9D%E6%83%B3%E8%A1%A8%E8%BE%BE/">
+    <span class="title">下一页 »</span>
+    <span>工作汇报流水账 vs 问题驱动的思想表达</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#字符">字符</a></li>
+    <li><a href="#字节">字节</a></li>
+    <li><a href="#bytes-和-bytearray">bytes 和 bytearray</a></li>
+    <li><a href="#memoryview-和-struct">memoryview 和 struct</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

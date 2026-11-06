@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>人工智能 on 测试开发刚哥</title>
+    <link>https://dongfanger.github.io/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/</link>
+    <description>Recent content in 人工智能 on 测试开发刚哥</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 03 Nov 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://dongfanger.github.io/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Claude Skills 和 Prompts、Projects、MCP、Subagents 的区别</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/claude-skills-%E5%92%8C-promptsprojectsmcpsubagents-%E7%9A%84%E5%8C%BA%E5%88%AB/</link>
+      <pubDate>Tue, 03 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/claude-skills-%E5%92%8C-promptsprojectsmcpsubagents-%E7%9A%84%E5%8C%BA%E5%88%AB/</guid>
+      <description>Anthropic 官方专门写了一篇文章来解释。看完之后你会发现，这几个概念不仅不重复，反而各有分工，组合起来才能发挥完整的 AI 能力。</description>
+    </item>
+    <item>
+      <title>从零开始编写你的第一个 Agent Skill</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%BC%96%E5%86%99%E4%BD%A0%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AA-agent-skill/</link>
+      <pubDate>Mon, 02 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%BC%96%E5%86%99%E4%BD%A0%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AA-agent-skill/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;agent-skills-的发展简史&#34;&gt;Agent Skills 的发展简史&lt;/h1&gt;
+&lt;p&gt;Agent Skills 的出现，其实是 AI 能力组织方式自然演进的结果。&lt;/p&gt;
+&lt;p&gt;早期的大模型应用主要靠提示词工程，把任务规则、流程说明、输出格式全部写进 System Prompt。这种方式简单直接，但提示词越写越长，上下文窗口被大量占用，关键指令容易被淹没，而且很难在不同项目之间复用。&lt;/p&gt;
+&lt;p&gt;随后 Function Calling 和工具调用逐渐普及，模型开始能够调用搜索、代码执行、数据库查询等外部能力。但这更多解决的是&amp;quot;能不能调用工具&amp;quot;的问题，还没有很好地回答&amp;quot;应该按什么流程、遵循什么标准、产出什么格式&amp;quot;的问题。&lt;/p&gt;
+&lt;p&gt;2025 年 10 月，Anthropic 在 Claude Code 中首次推出 Agent Skills 能力，把可复用的任务流程封装成以 &lt;code&gt;SKILL.md&lt;/code&gt; 为核心的文件夹结构。 同年 12 月 18 日，Anthropic 将 Agent Skills 规范作为开放标准发布，并开源官方技能库，随后 OpenAI Codex、GitHub Copilot、VS Code、Cursor 等产品陆续跟进支持。 到 2026 年，Agent Skills 已经从单一产品的功能扩展为跨平台的能力封装格式，公开可用的 Skills 数量逼近百万级，累计安装约 2.8 亿次。&lt;/p&gt;
+&lt;p&gt;从技术演进看，Agent Skills 标志着 AI 应用开发从&amp;quot;手搓提示词&amp;quot;走向&amp;quot;标准化技能工程&amp;quot;。它把专业知识、执行流程、脚本工具和验收标准打包在一起，让 Agent 不再只是会聊天，而是能稳定完成具体工作。&lt;/p&gt;
+&lt;h1 id=&#34;一个-skill-长什么样&#34;&gt;一个 Skill 长什么样&lt;/h1&gt;
+&lt;p&gt;最简单的 Skill 只需要一个文件：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;my-skill/
+└── SKILL.md
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;完整结构可以包含这些目录：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;my-skill/
+├── SKILL.md          # 必需：元数据 + 指令
+├── scripts/          # 可选：可执行脚本
+├── references/       # 可选：参考文档
+├── assets/           # 可选：模板、资源
+└── ...
+&lt;/code&gt;&lt;/pre&gt;&lt;h1 id=&#34;核心文件-skillmd-的结构&#34;&gt;核心文件 SKILL.md 的结构&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;SKILL.md&lt;/code&gt; 由两部分组成：&lt;strong&gt;YAML Frontmatter（元数据）&lt;/strong&gt; 和 &lt;strong&gt;Markdown 正文（指令）&lt;/strong&gt;，用 &lt;code&gt;---&lt;/code&gt; 分隔。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>AI 安全</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%AE%89%E5%85%A8/</link>
+      <pubDate>Wed, 14 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%AE%89%E5%85%A8/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;101-ai-安全风险的来源和分类&#34;&gt;10.1 AI 安全风险的来源和分类&lt;/h1&gt;
+&lt;p&gt;系统风险：AI 模型软件的供应链风险、暴露面风险以及算力劫持风险。&lt;/p&gt;
+&lt;p&gt;网络风险：面向公网的入侵攻击，以及内网的隔离风险。&lt;/p&gt;
+&lt;p&gt;身份风险：对非人类身份的管控，越权访问，身份冒充等。&lt;/p&gt;
+&lt;p&gt;数据风险：Agent 模型训练时的数据投毒，以及输入/输出阶段的敏感信息泄露等。&lt;/p&gt;
+&lt;p&gt;模型风险：Agent 模型输入输出内容的恶意诱导、提示词攻击等风险。&lt;/p&gt;
+&lt;p&gt;应用风险：当 AI 在线上提供服务时，会面临 Web 入侵、DDoS 攻击导致服务不可用等风险。&lt;/p&gt;
+&lt;h1 id=&#34;102-保护应用安全&#34;&gt;10.2 保护应用安全&lt;/h1&gt;
+&lt;h2 id=&#34;1021-背景和挑战&#34;&gt;10.2.1 背景和挑战&lt;/h2&gt;
+&lt;p&gt;攻击者不再需要直接寻找暴露在公网服务中的漏洞，他们只需操纵相关的 AI Agent，就能让这些 AI Agent 代为攻击内外部的弱电服务。&lt;/p&gt;
+&lt;p&gt;服务器端请求伪造（SSRF）是引入 AI Agent 后最突出的威胁。攻击者仅需通过自然语言提示，即可诱导受信任的 Agent 向内部网络发起恶意请求，窃取云环境凭证或扫描内网资产。Agent 也可能被攻击者诱导产生包含 SQL 注入或 XSS 等恶意载荷，攻击与之交互的后端服务。&lt;/p&gt;
+&lt;h2 id=&#34;1032-新的攻击面&#34;&gt;10.3.2 新的攻击面&lt;/h2&gt;
+&lt;p&gt;构造恶意的语言诱导，让 AI Agent 变为一个无节制的资源消耗工具，使其无法正常为其他用户提供服务。构造复杂度炸弹式的指令，诱使 AI Agent 陷入生成海量文本的陷阱，生成数万乃至数十万的 Token，导致其自身的计算成本飙升。&lt;/p&gt;
+&lt;p&gt;攻击者也可以攻击 AI Agent 调用的外部 API，高频或海量触发复杂或昂贵的 API 调用。攻击者还能将恶意指令隐藏在 AI Agent 将要处理的网页、表格、PDF 等外部数据中，当 AI Agent 处理这些被污染的数据时，隐藏的指令就会被执行。&lt;/p&gt;
+&lt;h2 id=&#34;1033-防护思路&#34;&gt;10.3.3 防护思路&lt;/h2&gt;
+&lt;p&gt;沿用并强化传统的应用安全最佳实践，同时实施严格的资源治理策略，针对工作流劫持类攻击，则需要设计更加完善的上下文隔离机制。&lt;/p&gt;
+&lt;h2 id=&#34;1034-解决建议&#34;&gt;10.3.4 解决建议&lt;/h2&gt;
+&lt;p&gt;一方面，对在 AI 场景下输入输出做安全检测的 AI 安全护栏方案，以及相关 AI 应用开发平台和网关对 AI 安全护栏的集成。另一方面，由于 AI Agent 进一步打破了传统的攻击面和网络边界，要更加关注纵深防御、动态检测、运行时安全等多种安全措施的组合。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>AI 评估</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E8%AF%84%E4%BC%B0/</link>
+      <pubDate>Tue, 13 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E8%AF%84%E4%BC%B0/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;91-基于评估降低-ai-应用的不确定性&#34;&gt;9.1 基于评估降低 AI 应用的不确定性&lt;/h1&gt;
+&lt;h2 id=&#34;911-从确定性到不确定性&#34;&gt;9.1.1 从确定性到不确定性&lt;/h2&gt;
+&lt;p&gt;传统软件在很大程度上是确定性的，而 AI 应用其行为本质上是非确定性和概率性的。不确定性，就意味着对于相同的输入，它们可能产生不同的输出。&lt;/p&gt;
+&lt;p&gt;传统的 QA 流程，专为可预测的、基于规则的系统而设计，已无法充分应对这些由数据驱动的、自适应系统的挑战。&lt;/p&gt;
+&lt;h2 id=&#34;912-幻觉和不确定性的根因&#34;&gt;9.1.2 幻觉和不确定性的根因&lt;/h2&gt;
+&lt;p&gt;AI 应用的核心功能是基于从海量数据中学到的统计模式，来预测序列中的下一个词，而非真正意义上的理解。这就导致了“幻觉”现象，即模型生成听起来合理但实际上不正确或无意义的输出。&lt;/p&gt;
+&lt;p&gt;产生幻觉和不确定性的根本原因错综复杂：数据导致的缺陷、架构与建模的产物、错位与不确定性。&lt;/p&gt;
+&lt;h2 id=&#34;913-ai-评估的重要些&#34;&gt;9.1.3 AI 评估的重要些&lt;/h2&gt;
+&lt;p&gt;从服务客户上看，评估是构建信任的核心机制。从商业视角看，严格评估直接转化为竞争优势。&lt;/p&gt;
+&lt;p&gt;AI 的非确定性催生了评估经济，这是一个由可观测性平台、持续监控、自动化评估与治理即服务构成的新生态。评估不再是阶段性任务，而是与开发并行的持续工程实践，标志着 AI 原生时代质量保障的新范式。&lt;/p&gt;
+&lt;h1 id=&#34;92-ai-评估体系&#34;&gt;9.2 AI 评估体系&lt;/h1&gt;
+&lt;h2 id=&#34;921-评估方法的基础二分法&#34;&gt;9.2.1 评估方法的基础二分法&lt;/h2&gt;
+&lt;p&gt;1、内在评估 vs 外在评估&lt;/p&gt;
+&lt;p&gt;内在评估：侧重于孤立地评估模型输出的固有质量，而不考虑其在特定任务中的应用效果。评估的维度通常包括流畅性、连贯性、语法正确性以及事实准确性。&lt;/p&gt;
+&lt;p&gt;外在评估：通过衡量模型在特定下游任务或应用中的表现来评估其质量。&lt;/p&gt;
+&lt;p&gt;2、自动化评估 vs 人工评估&lt;/p&gt;
+&lt;p&gt;自动化评估：利用计算指标或利用其他 AI 模型来对模型输出进行打分。&lt;/p&gt;
+&lt;p&gt;人工评估：依赖人类评估员的判断来评估 AI 系统的输出质量，特别是在衡量帮助性、创造力、用户满意度等主观维度时。&lt;/p&gt;
+&lt;p&gt;在实践中，最佳的评估策略通常是自动化和人工评估的混合模式，利用自动化的效率进行大规模初步筛选，并结合人工的深度洞察力对关键或模糊的案例进行精细评估。&lt;/p&gt;
+&lt;h2 id=&#34;922-从静态到动态评估的演进&#34;&gt;9.2.2 从静态到动态评估的演进&lt;/h2&gt;
+&lt;p&gt;静态基准：静态基准是固定的、预先定义的数据集和任务组成。&lt;/p&gt;
+&lt;p&gt;动态评估：动态评估旨在模拟真实世界场景的复杂性和不可预测性，通过变化的变量、意外的输入和演进的上下文来测试系统。主要的动态评估方法包括：基于模拟的测试、实时对抗性基准、程序化生成。&lt;/p&gt;
+&lt;h2 id=&#34;923-现代-ai-评估的多范式全景&#34;&gt;9.2.3 现代 AI 评估的多范式全景&lt;/h2&gt;
+&lt;p&gt;6 个主要的评估范式：基准测试范式、“Evals”范式、心理测量学范式、人机交互范式、形式化方法范式、社会技术范式。&lt;/p&gt;
+&lt;p&gt;一个组织的评估栈，即其选择、组合和优先排序不同评估范式的策略，深刻地揭示了该组织在性能、用户价值和风险规避之间的权衡。&lt;/p&gt;
+&lt;h2 id=&#34;924-构建一个整体性的评估体系&#34;&gt;9.2.4 构建一个整体性的评估体系&lt;/h2&gt;
+&lt;p&gt;一个完整的评估体系应包含 8 个核心组件：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;性能指标，包括准确率、精确率、召回率、F1 分数等。&lt;/li&gt;
+&lt;li&gt;鲁棒性与泛化测试&lt;/li&gt;
+&lt;li&gt;偏见与公平性评估&lt;/li&gt;
+&lt;li&gt;可解释性&lt;/li&gt;
+&lt;li&gt;合理性与伦理考量&lt;/li&gt;
+&lt;li&gt;持续监控与模型飘移检测&lt;/li&gt;
+&lt;li&gt;决策框架&lt;/li&gt;
+&lt;li&gt;自动化与人在回路&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;93-基于-llm-的自动化评估&#34;&gt;9.3 基于 LLM 的自动化评估&lt;/h1&gt;
+&lt;h2 id=&#34;931-传统指标的局限性&#34;&gt;9.3.1 传统指标的局限性&lt;/h2&gt;
+&lt;p&gt;传统的自动化评估指标，其核心是基于词汇或短语的重叠度来计算分数，这种方法对于需要捕捉语义、风格、语气和创造力等细微差别的现代生成 AI 模型来说，存在根本性不足。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>AI 可观测</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%8F%AF%E8%A7%82%E6%B5%8B/</link>
+      <pubDate>Mon, 12 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%8F%AF%E8%A7%82%E6%B5%8B/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;81-ai-可观测&#34;&gt;8.1 AI 可观测&lt;/h1&gt;
+&lt;h2 id=&#34;811-什么是-ai-可观测&#34;&gt;8.1.1 什么是 AI 可观测&lt;/h2&gt;
+&lt;p&gt;AI 应用具有非确定性，即便是相同的提示，在不同次的运行中也可能产生不同的输出。如果没有可观测，在发生幻觉虚假错误等严重问题时根本无从查起。相反，一个好用的可观测工具会记录每一次的提示与响应、追踪使用模式，并标记异常。AI 可观测是确保 AI 应用高效稳定安全运行的基础能力。&lt;/p&gt;
+&lt;h2 id=&#34;812-可观测-vs-监控从是什么到为什么&#34;&gt;8.1.2 可观测 vs 监控：从“是什么”到“为什么”&lt;/h2&gt;
+&lt;p&gt;监控关注“什么”：比如 API 响应时间、错误率、请求吞吐量和 Token 使用量等指标。&lt;/p&gt;
+&lt;p&gt;可观测性探究“为什么”：比如一个聊天机器人的回答不正确且耗时过长，监控可能只会显示错误率上升或延迟过高，但可观测能揭示为什么：可能是一次长时间的 RAG 请求最终得到了错误的召回，导致模型给出不准确的答案。&lt;/p&gt;
+&lt;p&gt;AI 应用的每一次请求，都可以被弯针的追溯，包括调用工具的出入参、发送给大模型的具体提示词、任何中间步骤（如调用数据库或其他 API），以及最终收到的输出。可观测工具就可以提供极其丰富的排查数据和上下文，帮助定位问题的根因。&lt;/p&gt;
+&lt;h2 id=&#34;813-ai-可观测应对的核心挑战&#34;&gt;8.1.3 AI 可观测应对的核心挑战&lt;/h2&gt;
+&lt;p&gt;性能与可靠性问题：大模型是资源密集型的，延迟峰值和瓶颈时有发生。&lt;/p&gt;
+&lt;p&gt;成本问题：许多大模型服务按 Token 使用量收费，若无控制，成本可能意外飙升。&lt;/p&gt;
+&lt;p&gt;质量问题：大模型的可能输出从训练数据中继承偏见或有害内容，也很可能产生幻觉。&lt;/p&gt;
+&lt;h2 id=&#34;814-ai-可观测解决方案的关键能力&#34;&gt;8.1.4 AI 可观测解决方案的关键能力&lt;/h2&gt;
+&lt;p&gt;端到端全链路追踪：提供端到端的日志采集和链路追踪，可视化请求在整个 AI 应用中的执行路径。&lt;/p&gt;
+&lt;p&gt;全栈可观测：包含应用、AI 网关、推理引擎可观测 3 个维度。&lt;/p&gt;
+&lt;p&gt;自动化评估功能：通过引入评估 Agent，对应用和模型的输入输出进行自动化的评估，检测幻觉、不一致或答案质量下降等问题。&lt;/p&gt;
+&lt;h1 id=&#34;82-端到端全链路追踪&#34;&gt;8.2 端到端全链路追踪&lt;/h1&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/1209f5a13a5547eab6b48766b587a6e7.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;一个典型的 LLM 应用架构可能包含用户终端、认证模块、会话管理、对话服务、大模型路由、流程编排等。需要具备 3 项可观测能力：标准化的数据语义规范、低成本高质量的数据采集、端到端全链路追踪。&lt;/p&gt;
+&lt;h2 id=&#34;821-端到端全链路追踪的实现方式&#34;&gt;8.2.1 端到端全链路追踪的实现方式&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;面向 AI 应用的领域化 Trace 语义&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/58734a9b5260416ea038ededef361970.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;基于 OpenTelemetry 的高质量数据采集&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/aea86fbca30c486facc5f20c5157b130.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;标准化协议&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/8329ad7f600f43bfadb4613de6f7a7b7.png&#34;&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>AI 应用运行时</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E8%BF%90%E8%A1%8C%E6%97%B6/</link>
+      <pubDate>Sun, 11 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E8%BF%90%E8%A1%8C%E6%97%B6/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;71-ai-应用运行时的演进趋势&#34;&gt;7.1 AI 应用运行时的演进趋势&lt;/h1&gt;
+&lt;h2 id=&#34;711-从云原生到-ai-原生&#34;&gt;7.1.1 从云原生到 AI 原生&lt;/h2&gt;
+&lt;p&gt;云原生时代的核心是应用。将单体应用拆解为更小、更独立、更具弹性的微服务，并高效地在云基础设施上进行部署、扩展和管理。&lt;/p&gt;
+&lt;p&gt;而 Agent 的工作流，不再是执行一段固定的 main 函数，而是一个动态的、长周期的、充满不确定性的“思考-行动”循环。需要极致弹性和成本效益。需要数小时上下文记忆、拥有完整文件系统、并能与浏览器进行复杂交互。&lt;/p&gt;
+&lt;h2 id=&#34;712-agentic-ai-应用的典型场景&#34;&gt;7.1.2 Agentic AI 应用的典型场景&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;场景一：交互式智能内容创作助手&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;对轮对话、上下文记忆、模型自托管、异构任务流、流式响应。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;场景二：个性化 AI 客服&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;事件驱动、企业数据、实时在线。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;场景三：通用 Agent 平台+病毒式传播的 AIGC 创意应用&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Agent 智能体、代码执行验证、部署与分享、脉冲式流量、大文件处理。&lt;/p&gt;
+&lt;h2 id=&#34;713-ai-原生应用运行时的核心能力&#34;&gt;7.1.3 AI 原生应用运行时的核心能力&lt;/h2&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/4bf9ca763c2f4739ab21c899e6643766.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;1、面向会话的状态管理与安全隔离&lt;/p&gt;
+&lt;p&gt;2、大规模实时弹性与精益成本管理&lt;/p&gt;
+&lt;p&gt;3、异构算力与标准化工具连接能力&lt;/p&gt;
+&lt;h1 id=&#34;72-模型运行时&#34;&gt;7.2 模型运行时&lt;/h1&gt;
+&lt;h2 id=&#34;721-企业模型使用的核心痛点&#34;&gt;7.2.1 企业模型使用的核心痛点&lt;/h2&gt;
+&lt;p&gt;资源浪费：业务流量波动大，高峰 10 万，平日几千，预留峰值会导致算力闲置。&lt;/p&gt;
+&lt;p&gt;冷启动：低频模型无法保持实例存活，使用时冷启动耗时长。&lt;/p&gt;
+&lt;p&gt;定制化：业务产品需要定制化，产品迭代周期长。&lt;/p&gt;
+&lt;h2 id=&#34;722-serverless-模型运行时的核心能力&#34;&gt;7.2.2 Serverless 模型运行时的核心能力&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Serverless 是什么？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Serverless 不是完全没有服务器，而是开发者不需要关心服务器的管理。对于开发者来说，只需关注代码，其他的交给云平台。主流 Serverless 平台包括阿里云函数计算、腾讯云云函数等。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Serverless 和云服务器的区别？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;云服务器只是一台远程的服务器；Serverless 只上传代码片段（函数），不管服务器，当有请求触发时，代码才会运行。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;1、异构算力和 1/N 卡切分使用&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;在算力层，Serverless 模型运行时通过 GPU 虚拟化技术将单张 GPU 显卡划分为 N 个独立计算单元，每个实例具备隔离的显存空间与算力资源，不同实例通过 GPU 分时复用技术实现并行推理。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>AI 网关</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E7%BD%91%E5%85%B3/</link>
+      <pubDate>Sat, 10 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E7%BD%91%E5%85%B3/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;61-网关的演进历程&#34;&gt;6.1 网关的演进历程&lt;/h1&gt;
+&lt;p&gt;是什么在推动软件架构的演进呢？业务规模。业务从互联网、移动互联网以及即将到来的万物互联，其规模仍然在高速增长，也就意味着软件架构的复杂度也会越来越高，网关的特性也会越来越多。越来越复杂、越来越智能。&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/5bf22b56b5b4464f8a6277cc8c17edd9.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;611-流量网关&#34;&gt;6.1.1 流量网关&lt;/h2&gt;
+&lt;p&gt;代表软件是 Nginx，将客户请求分配到不同的服务器上，从而实现流量负债均衡，避免单点故障，确保服务的稳定性和连续性。&lt;/p&gt;
+&lt;h2 id=&#34;612-esb-网关&#34;&gt;6.1.2 ESB 网关&lt;/h2&gt;
+&lt;p&gt;ESB，企业服务总线，通过集中管理消息路由、转换和安全，实现服务的快速部署和高效运作。&lt;/p&gt;
+&lt;h2 id=&#34;613-微服务网关&#34;&gt;6.1.3 微服务网关&lt;/h2&gt;
+&lt;p&gt;微服务网关可以实现负载均衡、限流、熔断、降级、身份验证等功能，通过统一入口管理和优化各微服务间的交互。Spring Cloud Gateway 是一个广泛应用的微服务网关。&lt;/p&gt;
+&lt;h2 id=&#34;614-云原生网关&#34;&gt;6.1.4 云原生网关&lt;/h2&gt;
+&lt;p&gt;云原生网关是伴随 K8S 的广泛应用而诞生的一种创新网关。既能有流量网关的特性来处理海量请求，又具备微服务网关的特性来做服务发现与服务治理，同时要求网关也具备弹性扩缩容能力解决容量调度问题。&lt;/p&gt;
+&lt;h2 id=&#34;615-ai-网关&#34;&gt;6.1.5 AI 网关&lt;/h2&gt;
+&lt;p&gt;之前的几种类型网关处理的流量基本是以 HTTP、RPC 为主，多采用长连接，长连接采用 request-response 模式。AI 采用的协议以 SSE/Websocket 为主，虽然也是长连接，但跟 request-response 模式相比，Server 可以主动发送数据给 Client，Websocket 更是一种全双工协议，主要在语音类的实时通讯场景中使用。&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/10f08f06650847409694087017f7f9c0.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;AI 场景对网关有新诉求，比如：多模型代理、智能路由、模型增强、安全防护、流式传输、无损变更等。&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/ca7cb41081da44c7a5342061aebe0352.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Higress 网关已经在阿里云内部大规模生产落地，可以访问项目地址了解：https://higress.ai/&lt;/p&gt;
+&lt;h2 id=&#34;616-api-网关&#34;&gt;6.1.6 API 网关&lt;/h2&gt;
+&lt;p&gt;从流量网关，再到 AI 网关，都是 API 网关在不同软件架构下的网关形态。HTTP/gRPC/Dubbo/Websocket 都可以称之为 API，MCP、A2A 也可以称之为 API。&lt;/p&gt;
+&lt;h1 id=&#34;62-ai-网关的定义特点与应用场景&#34;&gt;6.2 AI 网关的定义、特点与应用场景&lt;/h1&gt;
+&lt;p&gt;AI 网关是提供多模型流量调度，MCP 和 Agent 管理，智能路由和 AI 治理的下一代网关。AI 网关不仅完整继承了 API 网关的通用能力，如安全认证、路由转发、流量控制等，也演进出了大模型 Fallback、大模型负载均衡、Token 级别的精细化流量管控、语义化缓存、内容安全、联网搜索、MCP 协议转化和管理、工具精选和搜索效果优化等面向 AI 场景的能力。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>AI 工具</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%B7%A5%E5%85%B7/</link>
+      <pubDate>Fri, 09 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%B7%A5%E5%85%B7/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;51-ai-工具简介&#34;&gt;5.1 AI 工具简介&lt;/h1&gt;
+&lt;h2 id=&#34;511-function-calling&#34;&gt;5.1.1 Function Calling&lt;/h2&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/95cc2317230e4760a9adb9435283c508.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/ee6df274f39347e1992064268a75e991.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Function Calling 需要编写代码，并且存在规格碎片化、可靠性挑战、工程治理缺位、厂商锁定与迁移成本高等问题。&lt;/p&gt;
+&lt;h2 id=&#34;512-mcp&#34;&gt;5.1.2 MCP&lt;/h2&gt;
+&lt;p&gt;MCP，Model Context Protocol，模型上下文协议，是一个开放标准，帮助连接 AI 助手与数据所在的系统，包括内容存储库、业务工具和开发环境。&lt;/p&gt;
+&lt;p&gt;MCP 可以看作是 AI 应用程序的“USB-C 端口”，就像 USB-C 为连接设备与各种外设提供了标准化方式，MCP 为 AI 模型连接不同数据源和工具提供了标准化方法。&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/037d99bd2bdd48669370af85c3568941.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;MCP 把工具（Tools）、资源（Resources/用于检索与长上下文读写）、提示（Prompts）、会话（Sessions）、取样/推理（Sampling）等能力统一纳入协议语义，并标准化“枚举-描述-请求-响应-权限-审计”的全链路。传输层上，MCP 不限定具体载体，既可以通过 HTTP/WebSocket，也可以通过 stdio 等方式交换消息。&lt;/p&gt;
+&lt;h2 id=&#34;513-mcp-就足够了吗&#34;&gt;5.1.3 MCP 就足够了吗&lt;/h2&gt;
+&lt;p&gt;无论是 RAG、Function Call 还是 MCP，其实都是为了让模型获取更多知识，调用更多工具来完成更复杂的事情。MCP 并不是万能的，短期内存在不确定性与不同声音，国内是否成为事实标准亦未定。以 MCP 为协议底座，叠加 AI 工具接入的最佳实践与企业级安全治理，才能把“可接入”变成“可规模、可移植、可审计”的 Agent 能力。&lt;/p&gt;
+&lt;h1 id=&#34;52-ai-工具标准化&#34;&gt;5.2 AI 工具标准化&lt;/h1&gt;
+&lt;h2 id=&#34;521-mcp-协议介绍&#34;&gt;5.2.1 MCP 协议介绍&lt;/h2&gt;
+&lt;p&gt;MCP 协议遵循客户端-服务器（Client-Server）架构，允许 AI 应用程序通过 MCP 客户端与多个 MCP 服务器建立连接。MCP 架构包含以下几个部分：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;MCP Host：协调和管理一个或多个 MCP 客户端的 AI 应用程序，如 Claude Desktop、Visual Studio Code 等，需要通过 MCP 协议访问数据。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;MCP Client：MCP 客户端，运行在 MCP Host 内部，负责与 MCP Server 建立并维护连接。MCP Host 会为每一个 MCP Server 单独创建一个 Client，Client 与 Server 保持一对一连接。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;MCP Server：MCP 服务器，轻量级程序，通过 MCP 协议公开特定功能。MCP 协议规定了 MCP Server 可为 Client 提供工具、资源文件以及提示词模板。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    <item>
+      <title>上下文工程</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/</link>
+      <pubDate>Thu, 08 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;41-提示词工程&#34;&gt;4.1 提示词工程&lt;/h1&gt;
+&lt;p&gt;提示词工程，不是简单的提问，而是一套涵盖指令设计、上下文注入、角色设定和格式控制的综合性技术。&lt;/p&gt;
+&lt;h2 id=&#34;411-优秀提示词的核心实践&#34;&gt;4.1.1 优秀提示词的核心实践&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;明确角色与目标&lt;/p&gt;
+&lt;p&gt;范例：“假设你是一位拥有 10 年经验的市场营销总监，请为一款新型智能手表起草一份面向年轻专业人士的产品介绍文案。”&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;提供清晰指令与完整上下文&lt;/p&gt;
+&lt;p&gt;范例：“请总结以下技术文章的核心观点（不超过 200 字），并列出其中提到的三个关键数据。不要添加个人评论。文章内容如下：[在此处粘贴文章]”&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;运用范例进行引导&lt;/p&gt;
+&lt;p&gt;范例：“请分析以下句子的情感及关键对象。范例：输入：&amp;lsquo;我喜欢这部电影的剧情。&amp;lsquo;输出：{&amp;lsquo;sentiment&amp;rsquo;: &amp;lsquo;positive&amp;rsquo;, &amp;lsquo;aspect&amp;rsquo;: &amp;lsquo;plot&amp;rsquo;}。现在，请分析这个句子：&amp;lsquo;这台相机的画质很棒，但电池续航太短。&amp;rsquo;”&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;定义结构化输出格式&lt;/p&gt;
+&lt;p&gt;范例：“请将你的回答组织成 JSON 格式，包含&amp;rsquo;product_name&amp;rsquo;和&amp;rsquo;key_features&amp;rsquo;两个字段，其中 key_features 是一个包含至少三项功能的数组。”&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;412-提示词工程的固有局限性&#34;&gt;4.1.2 提示词工程的固有局限性&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;应对动态及长流程任务的局限&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;应对模型固有的无状态特性&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;无法突破模型固有的知识边界&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;长上下文中的信息利用不均衡&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;正是因为提示词工程有诸多局限性，上下文工程（Context Engineering）应运而生。&lt;/p&gt;
+&lt;h1 id=&#34;42-上下文工程&#34;&gt;4.2 上下文工程&lt;/h1&gt;
+&lt;p&gt;上下文工程的核心理念，在于将 AI 应用开发的焦点从优化单次交互的指令，转向为模型的每一次推理动态构建一个完整、准确且高效的认知环境。它不再局限于设计静态的提示词模板，而是致力于创建一个系统，确保模型在执行任务时，能够实时获取并利用完成该任务所需的所有相关信息，包括外部知识、历史记忆、可用工具及执行环境。&lt;/p&gt;
+&lt;h2 id=&#34;421-上下文工程与提示词工程的核心区别&#34;&gt;4.2.1 上下文工程与提示词工程的核心区别&lt;/h2&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/c0347935ea124e78a6c12dddb359207f.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;422-上下文工程的关键组成部分&#34;&gt;4.2.2 上下文工程的关键组成部分&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;外部知识库的动态供给&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;长期与短期记忆系统&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;工具与能力的扩展&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;运行时的上下文管理&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;43-rag-技术原理与挑战&#34;&gt;4.3 RAG 技术原理与挑战&lt;/h1&gt;
+&lt;h2 id=&#34;431-rag-的基础范式三阶段工作流&#34;&gt;4.3.1 RAG 的基础范式：三阶段工作流&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;1、第一阶段：索引（Indexing）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;将原始的外部知识转化为机器可高效检索的格式。文档解析与提取，文本分块（Chunking），语义向量化（Embedding），构建向量索引库。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;2、第二阶段：检索（Retrieval）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;根据用户的自然语言查询，从已构建好的向量索引库中，快速、准确地找出最相关的 N 个知识块（Top-K）。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;3、第三阶段：生成（Generation）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;将前一阶段检索到的多个相关知识块与用户的原始查询进行整合，构建一个增强的提示词（Augmented Prompt）。比如：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/2011be172cd348e6af3e22fd7d2a5e25.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;432-rag-在工程化落地中面临的挑战&#34;&gt;4.3.2 RAG 在工程化落地中面临的挑战&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;知识单元的完整性与信息密度的抉择&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;难以精准捕捉模糊、多样的用户意图&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;召回匹配时难以兼顾语义相关性与关键词精确性&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;需要探索如何在检索精度与完整性之间取得平衡&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;应对需要多知识点综合推理的查询实现&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    <item>
+      <title>AI 应用开发框架</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/</link>
+      <pubDate>Wed, 07 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;31-智能体的定义与主流开发范式&#34;&gt;3.1 智能体的定义与主流开发范式&lt;/h1&gt;
+&lt;h2 id=&#34;311-什么是智能体&#34;&gt;3.1.1 什么是智能体&lt;/h2&gt;
+&lt;p&gt;智能体（Agent）可以理解为一个具备自主理解、规划、记忆和工具使用能力的数字化实体。&lt;/p&gt;
+&lt;p&gt;我们在前面了解到 LLM、MCP，它们和 Agent 是啥关系呢？LLM 是“大脑”，Agent 是“身体”，Agent 通过 MCP 协议访问外部能力（Tools / Resources）。&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;【纯LLM交互】
+用户：帮我分析main.py文件
+LLM：我无法直接访问文件，请您将文件内容粘贴给我
+
+
+【Agent交互】
+用户：帮我分析main.py文件
+Agent：我来读取并分析这个文件
+      → 调用文件读取工具
+      → 分析代码结构
+      → 提供详细分析报告
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;智能体让 AI 从一个只会内容生成的语言模型，进化成一个具备自主规划能力的行动者。&lt;/p&gt;
+&lt;h2 id=&#34;312-智能体的主流开发范式&#34;&gt;3.1.2 智能体的主流开发范式&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;简单 LLM 应用：直接调用模型 API 实现内容生成&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;单智能体：增加 RAG、Tool、Memory 等，让模型具备与特定环境交互的能力&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;工作流：将应用拆分，形成多个独立子智能体，再按照预定义的流程编排起来&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;多智能体系统：相比于工作流，多智能体系统采用的是模型驱动的、对话式的流程编排，各个子智能体具备更多的自主决策权&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;313-单智能体&#34;&gt;3.1.3 单智能体&lt;/h2&gt;
+&lt;p&gt;典型的单智能体架构如下：&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/dfdbcb60c81c415ca4763d131989544d.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;单智能体非常依赖底层模型能力。&lt;/p&gt;
+&lt;h2 id=&#34;314-工作流&#34;&gt;3.1.4 工作流&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;1、Chain - 链式工作流&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/349d721c73e24cccb1c6c9a580b50483.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;每一步由一个独立的 LLM 调用完成，并将上一阶段的输出作为下一阶段的输入。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;2、Routing - 路由工作流&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/4d806716b58b47e192a3c249d4c8c721.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;对输入进行分类，将它们分派到专门设计的下游任务或处理路径。&lt;/p&gt;
+&lt;h2 id=&#34;315-多智能体系统&#34;&gt;3.1.5 多智能体系统&lt;/h2&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/09efbc8c281c4735ba94b14d6fcc05a7.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;由多个具备一定自治能力的 Agent 组成，每个 Agent 有自己的角色、能力或工具使用范围。它们之间可以通过消息或上下文进行交互，协同完成复杂目标。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>AI 原生应用的关键要素</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%8E%9F%E7%94%9F%E5%BA%94%E7%94%A8%E7%9A%84%E5%85%B3%E9%94%AE%E8%A6%81%E7%B4%A0/</link>
+      <pubDate>Tue, 06 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%8E%9F%E7%94%9F%E5%BA%94%E7%94%A8%E7%9A%84%E5%85%B3%E9%94%AE%E8%A6%81%E7%B4%A0/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;21-模型&#34;&gt;2.1 模型&lt;/h1&gt;
+&lt;p&gt;大模型扮演着大脑的角色，负责核心的理解、推理与生成任务。&lt;/p&gt;
+&lt;h2 id=&#34;211-模型分类&#34;&gt;2.1.1 模型分类&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;通用大模型&lt;/strong&gt;：GPT、Claude、Qwen、DeepSeek、Gemini 等通用大模型。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;垂直领域模型&lt;/strong&gt;：情感分析、语言翻译、意图分类等垂直领域模型。&lt;/p&gt;
+&lt;p&gt;通用大模型适合处理复杂、开放的任务，垂直领域模型适合处理简单、高频的任务。&lt;/p&gt;
+&lt;h2 id=&#34;212-模型能力和微调&#34;&gt;2.1.2 模型能力和微调&lt;/h2&gt;
+&lt;p&gt;模型的知识是固化的，需要不断地“喂”它，把这些信息结构化地描述清楚并且提供给它，它会在每次的交互中动态地理解你提供的内容，并结合自身的通用知识来完成内容的生成。&lt;/p&gt;
+&lt;p&gt;企业专属模型的训练和微调的成本是巨大的，它不仅包括高昂的计算资源费用，还需要海量的高质量标注数据、专业的算法团队以及漫长的开发周期。对于绝大多企业来说，投入与产出不成正比，很难持续。&lt;/p&gt;
+&lt;h2 id=&#34;213-如何选择模型&#34;&gt;2.1.3 如何选择模型&lt;/h2&gt;
+&lt;p&gt;基于企业的实际业务场景，权衡任务复杂度、性能要求、开发成本和响应延迟等多个因素来综合选择和组合最合适的模型。&lt;/p&gt;
+&lt;p&gt;一个务实的策略是从顶配开始，逐步优化：先用能力最强的模型搭建原型以验证业务逻辑，再逐步将流程中的非核心、简单任务替换为更经济、更快速的小模型，最终找到成本与性能的最佳平衡点。&lt;/p&gt;
+&lt;h1 id=&#34;22-框架&#34;&gt;2.2 框架&lt;/h1&gt;
+&lt;p&gt;Spring 或 Dubbo 开发一个微服务应用，代码确定，容易形成标准化的框架。而开发一个 AI Agent 应用，LLM 存在高度不确定性，设计模式的落地方式差异很大。&lt;/p&gt;
+&lt;h2 id=&#34;221-agent-设计模式&#34;&gt;2.2.1 Agent 设计模式&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;1、Chain of Thought（思维链）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;让模型在回答前，把推理过程一步步写出来。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;2、Self-Ask（自问自答）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;让模型在回答时学会反问自己，把大问题拆成多个小问题，然后逐个回答。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;3、ReAct（推理+行动）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;在推理和外部行动（比如调用搜索引擎或 API）之间交替进行。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;4、Plan-and-Execute（计划与执行）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;把任务拆成两个阶段，先生成计划，再逐步执行。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;5、Tree of Thoughts（ToT，树状思维）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;不是单线思维，而是生成多条思路分支，像树一样展开，再通过评估机制选出最佳分支。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;6、Reflexion / Iterative Refinement（反思与迭代优化）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Agent 自我纠错，犯错后会总结失败原因，再带着反思尝试下一次。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;7、Role-playing Agents（角色扮演式智能体）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;把任务拆分给不同角色的 Agent，通过对话协作完成任务。&lt;/p&gt;
+&lt;p&gt;这些模式不是互斥的，可以混搭使用。&lt;/p&gt;
+&lt;p&gt;其中 ReAct 已经被 LangChain、LlamaIndex、Dify、Spring AI Alibaba 等开发框架内置为基础框架。&lt;/p&gt;
+&lt;h2 id=&#34;222-agent-开发框架&#34;&gt;2.2.2 Agent 开发框架&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;1、从低代码到高代码&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;低代码平台是对于高代码的一层封装，其抽象层次很难满足所有场景，无法在性能、扩展性和复杂业务逻辑方面满足大规模生产的要求。&lt;/p&gt;
+&lt;p&gt;高代码是当下 AI 原生应用生产落地的主流形态，ADK、LangGraph、AutoGen、AgentScope、Spring AI Alibaba 等框架，为开发者提供了面向 Agent 的编程接口。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>AI 原生应用及其架构</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%8E%9F%E7%94%9F%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E6%9E%B6%E6%9E%84/</link>
+      <pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%8E%9F%E7%94%9F%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E6%9E%B6%E6%9E%84/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;11-大模型技术发展回顾和产业价值&#34;&gt;1.1 大模型技术发展回顾和产业价值&lt;/h1&gt;
+&lt;h2 id=&#34;111-大模型发展回顾与展望&#34;&gt;1.1.1 大模型发展回顾与展望&lt;/h2&gt;
+&lt;p&gt;2022 年 11 月，ChatGPT 横空出世，模型即服务（MaaS）模式快速兴起，AI 从实验室走向商业场景。2024 年，OpenAI 推出 o1 模型和 4o 模型，大模型技术迎来质的飞跃。2025 年，多家大模型厂商支持模型上下文协议（MCP），Google 推出 A2A 架构，AI 从单点工具向系统级生产力工具转变。&lt;/p&gt;
+&lt;h2 id=&#34;112-大模型的五大产业价值&#34;&gt;1.1.2 大模型的五大产业价值&lt;/h2&gt;
+&lt;p&gt;效率新工具、服务新体验、产品新形态、决策新助手、科研新模式。&lt;/p&gt;
+&lt;h1 id=&#34;12-ai-时代应用架构的演进&#34;&gt;1.2 AI 时代应用架构的演进&lt;/h1&gt;
+&lt;h2 id=&#34;121-it-应用架构的演进脉络&#34;&gt;1.2.1 IT 应用架构的演进脉络&lt;/h2&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/7efa463c67ae45da82088594212f5057.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;云原生架构是指，Kubernetes 等技术通过容器化、集群化管理，实现按量使用、秒级弹性的极致资源调度。&lt;/p&gt;
+&lt;p&gt;每一次架构升级，都是在满足业务规模更大、需求变化更快、资源成本更低的述求。&lt;/p&gt;
+&lt;h2 id=&#34;122-云原生应用架构向-ai-原生应用架构的跃迁&#34;&gt;1.2.2 云原生应用架构向 AI 原生应用架构的跃迁&lt;/h2&gt;
+&lt;p&gt;如果说，云原生解决的是如何高效地运行，那么 AI 原生是在此基础上解决如何智能地运行。&lt;/p&gt;
+&lt;p&gt;在云原生应用架构中，我们讨论的是容器如何管理、服务如何拆分、流量如何治理。而在 AI 原生应用架构下，其目标是在满足可扩展、可观测、安全合规的同时，最大化释放模型的智能潜力。&lt;/p&gt;
+&lt;p&gt;在大语言模型（LLM）出现之前，AI 只能以功能模块形态嵌入系统。LLM 具备通用理解、推理和生成能力，并能通过函数调用、外部工具联动和知识库，形成可扩展的 Agent 体系。AI 原生应用的运行逻辑不再完全由工程师编写的代码所决定，而是由大模型进行自出判断、行动和生成，并具备以下 3 个特征：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;以 LLM 为核心，用自然语言统一交互协议；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;以多模态感知扩展输入边界，以 Agent 框架编排工具链；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;以数据飞轮驱动模型持续进化，实现系统的自我优化。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;13-ai-原生应用及其架构的定义&#34;&gt;1.3 AI 原生应用及其架构的定义&lt;/h1&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;../assets/c0b3a9a5fdbc4fce8d82a8d32367b7a2.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;AI 原生应用架构，涵盖了模型、应用开发框架、提示词、RAG、记忆、工具、网关、运行时、可观测、评估和安全等关键要素。&lt;/p&gt;
+&lt;h2 id=&#34;131-大模型推理决策&#34;&gt;1.3.1 大模型推理决策&lt;/h2&gt;
+&lt;p&gt;传统应用使用编程语言（Java、C++等）进行编码，AI 原生应用使用大语言模型（LLM），通过 Prompt（提示词）等自然语言方式进行构建。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>我 3 个月没手写测试用例了，但我的用例采纳率是 80%</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E6%88%913%E4%B8%AA%E6%9C%88%E6%B2%A1%E6%89%8B%E5%86%99%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E4%BA%86%E4%BD%86%E6%88%91%E7%9A%84%E7%94%A8%E4%BE%8B%E9%87%87%E7%BA%B3%E7%8E%87%E6%98%AF80/</link>
+      <pubDate>Sat, 03 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E6%88%913%E4%B8%AA%E6%9C%88%E6%B2%A1%E6%89%8B%E5%86%99%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E4%BA%86%E4%BD%86%E6%88%91%E7%9A%84%E7%94%A8%E4%BE%8B%E9%87%87%E7%BA%B3%E7%8E%87%E6%98%AF80/</guid>
+      <description>编写测试用例，是我做测试工作最痛苦的一件事情，没有之一。最难受的是把测试点写成“标准”用例。先要写一个让人一目了然的用例标题，还要讲究什么主谓宾造句，曾经为了让标题好看，我还硬加“验证”2 个字前缀。前提条件要把账号数据这些罗列出来。步骤要写清楚每一步干啥，预期也要具体化和量化，不能只写正确。文字写起来啰里啰嗦，写多了头都炸了。</description>
+    </item>
+    <item>
+      <title>Claude Code 使用技巧帮你提效 80%</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/claude-code%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E5%B8%AE%E4%BD%A0%E6%8F%90%E6%95%8880/</link>
+      <pubDate>Fri, 02 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/claude-code%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E5%B8%AE%E4%BD%A0%E6%8F%90%E6%95%8880/</guid>
+      <description>Claude Code 是 Anthropic 公司的产品，跟字节的豆包、阿里的千问和腾讯的元宝一样，只不过它更擅长于跟代码打交道。用 Claude Code 来写代码，就是通常说的 Vibe Coding，跟着感觉编程。</description>
+    </item>
+    <item>
+      <title>AI 测试工具开发新姿势 MCP Python SDK</title>
+      <link>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91%E6%96%B0%E5%A7%BF%E5%8A%BFmcp-python-sdk/</link>
+      <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91%E6%96%B0%E5%A7%BF%E5%8A%BFmcp-python-sdk/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;简介&#34;&gt;简介&lt;/h1&gt;
+&lt;p&gt;MCP 是什么？通俗易懂地讲，在互联网时代，应用程序是通过 HTTP 来交互的，而来到 AI 时代，大模型可以通过 MCP 来进行交互。MCP 是 Model Context Protocol 缩写，专为大模型（LLM，Large Language Model）设计的大模型上下文协议。&lt;/p&gt;
+&lt;p&gt;MCP Server 是什么？MCP Server 就像网关之于应用程序，数据库连接池之于数据库，位于中间位置，接收请求，调用大模型。可以调用 Server 进行业务开发，也可以自建 Server 实现特定功能。&lt;/p&gt;
+&lt;p&gt;MCP Python SDK 是什么？MCP 的 Python 实现，它包含以下功能（官方原文）：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Build MCP clients that can connect to any MCP server&lt;/li&gt;
+&lt;li&gt;Create MCP servers that expose resources, prompts and tools&lt;/li&gt;
+&lt;li&gt;Use standard transports like stdio, SSE, and Streamable HTTP&lt;/li&gt;
+&lt;li&gt;Handle all MCP protocol messages and lifecycle events&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;安装&#34;&gt;安装&lt;/h1&gt;
+&lt;p&gt;推荐使用 uv 工具来管理 Python 项目。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

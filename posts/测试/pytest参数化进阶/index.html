@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>pytest 参数化进阶 | 测试开发刚哥</title>
+<meta name="keywords" content="pytest">
+<meta name="description" content="用过 unittest 的朋友，肯定知道可以借助 DDT 实现参数化。用过 JMeter 的朋友，肯定知道 JMeter 自带了 4 种参数化方式（见参考资料）。pytest 同样支持参数化，而且很简单很实用。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="pytest 参数化进阶">
+  <meta property="og:description" content="用过 unittest 的朋友，肯定知道可以借助 DDT 实现参数化。用过 JMeter 的朋友，肯定知道 JMeter 自带了 4 种参数化方式（见参考资料）。pytest 同样支持参数化，而且很简单很实用。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:tag" content="Pytest">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="pytest 参数化进阶">
+  <meta name="twitter:description" content="用过 unittest 的朋友，肯定知道可以借助 DDT 实现参数化。用过 JMeter 的朋友，肯定知道 JMeter 自带了 4 种参数化方式（见参考资料）。pytest 同样支持参数化，而且很简单很实用。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "pytest 参数化进阶",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "pytest 参数化进阶",
+  "name": "pytest 参数化进阶",
+  "description": "用过 unittest 的朋友，肯定知道可以借助 DDT 实现参数化。用过 JMeter 的朋友，肯定知道 JMeter 自带了 4 种参数化方式（见参考资料）。pytest 同样支持参数化，而且很简单很实用。",
+  "keywords": [
+    "pytest"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n用过 unittest 的朋友，肯定知道可以借助 DDT 实现参数化。用过 JMeter 的朋友，肯定知道 JMeter 自带了 4 种参数化方式（见参考资料）。pytest 同样支持参数化，而且很简单很实用。\n语法 在《pytest 封神之路第三步 精通 fixture》和《pytest 封神之路第四步 内置和自定义 marker》两篇文章中，都提到了 pytest 参数化。那么本文就趁着热乎，赶紧聊一聊 pytest 的参数化是怎么玩的。\n@pytest.mark.parametrize\n@pytest.mark.parametrize(\"test_input,expected\", [(\"3+5\", 8), (\"2+4\", 6), (\"6*9\", 42)]) def test_eval(test_input, expected): assert eval(test_input) == expected 可以自定义变量，test_input 对应的值是\"3+5\" “2+4” “6*9”，expected 对应的值是 8 6 42，多个变量用 tuple，多个 tuple 用 list\n参数化的变量是引用而非复制，意味着如果值是 list 或 dict，改变值会影响后续的 test\n重叠产生笛卡尔积\nimport pytest @pytest.mark.parametrize(\"x\", [0, 1]) @pytest.mark.parametrize(\"y\", [2, 3]) def test_foo(x, y): pass @pytest.fixture()\n@pytest.fixture(scope=\"module\", params=[\"smtp.gmail.com\", \"mail.python.org\"]) def smtp_connection(request): smtp_connection = smtplib.SMTP(request.param, 587, timeout=5) 只能使用 request.param 来引用\n参数化生成的 test 带有 ID，可以使用-k来筛选执行。默认是根据函数名[参数名]来的，可以使用 ids 来定义\n// list @pytest.fixture(params=[0, 1], ids=[\"spam\", \"ham\"]) // function @pytest.fixture(params=[0, 1], ids=idfn) 使用--collect-only 命令行参数可以看到生成的 IDs。\n参数添加 marker\n我们知道了参数化后会生成多个 tests，如果有些 test 需要 marker，可以用 pytest.param 来添加\nmarker 方式\n## content of test_expectation.py import pytest @pytest.mark.parametrize( \"test_input,expected\", [(\"3+5\", 8), (\"2+4\", 6), pytest.param(\"6*9\", 42, marks=pytest.mark.xfail)], ) def test_eval(test_input, expected): assert eval(test_input) == expected fixture 方式\n## content of test_fixture_marks.py import pytest @pytest.fixture(params=[0, 1, pytest.param(2, marks=pytest.mark.skip)]) def data_set(request): return request.param def test_data(data_set): pass pytest_generate_tests\n用来自定义参数化方案。使用到了 hook，hook 的知识我会写在《pytest hook》中，欢迎关注公众号 dongfanger 获取最新文章。\n## content of conf.py def pytest_generate_tests(metafunc): if \"test_input\" in metafunc.fixturenames: metafunc.parametrize(\"test_input\", [0, 1]) ## content of test.py def test(test_input): assert test_input == 0 定义在 conftest.py 文件中 metafunc 有 5 个属性，fixturenames，module，config，function，cls metafunc.parametrize() 用来实现参数化 多个 metafunc.parametrize() 的参数名不能重复，否则会报错 参数化误区 在讲示例之前，先简单分享我的菜鸡行为。假设我们现在需要对 50 个接口测试，验证某一角色的用户访问这些接口会返回 403。我的做法是，把接口请求全部参数化了，test 函数里面只有断言，伪代码大致如下\ndef api(): params = [] def func(): return request() params.append(func) ... @pytest.mark.parametrize('req', api()) def test(): res = req() assert res.status_code == 403 这样参数化以后，会产生50 个 tests，如果断言失败了，会单独标记为 failed，不影响其他 test 结果。咋一看还行，但是有个问题，在回归的时候，可能只需要验证其中部分接口，就没有办法灵活的调整，必须全部跑一遍才行。这是一个相对错误的示范，至于正确的应该怎么写，相信每个人心中都有一个答案，能解决问题就是 ok 的。我想表达的是，参数化要适当，不要滥用，最好只对测试数据做参数化。\n实践 本文的重点来了，参数化的语法比较简单，实际应用是关键。这部分通过 11 个例子，来实践一下。示例覆盖的知识点有点多，建议留大段时间细看。\n1.使用 hook 添加命令行参数–all，“param1\"是参数名，带–all 参数时是 range(5) == [0, 1, 2, 3, 4]，生成 5 个 tests。不带参数时是 range(2)。\n## content of test_compute.py def test_compute(param1): assert param1 \u003c 4 ## content of conftest.py def pytest_addoption(parser): parser.addoption(\"--all\", action=\"store_true\", help=\"run all combinations\") def pytest_generate_tests(metafunc): if \"param1\" in metafunc.fixturenames: if metafunc.config.getoption(\"all\"): end = 5 else: end = 2 metafunc.parametrize(\"param1\", range(end)) 2.testdata 是测试数据，包括 2 组。test_timedistance_v0 不带 ids。test_timedistance_v1 带 list 格式的 ids。test_timedistance_v2 的 ids 为函数。test_timedistance_v3 使用 pytest.param 同时定义测试数据和 id。\n## content of test_time.py from datetime import datetime, timedelta import pytest testdata = [ (datetime(2001, 12, 12), datetime(2001, 12, 11), timedelta(1)), (datetime(2001, 12, 11), datetime(2001, 12, 12), timedelta(-1)), ] @pytest.mark.parametrize(\"a,b,expected\", testdata) def test_timedistance_v0(a, b, expected): diff = a - b assert diff == expected @pytest.mark.parametrize(\"a,b,expected\", testdata, ids=[\"forward\", \"backward\"]) def test_timedistance_v1(a, b, expected): diff = a - b assert diff == expected def idfn(val): if isinstance(val, (datetime,)): # note this wouldn't show any hours/minutes/seconds return val.strftime(\"%Y%m%d\") @pytest.mark.parametrize(\"a,b,expected\", testdata, ids=idfn) def test_timedistance_v2(a, b, expected): diff = a - b assert diff == expected @pytest.mark.parametrize( \"a,b,expected\", [ pytest.param( datetime(2001, 12, 12), datetime(2001, 12, 11), timedelta(1), id=\"forward\" ), pytest.param( datetime(2001, 12, 11), datetime(2001, 12, 12), timedelta(-1), id=\"backward\" ), ], ) def test_timedistance_v3(a, b, expected): diff = a - b assert diff == expected 3.兼容 unittest 的 testscenarios\n## content of test_scenarios.py def pytest_generate_tests(metafunc): idlist = [] argvalues = [] for scenario in metafunc.cls.scenarios: idlist.append(scenario[0]) items = scenario[1].items() argnames = [x[0] for x in items] argvalues.append([x[1] for x in items]) metafunc.parametrize(argnames, argvalues, ids=idlist, scope=\"class\") scenario1 = (\"basic\", {\"attribute\": \"value\"}) scenario2 = (\"advanced\", {\"attribute\": \"value2\"}) class TestSampleWithScenarios: scenarios = [scenario1, scenario2] def test_demo1(self, attribute): assert isinstance(attribute, str) def test_demo2(self, attribute): assert isinstance(attribute, str) 4.初始化数据库连接\n## content of test_backends.py import pytest def test_db_initialized(db): # a dummy test if db.__class__.__name__ == \"DB2\": pytest.fail(\"deliberately failing for demo purposes\") ## content of conftest.py import pytest def pytest_generate_tests(metafunc): if \"db\" in metafunc.fixturenames: metafunc.parametrize(\"db\", [\"d1\", \"d2\"], indirect=True) class DB1: \"one database object\" class DB2: \"alternative database object\" @pytest.fixture def db(request): if request.param == \"d1\": return DB1() elif request.param == \"d2\": return DB2() else: raise ValueError(\"invalid internal test config\") 5.如果不加 indirect=True，会生成 2 个 test，fixt 的值分别是\"a\"和\"b”。如果加了 indirect=True，会先执行 fixture，fixt 的值分别是\"aaa\"和\"bbb\"。indirect=True 结合 fixture 可以在生成 test 前，对参数变量额外处理。\nimport pytest @pytest.fixture def fixt(request): return request.param * 3 @pytest.mark.parametrize(\"fixt\", [\"a\", \"b\"], indirect=True) def test_indirect(fixt): assert len(fixt) == 3 6.多个参数时，indirect 赋值 list 可以指定某些变量应用 fixture，没有指定的保持原值。\n## content of test_indirect_list.py import pytest @pytest.fixture(scope=\"function\") def x(request): return request.param * 3 @pytest.fixture(scope=\"function\") def y(request): return request.param * 2 @pytest.mark.parametrize(\"x, y\", [(\"a\", \"b\")], indirect=[\"x\"]) def test_indirect(x, y): assert x == \"aaa\" assert y == \"b\" 7.兼容 unittest 参数化\n## content of ./test_parametrize.py import pytest def pytest_generate_tests(metafunc): # called once per each test function funcarglist = metafunc.cls.params[metafunc.function.__name__] argnames = sorted(funcarglist[0]) metafunc.parametrize( argnames, [[funcargs[name] for name in argnames] for funcargs in funcarglist] ) class TestClass: # a map specifying multiple argument sets for a test method params = { \"test_equals\": [dict(a=1, b=2), dict(a=3, b=3)], \"test_zerodivision\": [dict(a=1, b=0)], } def test_equals(self, a, b): assert a == b def test_zerodivision(self, a, b): with pytest.raises(ZeroDivisionError): a / b 8.在不同 python 解释器之间测试对象序列化。python1 把对象 pickle-dump 到文件。python2 从文件中 pickle-load 对象。\n\"\"\" module containing a parametrized tests testing cross-python serialization via the pickle module. \"\"\" import shutil import subprocess import textwrap import pytest pythonlist = [\"python3.5\", \"python3.6\", \"python3.7\"] @pytest.fixture(params=pythonlist) def python1(request, tmpdir): picklefile = tmpdir.join(\"data.pickle\") return Python(request.param, picklefile) @pytest.fixture(params=pythonlist) def python2(request, python1): return Python(request.param, python1.picklefile) class Python: def __init__(self, version, picklefile): self.pythonpath = shutil.which(version) if not self.pythonpath: pytest.skip(\"{!r} not found\".format(version)) self.picklefile = picklefile def dumps(self, obj): dumpfile = self.picklefile.dirpath(\"dump.py\") dumpfile.write( textwrap.dedent( r\"\"\" import pickle f = open({!r}, 'wb') s = pickle.dump({!r}, f, protocol=2) f.close() \"\"\".format( str(self.picklefile), obj ) ) ) subprocess.check_call((self.pythonpath, str(dumpfile))) def load_and_is_true(self, expression): loadfile = self.picklefile.dirpath(\"load.py\") loadfile.write( textwrap.dedent( r\"\"\" import pickle f = open({!r}, 'rb') obj = pickle.load(f) f.close() res = eval({!r}) if not res: raise SystemExit(1) \"\"\".format( str(self.picklefile), expression ) ) ) print(loadfile) subprocess.check_call((self.pythonpath, str(loadfile))) @pytest.mark.parametrize(\"obj\", [42, {}, {1: 3}]) def test_basic_objects(python1, python2, obj): python1.dumps(obj) python2.load_and_is_true(\"obj == {}\".format(obj)) 9.假设有个 API，basemod 是原始版本，optmod 是优化版本，验证二者结果一致。\n## content of conftest.py import pytest @pytest.fixture(scope=\"session\") def basemod(request): return pytest.importorskip(\"base\") @pytest.fixture(scope=\"session\", params=[\"opt1\", \"opt2\"]) def optmod(request): return pytest.importorskip(request.param) ## content of base.py def func1(): return 1 ## content of opt1.py def func1(): return 1.0001 ## content of test_module.py def test_func1(basemod, optmod): assert round(basemod.func1(), 3) == round(optmod.func1(), 3) 10.使用 pytest.param 添加 marker 和 id。\n## content of test_pytest_param_example.py import pytest @pytest.mark.parametrize( \"test_input,expected\", [ (\"3+5\", 8), pytest.param(\"1+7\", 8, marks=pytest.mark.basic), pytest.param(\"2+4\", 6, marks=pytest.mark.basic, id=\"basic_2+4\"), pytest.param( \"6*9\", 42, marks=[pytest.mark.basic, pytest.mark.xfail], id=\"basic_6*9\" ), ], ) def test_eval(test_input, expected): assert eval(test_input) == expected 11.使用 pytest.raises 让部分 test 抛出 Error。\nfrom contextlib import contextmanager import pytest // 3.7+ from contextlib import nullcontext as does_not_raise @contextmanager def does_not_raise(): yield @pytest.mark.parametrize( \"example_input,expectation\", [ (3, does_not_raise()), (2, does_not_raise()), (1, does_not_raise()), (0, pytest.raises(ZeroDivisionError)), ], ) def test_division(example_input, expectation): \"\"\"Test how much I know division.\"\"\" with expectation: assert (6 / example_input) is not None 简要回顾 本文先讲了参数化的语法，包括 marker，fixture，hook 方式，以及如何给参数添加 marker，然后重点列举了几个实战示例。参数化用好了能节省编码，达到事半功倍的效果。\n参考资料\ndocs-pytest-org-en-stable\n",
+  "wordCount" : "1029",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-05T00:00:00Z",
+  "dateModified": "2026-01-05T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E5%8F%82%E6%95%B0%E5%8C%96%E8%BF%9B%E9%98%B6/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      pytest 参数化进阶
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-05T00:00:00+00:00'>2026-01-05</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/pytest/'>#Pytest</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>用过 unittest 的朋友，肯定知道可以借助 DDT 实现参数化。用过 JMeter 的朋友，肯定知道 JMeter 自带了 4 种参数化方式（见参考资料）。pytest 同样支持参数化，而且很简单很实用。</p>
+<h2 id="语法">语法<a hidden class="anchor" aria-hidden="true" href="#语法">#</a></h2>
+<p>在《pytest 封神之路第三步 精通 fixture》和《pytest 封神之路第四步 内置和自定义 marker》两篇文章中，都提到了 pytest 参数化。那么本文就趁着热乎，赶紧聊一聊 pytest 的参数化是怎么玩的。</p>
+<p><strong>@pytest.mark.parametrize</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;test_input,expected&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">[(</span><span style="color:#0a3069">&#34;3+5&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">8</span><span style="color:#1f2328">),</span> <span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;2+4&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">6</span><span style="color:#1f2328">),</span> <span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;6*9&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">42</span><span style="color:#1f2328">)])</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_eval</span><span style="color:#1f2328">(</span>test_input<span style="color:#1f2328">,</span> expected<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> <span style="color:#6639ba">eval</span><span style="color:#1f2328">(</span>test_input<span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> expected
+</span></span></code></pre></div><ul>
+<li>
+<p>可以自定义变量，test_input 对应的值是&quot;3+5&quot; &ldquo;2+4&rdquo; &ldquo;6*9&rdquo;，expected 对应的值是 8 6 42，<strong>多个变量用 tuple，多个 tuple 用 list</strong></p>
+</li>
+<li>
+<p>参数化的变量是引用而非复制，意味着如果值是 list 或 dict，改变值会影响后续的 test</p>
+</li>
+<li>
+<p>重叠产生笛卡尔积</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;x&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;y&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">[</span><span style="color:#0550ae">2</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">3</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_foo</span><span style="color:#1f2328">(</span>x<span style="color:#1f2328">,</span> y<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">pass</span>
+</span></span></code></pre></div></li>
+</ul>
+<p><strong>@pytest.fixture()</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;module&#34;</span><span style="color:#1f2328">,</span> params<span style="color:#0550ae">=</span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;smtp.gmail.com&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;mail.python.org&#34;</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">smtp_connection</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    smtp_connection <span style="color:#0550ae">=</span> smtplib<span style="color:#0550ae">.</span>SMTP<span style="color:#1f2328">(</span>request<span style="color:#0550ae">.</span>param<span style="color:#1f2328">,</span> <span style="color:#0550ae">587</span><span style="color:#1f2328">,</span> timeout<span style="color:#0550ae">=</span><span style="color:#0550ae">5</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><ul>
+<li>
+<p>只能使用 request.param 来引用</p>
+</li>
+<li>
+<p>参数化生成的 test 带有 ID，可以使用<code>-k</code>来筛选执行。默认是根据<code>函数名[参数名]</code>来的，可以使用 ids 来定义</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">//</span> <span style="color:#6639ba">list</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>params<span style="color:#0550ae">=</span><span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">],</span> ids<span style="color:#0550ae">=</span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;spam&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;ham&#34;</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">//</span> function
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>params<span style="color:#0550ae">=</span><span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">],</span> ids<span style="color:#0550ae">=</span>idfn<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>使用<code>--collect-only  </code>命令行参数可以看到生成的 IDs。</p>
+</li>
+</ul>
+<p><strong>参数添加 marker</strong></p>
+<p>我们知道了参数化后会生成多个 tests，如果有些 test 需要 marker，可以用 pytest.param 来添加</p>
+<p>marker 方式</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_expectation.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;test_input,expected&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">[(</span><span style="color:#0a3069">&#34;3+5&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">8</span><span style="color:#1f2328">),</span> <span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;2+4&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">6</span><span style="color:#1f2328">),</span> pytest<span style="color:#0550ae">.</span>param<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;6*9&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">42</span><span style="color:#1f2328">,</span> marks<span style="color:#0550ae">=</span>pytest<span style="color:#0550ae">.</span>mark<span style="color:#0550ae">.</span>xfail<span style="color:#1f2328">)],</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_eval</span><span style="color:#1f2328">(</span>test_input<span style="color:#1f2328">,</span> expected<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> <span style="color:#6639ba">eval</span><span style="color:#1f2328">(</span>test_input<span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> expected
+</span></span></code></pre></div><p>fixture 方式</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_fixture_marks.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>params<span style="color:#0550ae">=</span><span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">,</span> pytest<span style="color:#0550ae">.</span>param<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">,</span> marks<span style="color:#0550ae">=</span>pytest<span style="color:#0550ae">.</span>mark<span style="color:#0550ae">.</span>skip<span style="color:#1f2328">)])</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">data_set</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> request<span style="color:#0550ae">.</span>param
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_data</span><span style="color:#1f2328">(</span>data_set<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">pass</span>
+</span></span></code></pre></div><p><strong>pytest_generate_tests</strong></p>
+<p>用来自定义参数化方案。使用到了 hook，hook 的知识我会写在《pytest hook》中，欢迎关注公众号 dongfanger 获取最新文章。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of conf.py</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">pytest_generate_tests</span><span style="color:#1f2328">(</span>metafunc<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#0a3069">&#34;test_input&#34;</span> <span style="color:#0550ae">in</span> metafunc<span style="color:#0550ae">.</span>fixturenames<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        metafunc<span style="color:#0550ae">.</span>parametrize<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;test_input&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">])</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test.py</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">(</span>test_input<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> test_input <span style="color:#0550ae">==</span> <span style="color:#0550ae">0</span>
+</span></span></code></pre></div><ul>
+<li>定义在 conftest.py 文件中</li>
+<li>metafunc 有 5 个属性，fixturenames，module，config，function，cls</li>
+<li>metafunc.parametrize() 用来实现参数化</li>
+<li>多个 metafunc.parametrize() 的参数名不能重复，否则会报错</li>
+</ul>
+<h2 id="参数化误区">参数化误区<a hidden class="anchor" aria-hidden="true" href="#参数化误区">#</a></h2>
+<p>在讲示例之前，先简单分享我的菜鸡行为。假设我们现在需要对 50 个接口测试，验证某一角色的用户访问这些接口会返回 403。我的做法是，把接口请求全部参数化了，test 函数里面只有断言，<strong>伪代码</strong>大致如下</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">api</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    params <span style="color:#0550ae">=</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">func</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> request<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    params<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span>func<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;req&#39;</span><span style="color:#1f2328">,</span> api<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    res <span style="color:#0550ae">=</span> req<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> res<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">==</span> <span style="color:#0550ae">403</span>
+</span></span></code></pre></div><p>这样参数化以后，会产生<strong>50 个 tests</strong>，如果断言失败了，会单独标记为 failed，不影响其他 test 结果。咋一看还行，但是有个问题，在回归的时候，可能只需要验证其中部分接口，就没有办法灵活的调整，必须全部跑一遍才行。这是一个<strong>相对错误的示范</strong>，至于正确的应该怎么写，相信每个人心中都有一个答案，能解决问题就是 ok 的。我想表达的是，<strong>参数化要适当，不要滥用，最好只对测试数据做参数化</strong>。</p>
+<h2 id="实践">实践<a hidden class="anchor" aria-hidden="true" href="#实践">#</a></h2>
+<p>本文的<strong>重点</strong>来了，参数化的语法比较简单，实际应用是关键。这部分通过 11 个例子，来实践一下。<strong>示例覆盖的知识点有点多，建议留大段时间细看。</strong></p>
+<p>1.使用 hook 添加命令行参数&ndash;all，&ldquo;param1&quot;是参数名，带&ndash;all 参数时是 range(5) == [0, 1, 2, 3, 4]，生成 5 个 tests。不带参数时是 range(2)。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_compute.py</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_compute</span><span style="color:#1f2328">(</span>param1<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> param1 <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">4</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of conftest.py</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">pytest_addoption</span><span style="color:#1f2328">(</span>parser<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    parser<span style="color:#0550ae">.</span>addoption<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;--all&#34;</span><span style="color:#1f2328">,</span> action<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;store_true&#34;</span><span style="color:#1f2328">,</span> help<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;run all combinations&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">pytest_generate_tests</span><span style="color:#1f2328">(</span>metafunc<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#0a3069">&#34;param1&#34;</span> <span style="color:#0550ae">in</span> metafunc<span style="color:#0550ae">.</span>fixturenames<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> metafunc<span style="color:#0550ae">.</span>config<span style="color:#0550ae">.</span>getoption<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;all&#34;</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            end <span style="color:#0550ae">=</span> <span style="color:#0550ae">5</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            end <span style="color:#0550ae">=</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>        metafunc<span style="color:#0550ae">.</span>parametrize<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;param1&#34;</span><span style="color:#1f2328">,</span> <span style="color:#6639ba">range</span><span style="color:#1f2328">(</span>end<span style="color:#1f2328">))</span>
+</span></span></code></pre></div><p>2.testdata 是测试数据，包括 2 组。test_timedistance_v0 不带 ids。test_timedistance_v1 带 list 格式的 ids。test_timedistance_v2 的 ids 为函数。test_timedistance_v3 使用 pytest.param 同时定义测试数据和 id。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_time.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">datetime</span> <span style="color:#cf222e">import</span> datetime<span style="color:#1f2328">,</span> timedelta
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>testdata <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">(</span>datetime<span style="color:#1f2328">(</span><span style="color:#0550ae">2001</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">),</span> datetime<span style="color:#1f2328">(</span><span style="color:#0550ae">2001</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">11</span><span style="color:#1f2328">),</span> timedelta<span style="color:#1f2328">(</span><span style="color:#0550ae">1</span><span style="color:#1f2328">)),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">(</span>datetime<span style="color:#1f2328">(</span><span style="color:#0550ae">2001</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">11</span><span style="color:#1f2328">),</span> datetime<span style="color:#1f2328">(</span><span style="color:#0550ae">2001</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">),</span> timedelta<span style="color:#1f2328">(</span><span style="color:#0550ae">-</span><span style="color:#0550ae">1</span><span style="color:#1f2328">)),</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;a,b,expected&#34;</span><span style="color:#1f2328">,</span> testdata<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_timedistance_v0</span><span style="color:#1f2328">(</span>a<span style="color:#1f2328">,</span> b<span style="color:#1f2328">,</span> expected<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    diff <span style="color:#0550ae">=</span> a <span style="color:#0550ae">-</span> b
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> diff <span style="color:#0550ae">==</span> expected
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;a,b,expected&#34;</span><span style="color:#1f2328">,</span> testdata<span style="color:#1f2328">,</span> ids<span style="color:#0550ae">=</span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;forward&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;backward&#34;</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_timedistance_v1</span><span style="color:#1f2328">(</span>a<span style="color:#1f2328">,</span> b<span style="color:#1f2328">,</span> expected<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    diff <span style="color:#0550ae">=</span> a <span style="color:#0550ae">-</span> b
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> diff <span style="color:#0550ae">==</span> expected
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">idfn</span><span style="color:#1f2328">(</span>val<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>val<span style="color:#1f2328">,</span> <span style="color:#1f2328">(</span>datetime<span style="color:#1f2328">,)):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># note this wouldn&#39;t show any hours/minutes/seconds</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> val<span style="color:#0550ae">.</span>strftime<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;%Y%m</span><span style="color:#0a3069">%d</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;a,b,expected&#34;</span><span style="color:#1f2328">,</span> testdata<span style="color:#1f2328">,</span> ids<span style="color:#0550ae">=</span>idfn<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_timedistance_v2</span><span style="color:#1f2328">(</span>a<span style="color:#1f2328">,</span> b<span style="color:#1f2328">,</span> expected<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    diff <span style="color:#0550ae">=</span> a <span style="color:#0550ae">-</span> b
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> diff <span style="color:#0550ae">==</span> expected
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;a,b,expected&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>        pytest<span style="color:#0550ae">.</span>param<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            datetime<span style="color:#1f2328">(</span><span style="color:#0550ae">2001</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">),</span> datetime<span style="color:#1f2328">(</span><span style="color:#0550ae">2001</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">11</span><span style="color:#1f2328">),</span> timedelta<span style="color:#1f2328">(</span><span style="color:#0550ae">1</span><span style="color:#1f2328">),</span> <span style="color:#6639ba">id</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;forward&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        pytest<span style="color:#0550ae">.</span>param<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            datetime<span style="color:#1f2328">(</span><span style="color:#0550ae">2001</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">11</span><span style="color:#1f2328">),</span> datetime<span style="color:#1f2328">(</span><span style="color:#0550ae">2001</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">12</span><span style="color:#1f2328">),</span> timedelta<span style="color:#1f2328">(</span><span style="color:#0550ae">-</span><span style="color:#0550ae">1</span><span style="color:#1f2328">),</span> <span style="color:#6639ba">id</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;backward&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">],</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_timedistance_v3</span><span style="color:#1f2328">(</span>a<span style="color:#1f2328">,</span> b<span style="color:#1f2328">,</span> expected<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    diff <span style="color:#0550ae">=</span> a <span style="color:#0550ae">-</span> b
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> diff <span style="color:#0550ae">==</span> expected
+</span></span></code></pre></div><p>3.兼容 unittest 的 testscenarios</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_scenarios.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">pytest_generate_tests</span><span style="color:#1f2328">(</span>metafunc<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    idlist <span style="color:#0550ae">=</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>    argvalues <span style="color:#0550ae">=</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> scenario <span style="color:#0550ae">in</span> metafunc<span style="color:#0550ae">.</span>cls<span style="color:#0550ae">.</span>scenarios<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        idlist<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span>scenario<span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span>        items <span style="color:#0550ae">=</span> scenario<span style="color:#1f2328">[</span><span style="color:#0550ae">1</span><span style="color:#1f2328">]</span><span style="color:#0550ae">.</span>items<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        argnames <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>x<span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">]</span> <span style="color:#cf222e">for</span> x <span style="color:#0550ae">in</span> items<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>        argvalues<span style="color:#0550ae">.</span>append<span style="color:#1f2328">([</span>x<span style="color:#1f2328">[</span><span style="color:#0550ae">1</span><span style="color:#1f2328">]</span> <span style="color:#cf222e">for</span> x <span style="color:#0550ae">in</span> items<span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span>    metafunc<span style="color:#0550ae">.</span>parametrize<span style="color:#1f2328">(</span>argnames<span style="color:#1f2328">,</span> argvalues<span style="color:#1f2328">,</span> ids<span style="color:#0550ae">=</span>idlist<span style="color:#1f2328">,</span> scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;class&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>scenario1 <span style="color:#0550ae">=</span> <span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;basic&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;attribute&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;value&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>scenario2 <span style="color:#0550ae">=</span> <span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;advanced&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;attribute&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;value2&#34;</span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TestSampleWithScenarios</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    scenarios <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>scenario1<span style="color:#1f2328">,</span> scenario2<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">test_demo1</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> attribute<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">assert</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>attribute<span style="color:#1f2328">,</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">test_demo2</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> attribute<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">assert</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>attribute<span style="color:#1f2328">,</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>4.初始化数据库连接</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_backends.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_db_initialized</span><span style="color:#1f2328">(</span>db<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># a dummy test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> db<span style="color:#0550ae">.</span><span style="color:#953800">__class__</span><span style="color:#0550ae">.</span><span style="color:#953800">__name__</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;DB2&#34;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        pytest<span style="color:#0550ae">.</span>fail<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;deliberately failing for demo purposes&#34;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of conftest.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">pytest_generate_tests</span><span style="color:#1f2328">(</span>metafunc<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#0a3069">&#34;db&#34;</span> <span style="color:#0550ae">in</span> metafunc<span style="color:#0550ae">.</span>fixturenames<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        metafunc<span style="color:#0550ae">.</span>parametrize<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;db&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;d1&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;d2&#34;</span><span style="color:#1f2328">],</span> indirect<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">DB1</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;one database object&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">DB2</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;alternative database object&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">db</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> request<span style="color:#0550ae">.</span>param <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;d1&#34;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> DB1<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">elif</span> request<span style="color:#0550ae">.</span>param <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;d2&#34;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> DB2<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">raise</span> ValueError<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;invalid internal test config&#34;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>5.如果不加 indirect=True，会生成 2 个 test，fixt 的值分别是&quot;a&quot;和&quot;b&rdquo;。如果加了 indirect=True，会先执行 fixture，fixt 的值分别是&quot;aaa&quot;和&quot;bbb&quot;。indirect=True 结合 fixture 可以在生成 test 前，对参数变量额外处理。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">fixt</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> request<span style="color:#0550ae">.</span>param <span style="color:#0550ae">*</span> <span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;fixt&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;a&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;b&#34;</span><span style="color:#1f2328">],</span> indirect<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_indirect</span><span style="color:#1f2328">(</span>fixt<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> <span style="color:#6639ba">len</span><span style="color:#1f2328">(</span>fixt<span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> <span style="color:#0550ae">3</span>
+</span></span></code></pre></div><p>6.多个参数时，indirect 赋值 list 可以指定某些变量应用 fixture，没有指定的保持原值。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_indirect_list.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;function&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">x</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> request<span style="color:#0550ae">.</span>param <span style="color:#0550ae">*</span> <span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;function&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">y</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> request<span style="color:#0550ae">.</span>param <span style="color:#0550ae">*</span> <span style="color:#0550ae">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;x, y&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">[(</span><span style="color:#0a3069">&#34;a&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;b&#34;</span><span style="color:#1f2328">)],</span> indirect<span style="color:#0550ae">=</span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;x&#34;</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_indirect</span><span style="color:#1f2328">(</span>x<span style="color:#1f2328">,</span> y<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> x <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;aaa&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> y <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;b&#34;</span>
+</span></span></code></pre></div><p>7.兼容 unittest 参数化</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of ./test_parametrize.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">pytest_generate_tests</span><span style="color:#1f2328">(</span>metafunc<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># called once per each test function</span>
+</span></span><span style="display:flex;"><span>    funcarglist <span style="color:#0550ae">=</span> metafunc<span style="color:#0550ae">.</span>cls<span style="color:#0550ae">.</span>params<span style="color:#1f2328">[</span>metafunc<span style="color:#0550ae">.</span>function<span style="color:#0550ae">.</span><span style="color:#953800">__name__</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    argnames <span style="color:#0550ae">=</span> <span style="color:#6639ba">sorted</span><span style="color:#1f2328">(</span>funcarglist<span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span>    metafunc<span style="color:#0550ae">.</span>parametrize<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        argnames<span style="color:#1f2328">,</span> <span style="color:#1f2328">[[</span>funcargs<span style="color:#1f2328">[</span>name<span style="color:#1f2328">]</span> <span style="color:#cf222e">for</span> name <span style="color:#0550ae">in</span> argnames<span style="color:#1f2328">]</span> <span style="color:#cf222e">for</span> funcargs <span style="color:#0550ae">in</span> funcarglist<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TestClass</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># a map specifying multiple argument sets for a test method</span>
+</span></span><span style="display:flex;"><span>    params <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;test_equals&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">[</span><span style="color:#6639ba">dict</span><span style="color:#1f2328">(</span>a<span style="color:#0550ae">=</span><span style="color:#0550ae">1</span><span style="color:#1f2328">,</span> b<span style="color:#0550ae">=</span><span style="color:#0550ae">2</span><span style="color:#1f2328">),</span> <span style="color:#6639ba">dict</span><span style="color:#1f2328">(</span>a<span style="color:#0550ae">=</span><span style="color:#0550ae">3</span><span style="color:#1f2328">,</span> b<span style="color:#0550ae">=</span><span style="color:#0550ae">3</span><span style="color:#1f2328">)],</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;test_zerodivision&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">[</span><span style="color:#6639ba">dict</span><span style="color:#1f2328">(</span>a<span style="color:#0550ae">=</span><span style="color:#0550ae">1</span><span style="color:#1f2328">,</span> b<span style="color:#0550ae">=</span><span style="color:#0550ae">0</span><span style="color:#1f2328">)],</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">test_equals</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> a<span style="color:#1f2328">,</span> b<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">assert</span> a <span style="color:#0550ae">==</span> b
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">test_zerodivision</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> a<span style="color:#1f2328">,</span> b<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">with</span> pytest<span style="color:#0550ae">.</span>raises<span style="color:#1f2328">(</span>ZeroDivisionError<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            a <span style="color:#0550ae">/</span> b
+</span></span></code></pre></div><p>8.在不同 python 解释器之间测试对象序列化。python1 把对象 pickle-dump 到文件。python2 从文件中 pickle-load 对象。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">module containing a parametrized tests testing cross-python
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">serialization via the pickle module.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">shutil</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">subprocess</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">textwrap</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pythonlist <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;python3.5&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;python3.6&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;python3.7&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>params<span style="color:#0550ae">=</span>pythonlist<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">python1</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> tmpdir<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    picklefile <span style="color:#0550ae">=</span> tmpdir<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;data.pickle&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> Python<span style="color:#1f2328">(</span>request<span style="color:#0550ae">.</span>param<span style="color:#1f2328">,</span> picklefile<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>params<span style="color:#0550ae">=</span>pythonlist<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">python2</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> python1<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> Python<span style="color:#1f2328">(</span>request<span style="color:#0550ae">.</span>param<span style="color:#1f2328">,</span> python1<span style="color:#0550ae">.</span>picklefile<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Python</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> version<span style="color:#1f2328">,</span> picklefile<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>pythonpath <span style="color:#0550ae">=</span> shutil<span style="color:#0550ae">.</span>which<span style="color:#1f2328">(</span>version<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>pythonpath<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            pytest<span style="color:#0550ae">.</span>skip<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">{!r}</span><span style="color:#0a3069"> not found&#34;</span><span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>version<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>picklefile <span style="color:#0550ae">=</span> picklefile
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">dumps</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> obj<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        dumpfile <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>picklefile<span style="color:#0550ae">.</span>dirpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;dump.py&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        dumpfile<span style="color:#0550ae">.</span>write<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            textwrap<span style="color:#0550ae">.</span>dedent<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">r</span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                import pickle
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                f = open(</span><span style="color:#0a3069">{!r}</span><span style="color:#0a3069">, &#39;wb&#39;)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                s = pickle.dump(</span><span style="color:#0a3069">{!r}</span><span style="color:#0a3069">, f, protocol=2)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                f.close()
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                &#34;&#34;&#34;</span><span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>picklefile<span style="color:#1f2328">),</span> obj
+</span></span><span style="display:flex;"><span>                <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        subprocess<span style="color:#0550ae">.</span>check_call<span style="color:#1f2328">((</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>pythonpath<span style="color:#1f2328">,</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>dumpfile<span style="color:#1f2328">)))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">load_and_is_true</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> expression<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        loadfile <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>picklefile<span style="color:#0550ae">.</span>dirpath<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;load.py&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        loadfile<span style="color:#0550ae">.</span>write<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            textwrap<span style="color:#0550ae">.</span>dedent<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">r</span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                import pickle
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                f = open(</span><span style="color:#0a3069">{!r}</span><span style="color:#0a3069">, &#39;rb&#39;)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                obj = pickle.load(f)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                f.close()
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                res = eval(</span><span style="color:#0a3069">{!r}</span><span style="color:#0a3069">)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                if not res:
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                raise SystemExit(1)
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                &#34;&#34;&#34;</span><span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>picklefile<span style="color:#1f2328">),</span> expression
+</span></span><span style="display:flex;"><span>                <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span>loadfile<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        subprocess<span style="color:#0550ae">.</span>check_call<span style="color:#1f2328">((</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>pythonpath<span style="color:#1f2328">,</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>loadfile<span style="color:#1f2328">)))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;obj&#34;</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">[</span><span style="color:#0550ae">42</span><span style="color:#1f2328">,</span> <span style="color:#1f2328">{},</span> <span style="color:#1f2328">{</span><span style="color:#0550ae">1</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">3</span><span style="color:#1f2328">}])</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_basic_objects</span><span style="color:#1f2328">(</span>python1<span style="color:#1f2328">,</span> python2<span style="color:#1f2328">,</span> obj<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    python1<span style="color:#0550ae">.</span>dumps<span style="color:#1f2328">(</span>obj<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    python2<span style="color:#0550ae">.</span>load_and_is_true<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;obj == </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">&#34;</span><span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>obj<span style="color:#1f2328">))</span>
+</span></span></code></pre></div><p>9.假设有个 API，basemod 是原始版本，optmod 是优化版本，验证二者结果一致。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of conftest.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;session&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">basemod</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> pytest<span style="color:#0550ae">.</span>importorskip<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;base&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;session&#34;</span><span style="color:#1f2328">,</span> params<span style="color:#0550ae">=</span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;opt1&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;opt2&#34;</span><span style="color:#1f2328">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">optmod</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> pytest<span style="color:#0550ae">.</span>importorskip<span style="color:#1f2328">(</span>request<span style="color:#0550ae">.</span>param<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of base.py</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">func1</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0550ae">1</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of opt1.py</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">func1</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0550ae">1.0001</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_module.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_func1</span><span style="color:#1f2328">(</span>basemod<span style="color:#1f2328">,</span> optmod<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> <span style="color:#6639ba">round</span><span style="color:#1f2328">(</span>basemod<span style="color:#0550ae">.</span>func1<span style="color:#1f2328">(),</span> <span style="color:#0550ae">3</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> <span style="color:#6639ba">round</span><span style="color:#1f2328">(</span>optmod<span style="color:#0550ae">.</span>func1<span style="color:#1f2328">(),</span> <span style="color:#0550ae">3</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>10.使用 pytest.param 添加 marker 和 id。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_pytest_param_example.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;test_input,expected&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;3+5&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">8</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        pytest<span style="color:#0550ae">.</span>param<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;1+7&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">8</span><span style="color:#1f2328">,</span> marks<span style="color:#0550ae">=</span>pytest<span style="color:#0550ae">.</span>mark<span style="color:#0550ae">.</span>basic<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        pytest<span style="color:#0550ae">.</span>param<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;2+4&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">6</span><span style="color:#1f2328">,</span> marks<span style="color:#0550ae">=</span>pytest<span style="color:#0550ae">.</span>mark<span style="color:#0550ae">.</span>basic<span style="color:#1f2328">,</span> <span style="color:#6639ba">id</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;basic_2+4&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        pytest<span style="color:#0550ae">.</span>param<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;6*9&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">42</span><span style="color:#1f2328">,</span> marks<span style="color:#0550ae">=</span><span style="color:#1f2328">[</span>pytest<span style="color:#0550ae">.</span>mark<span style="color:#0550ae">.</span>basic<span style="color:#1f2328">,</span> pytest<span style="color:#0550ae">.</span>mark<span style="color:#0550ae">.</span>xfail<span style="color:#1f2328">],</span> <span style="color:#6639ba">id</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;basic_6*9&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">],</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_eval</span><span style="color:#1f2328">(</span>test_input<span style="color:#1f2328">,</span> expected<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> <span style="color:#6639ba">eval</span><span style="color:#1f2328">(</span>test_input<span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> expected
+</span></span></code></pre></div><p>11.使用 pytest.raises 让部分 test 抛出 Error。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">contextlib</span> <span style="color:#cf222e">import</span> contextmanager
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">//</span> <span style="color:#0550ae">3.7</span><span style="color:#0550ae">+</span> <span style="color:#cf222e">from</span> <span style="color:#24292e">contextlib</span> <span style="color:#cf222e">import</span> nullcontext <span style="color:#cf222e">as</span> does_not_raise
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@contextmanager</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">does_not_raise</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">yield</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.parametrize</span><span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;example_input,expectation&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">(</span><span style="color:#0550ae">3</span><span style="color:#1f2328">,</span> does_not_raise<span style="color:#1f2328">()),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">,</span> does_not_raise<span style="color:#1f2328">()),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">(</span><span style="color:#0550ae">1</span><span style="color:#1f2328">,</span> does_not_raise<span style="color:#1f2328">()),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">(</span><span style="color:#0550ae">0</span><span style="color:#1f2328">,</span> pytest<span style="color:#0550ae">.</span>raises<span style="color:#1f2328">(</span>ZeroDivisionError<span style="color:#1f2328">)),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">],</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_division</span><span style="color:#1f2328">(</span>example_input<span style="color:#1f2328">,</span> expectation<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;Test how much I know division.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">with</span> expectation<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">assert</span> <span style="color:#1f2328">(</span><span style="color:#0550ae">6</span> <span style="color:#0550ae">/</span> example_input<span style="color:#1f2328">)</span> <span style="color:#0550ae">is</span> <span style="color:#0550ae">not</span> <span style="color:#cf222e">None</span>
+</span></span></code></pre></div><h2 id="简要回顾">简要回顾<a hidden class="anchor" aria-hidden="true" href="#简要回顾">#</a></h2>
+<p>本文先讲了参数化的语法，包括 marker，fixture，hook 方式，以及如何给参数添加 marker，然后重点列举了几个实战示例。参数化用好了能节省编码，达到事半功倍的效果。</p>
+<blockquote>
+<p><em>参考资料</em></p>
+<p>docs-pytest-org-en-stable</p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/pytest/">Pytest</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/junit5%E7%9A%84%E6%9D%A1%E4%BB%B6%E6%B5%8B%E8%AF%95%E5%B5%8C%E5%A5%97%E6%B5%8B%E8%AF%95%E9%87%8D%E5%A4%8D%E6%B5%8B%E8%AF%95/">
+    <span class="title">« 上一页</span>
+    <span>JUnit5 的条件测试、嵌套测试、重复测试</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B02%E4%BD%BF%E7%94%A8/">
+    <span class="title">下一页 »</span>
+    <span>SpringBoot 官方笔记 2 使用</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#语法">语法</a></li>
+        <li><a href="#参数化误区">参数化误区</a></li>
+        <li><a href="#实践">实践</a></li>
+        <li><a href="#简要回顾">简要回顾</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

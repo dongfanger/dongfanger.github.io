@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Python 处理接口数据，这个函数太香了 | 测试开发刚哥</title>
+<meta name="keywords" content="tep">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+Python 处理接口数据
+接口数据通常是 JSON 格式，Python 处理起来并不轻松。
+方法一，json 文件。额外编写代码读取文件，接口参数很多，文件变多，难维护。
+方法二，字典。JSON 可以直接粘贴到代码中，Python 认作字典，但语法有差异，JSON 的语法是 true/false/null，Python 的语法是 True/False/None，不兼容。
+这两种方法都有共同的缺点，需要编写表达式来定位某个节点。
+比如：body[&quot;a&quot;][0][&quot;x&quot;][&quot;m&quot;]
+字符串与占位符
+占位符是一种很常见的文本替换技术，在任何编程语言中都有广泛应用。
+Python 语法有个很特别的字符串，三引号字符串：
+test_json = &#34;&#34;&#34;
+{
+ &#34;bool&#34;: true,
+  &#34;x&#34;: null,
+  &#34;customerId&#34;: &#34;123456&#34;,
+  &#34;items&#34;: [
+    {
+      &#34;productId&#34;: &#34;987654&#34;,
+      &#34;quantity&#34;: 2,
+      &#34;price&#34;: 199.99
+    }
+  ],
+  &#34;shippingAddress&#34;: {
+    &#34;recipientName&#34;: &#34;张三&#34;,
+    &#34;streetAddress&#34;: &#34;北京市朝阳区某街道123号&#34;,
+    &#34;city&#34;: &#34;北京&#34;,
+    &#34;state&#34;: &#34;北京&#34;,
+    &#34;postalCode&#34;: &#34;100000&#34;,
+    &#34;country&#34;: &#34;中国&#34;
+  },
+  &#34;paymentMethod&#34;: {
+    &#34;type&#34;: &#34;CreditCard&#34;,
+    &#34;cardNumber&#34;: &#34;4111111111111111&#34;,
+    &#34;expiryDate&#34;: &#34;12/25&#34;,
+    &#34;cvv&#34;: &#34;123&#34;
+  },
+  &#34;orderNotes&#34;: &#34;请尽快发货，谢谢！&#34;
+}
+&#34;&#34;&#34;
+基本思路是，把 JSON 写在三引号字符串中，这能保留原生 JSON 格式，就像很多测试平台的做法一样，然后再通过占位符，直接替换其中的节点值。占位符不用编写表达式定位节点，在 JSON 字符串标记即可。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/python%E5%A4%84%E7%90%86%E6%8E%A5%E5%8F%A3%E6%95%B0%E6%8D%AE%E8%BF%99%E4%B8%AA%E5%87%BD%E6%95%B0%E5%A4%AA%E9%A6%99%E4%BA%86/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/python%E5%A4%84%E7%90%86%E6%8E%A5%E5%8F%A3%E6%95%B0%E6%8D%AE%E8%BF%99%E4%B8%AA%E5%87%BD%E6%95%B0%E5%A4%AA%E9%A6%99%E4%BA%86/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/python%E5%A4%84%E7%90%86%E6%8E%A5%E5%8F%A3%E6%95%B0%E6%8D%AE%E8%BF%99%E4%B8%AA%E5%87%BD%E6%95%B0%E5%A4%AA%E9%A6%99%E4%BA%86/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Python 处理接口数据，这个函数太香了">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Python 处理接口数据 接口数据通常是 JSON 格式，Python 处理起来并不轻松。
+方法一，json 文件。额外编写代码读取文件，接口参数很多，文件变多，难维护。
+方法二，字典。JSON 可以直接粘贴到代码中，Python 认作字典，但语法有差异，JSON 的语法是 true/false/null，Python 的语法是 True/False/None，不兼容。
+这两种方法都有共同的缺点，需要编写表达式来定位某个节点。
+比如：body[&#34;a&#34;][0][&#34;x&#34;][&#34;m&#34;]
+字符串与占位符 占位符是一种很常见的文本替换技术，在任何编程语言中都有广泛应用。
+Python 语法有个很特别的字符串，三引号字符串：
+test_json = &#34;&#34;&#34; { &#34;bool&#34;: true, &#34;x&#34;: null, &#34;customerId&#34;: &#34;123456&#34;, &#34;items&#34;: [ { &#34;productId&#34;: &#34;987654&#34;, &#34;quantity&#34;: 2, &#34;price&#34;: 199.99 } ], &#34;shippingAddress&#34;: { &#34;recipientName&#34;: &#34;张三&#34;, &#34;streetAddress&#34;: &#34;北京市朝阳区某街道123号&#34;, &#34;city&#34;: &#34;北京&#34;, &#34;state&#34;: &#34;北京&#34;, &#34;postalCode&#34;: &#34;100000&#34;, &#34;country&#34;: &#34;中国&#34; }, &#34;paymentMethod&#34;: { &#34;type&#34;: &#34;CreditCard&#34;, &#34;cardNumber&#34;: &#34;4111111111111111&#34;, &#34;expiryDate&#34;: &#34;12/25&#34;, &#34;cvv&#34;: &#34;123&#34; }, &#34;orderNotes&#34;: &#34;请尽快发货，谢谢！&#34; } &#34;&#34;&#34; 基本思路是，把 JSON 写在三引号字符串中，这能保留原生 JSON 格式，就像很多测试平台的做法一样，然后再通过占位符，直接替换其中的节点值。占位符不用编写表达式定位节点，在 JSON 字符串标记即可。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-19T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-19T00:00:00+00:00">
+    <meta property="article:tag" content="Tep">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Python 处理接口数据，这个函数太香了">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+Python 处理接口数据 接口数据通常是 JSON 格式，Python 处理起来并不轻松。
+方法一，json 文件。额外编写代码读取文件，接口参数很多，文件变多，难维护。
+方法二，字典。JSON 可以直接粘贴到代码中，Python 认作字典，但语法有差异，JSON 的语法是 true/false/null，Python 的语法是 True/False/None，不兼容。
+这两种方法都有共同的缺点，需要编写表达式来定位某个节点。
+比如：body[&#34;a&#34;][0][&#34;x&#34;][&#34;m&#34;]
+字符串与占位符 占位符是一种很常见的文本替换技术，在任何编程语言中都有广泛应用。
+Python 语法有个很特别的字符串，三引号字符串：
+test_json = &#34;&#34;&#34; { &#34;bool&#34;: true, &#34;x&#34;: null, &#34;customerId&#34;: &#34;123456&#34;, &#34;items&#34;: [ { &#34;productId&#34;: &#34;987654&#34;, &#34;quantity&#34;: 2, &#34;price&#34;: 199.99 } ], &#34;shippingAddress&#34;: { &#34;recipientName&#34;: &#34;张三&#34;, &#34;streetAddress&#34;: &#34;北京市朝阳区某街道123号&#34;, &#34;city&#34;: &#34;北京&#34;, &#34;state&#34;: &#34;北京&#34;, &#34;postalCode&#34;: &#34;100000&#34;, &#34;country&#34;: &#34;中国&#34; }, &#34;paymentMethod&#34;: { &#34;type&#34;: &#34;CreditCard&#34;, &#34;cardNumber&#34;: &#34;4111111111111111&#34;, &#34;expiryDate&#34;: &#34;12/25&#34;, &#34;cvv&#34;: &#34;123&#34; }, &#34;orderNotes&#34;: &#34;请尽快发货，谢谢！&#34; } &#34;&#34;&#34; 基本思路是，把 JSON 写在三引号字符串中，这能保留原生 JSON 格式，就像很多测试平台的做法一样，然后再通过占位符，直接替换其中的节点值。占位符不用编写表达式定位节点，在 JSON 字符串标记即可。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Python 处理接口数据，这个函数太香了",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/python%E5%A4%84%E7%90%86%E6%8E%A5%E5%8F%A3%E6%95%B0%E6%8D%AE%E8%BF%99%E4%B8%AA%E5%87%BD%E6%95%B0%E5%A4%AA%E9%A6%99%E4%BA%86/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python 处理接口数据，这个函数太香了",
+  "name": "Python 处理接口数据，这个函数太香了",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nPython 处理接口数据 接口数据通常是 JSON 格式，Python 处理起来并不轻松。\n方法一，json 文件。额外编写代码读取文件，接口参数很多，文件变多，难维护。\n方法二，字典。JSON 可以直接粘贴到代码中，Python 认作字典，但语法有差异，JSON 的语法是 true/false/null，Python 的语法是 True/False/None，不兼容。\n这两种方法都有共同的缺点，需要编写表达式来定位某个节点。\n比如：body[\u0026quot;a\u0026quot;][0][\u0026quot;x\u0026quot;][\u0026quot;m\u0026quot;]\n字符串与占位符 占位符是一种很常见的文本替换技术，在任何编程语言中都有广泛应用。\nPython 语法有个很特别的字符串，三引号字符串：\ntest_json = \u0026#34;\u0026#34;\u0026#34; { \u0026#34;bool\u0026#34;: true, \u0026#34;x\u0026#34;: null, \u0026#34;customerId\u0026#34;: \u0026#34;123456\u0026#34;, \u0026#34;items\u0026#34;: [ { \u0026#34;productId\u0026#34;: \u0026#34;987654\u0026#34;, \u0026#34;quantity\u0026#34;: 2, \u0026#34;price\u0026#34;: 199.99 } ], \u0026#34;shippingAddress\u0026#34;: { \u0026#34;recipientName\u0026#34;: \u0026#34;张三\u0026#34;, \u0026#34;streetAddress\u0026#34;: \u0026#34;北京市朝阳区某街道123号\u0026#34;, \u0026#34;city\u0026#34;: \u0026#34;北京\u0026#34;, \u0026#34;state\u0026#34;: \u0026#34;北京\u0026#34;, \u0026#34;postalCode\u0026#34;: \u0026#34;100000\u0026#34;, \u0026#34;country\u0026#34;: \u0026#34;中国\u0026#34; }, \u0026#34;paymentMethod\u0026#34;: { \u0026#34;type\u0026#34;: \u0026#34;CreditCard\u0026#34;, \u0026#34;cardNumber\u0026#34;: \u0026#34;4111111111111111\u0026#34;, \u0026#34;expiryDate\u0026#34;: \u0026#34;12/25\u0026#34;, \u0026#34;cvv\u0026#34;: \u0026#34;123\u0026#34; }, \u0026#34;orderNotes\u0026#34;: \u0026#34;请尽快发货，谢谢！\u0026#34; } \u0026#34;\u0026#34;\u0026#34; 基本思路是，把 JSON 写在三引号字符串中，这能保留原生 JSON 格式，就像很多测试平台的做法一样，然后再通过占位符，直接替换其中的节点值。占位符不用编写表达式定位节点，在 JSON 字符串标记即可。\n",
+  "keywords": [
+    "tep"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nPython 处理接口数据 接口数据通常是 JSON 格式，Python 处理起来并不轻松。\n方法一，json 文件。额外编写代码读取文件，接口参数很多，文件变多，难维护。\n方法二，字典。JSON 可以直接粘贴到代码中，Python 认作字典，但语法有差异，JSON 的语法是 true/false/null，Python 的语法是 True/False/None，不兼容。\n这两种方法都有共同的缺点，需要编写表达式来定位某个节点。\n比如：body[\"a\"][0][\"x\"][\"m\"]\n字符串与占位符 占位符是一种很常见的文本替换技术，在任何编程语言中都有广泛应用。\nPython 语法有个很特别的字符串，三引号字符串：\ntest_json = \"\"\" { \"bool\": true, \"x\": null, \"customerId\": \"123456\", \"items\": [ { \"productId\": \"987654\", \"quantity\": 2, \"price\": 199.99 } ], \"shippingAddress\": { \"recipientName\": \"张三\", \"streetAddress\": \"北京市朝阳区某街道123号\", \"city\": \"北京\", \"state\": \"北京\", \"postalCode\": \"100000\", \"country\": \"中国\" }, \"paymentMethod\": { \"type\": \"CreditCard\", \"cardNumber\": \"4111111111111111\", \"expiryDate\": \"12/25\", \"cvv\": \"123\" }, \"orderNotes\": \"请尽快发货，谢谢！\" } \"\"\" 基本思路是，把 JSON 写在三引号字符串中，这能保留原生 JSON 格式，就像很多测试平台的做法一样，然后再通过占位符，直接替换其中的节点值。占位符不用编写表达式定位节点，在 JSON 字符串标记即可。\n思路有了，怎么写呢？Python 没有现成的函数，没关系，自己写一个。\ntep3 函数 v() tep3 的新特性，函数 v()正是用来解决这个问题的。\n实际效果：\n普通字符串\n## 以前 domain = \"https://dongfanger.github.io\" url = domain + \"/blog\" # 字符串拼接 url = f\"{domain}/blog\" # f-string ## 使用v()函数以后 v({ \"domain\": \"https://dongfanger.github.io\" }) url = v(\"${domain}/blog\") JSON 字符串\n## dict不兼容，注意看True和None test_json = { \"bool\": True, \"x\": None, \"customerId\": \"123456\", \"items\": [ { \"productId\": \"987654\", \"quantity\": 2, \"price\": 199.99 } ], \"shippingAddress\": { \"recipientName\": \"张三\", \"streetAddress\": \"北京市朝阳区某街道123号\", \"city\": \"北京\", \"state\": \"北京\", \"postalCode\": \"100000\", \"country\": \"中国\" }, \"paymentMethod\": { \"type\": \"CreditCard\", \"cardNumber\": \"4111111111111111\", \"expiryDate\": \"12/25\", \"cvv\": \"123\" }, \"orderNotes\": \"请尽快发货，谢谢！\" } ## 需要表达式 test_json[\"items\"][\"quantity\"] = 3 test_json[\"orderNotes\"] = \"测试开发Gang\" Python 的 dict 并不兼容 JSON，需要把 true 改为 True，null 改为 None，替换节点值也需要表达式。\n使用函数 v()以后：\nv({ \"quantity\": 3 \"orderNotes\": \"测试开发Gang\" }) template = \"\"\" { \"bool\": true, \"x\": null, \"customerId\": \"123456\", \"items\": [ { \"productId\": \"987654\", \"quantity\": ${quantity}, \"price\": 199.99 } ], \"shippingAddress\": { \"recipientName\": \"张三\", \"streetAddress\": \"北京市朝阳区某街道123号\", \"city\": \"北京\", \"state\": \"北京\", \"postalCode\": \"100000\", \"country\": \"中国\" }, \"paymentMethod\": { \"type\": \"CreditCard\", \"cardNumber\": \"4111111111111111\", \"expiryDate\": \"12/25\", \"cvv\": \"123\" }, \"orderNotes\": \"${orderNotes}\" } \"\"\" test_json = v(template) 变量池，字符串，占位符。\n这就是 tep3 的函数 v()。\n用法介绍 1、初始化变量池，传入 dict，v({\"a\": 1, \"b\": 2})\n2、set 变量，传入 key 和 value，v(\"c\", 3)\n3、get 变量，传入 key，v(\"a\")\n4、替换字符串，传入占位符字符串，v(\"My name is ${gang}, hello\")\n需要注意的是，JSON 是写成多行字符串，函数 v()的输出是字符串类型，在 post 请求时，request(\"post\", json=json.loads(v(body)，v(body)是字符串，需要 json.loads()转换为 dict 类型。\ntep.request 也对这个地方做了校验：\ndef _check(method, url, **kwargs) -\u003e bool: json_param = kwargs[\"json\"] if isinstance(json_param, str): logging.error(\"request() json expect dict type, json.loads() convert str to dict\") return False return True 内置函数 函数 v()不仅支持普通变量占位符，也支持函数占位符。\ntest_json = \"\"\" \"a\": ${random()}, # 随机数 \"b\": ${random(9)}, # 随机数，指定位数 \"c\": \"${random(前缀,2)}\", # 随机数，前缀和位数 \"d\": \"${uuid()}\" # uuid \"e\": \"${time()}\" # 当前日期 \"f\": \"${time(%Y-%m-%d %H:%M:%S)}\" # 当前日期，指定日期格式 \"g\": \"${timestamp()}\" # 当前时间的时间戳 \"h\": \"${timestamp(2023-03-23 23:23:23)}\" # 指定时间的时间戳 \"\"\" 更多内置函数还在开发。欢迎加入交流群讨论添加哪些内置函数。\n自定义函数也很简单，先编写个函数，把函数调用写入变量池：\nv(\"name\", self_defined_function())\n再通过${name}引用。\ntep 版本 函数 v()最新特性，请使用 tep 版本：\npip install tep==3.0.1\ntep3 函数 v()，支持${}占位符语法，便捷管理接口数据。\n",
+  "wordCount" : "369",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-19T00:00:00Z",
+  "dateModified": "2026-01-19T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/python%E5%A4%84%E7%90%86%E6%8E%A5%E5%8F%A3%E6%95%B0%E6%8D%AE%E8%BF%99%E4%B8%AA%E5%87%BD%E6%95%B0%E5%A4%AA%E9%A6%99%E4%BA%86/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Python 处理接口数据，这个函数太香了
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-19T00:00:00+00:00'>2026-01-19</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/tep/'>#Tep</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="python-处理接口数据">Python 处理接口数据<a hidden class="anchor" aria-hidden="true" href="#python-处理接口数据">#</a></h1>
+<p>接口数据通常是 JSON 格式，Python 处理起来并不轻松。</p>
+<p>方法一，json 文件。额外编写代码读取文件，接口参数很多，文件变多，难维护。</p>
+<p>方法二，字典。JSON 可以直接粘贴到代码中，Python 认作字典，但语法有差异，JSON 的语法是 true/false/null，Python 的语法是 True/False/None，不兼容。</p>
+<p>这两种方法都有共同的缺点，需要编写表达式来定位某个节点。</p>
+<p>比如：<code>body[&quot;a&quot;][0][&quot;x&quot;][&quot;m&quot;]</code></p>
+<h1 id="字符串与占位符">字符串与占位符<a hidden class="anchor" aria-hidden="true" href="#字符串与占位符">#</a></h1>
+<p>占位符是一种很常见的文本替换技术，在任何编程语言中都有广泛应用。</p>
+<p>Python 语法有个很特别的字符串，三引号字符串：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>test_json <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">{
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069"> &#34;bool&#34;: true,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;x&#34;: null,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;customerId&#34;: &#34;123456&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;items&#34;: [
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    {
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">      &#34;productId&#34;: &#34;987654&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">      &#34;quantity&#34;: 2,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">      &#34;price&#34;: 199.99
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    }
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  ],
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;shippingAddress&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;recipientName&#34;: &#34;张三&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;streetAddress&#34;: &#34;北京市朝阳区某街道123号&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;city&#34;: &#34;北京&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;state&#34;: &#34;北京&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;postalCode&#34;: &#34;100000&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;country&#34;: &#34;中国&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  },
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;paymentMethod&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;type&#34;: &#34;CreditCard&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;cardNumber&#34;: &#34;4111111111111111&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;expiryDate&#34;: &#34;12/25&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;cvv&#34;: &#34;123&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  },
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;orderNotes&#34;: &#34;请尽快发货，谢谢！&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">}
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span>
+</span></span></code></pre></div><p>基本思路是，把 JSON 写在三引号字符串中，这能保留原生 JSON 格式，就像很多测试平台的做法一样，然后再通过占位符，直接替换其中的节点值。占位符不用编写表达式定位节点，在 JSON 字符串标记即可。</p>
+<p>思路有了，怎么写呢？Python 没有现成的函数，没关系，自己写一个。</p>
+<h1 id="tep3-函数-v">tep3 函数 v()<a hidden class="anchor" aria-hidden="true" href="#tep3-函数-v">#</a></h1>
+<p>tep3 的新特性，函数 v()正是用来解决这个问题的。</p>
+<p>实际效果：</p>
+<p>普通字符串</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## 以前</span>
+</span></span><span style="display:flex;"><span>domain <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;https://dongfanger.github.io&#34;</span>
+</span></span><span style="display:flex;"><span>url <span style="color:#0550ae">=</span> domain <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;/blog&#34;</span>  <span style="color:#57606a"># 字符串拼接</span>
+</span></span><span style="display:flex;"><span>url <span style="color:#0550ae">=</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">{</span>domain<span style="color:#0a3069">}</span><span style="color:#0a3069">/blog&#34;</span>  <span style="color:#57606a"># f-string</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## 使用v()函数以后</span>
+</span></span><span style="display:flex;"><span>v<span style="color:#1f2328">({</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;https://dongfanger.github.io&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>url <span style="color:#0550ae">=</span> v<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;$</span><span style="color:#0a3069">{domain}</span><span style="color:#0a3069">/blog&#34;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>JSON 字符串</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## dict不兼容，注意看True和None</span>
+</span></span><span style="display:flex;"><span>test_json <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;bool&#34;</span><span style="color:#1f2328">:</span> <span style="color:#cf222e">True</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;x&#34;</span><span style="color:#1f2328">:</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;customerId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;123456&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;items&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0a3069">&#34;productId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;987654&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0a3069">&#34;quantity&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">2</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0a3069">&#34;price&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">199.99</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">],</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;shippingAddress&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;recipientName&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;张三&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;streetAddress&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;北京市朝阳区某街道123号&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;city&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;北京&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;state&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;北京&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;postalCode&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;100000&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;country&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;中国&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;paymentMethod&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;CreditCard&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;cardNumber&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;4111111111111111&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;expiryDate&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;12/25&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;cvv&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;123&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0a3069">&#34;orderNotes&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;请尽快发货，谢谢！&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 需要表达式</span>
+</span></span><span style="display:flex;"><span>test_json<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;items&#34;</span><span style="color:#1f2328">][</span><span style="color:#0a3069">&#34;quantity&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span>test_json<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;orderNotes&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;测试开发Gang&#34;</span>
+</span></span></code></pre></div><p>Python 的 dict 并不兼容 JSON，需要把 true 改为 True，null 改为 None，替换节点值也需要表达式。</p>
+<p>使用函数 v()以后：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>v<span style="color:#1f2328">({</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;quantity&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">3</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;orderNotes&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;测试开发Gang&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>template <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">{
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;bool&#34;: true,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;x&#34;: null,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;customerId&#34;: &#34;123456&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;items&#34;: [
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    {
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">      &#34;productId&#34;: &#34;987654&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">      &#34;quantity&#34;: $</span><span style="color:#0a3069">{quantity}</span><span style="color:#0a3069">,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">      &#34;price&#34;: 199.99
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    }
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  ],
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;shippingAddress&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;recipientName&#34;: &#34;张三&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;streetAddress&#34;: &#34;北京市朝阳区某街道123号&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;city&#34;: &#34;北京&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;state&#34;: &#34;北京&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;postalCode&#34;: &#34;100000&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;country&#34;: &#34;中国&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  },
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;paymentMethod&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;type&#34;: &#34;CreditCard&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;cardNumber&#34;: &#34;4111111111111111&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;expiryDate&#34;: &#34;12/25&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;cvv&#34;: &#34;123&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  },
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  &#34;orderNotes&#34;: &#34;$</span><span style="color:#0a3069">{orderNotes}</span><span style="color:#0a3069">&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">}
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>test_json <span style="color:#0550ae">=</span> v<span style="color:#1f2328">(</span>template<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>变量池，字符串，占位符。</p>
+<p>这就是 tep3 的函数 v()。</p>
+<h1 id="用法介绍">用法介绍<a hidden class="anchor" aria-hidden="true" href="#用法介绍">#</a></h1>
+<p>1、初始化变量池，传入 dict，<code>v({&quot;a&quot;: 1, &quot;b&quot;: 2})</code></p>
+<p>2、set 变量，传入 key 和 value，<code>v(&quot;c&quot;, 3)</code></p>
+<p>3、get 变量，传入 key，<code>v(&quot;a&quot;)</code></p>
+<p>4、替换字符串，传入占位符字符串，<code>v(&quot;My name is ${gang}, hello&quot;)</code></p>
+<p>需要注意的是，JSON 是写成多行字符串，函数 v()的输出是字符串类型，在 post 请求时，<code>request(&quot;post&quot;, json=json.loads(v(body)</code>，v(body)是字符串，需要 json.loads()转换为 dict 类型。</p>
+<p>tep.request 也对这个地方做了校验：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">_check</span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">,</span> url<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span> <span style="color:#0550ae">-&gt;</span> <span style="color:#6639ba">bool</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    json_param <span style="color:#0550ae">=</span> kwargs<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;json&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#6639ba">isinstance</span><span style="color:#1f2328">(</span>json_param<span style="color:#1f2328">,</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        logging<span style="color:#0550ae">.</span>error<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;request() json expect dict type, json.loads() convert str to dict&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#cf222e">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#cf222e">True</span>
+</span></span></code></pre></div><h1 id="内置函数">内置函数<a hidden class="anchor" aria-hidden="true" href="#内置函数">#</a></h1>
+<p>函数 v()不仅支持普通变量占位符，也支持函数占位符。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>test_json <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;a&#34;: ${random()},  # 随机数
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;b&#34;: ${random(9)},  # 随机数，指定位数
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;c&#34;: &#34;${random(前缀,2)}&#34;,  # 随机数，前缀和位数
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;d&#34;: &#34;${uuid()}&#34;  # uuid
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;e&#34;: &#34;${time()}&#34;  # 当前日期
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;f&#34;: &#34;${time(%Y-%m-</span><span style="color:#0a3069">%d</span><span style="color:#0a3069"> %H:%M:%S)}&#34;  # 当前日期，指定日期格式
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;g&#34;: &#34;${timestamp()}&#34;  # 当前时间的时间戳
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;h&#34;: &#34;${timestamp(2023-03-23 23:23:23)}&#34;  # 指定时间的时间戳
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span>
+</span></span></code></pre></div><p>更多内置函数还在开发。欢迎加入交流群讨论添加哪些内置函数。</p>
+<p>自定义函数也很简单，先编写个函数，把函数调用写入变量池：</p>
+<p><code>v(&quot;name&quot;, self_defined_function())</code></p>
+<p>再通过<code>${name}</code>引用。</p>
+<h1 id="tep-版本">tep 版本<a hidden class="anchor" aria-hidden="true" href="#tep-版本">#</a></h1>
+<p>函数 v()最新特性，请使用 tep 版本：</p>
+<p><code>pip install tep==3.0.1</code></p>
+<p>tep3 函数 v()，支持${}占位符语法，便捷管理接口数据。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/tep/">Tep</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/fastjson%E7%9F%A5%E5%A4%9A%E5%B0%91/">
+    <span class="title">« 上一页</span>
+    <span>fastjson 知多少</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">
+    <span class="title">下一页 »</span>
+    <span>Python 函数装饰器基础知识</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#python-处理接口数据">Python 处理接口数据</a></li>
+    <li><a href="#字符串与占位符">字符串与占位符</a></li>
+    <li><a href="#tep3-函数-v">tep3 函数 v()</a></li>
+    <li><a href="#用法介绍">用法介绍</a></li>
+    <li><a href="#内置函数">内置函数</a></li>
+    <li><a href="#tep-版本">tep 版本</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

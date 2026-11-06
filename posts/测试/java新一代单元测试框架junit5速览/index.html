@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Java 新一代单元测试框架 JUnit5 速览 | 测试开发刚哥</title>
+<meta name="keywords" content="单元测试, JUnit">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+为什么学 JUnit5
+Java 技术栈的单元测试框架有两个：JUnit 和 TestNG，有种说法是 TestNG 比 JUnit 更强大，学 TestNG 就够了，但是当我打开 GitHub 看到 star 的时候，犹豫了：
+JUnit
+
+TestNG
+
+相差了足足有3K之多。带着这个困惑，我在网上查阅了一番资料，原来JUnit5 相较于 JUnit4 有了重大升级，已经包含了 TestNG 的所有功能。为了坚定我学 JUnit 的想法，我咨询了身边做 Java 开发的朋友，开发写 UT 都是用的 JUnit。这两个理由足以让我开始对 JUnit5 的学习。
+JUnit5 是什么
+跟之前的 JUnit 有所不同，JUnit5 由三个子项目的模块组成：
+JUnit5 = JUnit Platform &#43; JUnit Jupiter &#43; JUnit Vintage
+
+JUnit Platform 在 JVM 上启动测试框架的基础，不仅支持 Junit 自制的测试引擎，其他测试引擎也都可以接入。提供了从命令行启动平台的 Console Launcher，和支持 JUnit4 环境的 JUnit4 based Runner。IDE 一般都集成了 JUnit Platform，比如 IntelliJ IDEA。
+JUnit Jupiter JUnit5 新特性，结合了新的 programming model 和 extension model，以便于在 JUnit5 中编写测试和扩展。提供了在平台上运行基于 Jupiter 测试的 TestEngine。
+JUnit Vintage 提供了在平台上运行基于 JUnit3 和 JUnit4 测试的 TestEngine，照顾老的项目。
+
+JUnit5 新特性
+使用 JUnit Jupiter 写测试
+示例代码：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java%E6%96%B0%E4%B8%80%E4%BB%A3%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6junit5%E9%80%9F%E8%A7%88/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java%E6%96%B0%E4%B8%80%E4%BB%A3%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6junit5%E9%80%9F%E8%A7%88/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java%E6%96%B0%E4%B8%80%E4%BB%A3%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6junit5%E9%80%9F%E8%A7%88/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Java 新一代单元测试框架 JUnit5 速览">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+为什么学 JUnit5 Java 技术栈的单元测试框架有两个：JUnit 和 TestNG，有种说法是 TestNG 比 JUnit 更强大，学 TestNG 就够了，但是当我打开 GitHub 看到 star 的时候，犹豫了：
+JUnit
+TestNG
+相差了足足有3K之多。带着这个困惑，我在网上查阅了一番资料，原来JUnit5 相较于 JUnit4 有了重大升级，已经包含了 TestNG 的所有功能。为了坚定我学 JUnit 的想法，我咨询了身边做 Java 开发的朋友，开发写 UT 都是用的 JUnit。这两个理由足以让我开始对 JUnit5 的学习。
+JUnit5 是什么 跟之前的 JUnit 有所不同，JUnit5 由三个子项目的模块组成：
+JUnit5 = JUnit Platform &#43; JUnit Jupiter &#43; JUnit Vintage
+JUnit Platform 在 JVM 上启动测试框架的基础，不仅支持 Junit 自制的测试引擎，其他测试引擎也都可以接入。提供了从命令行启动平台的 Console Launcher，和支持 JUnit4 环境的 JUnit4 based Runner。IDE 一般都集成了 JUnit Platform，比如 IntelliJ IDEA。 JUnit Jupiter JUnit5 新特性，结合了新的 programming model 和 extension model，以便于在 JUnit5 中编写测试和扩展。提供了在平台上运行基于 Jupiter 测试的 TestEngine。 JUnit Vintage 提供了在平台上运行基于 JUnit3 和 JUnit4 测试的 TestEngine，照顾老的项目。 JUnit5 新特性 使用 JUnit Jupiter 写测试 示例代码：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:tag" content="单元测试">
+    <meta property="article:tag" content="JUnit">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Java 新一代单元测试框架 JUnit5 速览">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+为什么学 JUnit5 Java 技术栈的单元测试框架有两个：JUnit 和 TestNG，有种说法是 TestNG 比 JUnit 更强大，学 TestNG 就够了，但是当我打开 GitHub 看到 star 的时候，犹豫了：
+JUnit
+TestNG
+相差了足足有3K之多。带着这个困惑，我在网上查阅了一番资料，原来JUnit5 相较于 JUnit4 有了重大升级，已经包含了 TestNG 的所有功能。为了坚定我学 JUnit 的想法，我咨询了身边做 Java 开发的朋友，开发写 UT 都是用的 JUnit。这两个理由足以让我开始对 JUnit5 的学习。
+JUnit5 是什么 跟之前的 JUnit 有所不同，JUnit5 由三个子项目的模块组成：
+JUnit5 = JUnit Platform &#43; JUnit Jupiter &#43; JUnit Vintage
+JUnit Platform 在 JVM 上启动测试框架的基础，不仅支持 Junit 自制的测试引擎，其他测试引擎也都可以接入。提供了从命令行启动平台的 Console Launcher，和支持 JUnit4 环境的 JUnit4 based Runner。IDE 一般都集成了 JUnit Platform，比如 IntelliJ IDEA。 JUnit Jupiter JUnit5 新特性，结合了新的 programming model 和 extension model，以便于在 JUnit5 中编写测试和扩展。提供了在平台上运行基于 Jupiter 测试的 TestEngine。 JUnit Vintage 提供了在平台上运行基于 JUnit3 和 JUnit4 测试的 TestEngine，照顾老的项目。 JUnit5 新特性 使用 JUnit Jupiter 写测试 示例代码：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Java 新一代单元测试框架 JUnit5 速览",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java%E6%96%B0%E4%B8%80%E4%BB%A3%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6junit5%E9%80%9F%E8%A7%88/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Java 新一代单元测试框架 JUnit5 速览",
+  "name": "Java 新一代单元测试框架 JUnit5 速览",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n为什么学 JUnit5 Java 技术栈的单元测试框架有两个：JUnit 和 TestNG，有种说法是 TestNG 比 JUnit 更强大，学 TestNG 就够了，但是当我打开 GitHub 看到 star 的时候，犹豫了：\nJUnit\nTestNG\n相差了足足有3K之多。带着这个困惑，我在网上查阅了一番资料，原来JUnit5 相较于 JUnit4 有了重大升级，已经包含了 TestNG 的所有功能。为了坚定我学 JUnit 的想法，我咨询了身边做 Java 开发的朋友，开发写 UT 都是用的 JUnit。这两个理由足以让我开始对 JUnit5 的学习。\nJUnit5 是什么 跟之前的 JUnit 有所不同，JUnit5 由三个子项目的模块组成：\nJUnit5 = JUnit Platform + JUnit Jupiter + JUnit Vintage\nJUnit Platform 在 JVM 上启动测试框架的基础，不仅支持 Junit 自制的测试引擎，其他测试引擎也都可以接入。提供了从命令行启动平台的 Console Launcher，和支持 JUnit4 环境的 JUnit4 based Runner。IDE 一般都集成了 JUnit Platform，比如 IntelliJ IDEA。 JUnit Jupiter JUnit5 新特性，结合了新的 programming model 和 extension model，以便于在 JUnit5 中编写测试和扩展。提供了在平台上运行基于 Jupiter 测试的 TestEngine。 JUnit Vintage 提供了在平台上运行基于 JUnit3 和 JUnit4 测试的 TestEngine，照顾老的项目。 JUnit5 新特性 使用 JUnit Jupiter 写测试 示例代码：\n",
+  "keywords": [
+    "单元测试", "JUnit"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n为什么学 JUnit5 Java 技术栈的单元测试框架有两个：JUnit 和 TestNG，有种说法是 TestNG 比 JUnit 更强大，学 TestNG 就够了，但是当我打开 GitHub 看到 star 的时候，犹豫了：\nJUnit\nTestNG\n相差了足足有3K之多。带着这个困惑，我在网上查阅了一番资料，原来JUnit5 相较于 JUnit4 有了重大升级，已经包含了 TestNG 的所有功能。为了坚定我学 JUnit 的想法，我咨询了身边做 Java 开发的朋友，开发写 UT 都是用的 JUnit。这两个理由足以让我开始对 JUnit5 的学习。\nJUnit5 是什么 跟之前的 JUnit 有所不同，JUnit5 由三个子项目的模块组成：\nJUnit5 = JUnit Platform + JUnit Jupiter + JUnit Vintage\nJUnit Platform 在 JVM 上启动测试框架的基础，不仅支持 Junit 自制的测试引擎，其他测试引擎也都可以接入。提供了从命令行启动平台的 Console Launcher，和支持 JUnit4 环境的 JUnit4 based Runner。IDE 一般都集成了 JUnit Platform，比如 IntelliJ IDEA。 JUnit Jupiter JUnit5 新特性，结合了新的 programming model 和 extension model，以便于在 JUnit5 中编写测试和扩展。提供了在平台上运行基于 Jupiter 测试的 TestEngine。 JUnit Vintage 提供了在平台上运行基于 JUnit3 和 JUnit4 测试的 TestEngine，照顾老的项目。 JUnit5 新特性 使用 JUnit Jupiter 写测试 示例代码：\nimport static org.junit.jupiter.api.Assertions.assertEquals; import example.util.Calculator; import org.junit.jupiter.api.Test; class MyFirstJUnitJupiterTests { private final Calculator calculator = new Calculator(); @Test void addition() { assertEquals(2, calculator.add(1, 1)); } } 注意这个导包的路径org.junit.jupiter.api，Jupiter 就是 JUnit5 的新特性。\n兼容 JUnit4 和 JUnit3 JUnit Vintage 提供了在平台上运行基于 JUnit3 和 JUnit4 测试的 TestEngine， 并且新的包org.junit.jupiter避免了和 JUnit4 的org.junit在 classpath 上有任何冲突。\n多 IDE 运行 JUnit 能在 IntelliJ IDEA、Eclipse、NetBeans、Visual Studio Code 等 IDE 中运行。\n从 JUnit Jupiter 扩展 Model 示例：\n@ExtendWith(RandomParametersExtension.class) @Test void test(@Random int i) { // ... } 给 test 方法注册了一个新的 RandomParametersExtension。\n更多高级用法 JUnit5 提供了更多高级用法，比如 JUnit Platform Launcher API 和 JUnit Platform Test Kit 等，这些会在之后的文章逐一进行介绍。\n小结 本文首先解释了为什么要学 JUnit5，一是因为全新一代 JUnit 功能更加强大，二是 Java 开发写单元测试都是用的 JUnit，然后介绍了 JUnit5 是什么以及它的新特性。学习 JUnit，在单元测试这条路上，又往前迈了一步。\n参考资料：\nhttps://junit.org/junit5/docs/current/user-guide/\nhttps://blog.csdn.net/weixin_45876795/article/details/111059031\n",
+  "wordCount" : "204",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-01T00:00:00Z",
+  "dateModified": "2026-01-01T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java%E6%96%B0%E4%B8%80%E4%BB%A3%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6junit5%E9%80%9F%E8%A7%88/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Java 新一代单元测试框架 JUnit5 速览
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-01T00:00:00+00:00'>2026-01-01</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/'>#单元测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/junit/'>#JUnit</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="为什么学-junit5">为什么学 JUnit5<a hidden class="anchor" aria-hidden="true" href="#为什么学-junit5">#</a></h1>
+<p>Java 技术栈的单元测试框架有两个：JUnit 和 TestNG，有种说法是 TestNG 比 JUnit 更强大，学 TestNG 就够了，但是当我打开 GitHub 看到 star 的时候，犹豫了：</p>
+<p>JUnit</p>
+<p><img loading="lazy" src="../assets/ed3f70478ba3485b8f7640107f425fe7.png"></p>
+<p>TestNG</p>
+<p><img loading="lazy" src="../assets/d46a649ad5cb4a6b999f0cf96ea846bb.png"></p>
+<p>相差了足足有<strong>3K</strong>之多。带着这个困惑，我在网上查阅了一番资料，原来<strong>JUnit5 相较于 JUnit4 有了重大升级，已经包含了 TestNG 的所有功能</strong>。为了坚定我学 JUnit 的想法，我咨询了身边做 Java 开发的朋友，<strong>开发写 UT 都是用的 JUnit</strong>。这两个理由足以让我开始对 JUnit5 的学习。</p>
+<h1 id="junit5-是什么">JUnit5 是什么<a hidden class="anchor" aria-hidden="true" href="#junit5-是什么">#</a></h1>
+<p>跟之前的 JUnit 有所不同，JUnit5 由三个子项目的模块组成：</p>
+<p><code>JUnit5 = JUnit Platform + JUnit Jupiter + JUnit Vintage</code></p>
+<ul>
+<li><strong>JUnit Platform</strong> 在 JVM 上启动测试框架的基础，不仅支持 Junit 自制的测试引擎，其他测试引擎也都可以接入。提供了从命令行启动平台的 Console Launcher，和支持 JUnit4 环境的 JUnit4 based Runner。IDE 一般都集成了 JUnit Platform，比如 IntelliJ IDEA。</li>
+<li><strong>JUnit Jupiter</strong> JUnit5 新特性，结合了新的 programming model 和 extension model，以便于在 JUnit5 中编写测试和扩展。提供了在平台上运行基于 Jupiter 测试的 TestEngine。</li>
+<li><strong>JUnit Vintage</strong> 提供了在平台上运行基于 JUnit3 和 JUnit4 测试的 TestEngine，照顾老的项目。</li>
+</ul>
+<h1 id="junit5-新特性">JUnit5 新特性<a hidden class="anchor" aria-hidden="true" href="#junit5-新特性">#</a></h1>
+<h2 id="使用-junit-jupiter-写测试">使用 JUnit Jupiter 写测试<a hidden class="anchor" aria-hidden="true" href="#使用-junit-jupiter-写测试">#</a></h2>
+<p>示例代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import static</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.api.Assertions.assertEquals</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">example.util.Calculator</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.junit.jupiter.api.Test</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyFirstJUnitJupiterTests</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span><span style="color:#cf222e">final</span><span style="color:#fff"> </span>Calculator<span style="color:#fff"> </span>calculator<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>Calculator<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">addition</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>assertEquals<span style="color:#1f2328">(</span>2<span style="color:#1f2328">,</span><span style="color:#fff"> </span>calculator<span style="color:#1f2328">.</span><span style="color:#1f2328">add</span><span style="color:#1f2328">(</span>1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>1<span style="color:#1f2328">));</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>注意这个导包的路径<code>org.junit.jupiter.api</code>，<strong>Jupiter 就是 JUnit5 的新特性</strong>。</p>
+<h2 id="兼容-junit4-和-junit3">兼容 JUnit4 和 JUnit3<a hidden class="anchor" aria-hidden="true" href="#兼容-junit4-和-junit3">#</a></h2>
+<p>JUnit Vintage 提供了在平台上运行基于 JUnit3 和 JUnit4 测试的 TestEngine， 并且新的包<code>org.junit.jupiter</code>避免了和 JUnit4 的<code>org.junit</code>在 classpath 上有任何冲突。</p>
+<h2 id="多-ide-运行">多 IDE 运行<a hidden class="anchor" aria-hidden="true" href="#多-ide-运行">#</a></h2>
+<p>JUnit 能在 IntelliJ IDEA、Eclipse、NetBeans、Visual Studio Code 等 IDE 中运行。</p>
+<h2 id="从-junit-jupiter-扩展-model">从 JUnit Jupiter 扩展 Model<a hidden class="anchor" aria-hidden="true" href="#从-junit-jupiter-扩展-model">#</a></h2>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#0550ae">@ExtendWith</span><span style="color:#1f2328">(</span>RandomParametersExtension<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">test</span><span style="color:#1f2328">(</span><span style="color:#0550ae">@Random</span><span style="color:#fff"> </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>i<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// ...</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>给 test 方法注册了一个新的 RandomParametersExtension。</p>
+<h2 id="更多高级用法">更多高级用法<a hidden class="anchor" aria-hidden="true" href="#更多高级用法">#</a></h2>
+<p>JUnit5 提供了更多高级用法，比如 JUnit Platform Launcher API 和 JUnit Platform Test Kit 等，这些会在之后的文章逐一进行介绍。</p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文首先解释了为什么要学 JUnit5，一是因为全新一代 JUnit 功能更加强大，二是 Java 开发写单元测试都是用的 JUnit，然后介绍了 JUnit5 是什么以及它的新特性。学习 JUnit，在单元测试这条路上，又往前迈了一步。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://junit.org/junit5/docs/current/user-guide/">https://junit.org/junit5/docs/current/user-guide/</a></p>
+<p><a href="https://blog.csdn.net/weixin_45876795/article/details/111059031">https://blog.csdn.net/weixin_45876795/article/details/111059031</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">单元测试</a></li>
+      <li><a href="https://dongfanger.github.io/tags/junit/">JUnit</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/japi%E9%A1%B9%E7%9B%AE%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90%E9%98%B6%E6%AE%B5/">
+    <span class="title">« 上一页</span>
+    <span>japi 项目需求分析阶段</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java&#43;appium&#43;%E5%AE%89%E5%8D%93%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%AE%9E%E7%8E%B0app%E8%87%AA%E5%8A%A8%E5%8C%96demo/">
+    <span class="title">下一页 »</span>
+    <span>java&#43;appium&#43;安卓模拟器实现 app 自动化 Demo</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#为什么学-junit5">为什么学 JUnit5</a></li>
+    <li><a href="#junit5-是什么">JUnit5 是什么</a></li>
+    <li><a href="#junit5-新特性">JUnit5 新特性</a>
+      <ul>
+        <li><a href="#使用-junit-jupiter-写测试">使用 JUnit Jupiter 写测试</a></li>
+        <li><a href="#兼容-junit4-和-junit3">兼容 JUnit4 和 JUnit3</a></li>
+        <li><a href="#多-ide-运行">多 IDE 运行</a></li>
+        <li><a href="#从-junit-jupiter-扩展-model">从 JUnit Jupiter 扩展 Model</a></li>
+        <li><a href="#更多高级用法">更多高级用法</a></li>
+      </ul>
+    </li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

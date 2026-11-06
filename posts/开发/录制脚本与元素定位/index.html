@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>录制脚本与元素定位 | 测试开发刚哥</title>
+<meta name="keywords" content="Playwright">
+<meta name="description" content="UI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="录制脚本与元素定位">
+  <meta property="og:description" content="UI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:tag" content="Playwright">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="录制脚本与元素定位">
+  <meta name="twitter:description" content="UI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "录制脚本与元素定位",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "录制脚本与元素定位",
+  "name": "录制脚本与元素定位",
+  "description": "UI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。",
+  "keywords": [
+    "Playwright"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nUI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。\n并且 Playwright 会优先选择稳定的元素定位方式，通常是 role, text 和 test id。\n前置条件：\n安装 node.js 执行 playwright install 安装测试版浏览器 安装完成后执行命令，启动 Codegen：\nplaywright codegen 也可以指定 URL 进行启动：\nplaywright codegen demo.playwright.dev/todomvc 启动后会打开 2 个窗口：\n1 个是测试版浏览器，也就是进行操作的页面。1 个是监视器，会实时生成脚本，可以在右上角的 Target 切换不同语言，Python 就选择 Pytest。\n更多用法请咨询 AI：\n元素定位 提示词： 访问https://playwright.dev/python/docs/locators，提取最重要的10点 Playwright Locators 核心 10 点（官方文档核心提炼）\n定位器核心特性：Locators 是 Playwright 自动等待和重试机制的核心，代表任意时刻查找页面元素的方式，每次执行操作都会重新定位最新的 DOM 元素，适配页面重渲染场景。\n推荐定位器优先级：优先使用面向用户的内置定位器，而非 CSS/XPath，官方推荐顺序核心为：get_by_role() \u003e get_by_test_id() \u003e 文本 / 标签类定位器，避免依赖 DOM 结构的选择器导致用例不稳定。\n核心内置定位器及适用场景\n提供 7 种官方推荐定位器，各有明确适用场景：\nget_by_role()：按 W3C ARIA 角色 / 可访问名称定位（如按钮、复选框），最贴合用户操作视角； get_by_label()：定位带标签的表单控件（如输入框）； get_by_test_id()：按 data-testid 定位（最稳定，不受页面文本 / 样式变化影响）； 其余：get_by_text()（非交互元素文本）、get_by_placeholder()（无标签表单）、get_by_alt_text()（图片）、get_by_title()（带 title 属性元素）。 定位器可链式调用：所有创建定位器的方法（如 get_by_role()/get_by_label()）可在 Locator/FrameLocator 上调用，支持逐层缩小定位范围（如先定位 iframe，再定位内部按钮）。\n强大的过滤能力：通过 locator.filter()实现精准筛选，支持 4 种过滤方式：按文本（has_text/has_not_text）、按子元素（has/has_not）、正则匹配文本，且可多过滤条件链式组合。\n定位器运算符\n支持 3 种复合定位逻辑，满足复杂场景：\nand_()：同时匹配多个定位器（如角色为按钮且含指定 title）； or_()：匹配任意一个定位器（如处理弹窗 / 目标元素二选一场景）； 嵌套定位：在父定位器内匹配子定位器（如对话框内的保存按钮）。 严格模式特性：Locators 默认开启严格模式，单个元素操作若匹配多个元素会抛出异常（如 click()）；多元素操作（如 count()）可正常执行，可通过 first/last/nth()显式取消严格校验（不推荐）。\n原生支持 Shadow DOM：所有定位器默认穿透 Shadow DOM（XPath 除外），闭模式 Shadow DOM 不支持，可直接按普通元素方式定位 Shadow DOM 内的元素。\n列表元素处理方案：针对列表提供全套操作，包括：断言列表数量（to_have_count）、断言列表文本（to_have_text）、精准获取指定项（文本 / Test ID / 过滤），避免直接使用 nth()（易因页面顺序变化失效）。\nCSS/XPath 的使用规范：官方不推荐使用 CSS/XPath（易因 DOM 结构变化失效），仅在无其他方案时使用 page.locator()，且禁止使用超长嵌套的 CSS/XPath 选择器，替代方案为定义 Test ID 或使用角色定位。\n题外话 这篇文章是我第一次使用 AI 生成文字，写文章的效率提升了很多。但是怎么提高文章质量？如何选择话题？哪些内容能对读者有帮助？是接下来需要重点思考和调整的。纯粹的知识搬运，受众只会越来越少。“能帮助读者拓展认知的好文章”，也许是我努力的方向。\n参考资料\nhttps://playwright.dev/python/docs/codegen\nhttps://playwright.dev/python/docs/locators\nhttps://playwright.dev/python/docs/other-locators\n",
+  "wordCount" : "147",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-01T00:00:00Z",
+  "dateModified": "2026-01-01T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      录制脚本与元素定位
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-01T00:00:00+00:00'>2026-01-01</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/playwright/'>#Playwright</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>UI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。</p>
+<p>并且 Playwright 会优先选择稳定的元素定位方式，通常是 role, text 和 test id。</p>
+<p>前置条件：</p>
+<ul>
+<li>安装 node.js</li>
+<li>执行 playwright install 安装测试版浏览器</li>
+</ul>
+<p>安装完成后执行命令，启动 Codegen：</p>
+<pre tabindex="0"><code>playwright codegen
+</code></pre><p>也可以指定 URL 进行启动：</p>
+<pre tabindex="0"><code>playwright codegen demo.playwright.dev/todomvc
+</code></pre><p>启动后会打开 2 个窗口：</p>
+<p><img loading="lazy" src="../assets/5b85995a937949b9aef7ef1f7a1c8fc4.png"></p>
+<p>1 个是测试版浏览器，也就是进行操作的页面。1 个是监视器，会实时生成脚本，可以在右上角的 Target 切换不同语言，Python 就选择 Pytest。</p>
+<p>更多用法请咨询 AI：</p>
+<p><img loading="lazy" src="../assets/37adf7401fe1421bb237cef8f8f42638.png"></p>
+<h1 id="元素定位">元素定位<a hidden class="anchor" aria-hidden="true" href="#元素定位">#</a></h1>
+<pre tabindex="0"><code>提示词：
+访问https://playwright.dev/python/docs/locators，提取最重要的10点
+</code></pre><p>Playwright Locators 核心 10 点（官方文档核心提炼）</p>
+<ol>
+<li>
+<p>定位器核心特性：Locators 是 Playwright 自动等待和重试机制的核心，代表任意时刻查找页面元素的方式，每次执行操作都会重新定位最新的 DOM 元素，适配页面重渲染场景。</p>
+</li>
+<li>
+<p>推荐定位器优先级：优先使用面向用户的内置定位器，而非 CSS/XPath，官方推荐顺序核心为：get_by_role() &gt; get_by_test_id() &gt; 文本 / 标签类定位器，避免依赖 DOM 结构的选择器导致用例不稳定。</p>
+</li>
+<li>
+<p>核心内置定位器及适用场景</p>
+<p>提供 7 种官方推荐定位器，各有明确适用场景：</p>
+<ul>
+<li>get_by_role()：按 W3C ARIA 角色 / 可访问名称定位（如按钮、复选框），最贴合用户操作视角；</li>
+<li>get_by_label()：定位带标签的表单控件（如输入框）；</li>
+<li>get_by_test_id()：按 data-testid 定位（最稳定，不受页面文本 / 样式变化影响）；</li>
+<li>其余：get_by_text()（非交互元素文本）、get_by_placeholder()（无标签表单）、get_by_alt_text()（图片）、get_by_title()（带 title 属性元素）。</li>
+</ul>
+</li>
+<li>
+<p>定位器可链式调用：所有创建定位器的方法（如 get_by_role()/get_by_label()）可在 Locator/FrameLocator 上调用，支持逐层缩小定位范围（如先定位 iframe，再定位内部按钮）。</p>
+</li>
+<li>
+<p>强大的过滤能力：通过 locator.filter()实现精准筛选，支持 4 种过滤方式：按文本（has_text/has_not_text）、按子元素（has/has_not）、正则匹配文本，且可多过滤条件链式组合。</p>
+</li>
+<li>
+<p>定位器运算符</p>
+<p>支持 3 种复合定位逻辑，满足复杂场景：</p>
+<ul>
+<li>and_()：同时匹配多个定位器（如角色为按钮且含指定 title）；</li>
+<li>or_()：匹配任意一个定位器（如处理弹窗 / 目标元素二选一场景）；</li>
+<li>嵌套定位：在父定位器内匹配子定位器（如对话框内的保存按钮）。</li>
+</ul>
+</li>
+<li>
+<p>严格模式特性：Locators 默认开启严格模式，单个元素操作若匹配多个元素会抛出异常（如 click()）；多元素操作（如 count()）可正常执行，可通过 first/last/nth()显式取消严格校验（不推荐）。</p>
+</li>
+<li>
+<p>原生支持 Shadow DOM：所有定位器默认穿透 Shadow DOM（XPath 除外），闭模式 Shadow DOM 不支持，可直接按普通元素方式定位 Shadow DOM 内的元素。</p>
+</li>
+<li>
+<p>列表元素处理方案：针对列表提供全套操作，包括：断言列表数量（to_have_count）、断言列表文本（to_have_text）、精准获取指定项（文本 / Test ID / 过滤），<strong>避免直接使用 nth()</strong>（易因页面顺序变化失效）。</p>
+</li>
+<li>
+<p>CSS/XPath 的使用规范：官方不推荐使用 CSS/XPath（易因 DOM 结构变化失效），仅在无其他方案时使用 page.locator()，且禁止使用超长嵌套的 CSS/XPath 选择器，替代方案为定义 Test ID 或使用角色定位。</p>
+</li>
+</ol>
+<h1 id="题外话">题外话<a hidden class="anchor" aria-hidden="true" href="#题外话">#</a></h1>
+<p>这篇文章是我第一次使用 AI 生成文字，写文章的效率提升了很多。但是怎么提高文章质量？如何选择话题？哪些内容能对读者有帮助？是接下来需要重点思考和调整的。纯粹的知识搬运，受众只会越来越少。“能帮助读者拓展认知的好文章”，也许是我努力的方向。</p>
+<blockquote>
+<p>参考资料</p>
+<p><a href="https://playwright.dev/python/docs/codegen">https://playwright.dev/python/docs/codegen</a></p>
+<p><a href="https://playwright.dev/python/docs/locators">https://playwright.dev/python/docs/locators</a></p>
+<p><a href="https://playwright.dev/python/docs/other-locators">https://playwright.dev/python/docs/other-locators</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/playwright/">Playwright</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E8%81%9A%E7%84%A6%E4%BA%8E%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6%E7%9A%84%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0pytestx/">
+    <span class="title">« 上一页</span>
+    <span>聚焦于任务调度的测试平台 pytestx</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%A6%82%E4%BD%95%E8%AE%A9%E6%96%87%E7%A7%91%E7%94%9F5%E5%88%86%E9%92%9F%E5%86%99%E4%B8%8Apython/">
+    <span class="title">下一页 »</span>
+    <span>如何让文科生 5 分钟写上 Python</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#元素定位">元素定位</a></li>
+    <li><a href="#题外话">题外话</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

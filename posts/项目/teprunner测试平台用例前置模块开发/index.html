@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>teprunner 测试平台用例前置模块开发 | 测试开发刚哥</title>
+<meta name="keywords" content="teprunner">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+本文开发内容
+现在正式进入测试相关功能开发。teprunner 测试平台底层是 pytest，中间层是 tep，还没了解的朋友可以先看看 tep 的文章，整个平台的设计思路和后面用例的执行都会基于这个工具。tep 的测试用例是放在.py 文件里面的，全局变量或者说环境变量是引用的 env_vars，公共函数和复用接口是引用的 fixtures，在做成平台后，需要把这两个部分独立为两个功能模块。多个项目的接口自动化数据需要隔离开来，要有个项目管理功能。本文将开发四个用例前置模块：
+
+后台管理&ndash;项目管理
+接口自动化&ndash;语法说明
+接口自动化&ndash;环境变量
+接口自动化&ndash;fixtures
+
+
+语法说明给出了环境变量、fixtures、用例示例（单个接口、多个接口&ndash;增删改查）、请求方法（get、post、put、delete）的使用方法。
+
+编写后端代码
+先创建名为 teprunner 的 app：
+django-admin startapp teprunner
+在 settings 的 INSTALLED_APPS 中添加配置让 app 生效：
+
+并在 urls.py 添加路由：
+
+编辑 user/fixtures/user.json，添加一个接口自动化的菜单：
+
+截图只截了管理员，测试和开发角色，也需要添加上。access 均为 true，这三个角色都可以访问。添加后把数据同步到数据库：
+python manage.py loaddata user
+编辑 teprunner/models.py，新增模型：
+
+包括了项目、环境变量和 fixture 三张表。Project.env_config 用于给项目配置多个环境。不同项目不同环境的环境变量不一样，在 EnvVar 中添加了 project_id 和 env_name，并按(&ldquo;project_id&rdquo;, &ldquo;env_name&rdquo;, &ldquo;name&rdquo;)作为唯一键，不允许重复。不同项目的 fixtures 不同，不关心环境，在 Fixture 中只添加了 project_id。
+
+Fixture.code 用于存放代码，字段类型为 models.TextField，容纳更多字符。
+
+models 编写好后，迁移到数据库：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E5%89%8D%E7%BD%AE%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E5%89%8D%E7%BD%AE%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E5%89%8D%E7%BD%AE%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="teprunner 测试平台用例前置模块开发">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+本文开发内容 现在正式进入测试相关功能开发。teprunner 测试平台底层是 pytest，中间层是 tep，还没了解的朋友可以先看看 tep 的文章，整个平台的设计思路和后面用例的执行都会基于这个工具。tep 的测试用例是放在.py 文件里面的，全局变量或者说环境变量是引用的 env_vars，公共函数和复用接口是引用的 fixtures，在做成平台后，需要把这两个部分独立为两个功能模块。多个项目的接口自动化数据需要隔离开来，要有个项目管理功能。本文将开发四个用例前置模块：
+后台管理–项目管理 接口自动化–语法说明 接口自动化–环境变量 接口自动化–fixtures 语法说明给出了环境变量、fixtures、用例示例（单个接口、多个接口–增删改查）、请求方法（get、post、put、delete）的使用方法。
+编写后端代码 先创建名为 teprunner 的 app：
+django-admin startapp teprunner 在 settings 的 INSTALLED_APPS 中添加配置让 app 生效：
+并在 urls.py 添加路由：
+编辑 user/fixtures/user.json，添加一个接口自动化的菜单：
+截图只截了管理员，测试和开发角色，也需要添加上。access 均为 true，这三个角色都可以访问。添加后把数据同步到数据库：
+python manage.py loaddata user 编辑 teprunner/models.py，新增模型：
+包括了项目、环境变量和 fixture 三张表。Project.env_config 用于给项目配置多个环境。不同项目不同环境的环境变量不一样，在 EnvVar 中添加了 project_id 和 env_name，并按(“project_id”, “env_name”, “name”)作为唯一键，不允许重复。不同项目的 fixtures 不同，不关心环境，在 Fixture 中只添加了 project_id。
+Fixture.code 用于存放代码，字段类型为 models.TextField，容纳更多字符。
+models 编写好后，迁移到数据库：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:tag" content="Teprunner">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="teprunner 测试平台用例前置模块开发">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+本文开发内容 现在正式进入测试相关功能开发。teprunner 测试平台底层是 pytest，中间层是 tep，还没了解的朋友可以先看看 tep 的文章，整个平台的设计思路和后面用例的执行都会基于这个工具。tep 的测试用例是放在.py 文件里面的，全局变量或者说环境变量是引用的 env_vars，公共函数和复用接口是引用的 fixtures，在做成平台后，需要把这两个部分独立为两个功能模块。多个项目的接口自动化数据需要隔离开来，要有个项目管理功能。本文将开发四个用例前置模块：
+后台管理–项目管理 接口自动化–语法说明 接口自动化–环境变量 接口自动化–fixtures 语法说明给出了环境变量、fixtures、用例示例（单个接口、多个接口–增删改查）、请求方法（get、post、put、delete）的使用方法。
+编写后端代码 先创建名为 teprunner 的 app：
+django-admin startapp teprunner 在 settings 的 INSTALLED_APPS 中添加配置让 app 生效：
+并在 urls.py 添加路由：
+编辑 user/fixtures/user.json，添加一个接口自动化的菜单：
+截图只截了管理员，测试和开发角色，也需要添加上。access 均为 true，这三个角色都可以访问。添加后把数据同步到数据库：
+python manage.py loaddata user 编辑 teprunner/models.py，新增模型：
+包括了项目、环境变量和 fixture 三张表。Project.env_config 用于给项目配置多个环境。不同项目不同环境的环境变量不一样，在 EnvVar 中添加了 project_id 和 env_name，并按(“project_id”, “env_name”, “name”)作为唯一键，不允许重复。不同项目的 fixtures 不同，不关心环境，在 Fixture 中只添加了 project_id。
+Fixture.code 用于存放代码，字段类型为 models.TextField，容纳更多字符。
+models 编写好后，迁移到数据库：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "teprunner 测试平台用例前置模块开发",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E5%89%8D%E7%BD%AE%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "teprunner 测试平台用例前置模块开发",
+  "name": "teprunner 测试平台用例前置模块开发",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n本文开发内容 现在正式进入测试相关功能开发。teprunner 测试平台底层是 pytest，中间层是 tep，还没了解的朋友可以先看看 tep 的文章，整个平台的设计思路和后面用例的执行都会基于这个工具。tep 的测试用例是放在.py 文件里面的，全局变量或者说环境变量是引用的 env_vars，公共函数和复用接口是引用的 fixtures，在做成平台后，需要把这两个部分独立为两个功能模块。多个项目的接口自动化数据需要隔离开来，要有个项目管理功能。本文将开发四个用例前置模块：\n后台管理\u0026ndash;项目管理 接口自动化\u0026ndash;语法说明 接口自动化\u0026ndash;环境变量 接口自动化\u0026ndash;fixtures 语法说明给出了环境变量、fixtures、用例示例（单个接口、多个接口\u0026ndash;增删改查）、请求方法（get、post、put、delete）的使用方法。\n编写后端代码 先创建名为 teprunner 的 app：\ndjango-admin startapp teprunner 在 settings 的 INSTALLED_APPS 中添加配置让 app 生效：\n并在 urls.py 添加路由：\n编辑 user/fixtures/user.json，添加一个接口自动化的菜单：\n截图只截了管理员，测试和开发角色，也需要添加上。access 均为 true，这三个角色都可以访问。添加后把数据同步到数据库：\npython manage.py loaddata user 编辑 teprunner/models.py，新增模型：\n包括了项目、环境变量和 fixture 三张表。Project.env_config 用于给项目配置多个环境。不同项目不同环境的环境变量不一样，在 EnvVar 中添加了 project_id 和 env_name，并按(\u0026ldquo;project_id\u0026rdquo;, \u0026ldquo;env_name\u0026rdquo;, \u0026ldquo;name\u0026rdquo;)作为唯一键，不允许重复。不同项目的 fixtures 不同，不关心环境，在 Fixture 中只添加了 project_id。\nFixture.code 用于存放代码，字段类型为 models.TextField，容纳更多字符。\nmodels 编写好后，迁移到数据库：\n",
+  "keywords": [
+    "teprunner"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n本文开发内容 现在正式进入测试相关功能开发。teprunner 测试平台底层是 pytest，中间层是 tep，还没了解的朋友可以先看看 tep 的文章，整个平台的设计思路和后面用例的执行都会基于这个工具。tep 的测试用例是放在.py 文件里面的，全局变量或者说环境变量是引用的 env_vars，公共函数和复用接口是引用的 fixtures，在做成平台后，需要把这两个部分独立为两个功能模块。多个项目的接口自动化数据需要隔离开来，要有个项目管理功能。本文将开发四个用例前置模块：\n后台管理–项目管理 接口自动化–语法说明 接口自动化–环境变量 接口自动化–fixtures 语法说明给出了环境变量、fixtures、用例示例（单个接口、多个接口–增删改查）、请求方法（get、post、put、delete）的使用方法。\n编写后端代码 先创建名为 teprunner 的 app：\ndjango-admin startapp teprunner 在 settings 的 INSTALLED_APPS 中添加配置让 app 生效：\n并在 urls.py 添加路由：\n编辑 user/fixtures/user.json，添加一个接口自动化的菜单：\n截图只截了管理员，测试和开发角色，也需要添加上。access 均为 true，这三个角色都可以访问。添加后把数据同步到数据库：\npython manage.py loaddata user 编辑 teprunner/models.py，新增模型：\n包括了项目、环境变量和 fixture 三张表。Project.env_config 用于给项目配置多个环境。不同项目不同环境的环境变量不一样，在 EnvVar 中添加了 project_id 和 env_name，并按(“project_id”, “env_name”, “name”)作为唯一键，不允许重复。不同项目的 fixtures 不同，不关心环境，在 Fixture 中只添加了 project_id。\nFixture.code 用于存放代码，字段类型为 models.TextField，容纳更多字符。\nmodels 编写好后，迁移到数据库：\npython manage.py makemigrations python manage.py migrate 新建 teprunner/serializers.py 文件，新增序列化器：\n数据库字段的命名是用的下划线，接口返回前端和前端传参是用的驼峰，所以这里通过 source 这种方式给 env_config、project_id、env_name、creator_nickname 进行了序列化器的重命名。为了前端更方便处理，使用 serializers.CharField 把 int 转化为了 str，由于请求时 id 非必须，增加参数 required=False。\nteprunner 会有很多视图，写在一个文件里面有点臃肿，这里创建 views 文件夹，新增 views/project.py 项目视图：\nDjango REST framework 的 ModelViewSet 视图类能节省很多代码，只需要三行就把项目增删改查接口做了。project_env 是函数视图，请求方法为 GET，它的作用是返回项目环境列表，当前项目和当前环境，默认为第一个项目和第一个环境。\n前端需要切换不同项目和不同环境，下拉框数据来源于这个接口。\n新建 views/envvar.py 新增环境变量视图：\n环境变量跟项目和环境是强关联的，需要根据项目环境进行过滤，所以重写了 list 方法，从前端请求拿到 curProjectId 和 curEnvName，通过 EnvVar.objects.filter 进行过滤。from django.db.models import Q支持多种过滤条件，这在后面的代码中还能看到，比如模糊匹配。\n新建 views/fixture.py 新增 fixture 视图：\nfixture 跟项目是强关联的，需要根据项目进行过滤，所以重写了 list 方法，从前端请求拿到 curProjectId，通过 Fixture.objects.filter 进行过滤。Fixture 有个 creatorNickname 字段，新增 fixture 时使用的是当前登录用户的昵称，修改 fixture 时需要用已保存的创建者，重写 update 方法来实现这个处理。\n最后，新建 teprunner/urls.py 文件，把视图添加到路由中：\n编写前端代码 编辑 package.json，添加依赖：\nfixtures 是代码形式的，这是测试平台第一次使用代码编辑组件。添加依赖后记得执行npm install进行安装。\n编辑 router/index.js：\n添加接口自动化的路由，并把 home 重定向改为语法说明路由。children 表示子路由。path 是路由地址。meta.title 用于显示菜单名。\n编辑 views/console/index.vue：\n添加项目管理菜单。新建 ProjectManagement.vue 和 AddProject.vue，添加项目管理增删改查代码，跟用户管理类似，不再另加赘述。值得注意的是环境配置placeholder=\"请输入环境英文名（多个环境英文逗号分隔）\"，因为 tep.env_vars.mapping 会用到环境名作为 key，所以只能用英文名！\n编辑 components/WrapComponent.vue，添加一个插槽：\n用于切换项目和环境。新建 components/ProjectEnv.vue 文件：\n定义了两个下拉框：项目和环境。v-if 判断是否需要显示。@change 在切换下拉选项时调用对应方法。@click.native 指在点击打开时获取数据。然后用 v-for 遍历列表展示下拉选项。环境和项目数据是从 localStorage 中读取的：\n可以打开 F12 切换到 Application，点击左侧 Storage/Local Storage 检查是否有数据：\n数据写入的地方稍后会讲到，先接着讲 ProjectEnv.vue 文件：\n切换项目会更新环境列表和当前环境数据，这样就把这两个下拉框关联了起来。切换环境会更新当前环境数据。图中框起来的this.$emit是个重要知识点。ProjectEnv.vue 是个子组件，它是要嵌套到其他组件去的，比如 EnvVar.vue，它们是父子组件的关系。有这么个需求，切换项目时，执行一次查询操作，把查询结果更新一下。切换项目的代码是 ProjectEnv.vue 子组件提供的，执行查询操作的代码是 EnvVar.vue 父组件提供的，子组件就是通过this.$emit把这个消息通知给父组件的。\n新建 views/teprunner/index.vue 文件，添加接口自动化菜单：\n刚才说的项目环境数据的写入就是在这里进行的：\n每次加载时，如果 localStorage 没有 projectEnvList 的话，就请求/teprunner/projects/env去拿。\n新建 Grammar.vue，语法说明是个硬编码的静态文件，纯展示，无交互。接着新建 EnvVar.vue 和 AddEnvVar.vue，编写环境变量的增删改查，新建 Fixture.vue 和 AddFixture.vue，编写 fixtures 的增删改查，比较类似，不再另加赘述。通过 fixtures 模块的代码，看看 ProjectEnv.vue 是如何用的：\n:showEnv 与 ProjectEnv.vue 子组件的属性对应，用来控制是否显示环境，Fxiture 不需要显示。@changeProject 与 ProjectEnv.vue 的 this.$emit 对应，接收子组件消息，执行查询列表操作：\nAddFixture.vue 用到了代码编辑器：\n@init 指定了初始化方法：\n离代码完美显示还差最后一步：代码高亮。在 assets/js 添加highlight.js，并在 main.js 中导入：\n小结 经过本文的开发，如何添加菜单，前后端如何完成基本的增删改查开发已经进行了很充分的展示。遇到不会写的代码，也都能从已公开源码中找到参考。行动起来吧！边学边练，动手试试把用例管理的增删改查写出来，等我把下一篇写出来后，比较比较，可能会有更深刻的印象。CRUD 会了，定制化开发还会远么。\n参考资料：\n前端源码 https://github.com/dongfanger/teprunner-frontend\n后端源码 https://github.com/dongfanger/teprunner-backend\n",
+  "wordCount" : "245",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-04T00:00:00Z",
+  "dateModified": "2026-01-04T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E7%94%A8%E4%BE%8B%E5%89%8D%E7%BD%AE%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      teprunner 测试平台用例前置模块开发
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-04T00:00:00+00:00'>2026-01-04</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/teprunner/'>#Teprunner</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="本文开发内容">本文开发内容<a hidden class="anchor" aria-hidden="true" href="#本文开发内容">#</a></h1>
+<p>现在正式进入测试相关功能开发。teprunner 测试平台底层是 pytest，中间层是 tep，还没了解的朋友可以先看看 tep 的文章，整个平台的设计思路和后面用例的执行都会基于这个工具。tep 的测试用例是放在.py 文件里面的，全局变量或者说环境变量是引用的 env_vars，公共函数和复用接口是引用的 fixtures，在做成平台后，需要把这两个部分独立为两个功能模块。多个项目的接口自动化数据需要隔离开来，要有个项目管理功能。本文将开发四个用例前置模块：</p>
+<ul>
+<li>后台管理&ndash;项目管理</li>
+<li>接口自动化&ndash;语法说明</li>
+<li>接口自动化&ndash;环境变量</li>
+<li>接口自动化&ndash;fixtures</li>
+</ul>
+<blockquote>
+<p>语法说明给出了环境变量、fixtures、用例示例（单个接口、多个接口&ndash;增删改查）、请求方法（get、post、put、delete）的使用方法。</p>
+</blockquote>
+<h1 id="编写后端代码">编写后端代码<a hidden class="anchor" aria-hidden="true" href="#编写后端代码">#</a></h1>
+<p>先创建名为 teprunner 的 app：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>django-admin startapp teprunner
+</span></span></code></pre></div><p>在 settings 的 INSTALLED_APPS 中添加配置让 app 生效：</p>
+<p><img loading="lazy" src="../assets/67d966cf73d6483297dd107366706b05.png"></p>
+<p>并在 urls.py 添加路由：</p>
+<p><img loading="lazy" src="../assets/f3bd4250cbe84c6a89367a48fa40ff3f.png"></p>
+<p>编辑 user/fixtures/user.json，添加一个接口自动化的菜单：</p>
+<p><img loading="lazy" src="../assets/9322e66b340042d9b8304e1c9fd9bc67.png"></p>
+<p>截图只截了管理员，测试和开发角色，也需要添加上。access 均为 true，这三个角色都可以访问。添加后把数据同步到数据库：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>python manage.py loaddata user
+</span></span></code></pre></div><p>编辑 teprunner/models.py，新增模型：</p>
+<p><img loading="lazy" src="../assets/d6cffae9dd7a4a0b877eb1d08f9e07e1.png"></p>
+<p>包括了项目、环境变量和 fixture 三张表。Project.env_config 用于给项目配置多个环境。不同项目不同环境的环境变量不一样，在 EnvVar 中添加了 project_id 和 env_name，并按(&ldquo;project_id&rdquo;, &ldquo;env_name&rdquo;, &ldquo;name&rdquo;)作为唯一键，不允许重复。不同项目的 fixtures 不同，不关心环境，在 Fixture 中只添加了 project_id。</p>
+<blockquote>
+<p>Fixture.code 用于存放代码，字段类型为 models.TextField，容纳更多字符。</p>
+</blockquote>
+<p>models 编写好后，迁移到数据库：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>python manage.py makemigrations
+</span></span><span style="display:flex;"><span>python manage.py migrate
+</span></span></code></pre></div><p>新建 teprunner/serializers.py 文件，新增序列化器：</p>
+<p><img loading="lazy" src="../assets/cc0b2795d4c842c6a8ab80ad49c2eb37.png"></p>
+<p>数据库字段的命名是用的下划线，接口返回前端和前端传参是用的驼峰，所以这里通过 source 这种方式给 env_config、project_id、env_name、creator_nickname 进行了序列化器的重命名。为了前端更方便处理，使用 serializers.CharField 把 int 转化为了 str，由于请求时 id 非必须，增加参数 required=False。</p>
+<p>teprunner 会有很多视图，写在一个文件里面有点臃肿，这里创建 views 文件夹，新增 views/project.py 项目视图：</p>
+<p><img loading="lazy" src="../assets/96cf05fb5b6f4256b5e9d6934db0c2d4.png"></p>
+<p>Django REST framework 的 ModelViewSet 视图类能节省很多代码，只需要三行就把项目增删改查接口做了。project_env 是函数视图，请求方法为 GET，它的作用是返回项目环境列表，当前项目和当前环境，默认为第一个项目和第一个环境。</p>
+<blockquote>
+<p>前端需要切换不同项目和不同环境，下拉框数据来源于这个接口。</p>
+</blockquote>
+<p>新建 views/envvar.py 新增环境变量视图：</p>
+<p><img loading="lazy" src="../assets/97f48f6c1b464ffba72d16be472fcd1d.png"></p>
+<p>环境变量跟项目和环境是强关联的，需要根据项目环境进行过滤，所以重写了 list 方法，从前端请求拿到 curProjectId 和 curEnvName，通过 EnvVar.objects.filter 进行过滤。<code>from django.db.models import Q</code>支持多种过滤条件，这在后面的代码中还能看到，比如模糊匹配。</p>
+<p>新建 views/fixture.py 新增 fixture 视图：</p>
+<p><img loading="lazy" src="../assets/7ea4f53b5ed1471c9c2bc6efb0d007fd.png"></p>
+<p>fixture 跟项目是强关联的，需要根据项目进行过滤，所以重写了 list 方法，从前端请求拿到 curProjectId，通过 Fixture.objects.filter 进行过滤。Fixture 有个 creatorNickname 字段，新增 fixture 时使用的是当前登录用户的昵称，修改 fixture 时需要用已保存的创建者，重写 update 方法来实现这个处理。</p>
+<p>最后，新建 teprunner/urls.py 文件，把视图添加到路由中：</p>
+<p><img loading="lazy" src="../assets/5a8ef67ff3fa4b1e80cbaeaa359a7248.png"></p>
+<h1 id="编写前端代码">编写前端代码<a hidden class="anchor" aria-hidden="true" href="#编写前端代码">#</a></h1>
+<p>编辑 package.json，添加依赖：</p>
+<p><img loading="lazy" src="../assets/faf9d8dbca8b43bbb0e7e5bffbd6185a.png"></p>
+<p>fixtures 是代码形式的，这是测试平台第一次使用代码编辑组件。添加依赖后记得执行<code>npm install</code>进行安装。</p>
+<p>编辑 router/index.js：</p>
+<p><img loading="lazy" src="../assets/50f53177e95740ad880a2d48d9345569.png"></p>
+<p>添加接口自动化的路由，并把 home 重定向改为语法说明路由。children 表示子路由。path 是路由地址。meta.title 用于显示菜单名。</p>
+<p>编辑 views/console/index.vue：</p>
+<p><img loading="lazy" src="../assets/b94dc3624d8b4109974bc8139f55b935.png"></p>
+<p>添加项目管理菜单。新建 ProjectManagement.vue 和 AddProject.vue，添加项目管理增删改查代码，跟用户管理类似，不再另加赘述。值得注意的是环境配置<code>placeholder=&quot;请输入环境英文名（多个环境英文逗号分隔）&quot;</code>，因为 tep.env_vars.mapping 会用到环境名作为 key，所以只能用英文名！</p>
+<p>编辑 components/WrapComponent.vue，添加一个插槽：</p>
+<p><img loading="lazy" src="../assets/07f2e7bbb30a4093abaef4f6b5c1acd7.png"></p>
+<p>用于切换项目和环境。新建 components/ProjectEnv.vue 文件：</p>
+<p><img loading="lazy" src="../assets/ca8152596eaa40cb986c014ac377b414.png"></p>
+<p>定义了两个下拉框：项目和环境。v-if 判断是否需要显示。@change 在切换下拉选项时调用对应方法。@click.native 指在点击打开时获取数据。然后用 v-for 遍历列表展示下拉选项。环境和项目数据是从 localStorage 中读取的：</p>
+<p><img loading="lazy" src="../assets/b750cce01ac4456ea988a8419fa9f568.png"></p>
+<p>可以打开 F12 切换到 Application，点击左侧 Storage/Local Storage 检查是否有数据：</p>
+<p><img loading="lazy" src="../assets/cbd02007cf47432e9c09e5a8ecf81422.png"></p>
+<p>数据写入的地方稍后会讲到，先接着讲 ProjectEnv.vue 文件：</p>
+<p><img loading="lazy" src="../assets/37278bb840014589b85a2a4b662c3493.png"></p>
+<p>切换项目会更新环境列表和当前环境数据，这样就把这两个下拉框关联了起来。切换环境会更新当前环境数据。图中框起来的<code>this.$emit</code>是个重要知识点。ProjectEnv.vue 是个子组件，它是要嵌套到其他组件去的，比如 EnvVar.vue，它们是父子组件的关系。有这么个需求，切换项目时，执行一次查询操作，把查询结果更新一下。切换项目的代码是 ProjectEnv.vue 子组件提供的，执行查询操作的代码是 EnvVar.vue 父组件提供的，子组件就是通过<code>this.$emit</code>把这个消息通知给父组件的。</p>
+<p>新建 views/teprunner/index.vue 文件，添加接口自动化菜单：</p>
+<p><img loading="lazy" src="../assets/ea26db477f9b4f469b1d2c811337ce32.png"></p>
+<p>刚才说的项目环境数据的写入就是在这里进行的：</p>
+<p><img loading="lazy" src="../assets/28cddd59c6e34f1e8013a7eee4a4dc8f.png"></p>
+<p>每次加载时，如果 localStorage 没有 projectEnvList 的话，就请求<code>/teprunner/projects/env</code>去拿。</p>
+<p>新建 Grammar.vue，语法说明是个硬编码的静态文件，纯展示，无交互。接着新建 EnvVar.vue 和 AddEnvVar.vue，编写环境变量的增删改查，新建 Fixture.vue 和 AddFixture.vue，编写 fixtures 的增删改查，比较类似，不再另加赘述。通过 fixtures 模块的代码，看看 ProjectEnv.vue 是如何用的：</p>
+<p><img loading="lazy" src="../assets/9aace297329d469887b274dadde96045.png"></p>
+<p>:showEnv 与 ProjectEnv.vue 子组件的属性对应，用来控制是否显示环境，Fxiture 不需要显示。@changeProject 与 ProjectEnv.vue 的 this.$emit 对应，接收子组件消息，执行查询列表操作：</p>
+<p><img loading="lazy" src="../assets/65bd1fbe01bf4f57aca1ba6341d43580.png"></p>
+<p>AddFixture.vue 用到了代码编辑器：</p>
+<p><img loading="lazy" src="../assets/7814809bac2f4db181d2a258d82475d1.png"></p>
+<p>@init 指定了初始化方法：</p>
+<p><img loading="lazy" src="../assets/5bc1f080736b4f008cafc39fe663daee.png"></p>
+<p>离代码完美显示还差最后一步：代码高亮。在 assets/js 添加<code>highlight.js</code>，并在 main.js 中导入：</p>
+<p><img loading="lazy" src="../assets/86a09d5efdaa4d8a9a50ca819afc2042.png"></p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>经过本文的开发，如何添加菜单，前后端如何完成基本的增删改查开发已经进行了很充分的展示。遇到不会写的代码，也都能从已公开源码中找到参考。行动起来吧！边学边练，动手试试把用例管理的增删改查写出来，等我把下一篇写出来后，比较比较，可能会有更深刻的印象。CRUD 会了，定制化开发还会远么。</p>
+<blockquote>
+<p>参考资料：</p>
+<p>前端源码 <a href="https://github.com/dongfanger/teprunner-frontend">https://github.com/dongfanger/teprunner-frontend</a></p>
+<p>后端源码 <a href="https://github.com/dongfanger/teprunner-backend">https://github.com/dongfanger/teprunner-backend</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/teprunner/">Teprunner</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/springboot%E6%8E%A5%E5%85%A5jacoco%E5%AE%9E%E8%B7%B5%E6%95%99%E7%A8%8B/">
+    <span class="title">« 上一页</span>
+    <span>SpringBoot 接入 JaCoCo 实践教程</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E6%8A%8Arpc%E5%8C%85%E8%BF%9B%E4%BA%8B%E5%8A%A1%E7%9A%84%E6%9A%97%E5%9D%91/">
+    <span class="title">下一页 »</span>
+    <span>把 RPC 包进事务的暗坑</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#本文开发内容">本文开发内容</a></li>
+    <li><a href="#编写后端代码">编写后端代码</a></li>
+    <li><a href="#编写前端代码">编写前端代码</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

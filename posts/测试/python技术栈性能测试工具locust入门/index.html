@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Python 技术栈性能测试工具 Locust 入门 | 测试开发刚哥</title>
+<meta name="keywords" content="性能测试, Locust">
+<meta name="description" content="Locust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7locust%E5%85%A5%E9%97%A8/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7locust%E5%85%A5%E9%97%A8/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7locust%E5%85%A5%E9%97%A8/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Python 技术栈性能测试工具 Locust 入门">
+  <meta property="og:description" content="Locust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-16T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-16T00:00:00+00:00">
+    <meta property="article:tag" content="性能测试">
+    <meta property="article:tag" content="Locust">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Python 技术栈性能测试工具 Locust 入门">
+  <meta name="twitter:description" content="Locust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Python 技术栈性能测试工具 Locust 入门",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7locust%E5%85%A5%E9%97%A8/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python 技术栈性能测试工具 Locust 入门",
+  "name": "Python 技术栈性能测试工具 Locust 入门",
+  "description": "Locust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：",
+  "keywords": [
+    "性能测试", "Locust"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nLocust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：\nLocust 并不小众，从它 Github 的 Star 数量就可见一斑：\n截止文章写作时，一共15951Star。\nLocust 生态良好，它已在多家外企（包括世界 500 强）投入使用：\n如此看来，Locust 是非常值得学习和掌握的一款工具。\nPython 的魔力在于化繁为简，基于 Python 的 Locust 也能给仍然困惑于性能测试的我们带来启发。\nLocust 特点 以纯 Python 方式编写用户脚本，提供极大自由度。 用户脚本可以串行方式编写，Locust 会通过轻量级进程/协程产生并发，无需自己做并发编程。 并发量大，借助于 gevent 库，Locust 能产生成千上万并发请求。 开销小，Locust 用户运行时开销很小。 良好的 Web UI 对性能结果实时监测。 能测任何系统任何协议，只需要写个 client 即可。 开放 REST API，尽情发挥。 安装 Locust 需要 Python 版本3.6及以上。\n执行 pip 命令：\n$ pip install locust 验证安装成功：\n$ locust -V 安装时会一并安装依赖库：\nInstalling collected packages: Werkzeug, pywin32, zope.event, greenlet, gevent, geventhttpclient, itsdangerous, flask, Flask-BasicAuth, ConfigArgParse, pyzmq, psutil, locust\n能看出来 flask 为 Locust 提供了 Web 功能。\n快速上手 使用 Locust 一般按照以下步骤进行：\n编写 Python 用户脚本。 使用locust命令执行性能测试。 （可选）通过 Web 界面监测结果。 示例代码如下，新建 locustfile.py 文件：\nimport time from locust import HttpUser, task, between class QuickstartUser(HttpUser): wait_time = between(1, 2.5) @task def hello_world(self): self.client.get(\"/hello\") self.client.get(\"/world\") @task(3) def view_items(self): for item_id in range(10): self.client.get(f\"/item?id={item_id}\", name=\"/item\") time.sleep(1) def on_start(self): self.client.post(\"/login\", json={\"username\":\"foo\", \"password\":\"bar\"}) 路径切换到 locustfile.py 文件所在目录，执行命令：\n$ locust 也可以通过-f指定某个目录文件：\n$ locust -f locust_files/my_locust_file.py 运行后，打开http://127.0.0.1:8089看到 Web 界面：\n填写信息后，就能开始压测了。Web 界面提供了结果统计数据：\n和性能指标走势图：\n脚本解析 示例脚本解析如下：\n## Locust用户脚本就是Python模块 import time from locust import HttpUser, task, between ## 类继承自HttpUser class QuickstartUser(HttpUser): # 每个模拟用户等待1~2.5秒 wait_time = between(1, 2.5) # 被@task装饰的才会并发执行 @task def hello_world(self): # client属性是HttpSession实例，用来发送HTTP请求 self.client.get(\"/hello\") self.client.get(\"/world\") # 每个类只会有一个task被选中执行 # 3代表weight权重 # 权重越大越容易被选中执行 # view_items比hello_wolrd多3倍概率被选中执行 @task(3) def view_items(self): for item_id in range(10): # name参数作用是把统计结果按同一名称进行分组 # 这里防止URL参数不同会产生10个不同记录不便于观察 # 把10个汇总成1个\"/item\"记录 self.client.get(f\"/item?id={item_id}\", name=\"/item\") time.sleep(1) # 每个模拟用户开始运行时都会执行 def on_start(self): self.client.post(\"/login\", json={\"username\":\"foo\", \"password\":\"bar\"}) 小结 本文先了解了 Locust 的背景和生态，它是值得学习的，对于 Python 技术栈来说更加如此。接着介绍了使用 pip 命令安装 Locust，其中发现顺带安装了 flask，Locust 的 Web 功能是 flask 提供的。然后给出了一段示例代码，按照步骤上手 Locust。最后对示例代码进行了解析，浅尝辄止。locustfile 实际上该怎么写呢？\n参考资料：\nhttps://locust.io/\nhttps://docs.locust.io/en/stable/\n",
+  "wordCount" : "234",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-16T00:00:00Z",
+  "dateModified": "2026-01-16T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7locust%E5%85%A5%E9%97%A8/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Python 技术栈性能测试工具 Locust 入门
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-16T00:00:00+00:00'>2026-01-16</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/'>#性能测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/locust/'>#Locust</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>Locust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：</p>
+<p><img loading="lazy" src="../assets/487a564e747b495695a20ce9ee1ce686.png"></p>
+<p>Locust 并不小众，从它 Github 的 Star 数量就可见一斑：</p>
+<p><img loading="lazy" src="../assets/27ad4e3170094374a6493b602f3301b0.png"></p>
+<p>截止文章写作时，一共<strong>15951</strong>Star。</p>
+<p>Locust 生态良好，它已在多家外企（包括<strong>世界 500 强</strong>）投入使用：</p>
+<p><img loading="lazy" src="../assets/fe2982e40c164842adccb39098dba763.png"></p>
+<p>如此看来，Locust 是非常值得学习和掌握的一款工具。</p>
+<p>Python 的魔力在于化繁为简，<strong>基于 Python 的 Locust 也能给仍然困惑于性能测试的我们带来启发。</strong></p>
+<h1 id="locust-特点">Locust 特点<a hidden class="anchor" aria-hidden="true" href="#locust-特点">#</a></h1>
+<ul>
+<li>以纯 Python 方式编写用户脚本，提供极大自由度。</li>
+<li>用户脚本可以串行方式编写，Locust 会通过轻量级进程/协程产生并发，无需自己做并发编程。</li>
+<li>并发量大，借助于 gevent 库，Locust 能产生成千上万并发请求。</li>
+<li>开销小，Locust 用户运行时开销很小。</li>
+<li>良好的 Web UI 对性能结果实时监测。</li>
+<li>能测任何系统任何协议，只需要写个 client 即可。</li>
+<li>开放 REST API，尽情发挥。</li>
+</ul>
+<h1 id="安装-locust">安装 Locust<a hidden class="anchor" aria-hidden="true" href="#安装-locust">#</a></h1>
+<p>需要 Python 版本<strong>3.6</strong>及以上。</p>
+<p>执行 pip 命令：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ pip install locust
+</span></span></code></pre></div><p>验证安装成功：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ locust -V
+</span></span></code></pre></div><blockquote>
+<p>安装时会一并安装依赖库：</p>
+<p>Installing collected packages: Werkzeug, pywin32, zope.event, greenlet, gevent, geventhttpclient, itsdangerous, <strong>flask, Flask-BasicAuth,</strong> ConfigArgParse, pyzmq, psutil, locust</p>
+<p>能看出来 flask 为 Locust 提供了 Web 功能。</p>
+</blockquote>
+<h1 id="快速上手">快速上手<a hidden class="anchor" aria-hidden="true" href="#快速上手">#</a></h1>
+<p>使用 Locust 一般按照以下步骤进行：</p>
+<ol>
+<li>编写 Python 用户脚本。</li>
+<li>使用<code>locust</code>命令执行性能测试。</li>
+<li>（可选）通过 Web 界面监测结果。</li>
+</ol>
+<p>示例代码如下，新建 locustfile.py 文件：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">time</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">locust</span> <span style="color:#cf222e">import</span> HttpUser<span style="color:#1f2328">,</span> task<span style="color:#1f2328">,</span> between
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">QuickstartUser</span><span style="color:#1f2328">(</span>HttpUser<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    wait_time <span style="color:#0550ae">=</span> between<span style="color:#1f2328">(</span><span style="color:#0550ae">1</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">2.5</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@task</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">hello_world</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>client<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/hello&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>client<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/world&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@task</span><span style="color:#1f2328">(</span><span style="color:#0550ae">3</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">view_items</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> item_id <span style="color:#0550ae">in</span> <span style="color:#6639ba">range</span><span style="color:#1f2328">(</span><span style="color:#0550ae">10</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>client<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;/item?id=</span><span style="color:#0a3069">{</span>item_id<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">,</span> name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;/item&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            time<span style="color:#0550ae">.</span>sleep<span style="color:#1f2328">(</span><span style="color:#0550ae">1</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">on_start</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>client<span style="color:#0550ae">.</span>post<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/login&#34;</span><span style="color:#1f2328">,</span> json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">:</span><span style="color:#0a3069">&#34;foo&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">:</span><span style="color:#0a3069">&#34;bar&#34;</span><span style="color:#1f2328">})</span>
+</span></span></code></pre></div><p>路径切换到 locustfile.py 文件所在目录，执行命令：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ locust
+</span></span></code></pre></div><blockquote>
+<p>也可以通过<code>-f</code>指定某个目录文件：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ locust -f locust_files/my_locust_file.py
+</span></span></code></pre></div></blockquote>
+<p>运行后，打开<a href="http://127.0.0.1:8089/">http://127.0.0.1:8089</a>看到 Web 界面：</p>
+<p><img loading="lazy" src="../assets/c992da2be67a4d2389f417b2423ee8a9.png"></p>
+<p>填写信息后，就能开始压测了。Web 界面提供了结果统计数据：</p>
+<p><img loading="lazy" src="../assets/c9a4dd9e0384472a8df35523beb3b50c.png"></p>
+<p>和性能指标走势图：</p>
+<p><img loading="lazy" src="../assets/ec05202b1cbc47b39d3da07a594437ee.png"></p>
+<h1 id="脚本解析">脚本解析<a hidden class="anchor" aria-hidden="true" href="#脚本解析">#</a></h1>
+<p>示例脚本解析如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## Locust用户脚本就是Python模块</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">time</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">locust</span> <span style="color:#cf222e">import</span> HttpUser<span style="color:#1f2328">,</span> task<span style="color:#1f2328">,</span> between
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## 类继承自HttpUser</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">QuickstartUser</span><span style="color:#1f2328">(</span>HttpUser<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 每个模拟用户等待1~2.5秒</span>
+</span></span><span style="display:flex;"><span>    wait_time <span style="color:#0550ae">=</span> between<span style="color:#1f2328">(</span><span style="color:#0550ae">1</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">2.5</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 被@task装饰的才会并发执行</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@task</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">hello_world</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># client属性是HttpSession实例，用来发送HTTP请求</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>client<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/hello&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>client<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/world&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 每个类只会有一个task被选中执行</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 3代表weight权重</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 权重越大越容易被选中执行</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># view_items比hello_wolrd多3倍概率被选中执行</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@task</span><span style="color:#1f2328">(</span><span style="color:#0550ae">3</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">view_items</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> item_id <span style="color:#0550ae">in</span> <span style="color:#6639ba">range</span><span style="color:#1f2328">(</span><span style="color:#0550ae">10</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># name参数作用是把统计结果按同一名称进行分组</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># 这里防止URL参数不同会产生10个不同记录不便于观察</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># 把10个汇总成1个&#34;/item&#34;记录</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>client<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;/item?id=</span><span style="color:#0a3069">{</span>item_id<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">,</span> name<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;/item&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            time<span style="color:#0550ae">.</span>sleep<span style="color:#1f2328">(</span><span style="color:#0550ae">1</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># 每个模拟用户开始运行时都会执行</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">on_start</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>client<span style="color:#0550ae">.</span>post<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/login&#34;</span><span style="color:#1f2328">,</span> json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">:</span><span style="color:#0a3069">&#34;foo&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">:</span><span style="color:#0a3069">&#34;bar&#34;</span><span style="color:#1f2328">})</span>
+</span></span></code></pre></div><h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文先了解了 Locust 的背景和生态，它是值得学习的，对于 Python 技术栈来说更加如此。接着介绍了使用 pip 命令安装 Locust，其中发现顺带安装了 flask，<strong>Locust 的 Web 功能是 flask 提供的</strong>。然后给出了一段示例代码，按照步骤上手 Locust。最后对示例代码进行了解析，浅尝辄止。locustfile 实际上该怎么写呢？</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://locust.io/">https://locust.io/</a></p>
+<p><a href="https://docs.locust.io/en/stable/">https://docs.locust.io/en/stable/</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/">性能测试</a></li>
+      <li><a href="https://dongfanger.github.io/tags/locust/">Locust</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/java%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B013%E9%9B%86%E5%90%88/">
+    <span class="title">« 上一页</span>
+    <span>Java 官方笔记 13 集合</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%BD%93pytest%E9%81%87%E4%B8%8Amvc%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E5%B0%B1%E8%AF%A5%E8%BF%99%E4%B9%88%E5%86%99/">
+    <span class="title">下一页 »</span>
+    <span>当 Pytest 遇上 MVC 分层设计自动化用例就该这么写</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#locust-特点">Locust 特点</a></li>
+    <li><a href="#安装-locust">安装 Locust</a></li>
+    <li><a href="#快速上手">快速上手</a></li>
+    <li><a href="#脚本解析">脚本解析</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

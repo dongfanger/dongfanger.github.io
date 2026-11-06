@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>EasyPytest 测试平台开发日志之系统设计 | 测试开发刚哥</title>
+<meta name="keywords" content="EasyPytest">
+<meta name="description" content="EasyPytest 测试平台，帮你高效管理 Pytest 测试用例。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/easypytest%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97%E4%B9%8B%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/easypytest%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97%E4%B9%8B%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/easypytest%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97%E4%B9%8B%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="EasyPytest 测试平台开发日志之系统设计">
+  <meta property="og:description" content="EasyPytest 测试平台，帮你高效管理 Pytest 测试用例。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:tag" content="EasyPytest">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="EasyPytest 测试平台开发日志之系统设计">
+  <meta name="twitter:description" content="EasyPytest 测试平台，帮你高效管理 Pytest 测试用例。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "EasyPytest 测试平台开发日志之系统设计",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/easypytest%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97%E4%B9%8B%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "EasyPytest 测试平台开发日志之系统设计",
+  "name": "EasyPytest 测试平台开发日志之系统设计",
+  "description": "EasyPytest 测试平台，帮你高效管理 Pytest 测试用例。",
+  "keywords": [
+    "EasyPytest"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nEasyPytest 测试平台，帮你高效管理 Pytest 测试用例。\nEP 平台的定位是 Pytest 测试用例管理平台，80%的自动化用例开发在 PyCharm 等专业的 IDE 中进行，20%的用例调度和结果查看就交给 EP 平台来管理。\nEP 平台是对 teprunner 测试平台的一次全新升级，迭代一的开发目标是将后端 Django 切换为 FastAPI，代码以更合理更精简更规范的方式重构，并做部分功能优化。\n相对于 teprunner 平台，重新设计的 EasyPytest 平台有 2 个较大变化：\n1、用例支持串行和并行（pytest-xdist）；\n2、测试计划的结果直接链接到 Allure HTML 报告（FastAPI mount）；\n业务架构图 系统架构图 数据库设计 SET NAMES utf8mb4; SET FOREIGN_KEY_CHECKS = 0; DROP TABLE IF EXISTS `user`; CREATE TABLE `user` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `username` varchar(32) NOT NULL COMMENT '用户名', `nickname` varchar(32) NOT NULL COMMENT '昵称', `password` varchar(128) NOT NULL COMMENT '密码', `is_superuser` tinyint(2) DEFAULT '0' COMMENT '是否管理员：0-否，1-是', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用户表'; DROP TABLE IF EXISTS `project`; CREATE TABLE `project` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '项目名称', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='项目表'; DROP TABLE IF EXISTS `environment`; CREATE TABLE `environment` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(32) NOT NULL COMMENT '环境名称', `project_id` bigint(20) NOT NULL COMMENT '项目id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='环境表'; DROP TABLE IF EXISTS `variable`; CREATE TABLE `variable` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '变量名', `value` varchar(512) NOT NULL COMMENT '变量值', `desc` varchar(256) NOT NULL COMMENT '变量描述', `project_id` bigint(20) NOT NULL COMMENT '项目id', `env_id` bigint(20) NOT NULL COMMENT '环境id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='变量表'; DROP TABLE IF EXISTS `fixture`; CREATE TABLE `fixture` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT 'fixture名称', `code` text NOT NULL COMMENT 'fixture代码', `desc` varchar(256) NOT NULL COMMENT 'fixture描述', `project_id` bigint(20) NOT NULL COMMENT '项目id', `creator_id` bigint(20) NOT NULL COMMENT '创建人id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用例依赖表'; DROP TABLE IF EXISTS `case`; CREATE TABLE `case` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '用例名称', `code` text NOT NULL COMMENT '用例代码', `desc` varchar(256) NOT NULL COMMENT '用例描述', `project_id` bigint(20) NOT NULL COMMENT '项目id', `creator_id` bigint(20) NOT NULL COMMENT '创建人id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用例表'; DROP TABLE IF EXISTS `result`; CREATE TABLE `result` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `case_id` bigint(20) NOT NULL COMMENT '用例id', `status` varchar(32) NOT NULL COMMENT '结果状态', `log` text NOT NULL COMMENT '运行日志', `elapsed` varchar(32) NOT NULL COMMENT '运行耗时', `run_env_id` bigint(20) NOT NULL COMMENT '运行环境id', `run_user_id` bigint(20) NOT NULL COMMENT '运行用户id', `run_time` timestamp NOT NULL COMMENT '运行时间', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用例结果表'; DROP TABLE IF EXISTS `plan`; CREATE TABLE `plan` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '计划名称', `onoff` tinyint(2) NOT NULL COMMENT '启动开关：0-关闭，1-启动', `crontab` varchar(128) NOT NULL COMMENT 'crontab执行周期表达式', `run_env_id` bigint(20) NOT NULL COMMENT '运行环境id', `creator_id` bigint(20) NOT NULL COMMENT '创建人id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='测试计划表'; DROP TABLE IF EXISTS `plan_case`; CREATE TABLE `plan_case` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `plan_id` bigint(20) NOT NULL COMMENT '计划id', `case_id` bigint(20) NOT NULL COMMENT '用例id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='计划用例关系表'; DROP TABLE IF EXISTS `report`; CREATE TABLE `report` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `plan_id` bigint(20) NOT NULL COMMENT '计划id', `location` varchar(256) NOT NULL COMMENT '报告地址', `run_env_id` bigint(20) NOT NULL COMMENT '运行环境id', `run_user_id` bigint(20) NOT NULL COMMENT '运行用户id', `run_time` timestamp NOT NULL COMMENT '运行时间', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='测试报告表'; 接口设计 接口文档使用 FastAPI 生成，源码：\nhttps://gitee.com/dongfanger/ep-api\n项目目录结构设计 参考 FastAPI 官方项目生成器：\nhttps://github.com/tiangolo/full-stack-fastapi-postgresql\n生成的示例项目：\n设计 EP 平台的项目目录结构：\n各模块尽量独立，以尽量减少多人协作开发代码冲突，提高编码效率。\nEP 平台在开发过程中会不定期发布开发日志，开发完成后也会有完善的帮助手册，后续迭代应该还会采用报名+多人协作开发的模式，欢迎持续关注~\n参考资料：\n开发阶段源码： https://gitee.com/dongfanger/easy-pytest\n发布阶段源码： https://github.com/dongfanger/EasyPytest\n",
+  "wordCount" : "763",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-01T00:00:00Z",
+  "dateModified": "2026-01-01T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/easypytest%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97%E4%B9%8B%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      EasyPytest 测试平台开发日志之系统设计
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-01T00:00:00+00:00'>2026-01-01</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/easypytest/'>#EasyPytest</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p><strong>EasyPytest 测试平台，帮你高效管理 Pytest 测试用例。</strong></p>
+<p>EP 平台的定位是 Pytest 测试用例管理平台，80%的自动化用例开发在 PyCharm 等专业的 IDE 中进行，20%的用例调度和结果查看就交给 EP 平台来管理。</p>
+<p>EP 平台是对 teprunner 测试平台的一次全新升级，迭代一的开发目标是将后端 Django 切换为 FastAPI，代码以更合理更精简更规范的方式重构，并做部分功能优化。</p>
+<p>相对于 teprunner 平台，重新设计的 EasyPytest 平台有 2 个较大变化：</p>
+<p>1、用例支持串行和并行（pytest-xdist）；</p>
+<p>2、测试计划的结果直接链接到 Allure HTML 报告（FastAPI mount）；</p>
+<h1 id="业务架构图">业务架构图<a hidden class="anchor" aria-hidden="true" href="#业务架构图">#</a></h1>
+<p><img loading="lazy" src="../assets/24d7f324d4e94753b2db886bde11179f.png"></p>
+<h1 id="系统架构图">系统架构图<a hidden class="anchor" aria-hidden="true" href="#系统架构图">#</a></h1>
+<p><img loading="lazy" src="../assets/7152ea5404f446d1af098907e9fd7651.png"></p>
+<h1 id="数据库设计">数据库设计<a hidden class="anchor" aria-hidden="true" href="#数据库设计">#</a></h1>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#cf222e">SET</span><span style="color:#fff"> </span><span style="color:#cf222e">NAMES</span><span style="color:#fff"> </span>utf8mb4<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">SET</span><span style="color:#fff"> </span>FOREIGN_KEY_CHECKS<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0550ae">0</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">DROP</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#cf222e">IF</span><span style="color:#fff"> </span><span style="color:#cf222e">EXISTS</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span><span style="color:#cf222e">user</span><span style="color:#0550ae">`</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span><span style="color:#cf222e">user</span><span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;自增id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>username<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">32</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;用户名&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>nickname<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">32</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;昵称&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>password<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">128</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;密码&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_superuser<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否管理员：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_deleted<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否逻辑删除：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>created_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>updated_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;最近修改时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>ENGINE<span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#0550ae">=</span><span style="color:#0550ae">100000</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span>CHARSET<span style="color:#0550ae">=</span>utf8<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;用户表&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">DROP</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#cf222e">IF</span><span style="color:#fff"> </span><span style="color:#cf222e">EXISTS</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>project<span style="color:#0550ae">`</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>project<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;自增id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>name<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">64</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;项目名称&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_deleted<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否逻辑删除：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>created_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>updated_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;最近修改时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>ENGINE<span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#0550ae">=</span><span style="color:#0550ae">100000</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span>CHARSET<span style="color:#0550ae">=</span>utf8<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;项目表&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">DROP</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#cf222e">IF</span><span style="color:#fff"> </span><span style="color:#cf222e">EXISTS</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>environment<span style="color:#0550ae">`</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>environment<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;自增id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>name<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">32</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;环境名称&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>project_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;项目id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_deleted<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否逻辑删除：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>created_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>updated_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;最近修改时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>ENGINE<span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#0550ae">=</span><span style="color:#0550ae">100000</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span>CHARSET<span style="color:#0550ae">=</span>utf8<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;环境表&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">DROP</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#cf222e">IF</span><span style="color:#fff"> </span><span style="color:#cf222e">EXISTS</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span><span style="color:#cf222e">variable</span><span style="color:#0550ae">`</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span><span style="color:#cf222e">variable</span><span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;自增id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>name<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">64</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;变量名&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>value<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">512</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;变量值&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span><span style="color:#cf222e">desc</span><span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">256</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;变量描述&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>project_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;项目id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>env_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;环境id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_deleted<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否逻辑删除：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>created_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>updated_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;最近修改时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>ENGINE<span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#0550ae">=</span><span style="color:#0550ae">100000</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span>CHARSET<span style="color:#0550ae">=</span>utf8<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;变量表&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">DROP</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#cf222e">IF</span><span style="color:#fff"> </span><span style="color:#cf222e">EXISTS</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>fixture<span style="color:#0550ae">`</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>fixture<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;自增id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>name<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">64</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;fixture名称&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>code<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">text</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;fixture代码&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span><span style="color:#cf222e">desc</span><span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">256</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;fixture描述&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>project_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;项目id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>creator_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建人id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_deleted<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否逻辑删除：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>created_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>updated_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;最近修改时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>ENGINE<span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#0550ae">=</span><span style="color:#0550ae">100000</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span>CHARSET<span style="color:#0550ae">=</span>utf8<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;用例依赖表&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">DROP</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#cf222e">IF</span><span style="color:#fff"> </span><span style="color:#cf222e">EXISTS</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span><span style="color:#cf222e">case</span><span style="color:#0550ae">`</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span><span style="color:#cf222e">case</span><span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;自增id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>name<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">64</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;用例名称&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>code<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">text</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;用例代码&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span><span style="color:#cf222e">desc</span><span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">256</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;用例描述&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>project_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;项目id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>creator_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建人id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_deleted<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否逻辑删除：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>created_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>updated_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;最近修改时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>ENGINE<span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#0550ae">=</span><span style="color:#0550ae">100000</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span>CHARSET<span style="color:#0550ae">=</span>utf8<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;用例表&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">DROP</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#cf222e">IF</span><span style="color:#fff"> </span><span style="color:#cf222e">EXISTS</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span><span style="color:#cf222e">result</span><span style="color:#0550ae">`</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span><span style="color:#cf222e">result</span><span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;自增id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>case_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;用例id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>status<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">32</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;结果状态&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>log<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">text</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;运行日志&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>elapsed<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">32</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;运行耗时&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>run_env_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;运行环境id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>run_user_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;运行用户id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>run_time<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;运行时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_deleted<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否逻辑删除：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>created_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>updated_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;最近修改时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>ENGINE<span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#0550ae">=</span><span style="color:#0550ae">100000</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span>CHARSET<span style="color:#0550ae">=</span>utf8<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;用例结果表&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">DROP</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#cf222e">IF</span><span style="color:#fff"> </span><span style="color:#cf222e">EXISTS</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>plan<span style="color:#0550ae">`</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>plan<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;自增id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>name<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">64</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;计划名称&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>onoff<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;启动开关：0-关闭，1-启动&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>crontab<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">128</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;crontab执行周期表达式&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>run_env_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;运行环境id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>creator_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建人id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_deleted<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否逻辑删除：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>created_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>updated_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;最近修改时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>ENGINE<span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#0550ae">=</span><span style="color:#0550ae">100000</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span>CHARSET<span style="color:#0550ae">=</span>utf8<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;测试计划表&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">DROP</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#cf222e">IF</span><span style="color:#fff"> </span><span style="color:#cf222e">EXISTS</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>plan_case<span style="color:#0550ae">`</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>plan_case<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;自增id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>plan_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;计划id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>case_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;用例id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_deleted<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否逻辑删除：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>created_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>updated_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;最近修改时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>ENGINE<span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#0550ae">=</span><span style="color:#0550ae">100000</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span>CHARSET<span style="color:#0550ae">=</span>utf8<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;计划用例关系表&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">DROP</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#cf222e">IF</span><span style="color:#fff"> </span><span style="color:#cf222e">EXISTS</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>report<span style="color:#0550ae">`</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">CREATE</span><span style="color:#fff"> </span><span style="color:#cf222e">TABLE</span><span style="color:#fff"> </span><span style="color:#0550ae">`</span>report<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;自增id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>plan_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;计划id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span><span style="color:#cf222e">location</span><span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">varchar</span><span style="color:#1f2328">(</span><span style="color:#0550ae">256</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;报告地址&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>run_env_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;运行环境id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>run_user_id<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#6639ba">bigint</span><span style="color:#1f2328">(</span><span style="color:#0550ae">20</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;运行用户id&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>run_time<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NOT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;运行时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>is_deleted<span style="color:#0550ae">`</span><span style="color:#fff"> </span>tinyint<span style="color:#1f2328">(</span><span style="color:#0550ae">2</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;0&#39;</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;是否逻辑删除：0-否，1-是&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>created_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;创建时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#0550ae">`</span>updated_at<span style="color:#0550ae">`</span><span style="color:#fff"> </span><span style="color:#cf222e">timestamp</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span><span style="color:#cf222e">NULL</span><span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#fff"> </span><span style="color:#0a3069">&#39;最近修改时间&#39;</span><span style="color:#1f2328">,</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#cf222e">PRIMARY</span><span style="color:#fff"> </span><span style="color:#cf222e">KEY</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#0550ae">`</span>id<span style="color:#0550ae">`</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span><span style="color:#fff"> </span>ENGINE<span style="color:#0550ae">=</span>InnoDB<span style="color:#fff"> </span>AUTO_INCREMENT<span style="color:#0550ae">=</span><span style="color:#0550ae">100000</span><span style="color:#fff"> </span><span style="color:#cf222e">DEFAULT</span><span style="color:#fff"> </span>CHARSET<span style="color:#0550ae">=</span>utf8<span style="color:#fff"> </span><span style="color:#cf222e">COMMENT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;测试报告表&#39;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span></code></pre></div><h1 id="接口设计">接口设计<a hidden class="anchor" aria-hidden="true" href="#接口设计">#</a></h1>
+<p>接口文档使用 FastAPI 生成，源码：</p>
+<p><a href="https://gitee.com/dongfanger/ep-api">https://gitee.com/dongfanger/ep-api</a></p>
+<p><img loading="lazy" src="../assets/60959c6361964dcf957c82365e39add8.png"></p>
+<p><img loading="lazy" src="../assets/9dab3858724743368b1f1dcca7a296b4.png"></p>
+<p><img loading="lazy" src="../assets/90c9784bd71c47e2aa68d98fe14aaed6.png"></p>
+<p><img loading="lazy" src="../assets/f99a3117c0634fe480c3b441082b52cd.png"></p>
+<p><img loading="lazy" src="../assets/591a5f2f285248158857542305ae2078.png"></p>
+<p><img loading="lazy" src="../assets/9bbd33a3d72c412f989597a276e47f82.png"></p>
+<h1 id="项目目录结构设计">项目目录结构设计<a hidden class="anchor" aria-hidden="true" href="#项目目录结构设计">#</a></h1>
+<p>参考 FastAPI 官方项目生成器：</p>
+<p><a href="https://github.com/tiangolo/full-stack-fastapi-postgresql">https://github.com/tiangolo/full-stack-fastapi-postgresql</a></p>
+<p>生成的示例项目：</p>
+<p><img loading="lazy" src="../assets/beacf7ab6ced40e2b3842a5619efdaac.png"></p>
+<p>设计 EP 平台的项目目录结构：</p>
+<p><img loading="lazy" src="../assets/e4055197a7874b329bad2314846f851e.png"></p>
+<p>各模块尽量独立，以尽量减少多人协作开发代码冲突，提高编码效率。</p>
+<p>EP 平台在开发过程中会不定期发布开发日志，开发完成后也会有完善的帮助手册，后续迭代应该还会采用报名+多人协作开发的模式，欢迎持续关注~</p>
+<blockquote>
+<p>参考资料：</p>
+<p>开发阶段源码： <a href="https://gitee.com/dongfanger/easy-pytest">https://gitee.com/dongfanger/easy-pytest</a></p>
+<p>发布阶段源码： <a href="https://github.com/dongfanger/EasyPytest">https://github.com/dongfanger/EasyPytest</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/easypytest/">EasyPytest</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/django%E5%8C%86%E5%8C%86%E4%B8%80%E7%9C%BC%E5%8D%B4%E8%A7%A3%E7%AD%94%E4%BA%86%E5%A4%9A%E5%B9%B4%E7%96%91%E6%83%91/">
+    <span class="title">« 上一页</span>
+    <span>Django 匆匆一眼却解答了多年疑惑</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/fastapi%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B%E5%A4%AA%E6%A3%92%E4%BA%86%E4%B8%8A/">
+    <span class="title">下一页 »</span>
+    <span>FastAPI 官方教程太棒了（上）</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#业务架构图">业务架构图</a></li>
+    <li><a href="#系统架构图">系统架构图</a></li>
+    <li><a href="#数据库设计">数据库设计</a></li>
+    <li><a href="#接口设计">接口设计</a></li>
+    <li><a href="#项目目录结构设计">项目目录结构设计</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

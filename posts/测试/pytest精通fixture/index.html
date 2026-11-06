@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>pytest 精通 fixture | 测试开发刚哥</title>
+<meta name="keywords" content="pytest">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+fixture 是什么
+看看源码
+def fixture(
+    callable_or_scope=None,
+    *args,
+    scope=&#34;function&#34;,
+    params=None,
+    autouse=False,
+    ids=None,
+    name=None
+):
+    &#34;&#34;&#34;Decorator to mark a fixture factory function.
+
+    This decorator can be used, with or without parameters, to define a
+    fixture function.
+
+    The name of the fixture function can later be referenced to cause its
+    invocation ahead of running tests: test
+    modules or classes can use the ``pytest.mark.usefixtures(fixturename)``
+    marker.
+
+    Test functions can directly use fixture names as input
+    arguments in which case the fixture instance returned from the fixture
+    function will be injected.
+
+    Fixtures can provide their values to test functions using ``return`` or ``yield``
+    statements. When using ``yield`` the code block after the ``yield`` statement is executed
+    as teardown code regardless of the test outcome, and must yield exactly once.
+
+    :arg scope: the scope for which this fixture is shared, one of
+                ``&#34;function&#34;`` (default), ``&#34;class&#34;``, ``&#34;module&#34;``,
+                ``&#34;package&#34;`` or ``&#34;session&#34;`` (``&#34;package&#34;`` is considered **experimental**
+                at this time).
+
+                This parameter may also be a callable which receives ``(fixture_name, config)``
+                as parameters, and must return a ``str`` with one of the values mentioned above.
+
+                See :ref:`dynamic scope` in the docs for more information.
+
+    :arg params: an optional list of parameters which will cause multiple
+                invocations of the fixture function and all of the tests
+                using it.
+                The current parameter is available in ``request.param``.
+
+    :arg autouse: if True, the fixture func is activated for all tests that
+                can see it.  If False (the default) then an explicit
+                reference is needed to activate the fixture.
+
+    :arg ids: list of string ids each corresponding to the params
+                so that they are part of the test id. If no ids are provided
+                they will be generated automatically from the params.
+
+    :arg name: the name of the fixture. This defaults to the name of the
+                decorated function. If a fixture is used in the same module in
+                which it is defined, the function name of the fixture will be
+                shadowed by the function arg that requests the fixture; one way
+                to resolve this is to name the decorated function
+                ``fixture_&lt;fixturename&gt;`` and then use
+                ``@pytest.fixture(name=&#39;&lt;fixturename&gt;&#39;)``.
+    &#34;&#34;&#34;
+    if params is not None:
+        params = list(params)
+
+    fixture_function, arguments = _parse_fixture_args(
+        callable_or_scope,
+        *args,
+        scope=scope,
+        params=params,
+        autouse=autouse,
+        ids=ids,
+        name=name,
+    )
+    scope = arguments.get(&#34;scope&#34;)
+    params = arguments.get(&#34;params&#34;)
+    autouse = arguments.get(&#34;autouse&#34;)
+    ids = arguments.get(&#34;ids&#34;)
+    name = arguments.get(&#34;name&#34;)
+
+    if fixture_function and params is None and autouse is False:
+        # direct decoration
+        return FixtureFunctionMarker(scope, params, autouse, name=name)(
+            fixture_function
+        )
+
+    return FixtureFunctionMarker(scope, params, autouse, ids=ids, name=name)
+总结一下">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E7%B2%BE%E9%80%9Afixture/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E7%B2%BE%E9%80%9Afixture/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E7%B2%BE%E9%80%9Afixture/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="pytest 精通 fixture">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+fixture 是什么 看看源码
+def fixture( callable_or_scope=None, *args, scope=&#34;function&#34;, params=None, autouse=False, ids=None, name=None ): &#34;&#34;&#34;Decorator to mark a fixture factory function. This decorator can be used, with or without parameters, to define a fixture function. The name of the fixture function can later be referenced to cause its invocation ahead of running tests: test modules or classes can use the ``pytest.mark.usefixtures(fixturename)`` marker. Test functions can directly use fixture names as input arguments in which case the fixture instance returned from the fixture function will be injected. Fixtures can provide their values to test functions using ``return`` or ``yield`` statements. When using ``yield`` the code block after the ``yield`` statement is executed as teardown code regardless of the test outcome, and must yield exactly once. :arg scope: the scope for which this fixture is shared, one of ``&#34;function&#34;`` (default), ``&#34;class&#34;``, ``&#34;module&#34;``, ``&#34;package&#34;`` or ``&#34;session&#34;`` (``&#34;package&#34;`` is considered **experimental** at this time). This parameter may also be a callable which receives ``(fixture_name, config)`` as parameters, and must return a ``str`` with one of the values mentioned above. See :ref:`dynamic scope` in the docs for more information. :arg params: an optional list of parameters which will cause multiple invocations of the fixture function and all of the tests using it. The current parameter is available in ``request.param``. :arg autouse: if True, the fixture func is activated for all tests that can see it. If False (the default) then an explicit reference is needed to activate the fixture. :arg ids: list of string ids each corresponding to the params so that they are part of the test id. If no ids are provided they will be generated automatically from the params. :arg name: the name of the fixture. This defaults to the name of the decorated function. If a fixture is used in the same module in which it is defined, the function name of the fixture will be shadowed by the function arg that requests the fixture; one way to resolve this is to name the decorated function ``fixture_&lt;fixturename&gt;`` and then use ``@pytest.fixture(name=&#39;&lt;fixturename&gt;&#39;)``. &#34;&#34;&#34; if params is not None: params = list(params) fixture_function, arguments = _parse_fixture_args( callable_or_scope, *args, scope=scope, params=params, autouse=autouse, ids=ids, name=name, ) scope = arguments.get(&#34;scope&#34;) params = arguments.get(&#34;params&#34;) autouse = arguments.get(&#34;autouse&#34;) ids = arguments.get(&#34;ids&#34;) name = arguments.get(&#34;name&#34;) if fixture_function and params is None and autouse is False: # direct decoration return FixtureFunctionMarker(scope, params, autouse, name=name)( fixture_function ) return FixtureFunctionMarker(scope, params, autouse, ids=ids, name=name) 总结一下">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:tag" content="Pytest">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="pytest 精通 fixture">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+fixture 是什么 看看源码
+def fixture( callable_or_scope=None, *args, scope=&#34;function&#34;, params=None, autouse=False, ids=None, name=None ): &#34;&#34;&#34;Decorator to mark a fixture factory function. This decorator can be used, with or without parameters, to define a fixture function. The name of the fixture function can later be referenced to cause its invocation ahead of running tests: test modules or classes can use the ``pytest.mark.usefixtures(fixturename)`` marker. Test functions can directly use fixture names as input arguments in which case the fixture instance returned from the fixture function will be injected. Fixtures can provide their values to test functions using ``return`` or ``yield`` statements. When using ``yield`` the code block after the ``yield`` statement is executed as teardown code regardless of the test outcome, and must yield exactly once. :arg scope: the scope for which this fixture is shared, one of ``&#34;function&#34;`` (default), ``&#34;class&#34;``, ``&#34;module&#34;``, ``&#34;package&#34;`` or ``&#34;session&#34;`` (``&#34;package&#34;`` is considered **experimental** at this time). This parameter may also be a callable which receives ``(fixture_name, config)`` as parameters, and must return a ``str`` with one of the values mentioned above. See :ref:`dynamic scope` in the docs for more information. :arg params: an optional list of parameters which will cause multiple invocations of the fixture function and all of the tests using it. The current parameter is available in ``request.param``. :arg autouse: if True, the fixture func is activated for all tests that can see it. If False (the default) then an explicit reference is needed to activate the fixture. :arg ids: list of string ids each corresponding to the params so that they are part of the test id. If no ids are provided they will be generated automatically from the params. :arg name: the name of the fixture. This defaults to the name of the decorated function. If a fixture is used in the same module in which it is defined, the function name of the fixture will be shadowed by the function arg that requests the fixture; one way to resolve this is to name the decorated function ``fixture_&lt;fixturename&gt;`` and then use ``@pytest.fixture(name=&#39;&lt;fixturename&gt;&#39;)``. &#34;&#34;&#34; if params is not None: params = list(params) fixture_function, arguments = _parse_fixture_args( callable_or_scope, *args, scope=scope, params=params, autouse=autouse, ids=ids, name=name, ) scope = arguments.get(&#34;scope&#34;) params = arguments.get(&#34;params&#34;) autouse = arguments.get(&#34;autouse&#34;) ids = arguments.get(&#34;ids&#34;) name = arguments.get(&#34;name&#34;) if fixture_function and params is None and autouse is False: # direct decoration return FixtureFunctionMarker(scope, params, autouse, name=name)( fixture_function ) return FixtureFunctionMarker(scope, params, autouse, ids=ids, name=name) 总结一下">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "pytest 精通 fixture",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E7%B2%BE%E9%80%9Afixture/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "pytest 精通 fixture",
+  "name": "pytest 精通 fixture",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nfixture 是什么 看看源码\ndef fixture( callable_or_scope=None, *args, scope=\u0026#34;function\u0026#34;, params=None, autouse=False, ids=None, name=None ): \u0026#34;\u0026#34;\u0026#34;Decorator to mark a fixture factory function. This decorator can be used, with or without parameters, to define a fixture function. The name of the fixture function can later be referenced to cause its invocation ahead of running tests: test modules or classes can use the ``pytest.mark.usefixtures(fixturename)`` marker. Test functions can directly use fixture names as input arguments in which case the fixture instance returned from the fixture function will be injected. Fixtures can provide their values to test functions using ``return`` or ``yield`` statements. When using ``yield`` the code block after the ``yield`` statement is executed as teardown code regardless of the test outcome, and must yield exactly once. :arg scope: the scope for which this fixture is shared, one of ``\u0026#34;function\u0026#34;`` (default), ``\u0026#34;class\u0026#34;``, ``\u0026#34;module\u0026#34;``, ``\u0026#34;package\u0026#34;`` or ``\u0026#34;session\u0026#34;`` (``\u0026#34;package\u0026#34;`` is considered **experimental** at this time). This parameter may also be a callable which receives ``(fixture_name, config)`` as parameters, and must return a ``str`` with one of the values mentioned above. See :ref:`dynamic scope` in the docs for more information. :arg params: an optional list of parameters which will cause multiple invocations of the fixture function and all of the tests using it. The current parameter is available in ``request.param``. :arg autouse: if True, the fixture func is activated for all tests that can see it. If False (the default) then an explicit reference is needed to activate the fixture. :arg ids: list of string ids each corresponding to the params so that they are part of the test id. If no ids are provided they will be generated automatically from the params. :arg name: the name of the fixture. This defaults to the name of the decorated function. If a fixture is used in the same module in which it is defined, the function name of the fixture will be shadowed by the function arg that requests the fixture; one way to resolve this is to name the decorated function ``fixture_\u0026lt;fixturename\u0026gt;`` and then use ``@pytest.fixture(name=\u0026#39;\u0026lt;fixturename\u0026gt;\u0026#39;)``. \u0026#34;\u0026#34;\u0026#34; if params is not None: params = list(params) fixture_function, arguments = _parse_fixture_args( callable_or_scope, *args, scope=scope, params=params, autouse=autouse, ids=ids, name=name, ) scope = arguments.get(\u0026#34;scope\u0026#34;) params = arguments.get(\u0026#34;params\u0026#34;) autouse = arguments.get(\u0026#34;autouse\u0026#34;) ids = arguments.get(\u0026#34;ids\u0026#34;) name = arguments.get(\u0026#34;name\u0026#34;) if fixture_function and params is None and autouse is False: # direct decoration return FixtureFunctionMarker(scope, params, autouse, name=name)( fixture_function ) return FixtureFunctionMarker(scope, params, autouse, ids=ids, name=name) 总结一下\n",
+  "keywords": [
+    "pytest"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nfixture 是什么 看看源码\ndef fixture( callable_or_scope=None, *args, scope=\"function\", params=None, autouse=False, ids=None, name=None ): \"\"\"Decorator to mark a fixture factory function. This decorator can be used, with or without parameters, to define a fixture function. The name of the fixture function can later be referenced to cause its invocation ahead of running tests: test modules or classes can use the ``pytest.mark.usefixtures(fixturename)`` marker. Test functions can directly use fixture names as input arguments in which case the fixture instance returned from the fixture function will be injected. Fixtures can provide their values to test functions using ``return`` or ``yield`` statements. When using ``yield`` the code block after the ``yield`` statement is executed as teardown code regardless of the test outcome, and must yield exactly once. :arg scope: the scope for which this fixture is shared, one of ``\"function\"`` (default), ``\"class\"``, ``\"module\"``, ``\"package\"`` or ``\"session\"`` (``\"package\"`` is considered **experimental** at this time). This parameter may also be a callable which receives ``(fixture_name, config)`` as parameters, and must return a ``str`` with one of the values mentioned above. See :ref:`dynamic scope` in the docs for more information. :arg params: an optional list of parameters which will cause multiple invocations of the fixture function and all of the tests using it. The current parameter is available in ``request.param``. :arg autouse: if True, the fixture func is activated for all tests that can see it. If False (the default) then an explicit reference is needed to activate the fixture. :arg ids: list of string ids each corresponding to the params so that they are part of the test id. If no ids are provided they will be generated automatically from the params. :arg name: the name of the fixture. This defaults to the name of the decorated function. If a fixture is used in the same module in which it is defined, the function name of the fixture will be shadowed by the function arg that requests the fixture; one way to resolve this is to name the decorated function ``fixture_`` and then use ``@pytest.fixture(name='')``. \"\"\" if params is not None: params = list(params) fixture_function, arguments = _parse_fixture_args( callable_or_scope, *args, scope=scope, params=params, autouse=autouse, ids=ids, name=name, ) scope = arguments.get(\"scope\") params = arguments.get(\"params\") autouse = arguments.get(\"autouse\") ids = arguments.get(\"ids\") name = arguments.get(\"name\") if fixture_function and params is None and autouse is False: # direct decoration return FixtureFunctionMarker(scope, params, autouse, name=name)( fixture_function ) return FixtureFunctionMarker(scope, params, autouse, ids=ids, name=name) 总结一下\n【定义】\nfixture 是一个函数，在函数上添加注解@pytest.fixture来定义 定义在 conftest.py 中，无需 import 就可以调用 定义在其他文件中，import 后也可以调用 定义在相同文件中，直接调用 【使用】\n第一种使用方式是@pytest.mark.usefixtures(fixturename)（如果修饰 TestClass 能对类中所有方法生效） 第二种使用方式是作为函数参数 第三种使用方式是 autouse（不需要显示调用，自动运行） conftest.py 我们常常会把 fixture 定义到 conftest.py 文件中。\n这是 pytest 固定的文件名，不能自定义。\n必须放在 package 下，也就是目录中有__init__.py。\nconftest.py 中的 fixture 可以用在当前目录及其子目录，不需要 import，pytest 会自动找。\n可以创建多个 conftest.py 文件，同名 fixture 查找时会优先用最近的。\n依赖注入 fixture 实现了依赖注入。依赖注入是控制反转（IoC， Inversion of Control）的一种技术形式。\n简单理解一下什么是依赖注入和控制反转\n实在是妙啊！我们可以在不修改当前函数代码逻辑的情况下，通过 fixture 来额外添加一些处理。\n入门示例 ## content of ./test_smtpsimple.py import smtplib import pytest @pytest.fixture def smtp_connection(): return smtplib.SMTP(\"smtp.gmail.com\", 587, timeout=5) def test_ehlo(smtp_connection): response, msg = smtp_connection.ehlo() assert response == 250 assert 0 # for demo purposes 执行后程序处理逻辑\npytest 找到 test_开头的函数，发现需要名字为 smtp_connection 的 fixture，就去找 找到之后，调用 smtp_connection()，return 了 SMTP 的实例 调用 test_ehlo() ，入参smtp_connection等于 fixture return 的值 如果想看文件定义了哪些 fixture，可以使用命令，_前缀的需要跟上-v\npytest --fixtures test_simplefactory.py fixture scope \u0026 order 既然到处都可以定义 fixture，那多了岂不就乱了？\npytest 规定了 fxture 的运行范围和运行顺序。\nfixture 的范围通过参数 scope 来指定\n@pytest.fixture(scope=\"module\") 默认是 function，可以选择 function, class, module, package 或 session。\nfixture 都是在 test 第一次调用时创建，根据 scope 的不同有不同的运行和销毁方式\nfunction 每个函数运行一次，函数结束时销毁 class 每个类运行一次，类结束时销毁 module 每个模块运行一次，模块结束时销毁 package 每个包运行一次，包结束时销毁 session 每个会话运行一次，会话结束时销毁 fixture 的顺序优先按 scope 从大到小，session \u003e package \u003e module \u003e class \u003e function。\n如果 scope 相同，就按 test 调用先后顺序，以及 fixture 之间的依赖关系。\nautouse 的 fixture 会优先于相同 scope 的其他 fixture。\n示例\nimport pytest ## fixtures documentation order example order = [] @pytest.fixture(scope=\"session\") def s1(): order.append(\"s1\") @pytest.fixture(scope=\"module\") def m1(): order.append(\"m1\") @pytest.fixture def f1(f3): order.append(\"f1\") @pytest.fixture def f3(): order.append(\"f3\") @pytest.fixture(autouse=True) def a1(): order.append(\"a1\") @pytest.fixture def f2(): order.append(\"f2\") def test_order(f1, m1, f2, s1): assert order == [\"s1\", \"m1\", \"a1\", \"f3\", \"f1\", \"f2\"] 虽然 test_order()是按 f1, m1, f2, s1 调用的，但是结果却不是按这个顺序\ns1 scope 为 session m1 scope 为 module a1 autouse，默认 function，后于 session、module，先于 function 其他 fixture f3 被 f1 依赖 f1 test_order()参数列表第 1 个 f2 test_order()参数列表第 3 个 fixture 嵌套 fixture 装饰的是函数，那函数也有入参咯。\nfixture 装饰的函数入参，只能是其他 fixture。\n示例，f1 依赖 f3，如果不定义 f3 的话，执行会报错 fixture ‘f3’ not found\n@pytest.fixture def f1(f3): order.append(\"f1\") @pytest.fixture def f3(): order.append(\"f3\") def test_order(f1): pass 从 test 传值给 fixture 借助 request，可以把 test 中的值传递给 fixture。\n示例 1，smtp_connection 可以使用 module 中的 smtpserver\n## content of conftest.py import smtplib import pytest @pytest.fixture(scope=\"module\") def smtp_connection(request): server = getattr(request.module, \"smtpserver\", \"smtp.gmail.com\") smtp_connection = smtplib.SMTP(server, 587, timeout=5) yield smtp_connection print(\"finalizing {} ({})\".format(smtp_connection, server)) smtp_connection.close() ## content of test_anothersmtp.py smtpserver = \"mail.python.org\" # will be read by smtp fixture def test_showhelo(smtp_connection): assert 0, smtp_connection.helo() 示例 2，结合 request+mark，把 fixt_data 从 test_fixt 传值给了 fixt\nimport pytest @pytest.fixture def fixt(request): marker = request.node.get_closest_marker(\"fixt_data\") if marker is None: # Handle missing marker in some way... data = None else: data = marker.args[0] # Do something with the data return data @pytest.mark.fixt_data(42) def test_fixt(fixt): assert fixt == 42 fixture setup / teardown 其他测试框架 unittest/testng，都定义了 setup 和 teardown 函数/方法，用来测试前初始化和测试后清理。\npytest 也有，不过是兼容 unittest 等弄的，不推荐！\nfrom loguru import logger def setup(): logger.info(\"setup\") def teardown(): logger.info(\"teardown\") def test(): pass 建议使用 fixture。\nsetup，fixture 可以定义 autouse 来实现初始化。\n@pytest.fixture(autouse=True) autouse 的 fixture 不需要调用，会自己运行，和 test 放到相同 scope，就能实现 setup 的效果。\nautouse 使用说明\nautouse 遵循 scope 的规则，scope=“session\"整个会话只会运行 1 次，其他同理 autouse 定义在 module 中，module 中的所有 function 都会用它（如果 scope=“module”，只运行 1 次，如果 scope=“function”，会运行多次） autouse 定义在 conftest.py，conftest 覆盖的 test 都会用它 autouse 定义在 plugin 中，安装 plugin 的 test 都会用它 在使用 autouse 时需要同时注意 scope 和定义位置 示例，transact 默认 scope 是 function，会在每个 test 函数执行前自动运行\n## content of test_db_transact.py import pytest class DB: def __init__(self): self.intransaction = [] def begin(self, name): self.intransaction.append(name) def rollback(self): self.intransaction.pop() @pytest.fixture(scope=\"module\") def db(): return DB() class TestClass: @pytest.fixture(autouse=True) def transact(self, request, db): db.begin(request.function.__name__) yield db.rollback() def test_method1(self, db): assert db.intransaction == [\"test_method1\"] def test_method2(self, db): assert db.intransaction == [\"test_method2\"] 这个例子不用 autouse，用 conftest.py 也能实现\n## content of conftest.py @pytest.fixture def transact(request, db): db.begin() yield db.rollback() @pytest.mark.usefixtures(\"transact\") class TestClass: def test_method1(self): ... teardown，可以在 fixture 中使用 yield 关键字来实现清理。\n示例，scope 为 module，在 module 结束时，会执行 yield 后面的 print()和 smtp_connection.close()\n## content of conftest.py import smtplib import pytest @pytest.fixture(scope=\"module\") def smtp_connection(): smtp_connection = smtplib.SMTP(\"smtp.gmail.com\", 587, timeout=5) yield smtp_connection # provide the fixture value print(\"teardown smtp\") smtp_connection.close() 可以使用 with 关键字进一步简化，with 会自动清理上下文，执行 smtp_connection.close()\n## content of test_yield2.py import smtplib import pytest @pytest.fixture(scope=\"module\") def smtp_connection(): with smtplib.SMTP(\"smtp.gmail.com\", 587, timeout=5) as smtp_connection: yield smtp_connection # provide the fixture value fixture 参数化 后续会专门讲“pytest 参数化”，这里就先跳过，请各位见谅啦。\n因为我觉得想用 pytest 做参数化，一定是先到参数化的文章里面找，而不是到 fixture。\n把这部分放到参数化，更便于以后检索。\n简要回顾 本文开头通过源码介绍了 fixture 是什么，并简单总结定义和用法。然后对依赖注入进行了解释，以更好理解 fixture 技术的原理。入门示例给出了官网的例子，以此展开讲了范围、顺序、嵌套、传值，以及初始化和清理的知识。\n参考资料\nhttps://en.wikipedia.org/wiki/Dependency_injection\nhttps://en.wikipedia.org/wiki/Inversion_of_control\nhttps://docs.pytest.org/en/stable/contents.html#toc\n",
+  "wordCount" : "1042",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-03T00:00:00Z",
+  "dateModified": "2026-01-03T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E7%B2%BE%E9%80%9Afixture/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      pytest 精通 fixture
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-03T00:00:00+00:00'>2026-01-03</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/pytest/'>#Pytest</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h2 id="fixture-是什么">fixture 是什么<a hidden class="anchor" aria-hidden="true" href="#fixture-是什么">#</a></h2>
+<p>看看源码</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">fixture</span><span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    callable_or_scope<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;function&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    params<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    autouse<span style="color:#0550ae">=</span><span style="color:#cf222e">False</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    ids<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    name<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;Decorator to mark a fixture factory function.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    This decorator can be used, with or without parameters, to define a
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    fixture function.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    The name of the fixture function can later be referenced to cause its
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    invocation ahead of running tests: test
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    modules or classes can use the ``pytest.mark.usefixtures(fixturename)``
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    marker.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Test functions can directly use fixture names as input
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    arguments in which case the fixture instance returned from the fixture
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    function will be injected.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    Fixtures can provide their values to test functions using ``return`` or ``yield``
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    statements. When using ``yield`` the code block after the ``yield`` statement is executed
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    as teardown code regardless of the test outcome, and must yield exactly once.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    :arg scope: the scope for which this fixture is shared, one of
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                ``&#34;function&#34;`` (default), ``&#34;class&#34;``, ``&#34;module&#34;``,
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                ``&#34;package&#34;`` or ``&#34;session&#34;`` (``&#34;package&#34;`` is considered **experimental**
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                at this time).
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                This parameter may also be a callable which receives ``(fixture_name, config)``
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                as parameters, and must return a ``str`` with one of the values mentioned above.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                See :ref:`dynamic scope` in the docs for more information.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    :arg params: an optional list of parameters which will cause multiple
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                invocations of the fixture function and all of the tests
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                using it.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                The current parameter is available in ``request.param``.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    :arg autouse: if True, the fixture func is activated for all tests that
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                can see it.  If False (the default) then an explicit
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                reference is needed to activate the fixture.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    :arg ids: list of string ids each corresponding to the params
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                so that they are part of the test id. If no ids are provided
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                they will be generated automatically from the params.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    :arg name: the name of the fixture. This defaults to the name of the
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                decorated function. If a fixture is used in the same module in
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                which it is defined, the function name of the fixture will be
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                shadowed by the function arg that requests the fixture; one way
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                to resolve this is to name the decorated function
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                ``fixture_&lt;fixturename&gt;`` and then use
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">                ``@pytest.fixture(name=&#39;&lt;fixturename&gt;&#39;)``.
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> params <span style="color:#0550ae">is</span> <span style="color:#0550ae">not</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        params <span style="color:#0550ae">=</span> <span style="color:#6639ba">list</span><span style="color:#1f2328">(</span>params<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    fixture_function<span style="color:#1f2328">,</span> arguments <span style="color:#0550ae">=</span> _parse_fixture_args<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        callable_or_scope<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        scope<span style="color:#0550ae">=</span>scope<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        params<span style="color:#0550ae">=</span>params<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        autouse<span style="color:#0550ae">=</span>autouse<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        ids<span style="color:#0550ae">=</span>ids<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        name<span style="color:#0550ae">=</span>name<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    scope <span style="color:#0550ae">=</span> arguments<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;scope&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    params <span style="color:#0550ae">=</span> arguments<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;params&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    autouse <span style="color:#0550ae">=</span> arguments<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;autouse&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    ids <span style="color:#0550ae">=</span> arguments<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;ids&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    name <span style="color:#0550ae">=</span> arguments<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;name&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> fixture_function <span style="color:#0550ae">and</span> params <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span> <span style="color:#0550ae">and</span> autouse <span style="color:#0550ae">is</span> <span style="color:#cf222e">False</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># direct decoration</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> FixtureFunctionMarker<span style="color:#1f2328">(</span>scope<span style="color:#1f2328">,</span> params<span style="color:#1f2328">,</span> autouse<span style="color:#1f2328">,</span> name<span style="color:#0550ae">=</span>name<span style="color:#1f2328">)(</span>
+</span></span><span style="display:flex;"><span>            fixture_function
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> FixtureFunctionMarker<span style="color:#1f2328">(</span>scope<span style="color:#1f2328">,</span> params<span style="color:#1f2328">,</span> autouse<span style="color:#1f2328">,</span> ids<span style="color:#0550ae">=</span>ids<span style="color:#1f2328">,</span> name<span style="color:#0550ae">=</span>name<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>总结一下</p>
+<p>【定义】</p>
+<ul>
+<li>fixture 是一个函数，在函数上添加注解<code>@pytest.fixture</code>来定义</li>
+<li>定义在 conftest.py 中，无需 import 就可以调用</li>
+<li>定义在其他文件中，import 后也可以调用</li>
+<li>定义在相同文件中，直接调用</li>
+</ul>
+<p>【使用】</p>
+<ul>
+<li>第一种使用方式是<code>@pytest.mark.usefixtures(fixturename)</code>（如果修饰 TestClass 能对类中所有方法生效）</li>
+<li>第二种使用方式是作为函数参数</li>
+<li>第三种使用方式是 autouse（不需要显示调用，自动运行）</li>
+</ul>
+<h2 id="conftestpy">conftest.py<a hidden class="anchor" aria-hidden="true" href="#conftestpy">#</a></h2>
+<p>我们常常会把 fixture 定义到 conftest.py 文件中。</p>
+<p>这是 pytest 固定的文件名，不能自定义。</p>
+<p>必须放在 package 下，也就是目录中有__init__.py。</p>
+<p>conftest.py 中的 fixture 可以用在当前目录及其子目录，不需要 import，pytest 会自动找。</p>
+<p>可以创建多个 conftest.py 文件，同名 fixture 查找时会优先用最近的。</p>
+<h2 id="依赖注入">依赖注入<a hidden class="anchor" aria-hidden="true" href="#依赖注入">#</a></h2>
+<p>fixture 实现了依赖注入。依赖注入是控制反转（IoC， Inversion of Control）的一种技术形式。</p>
+<p>简单理解一下什么是依赖注入和控制反转</p>
+<p><img loading="lazy" src="../assets/bce17f44d706400d8de580728e92d06d.png"></p>
+<p>实在是妙啊！我们可以在不修改当前函数代码逻辑的情况下，通过 fixture 来额外添加一些处理。</p>
+<h2 id="入门示例">入门示例<a hidden class="anchor" aria-hidden="true" href="#入门示例">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of ./test_smtpsimple.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">smtplib</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">smtp_connection</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> smtplib<span style="color:#0550ae">.</span>SMTP<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;smtp.gmail.com&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">587</span><span style="color:#1f2328">,</span> timeout<span style="color:#0550ae">=</span><span style="color:#0550ae">5</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_ehlo</span><span style="color:#1f2328">(</span>smtp_connection<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    response<span style="color:#1f2328">,</span> msg <span style="color:#0550ae">=</span> smtp_connection<span style="color:#0550ae">.</span>ehlo<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response <span style="color:#0550ae">==</span> <span style="color:#0550ae">250</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> <span style="color:#0550ae">0</span>  <span style="color:#57606a"># for demo purposes</span>
+</span></span></code></pre></div><p>执行后程序处理逻辑</p>
+<ol>
+<li>pytest 找到 test_开头的函数，发现需要名字为 smtp_connection 的 fixture，就去找</li>
+<li>找到之后，调用 smtp_connection()，return 了 SMTP 的实例</li>
+<li>调用 test_ehlo(&lt;smtp_connection instance&gt;) ，入参<code>smtp_connection</code>等于 fixture return 的值</li>
+</ol>
+<p>如果想看文件定义了哪些 fixture，可以使用命令，_前缀的需要跟上-v</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>pytest --fixtures test_simplefactory.py
+</span></span></code></pre></div><h2 id="fixture-scope--order">fixture scope &amp; order<a hidden class="anchor" aria-hidden="true" href="#fixture-scope--order">#</a></h2>
+<p>既然到处都可以定义 fixture，那多了岂不就乱了？</p>
+<p>pytest 规定了 fxture 的运行范围和运行顺序。</p>
+<p>fixture 的<strong>范围</strong>通过参数 scope 来指定</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;module&#34;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>默认是 function，可以选择 function, class, module, package 或 session。</p>
+<p>fixture 都是在 test 第一次调用时创建，根据 scope 的不同有不同的运行和销毁方式</p>
+<ul>
+<li>function  每个函数运行一次，函数结束时销毁</li>
+<li>class  每个类运行一次，类结束时销毁</li>
+<li>module  每个模块运行一次，模块结束时销毁</li>
+<li>package  每个包运行一次，包结束时销毁</li>
+<li>session  每个会话运行一次，会话结束时销毁</li>
+</ul>
+<p>fixture 的<strong>顺序</strong>优先按 scope 从大到小，session &gt; package &gt; module &gt; class &gt; function。</p>
+<p>如果 scope 相同，就按 test 调用先后顺序，以及 fixture 之间的依赖关系。</p>
+<p>autouse 的 fixture 会优先于相同 scope 的其他 fixture。</p>
+<p>示例</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## fixtures documentation order example</span>
+</span></span><span style="display:flex;"><span>order <span style="color:#0550ae">=</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;session&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">s1</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    order<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;s1&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;module&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">m1</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    order<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;m1&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">f1</span><span style="color:#1f2328">(</span>f3<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    order<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;f1&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">f3</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    order<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;f3&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>autouse<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">a1</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    order<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;a1&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">f2</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    order<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;f2&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_order</span><span style="color:#1f2328">(</span>f1<span style="color:#1f2328">,</span> m1<span style="color:#1f2328">,</span> f2<span style="color:#1f2328">,</span> s1<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> order <span style="color:#0550ae">==</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;s1&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;m1&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;a1&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;f3&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;f1&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;f2&#34;</span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>虽然 test_order()是按 f1, m1, f2, s1 调用的，但是结果却不是按这个顺序</p>
+<ol>
+<li>s1  scope 为 session</li>
+<li>m1  scope 为 module</li>
+<li>a1  autouse，默认 function，后于 session、module，先于 function 其他 fixture</li>
+<li>f3  被 f1 依赖</li>
+<li>f1 test_order()参数列表第 1 个</li>
+<li>f2 test_order()参数列表第 3 个</li>
+</ol>
+<h2 id="fixture-嵌套">fixture 嵌套<a hidden class="anchor" aria-hidden="true" href="#fixture-嵌套">#</a></h2>
+<p>fixture 装饰的是函数，那函数也有入参咯。</p>
+<p><strong>fixture 装饰的函数入参，只能是其他 fixture。</strong></p>
+<p>示例，f1 依赖 f3，如果不定义 f3 的话，执行会报错 fixture &lsquo;f3&rsquo; not found</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">f1</span><span style="color:#1f2328">(</span>f3<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    order<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;f1&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">f3</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    order<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;f3&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_order</span><span style="color:#1f2328">(</span>f1<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">pass</span>
+</span></span></code></pre></div><h2 id="从-test-传值给-fixture">从 test 传值给 fixture<a hidden class="anchor" aria-hidden="true" href="#从-test-传值给-fixture">#</a></h2>
+<p>借助 request，可以把 test 中的值传递给 fixture。</p>
+<p>示例 1，smtp_connection 可以使用 module 中的 smtpserver</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of conftest.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">smtplib</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;module&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">smtp_connection</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    server <span style="color:#0550ae">=</span> <span style="color:#6639ba">getattr</span><span style="color:#1f2328">(</span>request<span style="color:#0550ae">.</span>module<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;smtpserver&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;smtp.gmail.com&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    smtp_connection <span style="color:#0550ae">=</span> smtplib<span style="color:#0550ae">.</span>SMTP<span style="color:#1f2328">(</span>server<span style="color:#1f2328">,</span> <span style="color:#0550ae">587</span><span style="color:#1f2328">,</span> timeout<span style="color:#0550ae">=</span><span style="color:#0550ae">5</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">yield</span> smtp_connection
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;finalizing </span><span style="color:#0a3069">{}</span><span style="color:#0a3069"> (</span><span style="color:#0a3069">{}</span><span style="color:#0a3069">)&#34;</span><span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>smtp_connection<span style="color:#1f2328">,</span> server<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    smtp_connection<span style="color:#0550ae">.</span>close<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_anothersmtp.py</span>
+</span></span><span style="display:flex;"><span>smtpserver <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;mail.python.org&#34;</span>  <span style="color:#57606a"># will be read by smtp fixture</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_showhelo</span><span style="color:#1f2328">(</span>smtp_connection<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> <span style="color:#0550ae">0</span><span style="color:#1f2328">,</span> smtp_connection<span style="color:#0550ae">.</span>helo<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>示例 2，结合 request+mark，把 fixt_data 从 test_fixt 传值给了 fixt</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">fixt</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    marker <span style="color:#0550ae">=</span> request<span style="color:#0550ae">.</span>node<span style="color:#0550ae">.</span>get_closest_marker<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;fixt_data&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> marker <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># Handle missing marker in some way...</span>
+</span></span><span style="display:flex;"><span>        data <span style="color:#0550ae">=</span> <span style="color:#cf222e">None</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        data <span style="color:#0550ae">=</span> marker<span style="color:#0550ae">.</span>args<span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># Do something with the data</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> data
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.fixt_data</span><span style="color:#1f2328">(</span><span style="color:#0550ae">42</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test_fixt</span><span style="color:#1f2328">(</span>fixt<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> fixt <span style="color:#0550ae">==</span> <span style="color:#0550ae">42</span>
+</span></span></code></pre></div><h2 id="fixture-setup--teardown">fixture setup / teardown<a hidden class="anchor" aria-hidden="true" href="#fixture-setup--teardown">#</a></h2>
+<p>其他测试框架 unittest/testng，都定义了 setup 和 teardown 函数/方法，用来测试前初始化和测试后清理。</p>
+<p>pytest 也有，不过是兼容 unittest 等弄的，<strong>不推荐！</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">loguru</span> <span style="color:#cf222e">import</span> logger
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">setup</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;setup&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">teardown</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;teardown&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">pass</span>
+</span></span></code></pre></div><p><strong>建议使用 fixture。</strong></p>
+<p><strong>setup</strong>，fixture 可以定义 autouse 来实现初始化。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>autouse<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>autouse 的 fixture 不需要调用，会自己运行，和 test 放到相同 scope，就能实现 setup 的效果。</p>
+<p>autouse 使用说明</p>
+<ul>
+<li>autouse 遵循 scope 的规则，scope=&ldquo;session&quot;整个会话只会运行 1 次，其他同理</li>
+<li>autouse 定义在 module 中，module 中的所有 function 都会用它（如果 scope=&ldquo;module&rdquo;，只运行 1 次，如果 scope=&ldquo;function&rdquo;，会运行多次）</li>
+<li>autouse 定义在 conftest.py，conftest 覆盖的 test 都会用它</li>
+<li>autouse 定义在 plugin 中，安装 plugin 的 test 都会用它</li>
+<li><strong>在使用 autouse 时需要同时注意 scope 和定义位置</strong></li>
+</ul>
+<p>示例，transact 默认 scope 是 function，会在每个 test 函数执行前自动运行</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_db_transact.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">DB</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>intransaction <span style="color:#0550ae">=</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">begin</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> name<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>intransaction<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span>name<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">rollback</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>intransaction<span style="color:#0550ae">.</span>pop<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;module&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">db</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> DB<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TestClass</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>autouse<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">transact</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> request<span style="color:#1f2328">,</span> db<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        db<span style="color:#0550ae">.</span>begin<span style="color:#1f2328">(</span>request<span style="color:#0550ae">.</span>function<span style="color:#0550ae">.</span><span style="color:#953800">__name__</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">yield</span>
+</span></span><span style="display:flex;"><span>        db<span style="color:#0550ae">.</span>rollback<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">test_method1</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> db<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">assert</span> db<span style="color:#0550ae">.</span>intransaction <span style="color:#0550ae">==</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;test_method1&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">test_method2</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> db<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">assert</span> db<span style="color:#0550ae">.</span>intransaction <span style="color:#0550ae">==</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;test_method2&#34;</span><span style="color:#1f2328">]</span>
+</span></span></code></pre></div><p>这个例子不用 autouse，用 conftest.py 也能实现</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of conftest.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">transact</span><span style="color:#1f2328">(</span>request<span style="color:#1f2328">,</span> db<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    db<span style="color:#0550ae">.</span>begin<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">yield</span>
+</span></span><span style="display:flex;"><span>    db<span style="color:#0550ae">.</span>rollback<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@pytest.mark.usefixtures</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;transact&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">TestClass</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">test_method1</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">...</span>
+</span></span></code></pre></div><p><strong>teardown</strong>，可以在 fixture 中使用 yield 关键字来实现清理。</p>
+<p>示例，scope 为 module，在 module 结束时，会执行 yield 后面的 print()和 smtp_connection.close()</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of conftest.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">smtplib</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;module&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">smtp_connection</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    smtp_connection <span style="color:#0550ae">=</span> smtplib<span style="color:#0550ae">.</span>SMTP<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;smtp.gmail.com&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">587</span><span style="color:#1f2328">,</span> timeout<span style="color:#0550ae">=</span><span style="color:#0550ae">5</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">yield</span> smtp_connection  <span style="color:#57606a"># provide the fixture value</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;teardown smtp&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    smtp_connection<span style="color:#0550ae">.</span>close<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>可以使用 with 关键字进一步简化，with 会自动清理上下文，执行 smtp_connection.close()</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## content of test_yield2.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">smtplib</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">pytest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;module&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">smtp_connection</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">with</span> smtplib<span style="color:#0550ae">.</span>SMTP<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;smtp.gmail.com&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">587</span><span style="color:#1f2328">,</span> timeout<span style="color:#0550ae">=</span><span style="color:#0550ae">5</span><span style="color:#1f2328">)</span> <span style="color:#cf222e">as</span> smtp_connection<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">yield</span> smtp_connection  <span style="color:#57606a"># provide the fixture value</span>
+</span></span></code></pre></div><h2 id="fixture-参数化">fixture 参数化<a hidden class="anchor" aria-hidden="true" href="#fixture-参数化">#</a></h2>
+<p>后续会专门讲“pytest 参数化”，这里就先跳过，请各位见谅啦。</p>
+<p>因为我觉得想用 pytest 做参数化，一定是先到参数化的文章里面找，而不是到 fixture。</p>
+<p>把这部分放到参数化，更便于以后检索。</p>
+<h2 id="简要回顾">简要回顾<a hidden class="anchor" aria-hidden="true" href="#简要回顾">#</a></h2>
+<p>本文开头通过源码介绍了 fixture 是什么，并简单总结定义和用法。然后对依赖注入进行了解释，以更好理解 fixture 技术的原理。入门示例给出了官网的例子，以此展开讲了范围、顺序、嵌套、传值，以及初始化和清理的知识。</p>
+<blockquote>
+<p><em>参考资料</em></p>
+<p><a href="https://en.wikipedia.org/wiki/Dependency_injection">https://en.wikipedia.org/wiki/Dependency_injection</a></p>
+<p><a href="https://en.wikipedia.org/wiki/Inversion_of_control">https://en.wikipedia.org/wiki/Inversion_of_control</a></p>
+<p><a href="https://docs.pytest.org/en/stable/contents.html#toc">https://docs.pytest.org/en/stable/contents.html#toc</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/pytest/">Pytest</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/junit5%E7%BC%96%E5%86%99%E5%9F%BA%E6%9C%AC%E6%B5%8B%E8%AF%95/">
+    <span class="title">« 上一页</span>
+    <span>JUnit5 编写基本测试</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/pytestx%E5%AE%B9%E5%99%A8%E5%8C%96%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/">
+    <span class="title">下一页 »</span>
+    <span>pytestx 容器化执行引擎</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#fixture-是什么">fixture 是什么</a></li>
+        <li><a href="#conftestpy">conftest.py</a></li>
+        <li><a href="#依赖注入">依赖注入</a></li>
+        <li><a href="#入门示例">入门示例</a></li>
+        <li><a href="#fixture-scope--order">fixture scope &amp; order</a></li>
+        <li><a href="#fixture-嵌套">fixture 嵌套</a></li>
+        <li><a href="#从-test-传值给-fixture">从 test 传值给 fixture</a></li>
+        <li><a href="#fixture-setup--teardown">fixture setup / teardown</a></li>
+        <li><a href="#fixture-参数化">fixture 参数化</a></li>
+        <li><a href="#简要回顾">简要回顾</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

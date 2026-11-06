@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Flask 启动应用时都干了些啥 | 测试开发刚哥</title>
+<meta name="keywords" content="Flask">
+<meta name="description" content="一个 Flask 应用（Flask Application）是 Flask 类（Flask Class）的实例。在前面的文章中，都是通过定义全局 Flask 实例的方式来编写的 Flask 应用代码，比如：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/flask%E5%90%AF%E5%8A%A8%E5%BA%94%E7%94%A8%E6%97%B6%E9%83%BD%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/flask%E5%90%AF%E5%8A%A8%E5%BA%94%E7%94%A8%E6%97%B6%E9%83%BD%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/flask%E5%90%AF%E5%8A%A8%E5%BA%94%E7%94%A8%E6%97%B6%E9%83%BD%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="Flask 启动应用时都干了些啥">
+  <meta property="og:description" content="一个 Flask 应用（Flask Application）是 Flask 类（Flask Class）的实例。在前面的文章中，都是通过定义全局 Flask 实例的方式来编写的 Flask 应用代码，比如：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:tag" content="Flask">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Flask 启动应用时都干了些啥">
+  <meta name="twitter:description" content="一个 Flask 应用（Flask Application）是 Flask 类（Flask Class）的实例。在前面的文章中，都是通过定义全局 Flask 实例的方式来编写的 Flask 应用代码，比如：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Flask 启动应用时都干了些啥",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/flask%E5%90%AF%E5%8A%A8%E5%BA%94%E7%94%A8%E6%97%B6%E9%83%BD%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Flask 启动应用时都干了些啥",
+  "name": "Flask 启动应用时都干了些啥",
+  "description": "一个 Flask 应用（Flask Application）是 Flask 类（Flask Class）的实例。在前面的文章中，都是通过定义全局 Flask 实例的方式来编写的 Flask 应用代码，比如：",
+  "keywords": [
+    "Flask"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n一个 Flask 应用（Flask Application）是 Flask 类（Flask Class）的实例。在前面的文章中，都是通过定义全局 Flask 实例的方式来编写的 Flask 应用代码，比如：\nfrom flask import Flask app = Flask(__name__) @app.route(\"/\") def hello_world(): return \"Hello, World!\" Python 的模块（Module）天然就是单例的，模块级别的对象自然而然也是单例的。这种方式在写简单的脚本时很方便，但如果是写项目，随着项目逐渐扩大，会出现越来越棘手的问题。\n除了定义全局实例，还有一种方式叫做工厂函数（Factory Function），在 Flask 这，也能叫应用工厂（Application Factory），Flask 应用工厂函数的返回是 Flask 类的实例对象。\n典型的 Flask 应用工厂函数如下所示：\nimport os from flask import Flask def create_app(test_config=None): # create and configure the app app = Flask(__name__, instance_relative_config=True) app.config.from_mapping( SECRET_KEY='dev', DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'), ) if test_config is None: # load the instance config, if it exists, when not testing app.config.from_pyfile('config.py', silent=True) else: # load the test config if passed in app.config.from_mapping(test_config) # ensure the instance folder exists try: os.makedirs(app.instance_path) except OSError: pass # a simple page that says hello @app.route('/hello') def hello(): return 'Hello, World!' return app 这段代码可以放到 flaskr 目录下面的__init__.py文件中：\n/home/user/Projects/flask-tutorial ├── flaskr/ │ ├── __init__.py 通过这段代码，我们可以看看 Flask 应用启动时，都干了些啥：\napp = Flask(__name__, instance_relative_config=True)创建了 Flask 实例。__name__是指当前模块的名字，这样 Flask 就能找到应用启动的入口。instance_relative_config=True告诉 Flask 配置文件是用的实例文件夹的相对路径。\n所谓实例文件夹，是指和 flaskr 同级的一个名字为 instance 的文件夹，适合存放私有配置的秘钥或者本地数据库等不需要上传到 Git 的文件，可以通过Flask.instance_path获取完整路径。\napp.config.from_mapping()设置了默认配置。SECRET_KEY是 Flask 用来给数据加密的私钥。DATABASE指定了数据库文件路径。\napp.config.from_pyfile()用来覆盖默认配置，from_pyfile 方法从文件获取配置，from_mapping 通过键值对设定配置。\nos.makedirs(app.instance_path)确保创建了实例文件夹。\n@app.route()定义了路由和处理函数。\n总的来说，Flask 可以通过应用工厂（Application Factory）函数，在 Flask 应用启动时干这些事：实例化 Flask 对象→设定配置→创建实例文件夹→定义路由→定义处理函数。\nFlask 启动后能看到以下日志：\n* Serving Flask app \"flaskr\" * Environment: development * Debug mode: on * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit) * Restarting with stat * Debugger is active! * Debugger PIN: 855-212-761 除了python命令启动 Flask 应用，也可以直接用flask命令，示例如下：\n\u003e set FLASK_APP=flaskr \u003e set FLASK_ENV=development \u003e flask run 参考资料：\nhttps://flask.palletsprojects.com/en/2.0.x/tutorial/factory/\n",
+  "wordCount" : "206",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-04T00:00:00Z",
+  "dateModified": "2026-01-04T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/flask%E5%90%AF%E5%8A%A8%E5%BA%94%E7%94%A8%E6%97%B6%E9%83%BD%E5%B9%B2%E4%BA%86%E4%BA%9B%E5%95%A5/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Flask 启动应用时都干了些啥
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-04T00:00:00+00:00'>2026-01-04</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/flask/'>#Flask</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>一个 Flask 应用（Flask Application）是 Flask 类（Flask Class）的实例。在前面的文章中，都是通过定义<strong>全局 Flask 实例</strong>的方式来编写的 Flask 应用代码，比如：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">flask</span> <span style="color:#cf222e">import</span> Flask
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>app <span style="color:#0550ae">=</span> Flask<span style="color:#1f2328">(</span><span style="color:#953800">__name__</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@app.route</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">hello_world</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;Hello, World!&#34;</span>
+</span></span></code></pre></div><p><strong>Python 的模块（Module）天然就是单例的</strong>，模块级别的对象自然而然也是单例的。这种方式在写简单的脚本时很方便，但如果是写项目，随着项目逐渐扩大，会出现越来越棘手的问题。</p>
+<p>除了定义全局实例，还有一种方式叫做工厂函数（Factory Function），在 Flask 这，也能叫应用工厂（Application Factory），<strong>Flask 应用工厂函数</strong>的返回是 Flask 类的实例对象。</p>
+<p>典型的 Flask 应用工厂函数如下所示：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">os</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">flask</span> <span style="color:#cf222e">import</span> Flask
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">create_app</span><span style="color:#1f2328">(</span>test_config<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># create and configure the app</span>
+</span></span><span style="display:flex;"><span>    app <span style="color:#0550ae">=</span> Flask<span style="color:#1f2328">(</span><span style="color:#953800">__name__</span><span style="color:#1f2328">,</span> instance_relative_config<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    app<span style="color:#0550ae">.</span>config<span style="color:#0550ae">.</span>from_mapping<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        SECRET_KEY<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;dev&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        DATABASE<span style="color:#0550ae">=</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>app<span style="color:#0550ae">.</span>instance_path<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;flaskr.sqlite&#39;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> test_config <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># load the instance config, if it exists, when not testing</span>
+</span></span><span style="display:flex;"><span>        app<span style="color:#0550ae">.</span>config<span style="color:#0550ae">.</span>from_pyfile<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;config.py&#39;</span><span style="color:#1f2328">,</span> silent<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#57606a"># load the test config if passed in</span>
+</span></span><span style="display:flex;"><span>        app<span style="color:#0550ae">.</span>config<span style="color:#0550ae">.</span>from_mapping<span style="color:#1f2328">(</span>test_config<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># ensure the instance folder exists</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        os<span style="color:#0550ae">.</span>makedirs<span style="color:#1f2328">(</span>app<span style="color:#0550ae">.</span>instance_path<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">except</span> OSError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># a simple page that says hello</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@app.route</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;/hello&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">hello</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#39;Hello, World!&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> app
+</span></span></code></pre></div><p>这段代码可以放到 flaskr 目录下面的<code>__init__.py</code>文件中：</p>
+<pre tabindex="0"><code>/home/user/Projects/flask-tutorial
+├── flaskr/
+│   ├── __init__.py
+</code></pre><p>通过这段代码，我们可以看看 Flask 应用启动时，都干了些啥：</p>
+<ol>
+<li>
+<p><code>app = Flask(__name__, instance_relative_config=True)</code>创建了 Flask 实例。<code>__name__</code>是指当前模块的名字，这样 Flask 就能找到应用启动的入口。<code>instance_relative_config=True</code>告诉 Flask 配置文件是用的实例文件夹的相对路径。</p>
+<blockquote>
+<p>所谓实例文件夹，是指和 flaskr 同级的一个名字为 instance 的文件夹，适合存放私有配置的秘钥或者本地数据库等不需要上传到 Git 的文件，可以通过<code>Flask.instance_path</code>获取完整路径。</p>
+</blockquote>
+</li>
+<li>
+<p><code>app.config.from_mapping()</code>设置了默认配置。<code>SECRET_KEY</code>是 Flask 用来给数据加密的私钥。<code>DATABASE</code>指定了数据库文件路径。</p>
+</li>
+<li>
+<p><code>app.config.from_pyfile()</code>用来覆盖默认配置，from_pyfile 方法从文件获取配置，from_mapping 通过键值对设定配置。</p>
+</li>
+<li>
+<p><code>os.makedirs(app.instance_path)</code>确保创建了实例文件夹。</p>
+</li>
+<li>
+<p><code>@app.route()</code>定义了路由和处理函数。</p>
+</li>
+</ol>
+<p>总的来说，<strong>Flask 可以通过应用工厂（Application Factory）函数，在 Flask 应用启动时干这些事</strong>：实例化 Flask 对象→设定配置→创建实例文件夹→定义路由→定义处理函数。</p>
+<p>Flask 启动后能看到以下日志：</p>
+<pre tabindex="0"><code>* Serving Flask app &#34;flaskr&#34;
+* Environment: development
+* Debug mode: on
+* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+* Restarting with stat
+* Debugger is active!
+* Debugger PIN: 855-212-761
+</code></pre><p>除了<code>python</code>命令启动 Flask 应用，也可以直接用<code>flask</code>命令，示例如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>&gt; <span style="color:#6639ba">set</span> <span style="color:#953800">FLASK_APP</span><span style="color:#0550ae">=</span>flaskr
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#6639ba">set</span> <span style="color:#953800">FLASK_ENV</span><span style="color:#0550ae">=</span>development
+</span></span><span style="display:flex;"><span>&gt; flask run
+</span></span></code></pre></div><blockquote>
+<p>参考资料：</p>
+<p><a href="https://flask.palletsprojects.com/en/2.0.x/tutorial/factory/">https://flask.palletsprojects.com/en/2.0.x/tutorial/factory/</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/flask/">Flask</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/fastapi%E4%BD%BF%E7%94%A8typing%E7%B1%BB%E5%9E%8B%E6%8F%90%E7%A4%BA/">
+    <span class="title">« 上一页</span>
+    <span>FastAPI 使用 typing 类型提示</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/httprunner3%E7%9A%84%E5%8F%98%E9%87%8F%E6%98%AF%E5%A6%82%E4%BD%95%E4%BC%A0%E9%80%92%E7%9A%84/">
+    <span class="title">下一页 »</span>
+    <span>HttpRunner3 的变量是如何传递的</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar">
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

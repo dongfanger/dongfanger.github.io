@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>AI 应用运行时 | 测试开发刚哥</title>
+<meta name="keywords" content="AI白皮书">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+7.1 AI 应用运行时的演进趋势
+7.1.1 从云原生到 AI 原生
+云原生时代的核心是应用。将单体应用拆解为更小、更独立、更具弹性的微服务，并高效地在云基础设施上进行部署、扩展和管理。
+而 Agent 的工作流，不再是执行一段固定的 main 函数，而是一个动态的、长周期的、充满不确定性的“思考-行动”循环。需要极致弹性和成本效益。需要数小时上下文记忆、拥有完整文件系统、并能与浏览器进行复杂交互。
+7.1.2 Agentic AI 应用的典型场景
+场景一：交互式智能内容创作助手
+对轮对话、上下文记忆、模型自托管、异构任务流、流式响应。
+场景二：个性化 AI 客服
+事件驱动、企业数据、实时在线。
+场景三：通用 Agent 平台&#43;病毒式传播的 AIGC 创意应用
+Agent 智能体、代码执行验证、部署与分享、脉冲式流量、大文件处理。
+7.1.3 AI 原生应用运行时的核心能力
+
+1、面向会话的状态管理与安全隔离
+2、大规模实时弹性与精益成本管理
+3、异构算力与标准化工具连接能力
+7.2 模型运行时
+7.2.1 企业模型使用的核心痛点
+资源浪费：业务流量波动大，高峰 10 万，平日几千，预留峰值会导致算力闲置。
+冷启动：低频模型无法保持实例存活，使用时冷启动耗时长。
+定制化：业务产品需要定制化，产品迭代周期长。
+7.2.2 Serverless 模型运行时的核心能力
+Serverless 是什么？
+Serverless 不是完全没有服务器，而是开发者不需要关心服务器的管理。对于开发者来说，只需关注代码，其他的交给云平台。主流 Serverless 平台包括阿里云函数计算、腾讯云云函数等。
+Serverless 和云服务器的区别？
+云服务器只是一台远程的服务器；Serverless 只上传代码片段（函数），不管服务器，当有请求触发时，代码才会运行。
+1、异构算力和 1/N 卡切分使用
+在算力层，Serverless 模型运行时通过 GPU 虚拟化技术将单张 GPU 显卡划分为 N 个独立计算单元，每个实例具备隔离的显存空间与算力资源，不同实例通过 GPU 分时复用技术实现并行推理。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E8%BF%90%E8%A1%8C%E6%97%B6/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E8%BF%90%E8%A1%8C%E6%97%B6/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E8%BF%90%E8%A1%8C%E6%97%B6/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="AI 应用运行时">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+7.1 AI 应用运行时的演进趋势 7.1.1 从云原生到 AI 原生 云原生时代的核心是应用。将单体应用拆解为更小、更独立、更具弹性的微服务，并高效地在云基础设施上进行部署、扩展和管理。
+而 Agent 的工作流，不再是执行一段固定的 main 函数，而是一个动态的、长周期的、充满不确定性的“思考-行动”循环。需要极致弹性和成本效益。需要数小时上下文记忆、拥有完整文件系统、并能与浏览器进行复杂交互。
+7.1.2 Agentic AI 应用的典型场景 场景一：交互式智能内容创作助手
+对轮对话、上下文记忆、模型自托管、异构任务流、流式响应。
+场景二：个性化 AI 客服
+事件驱动、企业数据、实时在线。
+场景三：通用 Agent 平台&#43;病毒式传播的 AIGC 创意应用
+Agent 智能体、代码执行验证、部署与分享、脉冲式流量、大文件处理。
+7.1.3 AI 原生应用运行时的核心能力 1、面向会话的状态管理与安全隔离
+2、大规模实时弹性与精益成本管理
+3、异构算力与标准化工具连接能力
+7.2 模型运行时 7.2.1 企业模型使用的核心痛点 资源浪费：业务流量波动大，高峰 10 万，平日几千，预留峰值会导致算力闲置。
+冷启动：低频模型无法保持实例存活，使用时冷启动耗时长。
+定制化：业务产品需要定制化，产品迭代周期长。
+7.2.2 Serverless 模型运行时的核心能力 Serverless 是什么？
+Serverless 不是完全没有服务器，而是开发者不需要关心服务器的管理。对于开发者来说，只需关注代码，其他的交给云平台。主流 Serverless 平台包括阿里云函数计算、腾讯云云函数等。
+Serverless 和云服务器的区别？
+云服务器只是一台远程的服务器；Serverless 只上传代码片段（函数），不管服务器，当有请求触发时，代码才会运行。
+1、异构算力和 1/N 卡切分使用
+在算力层，Serverless 模型运行时通过 GPU 虚拟化技术将单张 GPU 显卡划分为 N 个独立计算单元，每个实例具备隔离的显存空间与算力资源，不同实例通过 GPU 分时复用技术实现并行推理。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-11T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-11T00:00:00+00:00">
+    <meta property="article:tag" content="AI白皮书">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AI 应用运行时">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+7.1 AI 应用运行时的演进趋势 7.1.1 从云原生到 AI 原生 云原生时代的核心是应用。将单体应用拆解为更小、更独立、更具弹性的微服务，并高效地在云基础设施上进行部署、扩展和管理。
+而 Agent 的工作流，不再是执行一段固定的 main 函数，而是一个动态的、长周期的、充满不确定性的“思考-行动”循环。需要极致弹性和成本效益。需要数小时上下文记忆、拥有完整文件系统、并能与浏览器进行复杂交互。
+7.1.2 Agentic AI 应用的典型场景 场景一：交互式智能内容创作助手
+对轮对话、上下文记忆、模型自托管、异构任务流、流式响应。
+场景二：个性化 AI 客服
+事件驱动、企业数据、实时在线。
+场景三：通用 Agent 平台&#43;病毒式传播的 AIGC 创意应用
+Agent 智能体、代码执行验证、部署与分享、脉冲式流量、大文件处理。
+7.1.3 AI 原生应用运行时的核心能力 1、面向会话的状态管理与安全隔离
+2、大规模实时弹性与精益成本管理
+3、异构算力与标准化工具连接能力
+7.2 模型运行时 7.2.1 企业模型使用的核心痛点 资源浪费：业务流量波动大，高峰 10 万，平日几千，预留峰值会导致算力闲置。
+冷启动：低频模型无法保持实例存活，使用时冷启动耗时长。
+定制化：业务产品需要定制化，产品迭代周期长。
+7.2.2 Serverless 模型运行时的核心能力 Serverless 是什么？
+Serverless 不是完全没有服务器，而是开发者不需要关心服务器的管理。对于开发者来说，只需关注代码，其他的交给云平台。主流 Serverless 平台包括阿里云函数计算、腾讯云云函数等。
+Serverless 和云服务器的区别？
+云服务器只是一台远程的服务器；Serverless 只上传代码片段（函数），不管服务器，当有请求触发时，代码才会运行。
+1、异构算力和 1/N 卡切分使用
+在算力层，Serverless 模型运行时通过 GPU 虚拟化技术将单张 GPU 显卡划分为 N 个独立计算单元，每个实例具备隔离的显存空间与算力资源，不同实例通过 GPU 分时复用技术实现并行推理。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "AI 应用运行时",
+      "item": "https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E8%BF%90%E8%A1%8C%E6%97%B6/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI 应用运行时",
+  "name": "AI 应用运行时",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n7.1 AI 应用运行时的演进趋势 7.1.1 从云原生到 AI 原生 云原生时代的核心是应用。将单体应用拆解为更小、更独立、更具弹性的微服务，并高效地在云基础设施上进行部署、扩展和管理。\n而 Agent 的工作流，不再是执行一段固定的 main 函数，而是一个动态的、长周期的、充满不确定性的“思考-行动”循环。需要极致弹性和成本效益。需要数小时上下文记忆、拥有完整文件系统、并能与浏览器进行复杂交互。\n7.1.2 Agentic AI 应用的典型场景 场景一：交互式智能内容创作助手\n对轮对话、上下文记忆、模型自托管、异构任务流、流式响应。\n场景二：个性化 AI 客服\n事件驱动、企业数据、实时在线。\n场景三：通用 Agent 平台+病毒式传播的 AIGC 创意应用\nAgent 智能体、代码执行验证、部署与分享、脉冲式流量、大文件处理。\n7.1.3 AI 原生应用运行时的核心能力 1、面向会话的状态管理与安全隔离\n2、大规模实时弹性与精益成本管理\n3、异构算力与标准化工具连接能力\n7.2 模型运行时 7.2.1 企业模型使用的核心痛点 资源浪费：业务流量波动大，高峰 10 万，平日几千，预留峰值会导致算力闲置。\n冷启动：低频模型无法保持实例存活，使用时冷启动耗时长。\n定制化：业务产品需要定制化，产品迭代周期长。\n7.2.2 Serverless 模型运行时的核心能力 Serverless 是什么？\nServerless 不是完全没有服务器，而是开发者不需要关心服务器的管理。对于开发者来说，只需关注代码，其他的交给云平台。主流 Serverless 平台包括阿里云函数计算、腾讯云云函数等。\nServerless 和云服务器的区别？\n云服务器只是一台远程的服务器；Serverless 只上传代码片段（函数），不管服务器，当有请求触发时，代码才会运行。\n1、异构算力和 1/N 卡切分使用\n在算力层，Serverless 模型运行时通过 GPU 虚拟化技术将单张 GPU 显卡划分为 N 个独立计算单元，每个实例具备隔离的显存空间与算力资源，不同实例通过 GPU 分时复用技术实现并行推理。\n",
+  "keywords": [
+    "AI白皮书"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n7.1 AI 应用运行时的演进趋势 7.1.1 从云原生到 AI 原生 云原生时代的核心是应用。将单体应用拆解为更小、更独立、更具弹性的微服务，并高效地在云基础设施上进行部署、扩展和管理。\n而 Agent 的工作流，不再是执行一段固定的 main 函数，而是一个动态的、长周期的、充满不确定性的“思考-行动”循环。需要极致弹性和成本效益。需要数小时上下文记忆、拥有完整文件系统、并能与浏览器进行复杂交互。\n7.1.2 Agentic AI 应用的典型场景 场景一：交互式智能内容创作助手\n对轮对话、上下文记忆、模型自托管、异构任务流、流式响应。\n场景二：个性化 AI 客服\n事件驱动、企业数据、实时在线。\n场景三：通用 Agent 平台+病毒式传播的 AIGC 创意应用\nAgent 智能体、代码执行验证、部署与分享、脉冲式流量、大文件处理。\n7.1.3 AI 原生应用运行时的核心能力 1、面向会话的状态管理与安全隔离\n2、大规模实时弹性与精益成本管理\n3、异构算力与标准化工具连接能力\n7.2 模型运行时 7.2.1 企业模型使用的核心痛点 资源浪费：业务流量波动大，高峰 10 万，平日几千，预留峰值会导致算力闲置。\n冷启动：低频模型无法保持实例存活，使用时冷启动耗时长。\n定制化：业务产品需要定制化，产品迭代周期长。\n7.2.2 Serverless 模型运行时的核心能力 Serverless 是什么？\nServerless 不是完全没有服务器，而是开发者不需要关心服务器的管理。对于开发者来说，只需关注代码，其他的交给云平台。主流 Serverless 平台包括阿里云函数计算、腾讯云云函数等。\nServerless 和云服务器的区别？\n云服务器只是一台远程的服务器；Serverless 只上传代码片段（函数），不管服务器，当有请求触发时，代码才会运行。\n1、异构算力和 1/N 卡切分使用\n在算力层，Serverless 模型运行时通过 GPU 虚拟化技术将单张 GPU 显卡划分为 N 个独立计算单元，每个实例具备隔离的显存空间与算力资源，不同实例通过 GPU 分时复用技术实现并行推理。\nServerless 模型运行时通过池化技术，将 CPU/GPU/XPU 统一纳管到一个资源池，开发者可根据模型特性按需配置算力模型，比如语音识别等轻量任务分配 CPU，图像生成等算力密集型任务分配 GPU 碎片，大语言模型等显存密集型任务分配 GPU 整卡或多卡。\n2、负载感知调度和毫秒级闲置唤醒\n在调度层，Serverless 模型运行时通过负载感知调度系统实时监测请求队列深度、GPU 显存占有率、实例健康状态等多维指标，基于池化技术构建三级响应机制：请求优先分配至活跃实例；当资源吃紧时，毫秒级唤醒闲置实例了；仅在极端流量下触发冷启动。\n其核心技术突破在于利用 CRID（用户空间检查点/恢复）技术冻结显存状态，并将显存数据临时置换至内存，并在新的请求调度前实现毫秒级/秒级状态恢复，较传统虚机/容器方案提速百倍。\n3、集成加速框架和开发调试工具链\n在开发层，Serverless 模型运行时预集成加速框架深度优化模型运行效率：vLLM 框架的 Paged Attention 技术通过显存分页管理提升 3 倍吞吐量；SGLang 的 RadixAttention 实现注意力机制并行编译，降低 60%推理延迟；TensorRT-LLM 的量化融合策略提升 2 倍能效比。\n开发工具链提供 DevPod 交互式环境，开发环节实现白屏化操作和实时反馈，集成在线 IDE 如 VSCode/JupyterLab/SSH 终端，开发者在云端环境具备比本地环境更高的生产效率；生产部署环节实现革命性简化——上传模型文件后，系统在 30 秒内自动生成 Dockerfile、构建推理服务、输出 OpenAPI 文档及 SDK。\n总结，GPU 碎片化技术提供原子级算力单元，为智能调度奠定资源基础；负载感知引擎通过毫秒级实例弹性，将碎片化算力转化为即时服务能力；开发工具链则构建自动化流水线，使技术红利直达开发者工作台。\n7.2.3 Serverless 模型运行时——AI 大脑的终极载体 Serverless 模型运行时实现了异构算力革命、智能调度进化、开发范式升级三重突破，是承载 AI 大脑的核心基座。\n7.3 智能体运行时 7.3.1 AI 应用形态的持续演进 1、“请求-响应”模式：无状态的事务性 AI 任务\n通过快速复制无状态的计算实例来应对流量变化。\n2、“对话”模式：有状态的协作式 Agentic AI 应用\n7.3.2 Agent 运行时的核心架构目标 1、围绕会话请求和资源调度模型，维持长时运行的状态延续\n2、实现面向 Active-Idle 资源管理，解决长时运行的成本困境\n7.3.3 现有架构支撑 Agent 运行时对比分析 7.3.4 为 AI 原生的“会话式”Serverless 运行时 AI 应用的会话既需要状态持久化，又需要高性能的本地计算和会话维度隔离能力。\n一个会话，一个独立运行时：\n原生会话状态保持 灵活可靠的安全隔离 毫秒级的弹性速度 7.4 工具与云沙箱 7.4.1 AI Agent 与工具：从概念到能力 Agent 常用工具类型：\n代码解释器、浏览器使用和计算机使用这类复杂工具，已经不是传统的单次、无状态的 API 调用，而是需要一个有状态的、沙箱化的环境。AI Sandbox，正是一个被严格控制的隔离环境。\n7.4.2 复杂工具运行时的核心诉求 隔离与安全（Isolation \u0026 Security） 状态管理与成本（State Management \u0026 Cost） 可扩展性与运维（Scalability \u0026 Operations） 7.4.3 Serverless 作为 AI Sandbox 的理想基座 1、计算隔离，硬件级与内核级双重保障\n比如阿里云函数计算采用的“神龙裸金属+MicroVM 安全容器”架构。\n2、会话管理，原生支持有状态应用\n核心能力是强会话亲和性（Session Affinity）、会话物理隔离（Session Isolation）、会话管理接口（Session Management Interface）。\n3、存储隔离，解决状态持久化难题\n本地临时存储，利用快照技术实现极速恢复。持久化共享存储，提供会话级别的数据沙箱。\n4、对极致存储性能的持续探索\n支持在会话粒度上为每一个独立的 Sandbox 动态挂载专属的高性能存储盘。\n7.5 AI 应用运行时的降本路线 7.5.1 阶段一：从资源租用到按请求计费 只为代码运行时刻付费。\n关键技术包括：精准识别请求边界；按请求分配独占资源；低延时大并发的冷启动能力；1ms 完成活跃/闲置状态转化。\n7.5.2 阶段二：多并发+毫秒级计费——面相 Web 应用的优化 突破单并发限制，按函数实例的活跃时间段计费，并将粒度精细化到 1ms。从“为单个请求买单”转变为“为活跃区间买单”。\n关键技术包括：识别活跃时间段作为计费边界；引入 Custom Runtime/Container Runtime；缩短计费粒度；极致优化平台全链路延迟。\n7.5.3 阶段三：按实际资源消耗计费——AI 时代的价值计费 在识别请求边界的基础上，引入按实际资源消耗动态区分活跃/闲置的计费模型。从“为活跃区间买单”演化为“按资源消耗分层计费”。\n关键技术包括：支持会话亲和性；按实际资源消耗判断活跃/闲置；执行期间低负载的减免机制；支持不冻结，允许后台任务持续运行。\n7.5.4 函数计算的演化方向是把产品形态与用户价值更紧密地对齐 在 AI 时代，函数计算一直坚持走向让开发者只关心业务逻辑，云厂商自动完成一切资源管理与调度的愿景，最终让计算像水、电一样随时可得、按实际使用价值付费。\n参考资料：\nhttps://developer.aliyun.com/ebook/8479\n",
+  "wordCount" : "236",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-11T00:00:00Z",
+  "dateModified": "2026-01-11T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/ai%E5%BA%94%E7%94%A8%E8%BF%90%E8%A1%8C%E6%97%B6/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      AI 应用运行时
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-11T00:00:00+00:00'>2026-01-11</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/'>人工智能</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/'>#AI白皮书</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="71-ai-应用运行时的演进趋势">7.1 AI 应用运行时的演进趋势<a hidden class="anchor" aria-hidden="true" href="#71-ai-应用运行时的演进趋势">#</a></h1>
+<h2 id="711-从云原生到-ai-原生">7.1.1 从云原生到 AI 原生<a hidden class="anchor" aria-hidden="true" href="#711-从云原生到-ai-原生">#</a></h2>
+<p>云原生时代的核心是应用。将单体应用拆解为更小、更独立、更具弹性的微服务，并高效地在云基础设施上进行部署、扩展和管理。</p>
+<p>而 Agent 的工作流，不再是执行一段固定的 main 函数，而是一个动态的、长周期的、充满不确定性的“思考-行动”循环。需要极致弹性和成本效益。需要数小时上下文记忆、拥有完整文件系统、并能与浏览器进行复杂交互。</p>
+<h2 id="712-agentic-ai-应用的典型场景">7.1.2 Agentic AI 应用的典型场景<a hidden class="anchor" aria-hidden="true" href="#712-agentic-ai-应用的典型场景">#</a></h2>
+<p><strong>场景一：交互式智能内容创作助手</strong></p>
+<p>对轮对话、上下文记忆、模型自托管、异构任务流、流式响应。</p>
+<p><strong>场景二：个性化 AI 客服</strong></p>
+<p>事件驱动、企业数据、实时在线。</p>
+<p><strong>场景三：通用 Agent 平台+病毒式传播的 AIGC 创意应用</strong></p>
+<p>Agent 智能体、代码执行验证、部署与分享、脉冲式流量、大文件处理。</p>
+<h2 id="713-ai-原生应用运行时的核心能力">7.1.3 AI 原生应用运行时的核心能力<a hidden class="anchor" aria-hidden="true" href="#713-ai-原生应用运行时的核心能力">#</a></h2>
+<p><img loading="lazy" src="../assets/4bf9ca763c2f4739ab21c899e6643766.png"></p>
+<p>1、面向会话的状态管理与安全隔离</p>
+<p>2、大规模实时弹性与精益成本管理</p>
+<p>3、异构算力与标准化工具连接能力</p>
+<h1 id="72-模型运行时">7.2 模型运行时<a hidden class="anchor" aria-hidden="true" href="#72-模型运行时">#</a></h1>
+<h2 id="721-企业模型使用的核心痛点">7.2.1 企业模型使用的核心痛点<a hidden class="anchor" aria-hidden="true" href="#721-企业模型使用的核心痛点">#</a></h2>
+<p>资源浪费：业务流量波动大，高峰 10 万，平日几千，预留峰值会导致算力闲置。</p>
+<p>冷启动：低频模型无法保持实例存活，使用时冷启动耗时长。</p>
+<p>定制化：业务产品需要定制化，产品迭代周期长。</p>
+<h2 id="722-serverless-模型运行时的核心能力">7.2.2 Serverless 模型运行时的核心能力<a hidden class="anchor" aria-hidden="true" href="#722-serverless-模型运行时的核心能力">#</a></h2>
+<p><strong>Serverless 是什么？</strong></p>
+<p>Serverless 不是完全没有服务器，而是开发者不需要关心服务器的管理。对于开发者来说，只需关注代码，其他的交给云平台。主流 Serverless 平台包括阿里云函数计算、腾讯云云函数等。</p>
+<p><strong>Serverless 和云服务器的区别？</strong></p>
+<p>云服务器只是一台远程的服务器；Serverless 只上传代码片段（函数），不管服务器，当有请求触发时，代码才会运行。</p>
+<p><strong>1、异构算力和 1/N 卡切分使用</strong></p>
+<p>在算力层，Serverless 模型运行时通过 GPU 虚拟化技术将单张 GPU 显卡划分为 N 个独立计算单元，每个实例具备隔离的显存空间与算力资源，不同实例通过 GPU 分时复用技术实现并行推理。</p>
+<p>Serverless 模型运行时通过池化技术，将 CPU/GPU/XPU 统一纳管到一个资源池，开发者可根据模型特性按需配置算力模型，比如语音识别等轻量任务分配 CPU，图像生成等算力密集型任务分配 GPU 碎片，大语言模型等显存密集型任务分配 GPU 整卡或多卡。</p>
+<p><strong>2、负载感知调度和毫秒级闲置唤醒</strong></p>
+<p>在调度层，Serverless 模型运行时通过负载感知调度系统实时监测请求队列深度、GPU 显存占有率、实例健康状态等多维指标，基于池化技术构建三级响应机制：请求优先分配至活跃实例；当资源吃紧时，毫秒级唤醒闲置实例了；仅在极端流量下触发冷启动。</p>
+<p>其核心技术突破在于利用 CRID（用户空间检查点/恢复）技术冻结显存状态，并将显存数据临时置换至内存，并在新的请求调度前实现毫秒级/秒级状态恢复，较传统虚机/容器方案提速百倍。</p>
+<p><strong>3、集成加速框架和开发调试工具链</strong></p>
+<p>在开发层，Serverless 模型运行时预集成加速框架深度优化模型运行效率：vLLM 框架的 Paged Attention 技术通过显存分页管理提升 3 倍吞吐量；SGLang 的 RadixAttention 实现注意力机制并行编译，降低 60%推理延迟；TensorRT-LLM 的量化融合策略提升 2 倍能效比。</p>
+<p>开发工具链提供 DevPod 交互式环境，开发环节实现白屏化操作和实时反馈，集成在线 IDE 如 VSCode/JupyterLab/SSH 终端，开发者在云端环境具备比本地环境更高的生产效率；生产部署环节实现革命性简化——上传模型文件后，系统在 30 秒内自动生成 Dockerfile、构建推理服务、输出 OpenAPI 文档及 SDK。</p>
+<p>总结，GPU 碎片化技术提供原子级算力单元，为智能调度奠定资源基础；负载感知引擎通过毫秒级实例弹性，将碎片化算力转化为即时服务能力；开发工具链则构建自动化流水线，使技术红利直达开发者工作台。</p>
+<h2 id="723-serverless-模型运行时ai-大脑的终极载体">7.2.3 Serverless 模型运行时——AI 大脑的终极载体<a hidden class="anchor" aria-hidden="true" href="#723-serverless-模型运行时ai-大脑的终极载体">#</a></h2>
+<p>Serverless 模型运行时实现了异构算力革命、智能调度进化、开发范式升级三重突破，是承载 AI 大脑的核心基座。</p>
+<h1 id="73-智能体运行时">7.3 智能体运行时<a hidden class="anchor" aria-hidden="true" href="#73-智能体运行时">#</a></h1>
+<h2 id="731-ai-应用形态的持续演进">7.3.1 AI 应用形态的持续演进<a hidden class="anchor" aria-hidden="true" href="#731-ai-应用形态的持续演进">#</a></h2>
+<p>1、“请求-响应”模式：无状态的事务性 AI 任务</p>
+<p>通过快速复制无状态的计算实例来应对流量变化。</p>
+<p>2、“对话”模式：有状态的协作式 Agentic AI 应用</p>
+<h2 id="732-agent-运行时的核心架构目标">7.3.2 Agent 运行时的核心架构目标<a hidden class="anchor" aria-hidden="true" href="#732-agent-运行时的核心架构目标">#</a></h2>
+<p>1、围绕会话请求和资源调度模型，维持长时运行的状态延续</p>
+<p>2、实现面向 Active-Idle 资源管理，解决长时运行的成本困境</p>
+<h2 id="733-现有架构支撑-agent-运行时对比分析">7.3.3 现有架构支撑 Agent 运行时对比分析<a hidden class="anchor" aria-hidden="true" href="#733-现有架构支撑-agent-运行时对比分析">#</a></h2>
+<p><img loading="lazy" src="../assets/b32ade2409ca4fd58002287e7cd9bb7e.png"></p>
+<p><img loading="lazy" src="../assets/275c7b565fb745e598f0f3f2b505f44f.png"></p>
+<h2 id="734-为-ai-原生的会话式serverless-运行时">7.3.4 为 AI 原生的“会话式”Serverless 运行时<a hidden class="anchor" aria-hidden="true" href="#734-为-ai-原生的会话式serverless-运行时">#</a></h2>
+<p>AI 应用的会话既需要状态持久化，又需要高性能的本地计算和会话维度隔离能力。</p>
+<p>一个会话，一个独立运行时：</p>
+<ul>
+<li>原生会话状态保持</li>
+<li>灵活可靠的安全隔离</li>
+<li>毫秒级的弹性速度</li>
+</ul>
+<h1 id="74-工具与云沙箱">7.4 工具与云沙箱<a hidden class="anchor" aria-hidden="true" href="#74-工具与云沙箱">#</a></h1>
+<h2 id="741-ai-agent-与工具从概念到能力">7.4.1 AI Agent 与工具：从概念到能力<a hidden class="anchor" aria-hidden="true" href="#741-ai-agent-与工具从概念到能力">#</a></h2>
+<p>Agent 常用工具类型：</p>
+<p><img loading="lazy" src="../assets/89c37bb8a57041fd8ce9144de3161755.png"></p>
+<p><img loading="lazy" src="../assets/b4a00bd432094ff5a78f0fa3c2fd4310.png"></p>
+<p>代码解释器、浏览器使用和计算机使用这类复杂工具，已经不是传统的单次、无状态的 API 调用，而是需要一个有状态的、沙箱化的环境。AI Sandbox，正是一个被严格控制的隔离环境。</p>
+<h2 id="742-复杂工具运行时的核心诉求">7.4.2 复杂工具运行时的核心诉求<a hidden class="anchor" aria-hidden="true" href="#742-复杂工具运行时的核心诉求">#</a></h2>
+<ul>
+<li>隔离与安全（Isolation &amp; Security）</li>
+<li>状态管理与成本（State Management &amp; Cost）</li>
+<li>可扩展性与运维（Scalability &amp; Operations）</li>
+</ul>
+<h2 id="743-serverless-作为-ai-sandbox-的理想基座">7.4.3 Serverless 作为 AI Sandbox 的理想基座<a hidden class="anchor" aria-hidden="true" href="#743-serverless-作为-ai-sandbox-的理想基座">#</a></h2>
+<p>1、计算隔离，硬件级与内核级双重保障</p>
+<p>比如阿里云函数计算采用的“神龙裸金属+MicroVM 安全容器”架构。</p>
+<p>2、会话管理，原生支持有状态应用</p>
+<p>核心能力是强会话亲和性（Session Affinity）、会话物理隔离（Session Isolation）、会话管理接口（Session Management Interface）。</p>
+<p>3、存储隔离，解决状态持久化难题</p>
+<p>本地临时存储，利用快照技术实现极速恢复。持久化共享存储，提供会话级别的数据沙箱。</p>
+<p>4、对极致存储性能的持续探索</p>
+<p>支持在会话粒度上为每一个独立的 Sandbox 动态挂载专属的高性能存储盘。</p>
+<h1 id="75-ai-应用运行时的降本路线">7.5 AI 应用运行时的降本路线<a hidden class="anchor" aria-hidden="true" href="#75-ai-应用运行时的降本路线">#</a></h1>
+<h2 id="751-阶段一从资源租用到按请求计费">7.5.1 阶段一：从资源租用到按请求计费<a hidden class="anchor" aria-hidden="true" href="#751-阶段一从资源租用到按请求计费">#</a></h2>
+<p>只为代码运行时刻付费。</p>
+<p><img loading="lazy" src="../assets/cdef2eb4bd0c40028c67187729ac3966.png"></p>
+<p>关键技术包括：精准识别请求边界；按请求分配独占资源；低延时大并发的冷启动能力；1ms 完成活跃/闲置状态转化。</p>
+<h2 id="752-阶段二多并发毫秒级计费面相-web-应用的优化">7.5.2 阶段二：多并发+毫秒级计费——面相 Web 应用的优化<a hidden class="anchor" aria-hidden="true" href="#752-阶段二多并发毫秒级计费面相-web-应用的优化">#</a></h2>
+<p>突破单并发限制，按函数实例的活跃时间段计费，并将粒度精细化到 1ms。从“为单个请求买单”转变为“为活跃区间买单”。</p>
+<p><img loading="lazy" src="../assets/dc31f2f314cb47689f40da998645265f.png"></p>
+<p>关键技术包括：识别活跃时间段作为计费边界；引入 Custom Runtime/Container Runtime；缩短计费粒度；极致优化平台全链路延迟。</p>
+<h2 id="753-阶段三按实际资源消耗计费ai-时代的价值计费">7.5.3 阶段三：按实际资源消耗计费——AI 时代的价值计费<a hidden class="anchor" aria-hidden="true" href="#753-阶段三按实际资源消耗计费ai-时代的价值计费">#</a></h2>
+<p>在识别请求边界的基础上，引入按实际资源消耗动态区分活跃/闲置的计费模型。从“为活跃区间买单”演化为“按资源消耗分层计费”。</p>
+<p><img loading="lazy" src="../assets/e662448021ca4cd996e9d74c2e975b1c.png"></p>
+<p>关键技术包括：支持会话亲和性；按实际资源消耗判断活跃/闲置；执行期间低负载的减免机制；支持不冻结，允许后台任务持续运行。</p>
+<h2 id="754-函数计算的演化方向是把产品形态与用户价值更紧密地对齐">7.5.4 函数计算的演化方向是把产品形态与用户价值更紧密地对齐<a hidden class="anchor" aria-hidden="true" href="#754-函数计算的演化方向是把产品形态与用户价值更紧密地对齐">#</a></h2>
+<p>在 AI 时代，函数计算一直坚持走向让开发者只关心业务逻辑，云厂商自动完成一切资源管理与调度的愿景，最终让计算像水、电一样随时可得、按实际使用价值付费。</p>
+<p>参考资料：</p>
+<p><a href="https://developer.aliyun.com/ebook/8479">https://developer.aliyun.com/ebook/8479</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/ai%E7%99%BD%E7%9A%AE%E4%B9%A6/">AI白皮书</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E8%83%BD%E5%8F%96%E5%80%BC%E4%BA%A6%E8%83%BD%E8%B5%8B%E5%80%BC%E7%9A%84python%E5%88%87%E7%89%87/">
+    <span class="title">« 上一页</span>
+    <span>能取值亦能赋值的 Python 切片</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E4%BD%BF%E7%94%A8%E8%B6%85%E9%93%BE%E6%8E%A5api%E5%AE%9E%E7%8E%B0%E7%9C%9F%E6%AD%A3restful/">
+    <span class="title">下一页 »</span>
+    <span>DRF 使用超链接 API 实现真正 RESTful</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#71-ai-应用运行时的演进趋势">7.1 AI 应用运行时的演进趋势</a>
+      <ul>
+        <li><a href="#711-从云原生到-ai-原生">7.1.1 从云原生到 AI 原生</a></li>
+        <li><a href="#712-agentic-ai-应用的典型场景">7.1.2 Agentic AI 应用的典型场景</a></li>
+        <li><a href="#713-ai-原生应用运行时的核心能力">7.1.3 AI 原生应用运行时的核心能力</a></li>
+      </ul>
+    </li>
+    <li><a href="#72-模型运行时">7.2 模型运行时</a>
+      <ul>
+        <li><a href="#721-企业模型使用的核心痛点">7.2.1 企业模型使用的核心痛点</a></li>
+        <li><a href="#722-serverless-模型运行时的核心能力">7.2.2 Serverless 模型运行时的核心能力</a></li>
+        <li><a href="#723-serverless-模型运行时ai-大脑的终极载体">7.2.3 Serverless 模型运行时——AI 大脑的终极载体</a></li>
+      </ul>
+    </li>
+    <li><a href="#73-智能体运行时">7.3 智能体运行时</a>
+      <ul>
+        <li><a href="#731-ai-应用形态的持续演进">7.3.1 AI 应用形态的持续演进</a></li>
+        <li><a href="#732-agent-运行时的核心架构目标">7.3.2 Agent 运行时的核心架构目标</a></li>
+        <li><a href="#733-现有架构支撑-agent-运行时对比分析">7.3.3 现有架构支撑 Agent 运行时对比分析</a></li>
+        <li><a href="#734-为-ai-原生的会话式serverless-运行时">7.3.4 为 AI 原生的“会话式”Serverless 运行时</a></li>
+      </ul>
+    </li>
+    <li><a href="#74-工具与云沙箱">7.4 工具与云沙箱</a>
+      <ul>
+        <li><a href="#741-ai-agent-与工具从概念到能力">7.4.1 AI Agent 与工具：从概念到能力</a></li>
+        <li><a href="#742-复杂工具运行时的核心诉求">7.4.2 复杂工具运行时的核心诉求</a></li>
+        <li><a href="#743-serverless-作为-ai-sandbox-的理想基座">7.4.3 Serverless 作为 AI Sandbox 的理想基座</a></li>
+      </ul>
+    </li>
+    <li><a href="#75-ai-应用运行时的降本路线">7.5 AI 应用运行时的降本路线</a>
+      <ul>
+        <li><a href="#751-阶段一从资源租用到按请求计费">7.5.1 阶段一：从资源租用到按请求计费</a></li>
+        <li><a href="#752-阶段二多并发毫秒级计费面相-web-应用的优化">7.5.2 阶段二：多并发+毫秒级计费——面相 Web 应用的优化</a></li>
+        <li><a href="#753-阶段三按实际资源消耗计费ai-时代的价值计费">7.5.3 阶段三：按实际资源消耗计费——AI 时代的价值计费</a></li>
+        <li><a href="#754-函数计算的演化方向是把产品形态与用户价值更紧密地对齐">7.5.4 函数计算的演化方向是把产品形态与用户价值更紧密地对齐</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

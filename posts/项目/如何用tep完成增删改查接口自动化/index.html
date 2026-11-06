@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>如何用 tep 完成增删改查接口自动化 | 测试开发刚哥</title>
+<meta name="keywords" content="tep">
+<meta name="description" content="tep 的设计理念是让人人都可以用 Python 写自动化，本文就来介绍如何用 tep 完成增删改查接口自动化。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%A6%82%E4%BD%95%E7%94%A8tep%E5%AE%8C%E6%88%90%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%A6%82%E4%BD%95%E7%94%A8tep%E5%AE%8C%E6%88%90%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%A6%82%E4%BD%95%E7%94%A8tep%E5%AE%8C%E6%88%90%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="如何用 tep 完成增删改查接口自动化">
+  <meta property="og:description" content="tep 的设计理念是让人人都可以用 Python 写自动化，本文就来介绍如何用 tep 完成增删改查接口自动化。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-04T00:00:00+00:00">
+    <meta property="article:tag" content="Tep">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="如何用 tep 完成增删改查接口自动化">
+  <meta name="twitter:description" content="tep 的设计理念是让人人都可以用 Python 写自动化，本文就来介绍如何用 tep 完成增删改查接口自动化。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "如何用 tep 完成增删改查接口自动化",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%A6%82%E4%BD%95%E7%94%A8tep%E5%AE%8C%E6%88%90%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "如何用 tep 完成增删改查接口自动化",
+  "name": "如何用 tep 完成增删改查接口自动化",
+  "description": "tep 的设计理念是让人人都可以用 Python 写自动化，本文就来介绍如何用 tep 完成增删改查接口自动化。",
+  "keywords": [
+    "tep"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\ntep 的设计理念是让人人都可以用 Python 写自动化，本文就来介绍如何用 tep 完成增删改查接口自动化。\n环境变量 编辑fixtures/fixture_admin.py：\n\"qa\": { \"domain\": \"https://qa.com\", }, 修改qa环境的domain。\n登录 因为非登录接口需要从登录接口拿token，放在请求参数中，所以先在fixtures/fixture_admin.py中实现登录，修改url和json：\nresponse = request( \"post\", url=url(\"/api/users/login\"), headers={\"Content-Type\": \"application/json\"}, json={ \"username\": \"admin\", \"password\": \"123456\", } ) 根据实际响应数据结构，修改response_token赋值：\nresponse_token = jmespath.search(\"token\", response.json()) class Clazz: token = response_token jwt_headers = _jwt_headers(response_token) return Clazz 参考_jwt_headers()实现自定义 headers：\ndef _jwt_headers(token): return {\"Content-Type\": \"application/json\", \"authorization\": f\"Bearer {token}\"} _表示内部函数，外部无法访问，遵循conftest.py只对外提供 fixture 的原则。\n完整代码\ndef _jwt_headers(token): return {\"Content-Type\": \"application/json\", \"authorization\": f\"Bearer {token}\"} @pytest.fixture(scope=\"session\") def login(): # Code your login logger.info(\"Administrator login\") response = request( \"post\", url=url(\"/api/users/login\"), headers={\"Content-Type\": \"application/json\"}, json={ \"username\": \"admin\", \"password\": \"123456\", } ) assert response.status_code \u003c 400 response_token = jmespath.search(\"token\", response.json()) class Clazz: token = response_token jwt_headers = _jwt_headers(response_token) return Clazz 说明：\n可以复制login为多个 fixture，如login_admin、login_some_user，灵活运用。 scope=\"session\"，表示只登录一次，所有测试用例使用同一个token。可以改为function，让每条用例使用不同token。 写用例 新建测试 新建tests\\crud_test.py：\nfrom loguru import logger from tep.client import request def test(faker_ch, login, url): pytest 的 fixture 作为参数传入test()函数来使用，faker_ch、login、 url是fixture_admin.py中定义好的 fixture。\nfrom loguru import logger 用于在测试用例中打印日志 from tep.client import request tep 封装了请求日志功能，也可以用原生from requests import request 新增 请求参数为nickname和phone，使用faker_ch造 1 条测试数据：\nfake = faker_ch nickname = fake.name() phone = fake.phone_number() 请求方法为post，headers 取登录返回值login.jwt_headers：\nresponse = request( \"post\", url=url(\"/api/users\"), headers=login.jwt_headers, json={ \"nickname\": nickname, \"phone\": phone } ) 添加断言，简单判断下响应状态码\u003c400：\nassert response.status_code \u003c 400 也可以查数据库来断言。\n提取修改接口需要的数据：\nuser_id = jmespath.search(\"id\", response.json()) created_at = jmespath.search(\"createdAt\", response.json()) updated_at = jmespath.search(\"updatedAt\", response.json()) 推荐用 jmespath 来提取 json。\n查询 请求参数传入刚才定义的局部变量nickname，使用get请求并断言，headers 取登录返回值login.jwt_headers：\nresponse = request( \"get\", url=url(\"/api/users\"), headers=login.jwt_headers, params={ \"page\": 1, \"perPage\": 10, \"keyword\": nickname } ) assert response.status_code \u003c 400 get 请求需要把json关键字改为params。\n修改 使用 faker 再造 1 条新数据：\nnickname_new = fake.name() phone_new = fake.phone_number() 请求方法为put，headers 取登录返回值login.jwt_headers：\nresponse = request( \"put\", url=url(f\"/api/users/{user_id}\"), headers=login.jwt_headers, json={ \"id\": user_id, \"createdAt\": created_at, \"updatedAt\": updated_at, \"phone\": phone_new, \"nickname\": nickname_new } ) assert response.status_code \u003c 400 请求参数中用到了新增接口提取的数据user_id、created_at、updated_at。\n删除 请求方法为delete，url中传入user_id，headers 取登录返回值login.jwt_headers：\nresponse = request( \"delete\", url=url(f\"/api/users/{user_id}\"), headers=login.jwt_headers ) assert response.status_code \u003c 400 删除接口没有 json 和 params。\n完整用例 \"\"\" @Author : Don @Date : 12/25/2020 1:02 PM @Desc : 增删改查 \"\"\" import jmespath from loguru import logger from tep.client import request def test(faker_ch, login, url): fake = faker_ch logger.info(\"新增\") nickname = fake.name() phone = fake.phone_number() response = request( \"post\", url=url(\"/api/users\"), headers=login.jwt_headers, json={ \"nickname\": nickname, \"phone\": phone } ) assert response.status_code \u003c 400 user_id = jmespath.search(\"id\", response.json()) created_at = jmespath.search(\"createdAt\", response.json()) updated_at = jmespath.search(\"updatedAt\", response.json()) logger.info(\"查询\") response = request( \"get\", url=url(\"/api/users\"), headers=login.jwt_headers, params={ \"page\": 1, \"perPage\": 10, \"keyword\": nickname } ) assert response.status_code \u003c 400 logger.info(\"修改\") nickname_new = fake.name() phone_new = fake.phone_number() response = request( \"put\", url=url(f\"/api/users/{user_id}\"), headers=login.jwt_headers, json={ \"id\": user_id, \"createdAt\": created_at, \"updatedAt\": updated_at, \"phone\": phone_new, \"nickname\": nickname_new } ) assert response.status_code \u003c 400 logger.info(f\"用户姓名手机 {nickname} {phone} 修改后 {nickname_new} {phone_new}\") logger.info(\"删除\") response = request( \"delete\", url=url(f\"/api/users/{user_id}\"), headers=login.jwt_headers ) assert response.status_code \u003c 400 小结 本文介绍了 tep 的基本使用，先配置环境变量，再修改登录代码，然后新增测试，最后编写增删改查的接口请求。每条用例放在一个函数中，通过函数参数引用 fixture 来使用全局环境变量，函数内部可以定义测试需要的局部变量。每个接口是一个代码块，由接口描述、测试数据、请求、断言和数据提取 5 部分组成。接口之间通过变量实现参数化和关联。\n",
+  "wordCount" : "422",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-04T00:00:00Z",
+  "dateModified": "2026-01-04T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E5%A6%82%E4%BD%95%E7%94%A8tep%E5%AE%8C%E6%88%90%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      如何用 tep 完成增删改查接口自动化
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-04T00:00:00+00:00'>2026-01-04</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/tep/'>#Tep</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>tep 的设计理念是让人人都可以用 Python 写自动化，本文就来介绍如何用 tep 完成增删改查接口自动化。</p>
+<h1 id="环境变量">环境变量<a hidden class="anchor" aria-hidden="true" href="#环境变量">#</a></h1>
+<p>编辑<code>fixtures/fixture_admin.py</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0a3069">&#34;qa&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;domain&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;https://qa.com&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">},</span>
+</span></span></code></pre></div><p>修改<code>qa</code>环境的<code>domain</code>。</p>
+<h1 id="登录">登录<a hidden class="anchor" aria-hidden="true" href="#登录">#</a></h1>
+<p>因为非登录接口需要从登录接口拿<code>token</code>，放在请求参数中，所以先在<code>fixtures/fixture_admin.py</code>中实现登录，修改<code>url</code>和<code>json</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/api/users/login&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    headers<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>    json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;admin&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;123456&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>根据实际响应数据结构，修改<code>response_token</code>赋值：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>response_token <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Clazz</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        token <span style="color:#0550ae">=</span> response_token
+</span></span><span style="display:flex;"><span>        jwt_headers <span style="color:#0550ae">=</span> _jwt_headers<span style="color:#1f2328">(</span>response_token<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">return</span> Clazz
+</span></span></code></pre></div><p>参考<code>_jwt_headers()</code>实现自定义 headers：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">_jwt_headers</span><span style="color:#1f2328">(</span>token<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;authorization&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;Bearer </span><span style="color:#0a3069">{</span>token<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">}</span>
+</span></span></code></pre></div><blockquote>
+<p><code>_</code>表示内部函数，外部无法访问，遵循<code>conftest.py</code>只对外提供 fixture 的原则。</p>
+</blockquote>
+<p><strong>完整代码</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">_jwt_headers</span><span style="color:#1f2328">(</span>token<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;authorization&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;Bearer </span><span style="color:#0a3069">{</span>token<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@pytest.fixture</span><span style="color:#1f2328">(</span>scope<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;session&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">login</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#57606a"># Code your login</span>
+</span></span><span style="display:flex;"><span>    logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;Administrator login&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/api/users/login&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        headers<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;Content-Type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;application/json&#34;</span><span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>        json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;admin&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;123456&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>    response_token <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">class</span> <span style="color:#1f2328">Clazz</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        token <span style="color:#0550ae">=</span> response_token
+</span></span><span style="display:flex;"><span>        jwt_headers <span style="color:#0550ae">=</span> _jwt_headers<span style="color:#1f2328">(</span>response_token<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> Clazz
+</span></span></code></pre></div><p>说明：</p>
+<ol start="2">
+<li>可以复制<code>login</code>为多个 fixture，如<code>login_admin</code>、<code>login_some_user</code>，灵活运用。</li>
+<li><code>scope=&quot;session&quot;</code>，表示只登录一次，所有测试用例使用同一个<code>token</code>。可以改为<code>function</code>，让每条用例使用不同<code>token</code>。</li>
+</ol>
+<h1 id="写用例">写用例<a hidden class="anchor" aria-hidden="true" href="#写用例">#</a></h1>
+<h2 id="新建测试">新建测试<a hidden class="anchor" aria-hidden="true" href="#新建测试">#</a></h2>
+<p>新建<code>tests\crud_test.py</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">loguru</span> <span style="color:#cf222e">import</span> logger
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep.client</span> <span style="color:#cf222e">import</span> request
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">(</span>faker_ch<span style="color:#1f2328">,</span> login<span style="color:#1f2328">,</span> url<span style="color:#1f2328">):</span>
+</span></span></code></pre></div><p>pytest 的 fixture 作为参数传入<code>test()</code>函数来使用，<code>faker_ch</code>、<code>login</code>、 <code>url</code>是<code>fixture_admin.py</code>中定义好的 fixture。</p>
+<ul>
+<li><code>from loguru import logger</code> 用于在测试用例中打印日志</li>
+<li><code>from tep.client import request</code> tep 封装了请求日志功能，也可以用原生<code>from requests import request</code></li>
+</ul>
+<h2 id="新增">新增<a hidden class="anchor" aria-hidden="true" href="#新增">#</a></h2>
+<p>请求参数为<code>nickname</code>和<code>phone</code>，使用<code>faker_ch</code>造 1 条测试数据：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>fake <span style="color:#0550ae">=</span> faker_ch
+</span></span><span style="display:flex;"><span>nickname <span style="color:#0550ae">=</span> fake<span style="color:#0550ae">.</span>name<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>phone <span style="color:#0550ae">=</span> fake<span style="color:#0550ae">.</span>phone_number<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>请求方法为<code>post</code>，headers 取登录返回值<code>login.jwt_headers</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/api/users&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    headers<span style="color:#0550ae">=</span>login<span style="color:#0550ae">.</span>jwt_headers<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;nickname&#34;</span><span style="color:#1f2328">:</span> nickname<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;phone&#34;</span><span style="color:#1f2328">:</span> phone
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>添加断言，简单判断下响应状态码&lt;400：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span></code></pre></div><blockquote>
+<p>也可以查数据库来断言。</p>
+</blockquote>
+<p>提取修改接口需要的数据：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>user_id <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;id&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>created_at <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;createdAt&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>updated_at <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;updatedAt&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span></code></pre></div><blockquote>
+<p>推荐用 jmespath 来提取 json。</p>
+</blockquote>
+<h2 id="查询">查询<a hidden class="anchor" aria-hidden="true" href="#查询">#</a></h2>
+<p>请求参数传入刚才定义的局部变量<code>nickname</code>，使用<code>get</code>请求并断言，headers 取登录返回值<code>login.jwt_headers</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;get&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/api/users&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    headers<span style="color:#0550ae">=</span>login<span style="color:#0550ae">.</span>jwt_headers<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    params<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;page&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;perPage&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">10</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;keyword&#34;</span><span style="color:#1f2328">:</span> nickname
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span></code></pre></div><blockquote>
+<p>get 请求需要把<code>json</code>关键字改为<code>params</code>。</p>
+</blockquote>
+<h2 id="修改">修改<a hidden class="anchor" aria-hidden="true" href="#修改">#</a></h2>
+<p>使用 faker 再造 1 条新数据：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>nickname_new <span style="color:#0550ae">=</span> fake<span style="color:#0550ae">.</span>name<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>phone_new <span style="color:#0550ae">=</span> fake<span style="color:#0550ae">.</span>phone_number<span style="color:#1f2328">()</span>
+</span></span></code></pre></div><p>请求方法为<code>put</code>，headers 取登录返回值<code>login.jwt_headers</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;put&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;/api/users/</span><span style="color:#0a3069">{</span>user_id<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        headers<span style="color:#0550ae">=</span>login<span style="color:#0550ae">.</span>jwt_headers<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;id&#34;</span><span style="color:#1f2328">:</span> user_id<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;createdAt&#34;</span><span style="color:#1f2328">:</span> created_at<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;updatedAt&#34;</span><span style="color:#1f2328">:</span> updated_at<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;phone&#34;</span><span style="color:#1f2328">:</span> phone_new<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;nickname&#34;</span><span style="color:#1f2328">:</span> nickname_new
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span></code></pre></div><p>请求参数中用到了新增接口提取的数据<code>user_id</code>、<code>created_at</code>、<code>updated_at</code>。</p>
+<h2 id="删除">删除<a hidden class="anchor" aria-hidden="true" href="#删除">#</a></h2>
+<p>请求方法为<code>delete</code>，<code>url</code>中传入<code>user_id</code>，headers 取登录返回值<code>login.jwt_headers</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;delete&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;/api/users/</span><span style="color:#0a3069">{</span>user_id<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    headers<span style="color:#0550ae">=</span>login<span style="color:#0550ae">.</span>jwt_headers
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span></code></pre></div><blockquote>
+<p>删除接口没有 json 和 params。</p>
+</blockquote>
+<h1 id="完整用例">完整用例<a hidden class="anchor" aria-hidden="true" href="#完整用例">#</a></h1>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">@Author  :  Don
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">@Date    :  12/25/2020 1:02 PM
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">@Desc    :  增删改查
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">jmespath</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">loguru</span> <span style="color:#cf222e">import</span> logger
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep.client</span> <span style="color:#cf222e">import</span> request
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">(</span>faker_ch<span style="color:#1f2328">,</span> login<span style="color:#1f2328">,</span> url<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    fake <span style="color:#0550ae">=</span> faker_ch
+</span></span><span style="display:flex;"><span>    logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;新增&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    nickname <span style="color:#0550ae">=</span> fake<span style="color:#0550ae">.</span>name<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    phone <span style="color:#0550ae">=</span> fake<span style="color:#0550ae">.</span>phone_number<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;post&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/api/users&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        headers<span style="color:#0550ae">=</span>login<span style="color:#0550ae">.</span>jwt_headers<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;nickname&#34;</span><span style="color:#1f2328">:</span> nickname<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;phone&#34;</span><span style="color:#1f2328">:</span> phone
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>    user_id <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;id&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>    created_at <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;createdAt&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>    updated_at <span style="color:#0550ae">=</span> jmespath<span style="color:#0550ae">.</span>search<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;updatedAt&#34;</span><span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>json<span style="color:#1f2328">())</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;查询&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;get&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/api/users&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        headers<span style="color:#0550ae">=</span>login<span style="color:#0550ae">.</span>jwt_headers<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        params<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;page&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;perPage&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0550ae">10</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;keyword&#34;</span><span style="color:#1f2328">:</span> nickname
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;修改&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    nickname_new <span style="color:#0550ae">=</span> fake<span style="color:#0550ae">.</span>name<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    phone_new <span style="color:#0550ae">=</span> fake<span style="color:#0550ae">.</span>phone_number<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;put&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;/api/users/</span><span style="color:#0a3069">{</span>user_id<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        headers<span style="color:#0550ae">=</span>login<span style="color:#0550ae">.</span>jwt_headers<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        json<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;id&#34;</span><span style="color:#1f2328">:</span> user_id<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;createdAt&#34;</span><span style="color:#1f2328">:</span> created_at<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;updatedAt&#34;</span><span style="color:#1f2328">:</span> updated_at<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;phone&#34;</span><span style="color:#1f2328">:</span> phone_new<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;nickname&#34;</span><span style="color:#1f2328">:</span> nickname_new
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span><span style="display:flex;"><span>    logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;用户姓名手机 </span><span style="color:#0a3069">{</span>nickname<span style="color:#0a3069">}</span><span style="color:#0a3069"> </span><span style="color:#0a3069">{</span>phone<span style="color:#0a3069">}</span><span style="color:#0a3069"> 修改后 </span><span style="color:#0a3069">{</span>nickname_new<span style="color:#0a3069">}</span><span style="color:#0a3069"> </span><span style="color:#0a3069">{</span>phone_new<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;删除&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> request<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0a3069">&#34;delete&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        url<span style="color:#0550ae">=</span>url<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;/api/users/</span><span style="color:#0a3069">{</span>user_id<span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>        headers<span style="color:#0550ae">=</span>login<span style="color:#0550ae">.</span>jwt_headers
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">assert</span> response<span style="color:#0550ae">.</span>status_code <span style="color:#0550ae">&lt;</span> <span style="color:#0550ae">400</span>
+</span></span></code></pre></div><h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文介绍了 tep 的基本使用，先配置环境变量，再修改登录代码，然后新增测试，最后编写增删改查的接口请求。每条用例放在一个函数中，通过函数参数引用 fixture 来使用全局环境变量，函数内部可以定义测试需要的局部变量。每个接口是一个代码块，由接口描述、测试数据、请求、断言和数据提取 5 部分组成。接口之间通过变量实现参数化和关联。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/tep/">Tep</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E9%9A%8F%E7%AC%94/%E5%B7%A5%E4%BD%9C%E4%BB%A5%E5%90%8E%E6%8D%A2%E7%A7%8D%E6%96%B9%E5%BC%8F%E5%AD%A6%E4%B9%A0/">
+    <span class="title">« 上一页</span>
+    <span>工作以后，换种方式学习</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/80%E9%81%93%E9%AB%98%E9%A2%91%E7%AE%97%E6%B3%95%E9%A2%98python%E7%89%88/">
+    <span class="title">下一页 »</span>
+    <span>80 道高频算法题 Python 版</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#环境变量">环境变量</a></li>
+    <li><a href="#登录">登录</a></li>
+    <li><a href="#写用例">写用例</a>
+      <ul>
+        <li><a href="#新建测试">新建测试</a></li>
+        <li><a href="#新增">新增</a></li>
+        <li><a href="#查询">查询</a></li>
+        <li><a href="#修改">修改</a></li>
+        <li><a href="#删除">删除</a></li>
+      </ul>
+    </li>
+    <li><a href="#完整用例">完整用例</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

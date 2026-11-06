@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>teprunner 测试平台部署到 Linux 系统 Docker | 测试开发刚哥</title>
+<meta name="keywords" content="teprunner">
+<meta name="description" content="本文是一篇过渡，在进行用例管理模块开发之前，有必要把入门篇开发完成的代码部署到 Linux 系统 Docker 中，把部署流程走一遍，这个过程对后端设计有决定性影响。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E9%83%A8%E7%BD%B2%E5%88%B0linux%E7%B3%BB%E7%BB%9Fdocker/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E9%83%A8%E7%BD%B2%E5%88%B0linux%E7%B3%BB%E7%BB%9Fdocker/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E9%83%A8%E7%BD%B2%E5%88%B0linux%E7%B3%BB%E7%BB%9Fdocker/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="teprunner 测试平台部署到 Linux 系统 Docker">
+  <meta property="og:description" content="本文是一篇过渡，在进行用例管理模块开发之前，有必要把入门篇开发完成的代码部署到 Linux 系统 Docker 中，把部署流程走一遍，这个过程对后端设计有决定性影响。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:tag" content="Teprunner">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="teprunner 测试平台部署到 Linux 系统 Docker">
+  <meta name="twitter:description" content="本文是一篇过渡，在进行用例管理模块开发之前，有必要把入门篇开发完成的代码部署到 Linux 系统 Docker 中，把部署流程走一遍，这个过程对后端设计有决定性影响。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "teprunner 测试平台部署到 Linux 系统 Docker",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E9%83%A8%E7%BD%B2%E5%88%B0linux%E7%B3%BB%E7%BB%9Fdocker/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "teprunner 测试平台部署到 Linux 系统 Docker",
+  "name": "teprunner 测试平台部署到 Linux 系统 Docker",
+  "description": "本文是一篇过渡，在进行用例管理模块开发之前，有必要把入门篇开发完成的代码部署到 Linux 系统 Docker 中，把部署流程走一遍，这个过程对后端设计有决定性影响。",
+  "keywords": [
+    "teprunner"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n本文是一篇过渡，在进行用例管理模块开发之前，有必要把入门篇开发完成的代码部署到 Linux 系统 Docker 中，把部署流程走一遍，这个过程对后端设计有决定性影响。\n本地运行 通过在 Vue 项目执行npm run serve和在 Django 项目执行python manage.py runserver，我们把项目在本地跑起来了，示意图如下：\n前端在本地启了个 Node 服务器，后端在本地启了个 Django 服务器，分别使用8080和8000端口。浏览器有个同源策略：域名、端口、协议三者一致才能进行访问，否则会由于跨域访问而被浏览器拦截。图中前后端的端口不一致，出现了跨域，前端是无法直接请求后端的。解决办法是在vue.config.js中配置devServer：\n这是 Node 开的一个代理服务器，当前端请求后端时，会先发向 Node 代理服务器，Node 代理服务器以相同的参数向真正的后端服务器进行请求，再把响应返回给前端。在本项目中，前端请求仍然是发给http://127.0.0.1:8080，浏览器不会拦截，Node 代理服务器会帮你把请求转发给后端8000端口。\nNginx 部署 搞懂了本地运行代理转发，再来看看 Nginx 部署。Nginx 本身是个服务器，就像 Node 服务器一样，也可以看做 Apache Tomcat。Vue 项目使用npm run build命令把代码构建为dist目录静态文件，放到 Nginx 服务器中加载出来，结合 Docker 示意图如下：\n相比于本地运行，Nginx 部署时，前端变化比较大，一：dist静态文件拷贝到了/usr/share/nginx/html目录中，二：对/路径来说，Nginx 会监听80端口，三：对/api路径来说，Nginx 会把请求转发到后端服务器端口，这也叫做反向代理。后端没有什么变化，为了和本地运行看着有点区别，把端口稍微改了下，Docker 内部使用80端口。\n这里比较关键的是理解Docker teprunner-frontend、Docker teprunner-backend、Linux三者之间的关系。如果不知道 Docker，那么应该听说过虚拟机，Docker 从概念上理解就像是虚拟机，这三者可以看做是三台主机。Linux的 IP 是172.16.25.131，80端口映射到了Docker teprunner-frontend的80端口，8099端口映射到了Docker teprunner-backend的80端口，如图中下方双向箭头所示。在Linux上访问http://127.0.0.1，能打开登录页面，但是无法向后端发起请求，因为从80端口直接请求8099端口，跨域了。解决办法是在Docker teprunner-frontend借助 Nginx 进行反向代理，把请求先发送到 Nginx 服务器，再转发给Linux的8099端口。\n不能在Docker teprunner-frontend中把/api的代理设置为http://127.0.0.1:8099，因为这个 Docker 容器的8099端口并没有启用，启用的是Linux这台机器上的8099端口，所以需要通过IP来指定。\n整体思路明确了，接下来就开始动手操作。\n编写 deploy 脚本 前端\n打开teprunner-frontend文件夹，新建deploy/nginx.conf文件：\n/路径从user/share/nginx/html读文件，入口为index.html，/api转发到http://172.16.25.131:8099。这个文件会拷贝到 Docker 镜像中。新建Dockerfile文件：\nFROM定义了基础镜像，可以理解为操作系统，前端项目基于nginx来构建。WORKDIR定义了镜像当前工作目录，意思是在执行后面COPY操作时，镜像目录用哪一个。COPY分别把dist静态文件和nginx.conf配置文件拷贝到镜像中，COPY指令第一个参数是本机目录，第二个参数是镜像目录。镜像目录通过WORKDIR来指定，本机目录通过 Docker 上下文来指定，新建build.sh文件：\nDockerContext指定了 Docker 上下文为teprunner-frontend根目录。这里的 Shell 脚本有两个阶段，第 1 阶段是使用node编译：\ndocker run # 运行镜像 --rm # 运行后删除容器 -v $(pwd)/../:/data/src # $(pwd)指当前工作目录，把根目录挂载到data/src -v /root/.npm/_logs:/root/.npm/_logs # 挂载日志文件 -w /data/src/ # 镜像当前工作目录 $BUILDER_IMAGE # 运行镜像为node:latest，用node编译前端代码 /bin/sh -c \"npm install \u0026\u0026 npm run build\" # /bin/sh是shell可执行程序，调用执行npm命令 第 2 阶段是打包成 Docker 镜像：\ndocker build # 构建镜像 -f $Dockerfile # 指定Dockerfile文件位置 -t $PkgName # 镜像包名 $DockerContext # Docker上下文 后端\n后端也是类似的，先新建deploy/Dockerfile文件：\n后端项目基于python:3.8来构建，接着设置了时区，COPY . .把 Django 源文件直接复制到了镜像目录/app/release中，RUN指令执行pip install命令安装依赖包，CMD和RUN有点区别，RUN指令在docker build时就执行，CMD指令在docker run时才执行，预定义启动命令。\n这里简化了迁移数据库migrate等启动命令，服务器数据库和本地用的同一个。\n再新建build.sh文件：\nPython 代码不需要编译，打包成 Docker 镜像就可以了。\n部署到 Ubuntu 系统 Docker Linux 系统是内核版本，它有很多发行版本，比如 CentOS、Ubuntu，本文采用了 Ubuntu，只有一个原因，它长的好看。\n大学室友曾经冲动地把 Windows 系统换成了 Ubuntu，还天天跟我们炫耀有多酷炫有多牛逼，过了两三天发现 Office 不好用，也玩不了游戏，就又换回来了。哈哈，Ubuntu 平时玩玩就好了，除非是做 Linux 内核开发。\n下载软件：\nVMware 破解版 Ubuntu Desktop 20.04 安装过程此处不再另加赘述。打开虚拟机的 Ubuntu：\n打开 Terminal，输入su，输入密码，切换到root：\n发现缺少权限就su一下。\n安装curl：\napt-get install curl 安装docker：\ncurl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun 使用ifconfig查询虚拟机 IP：\n不要选择.git和node_modules文件夹，把teprunner-frontend打成压缩包。不要选择.git和__pycache__文件夹，把teprunner-backend打成压缩包。复制前后端压缩包到虚拟机 Documents 解压：\nUbuntu Desktop 的好处是提供了图像化操作界面，适合我这种小白用户。使用命令行编辑工具vi或者图形编辑工具gedit编辑teprunner-frontend/deploy/nginx.conf文件中/api转发地址为你的虚拟机实际 IP 地址：\n打开两个 Terminal，分别cd到teprunner-frontend/deploy和teprunner-backend/deploy，执行./build.sh命令。\n如果执行提示^M之类报错，那是因为在 Windows 编辑后复制到 Linux 格式不一致，使用apt-get install dos2unix命令安装工具后进行格式转化，比如dos2unix build.sh、dos2unix Dockerfile。\n前端构建截图：\n第一次因为要下载 node 依赖包和拉取 nginx 镜像，会比较慢，第二次就快很多了。\n后端构建截图：\n第一次因为要拉取 python 镜像，会比较慢，第二次就快多了。\n都构建完成后，输入docker images命令就能看到打包好的 Docker 镜像了：\n启动前端镜像：\ndocker run -p 80:80 teprunner-frontend 启动后端镜像：\ndocker run -p 8099:80 teprunner-backend 镜像启动后就变成了 Docker 容器，可以理解为一台虚拟主机。-p参数用于映射 Ubuntu 端口和 Docker 端口。可以添加-d参数让容器在后台运行。docker ps -a查看容器，docker kill CONTAINER或docker stop CONTAINER退出容器。\n最后可以在虚拟机中访问http:127.0.0.1进行登录了，本地机器想要访问的话，需要把127.0.0.1改为你的虚拟机实际 IP，比如http://172.16.25.131。\n小结 本文先介绍了本地运行和 Nginx 部署的示意图，涉及到跨域访问和反向代理。接着编写 deploy 脚本，编译代码，构建镜像。最后部署到 Ubuntu 系统的 Docker 中运行起来。在使用过程中，也感受到了 Docker 这一划时代技术的魅力，如果没有 Docker，我们需要在 Ubuntu 上面安装 nginx、node、python 等软件，有了 Docker，我们只需要安装 Docker，其他都基于 Docker 镜像构建就可以了。teprunner 测试平台的用例采用的是代码形式，这就涉及到了代码存放位置的问题，为了让 pytest 能调用执行，肯定是存放到文件里面的。本文实践给了个重要提醒，如果后端把代码直接写入磁盘文件，每次打包镜像部署后，就会把已保存的用例代码抹掉。解决这个问题的第一个办法是用 K8S，第二个办法是把代码存数据库。学习版采用了第二个办法存数据库，执行时动态从数据库拿代码生成文件。第一个办法思路借鉴：\n最后，简单聊下 Docker 和 K8S，Docker 是 Docker 公司的，K8S 是 Google 的，Docker 是家小公司搞的，在创建之初，并没有考虑到“容器编排”这个功能，2014 年 Google 推出 Kubernetes 用于解决大规模场景下 Docker 容器编排的问题，2016 年 Kubernetes 发布 CRI 统一接口，虽然 Docker 也在 2016 年发布了 Docker Swarm，带来了 Docker 在多主机多容器的编排解决方案，但是已经无法阻挡 K8S 取得这场容器编排战争的胜利。\n参考资料：\nhttps://www.cnblogs.com/riwang/p/11883332.html\nhttps://zhuanlan.zhihu.com/p/334787180\nhttps://testerhome.com/topics/27860\n",
+  "wordCount" : "321",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-03T00:00:00Z",
+  "dateModified": "2026-01-03T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E9%83%A8%E7%BD%B2%E5%88%B0linux%E7%B3%BB%E7%BB%9Fdocker/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      teprunner 测试平台部署到 Linux 系统 Docker
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-03T00:00:00+00:00'>2026-01-03</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/teprunner/'>#Teprunner</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>本文是一篇过渡，在进行用例管理模块开发之前，有必要把入门篇开发完成的代码部署到 Linux 系统 Docker 中，把部署流程走一遍，这个过程对后端设计有决定性影响。</p>
+<h1 id="本地运行">本地运行<a hidden class="anchor" aria-hidden="true" href="#本地运行">#</a></h1>
+<p>通过在 Vue 项目执行<code>npm run serve</code>和在 Django 项目执行<code>python manage.py runserver</code>，我们把项目在本地跑起来了，示意图如下：</p>
+<p><img loading="lazy" src="../assets/12d8d7f239654bfc859b2b46a9f7b5d6.png"></p>
+<p>前端在本地启了个 Node 服务器，后端在本地启了个 Django 服务器，分别使用<code>8080</code>和<code>8000</code>端口。浏览器有个同源策略：域名、端口、协议三者一致才能进行访问，否则会由于跨域访问而被浏览器拦截。图中前后端的端口不一致，出现了跨域，前端是无法直接请求后端的。解决办法是在<code>vue.config.js</code>中配置<code>devServer</code>：</p>
+<p><img loading="lazy" src="../assets/8560e91b48af417ea805ac31e2aa52d7.png"></p>
+<p>这是 Node 开的一个代理服务器，当前端请求后端时，会先发向 Node 代理服务器，Node 代理服务器以相同的参数向真正的后端服务器进行请求，再把响应返回给前端。在本项目中，前端请求仍然是发给<code>http://127.0.0.1:8080</code>，浏览器不会拦截，Node 代理服务器会帮你把请求转发给后端<code>8000</code>端口。</p>
+<h1 id="nginx-部署">Nginx 部署<a hidden class="anchor" aria-hidden="true" href="#nginx-部署">#</a></h1>
+<p>搞懂了本地运行代理转发，再来看看 Nginx 部署。Nginx 本身是个服务器，就像 Node 服务器一样，也可以看做 Apache Tomcat。Vue 项目使用<code>npm run build</code>命令把代码构建为<code>dist</code>目录静态文件，放到 Nginx 服务器中加载出来，结合 Docker 示意图如下：</p>
+<p><img loading="lazy" src="../assets/8a582d5292cd49ed8f1e3595bacb1dd6.png"></p>
+<p>相比于本地运行，Nginx 部署时，前端变化比较大，一：<code>dist</code>静态文件拷贝到了<code>/usr/share/nginx/html</code>目录中，二：对<code>/</code>路径来说，Nginx 会监听<code>80</code>端口，三：对<code>/api</code>路径来说，Nginx 会把请求转发到后端服务器端口，这也叫做反向代理。后端没有什么变化，为了和本地运行看着有点区别，把端口稍微改了下，Docker 内部使用<code>80</code>端口。</p>
+<p>这里比较关键的是理解<code>Docker teprunner-frontend</code>、<code>Docker teprunner-backend</code>、<code>Linux</code>三者之间的关系。如果不知道 Docker，那么应该听说过虚拟机，Docker 从概念上理解就像是虚拟机，这三者可以看做是三台主机。<code>Linux</code>的 IP 是<code>172.16.25.131</code>，<code>80</code>端口映射到了<code>Docker teprunner-frontend</code>的<code>80</code>端口，<code>8099</code>端口映射到了<code>Docker teprunner-backend</code>的<code>80</code>端口，如图中下方双向箭头所示。在<code>Linux</code>上访问<code>http://127.0.0.1</code>，能打开登录页面，但是无法向后端发起请求，因为从<code>80</code>端口直接请求<code>8099</code>端口，跨域了。解决办法是在<code>Docker teprunner-frontend</code>借助 Nginx 进行反向代理，把请求先发送到 Nginx 服务器，再转发给<code>Linux</code>的<code>8099</code>端口。</p>
+<blockquote>
+<p>不能在<code>Docker teprunner-frontend</code>中把<code>/api</code>的代理设置为<code>http://127.0.0.1:8099</code>，因为这个 Docker 容器的<code>8099</code>端口并没有启用，启用的是<code>Linux</code>这台机器上的<code>8099</code>端口，所以需要通过<code>IP</code>来指定。</p>
+</blockquote>
+<p>整体思路明确了，接下来就开始动手操作。</p>
+<h1 id="编写-deploy-脚本">编写 deploy 脚本<a hidden class="anchor" aria-hidden="true" href="#编写-deploy-脚本">#</a></h1>
+<p><strong>前端</strong></p>
+<p>打开<code>teprunner-frontend</code>文件夹，新建<code>deploy/nginx.conf</code>文件：</p>
+<p><img loading="lazy" src="../assets/f5fa136484b644b59486f68e64f7b1d9.png"></p>
+<p><code>/</code>路径从<code>user/share/nginx/html</code>读文件，入口为<code>index.html</code>，<code>/api</code>转发到<code>http://172.16.25.131:8099</code>。这个文件会拷贝到 Docker 镜像中。新建<code>Dockerfile</code>文件：</p>
+<p><img loading="lazy" src="../assets/b4a0e4ee9f3b42bc8a5e612f404500ea.png"></p>
+<p><code>FROM</code>定义了基础镜像，可以理解为操作系统，前端项目基于<code>nginx</code>来构建。<code>WORKDIR</code>定义了镜像当前工作目录，意思是在执行后面<code>COPY</code>操作时，镜像目录用哪一个。<code>COPY</code>分别把<code>dist</code>静态文件和<code>nginx.conf</code>配置文件拷贝到镜像中，<code>COPY</code>指令第一个参数是本机目录，第二个参数是镜像目录。镜像目录通过<code>WORKDIR</code>来指定，本机目录通过 Docker 上下文来指定，新建<code>build.sh</code>文件：</p>
+<p><img loading="lazy" src="../assets/b503f0bed97e422699a46f8be5b3488b.png"></p>
+<p><code>DockerContext</code>指定了 Docker 上下文为<code>teprunner-frontend</code>根目录。这里的 Shell 脚本有两个阶段，第 1 阶段是使用<code>node</code>编译：</p>
+<pre tabindex="0"><code>docker run  # 运行镜像 
+--rm  # 运行后删除容器
+-v $(pwd)/../:/data/src  # $(pwd)指当前工作目录，把根目录挂载到data/src
+-v /root/.npm/_logs:/root/.npm/_logs  # 挂载日志文件
+-w /data/src/  # 镜像当前工作目录
+$BUILDER_IMAGE  # 运行镜像为node:latest，用node编译前端代码
+/bin/sh -c &#34;npm install &amp;&amp; npm run build&#34;  # /bin/sh是shell可执行程序，调用执行npm命令
+</code></pre><p>第 2 阶段是打包成 Docker 镜像：</p>
+<pre tabindex="0"><code>docker build  # 构建镜像
+-f $Dockerfile  # 指定Dockerfile文件位置
+-t $PkgName  # 镜像包名
+$DockerContext  # Docker上下文
+</code></pre><p><strong>后端</strong></p>
+<p>后端也是类似的，先新建<code>deploy/Dockerfile</code>文件：</p>
+<p><img loading="lazy" src="../assets/d24e434444cd449094cb77e06bca6419.png"></p>
+<p>后端项目基于<code>python:3.8</code>来构建，接着设置了时区，<code>COPY . .</code>把 Django 源文件直接复制到了镜像目录<code>/app/release</code>中，<code>RUN</code>指令执行<code>pip install</code>命令安装依赖包，<code>CMD</code>和<code>RUN</code>有点区别，<code>RUN</code>指令在<code>docker build</code>时就执行，<code>CMD</code>指令在<code>docker run</code>时才执行，预定义启动命令。</p>
+<blockquote>
+<p>这里简化了迁移数据库<code>migrate</code>等启动命令，服务器数据库和本地用的同一个。</p>
+</blockquote>
+<p>再新建<code>build.sh</code>文件：</p>
+<p><img loading="lazy" src="../assets/56eb8378042542debb3783c93ee47a63.png"></p>
+<p>Python 代码不需要编译，打包成 Docker 镜像就可以了。</p>
+<h1 id="部署到-ubuntu-系统-docker">部署到 Ubuntu 系统 Docker<a hidden class="anchor" aria-hidden="true" href="#部署到-ubuntu-系统-docker">#</a></h1>
+<p>Linux 系统是内核版本，它有很多发行版本，比如 CentOS、Ubuntu，本文采用了 Ubuntu，只有一个原因，它长的好看。</p>
+<blockquote>
+<p>大学室友曾经冲动地把 Windows 系统换成了 Ubuntu，还天天跟我们炫耀有多酷炫有多牛逼，过了两三天发现 Office 不好用，也玩不了游戏，就又换回来了。哈哈，Ubuntu 平时玩玩就好了，除非是做 Linux 内核开发。</p>
+</blockquote>
+<p>下载软件：</p>
+<ul>
+<li>VMware 破解版</li>
+<li>Ubuntu Desktop 20.04</li>
+</ul>
+<p>安装过程此处不再另加赘述。打开虚拟机的 Ubuntu：</p>
+<p><img loading="lazy" src="../assets/2a144715f6b341ca979362cfd6da2734.png"></p>
+<p>打开 Terminal，输入<code>su</code>，输入密码，切换到<code>root</code>：</p>
+<p><img loading="lazy" src="../assets/e6ca24200aab444dbe89477e9b32110e.png"></p>
+<blockquote>
+<p>发现缺少权限就<code>su</code>一下。</p>
+</blockquote>
+<p>安装<code>curl</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>apt-get install curl
+</span></span></code></pre></div><p>安装<code>docker</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>curl -fsSL https://get.docker.com <span style="color:#1f2328">|</span> bash -s docker --mirror Aliyun
+</span></span></code></pre></div><p>使用<code>ifconfig</code>查询虚拟机 IP：</p>
+<p><img loading="lazy" src="../assets/55f5ac4dbea84a25a42e180793b0556b.png"></p>
+<p>不要选择<code>.git</code>和<code>node_modules</code>文件夹，把<code>teprunner-frontend</code>打成压缩包。不要选择<code>.git</code>和<code>__pycache__</code>文件夹，把<code>teprunner-backend</code>打成压缩包。复制前后端压缩包到虚拟机 Documents 解压：</p>
+<p><img loading="lazy" src="../assets/26f9c140743c41fcb44a642b8a51dfd3.png"></p>
+<p>Ubuntu Desktop 的好处是提供了图像化操作界面，适合我这种小白用户。使用命令行编辑工具<code>vi</code>或者图形编辑工具<code>gedit</code>编辑<code>teprunner-frontend/deploy/nginx.conf</code>文件中<code>/api</code>转发地址为你的虚拟机实际 IP 地址：</p>
+<p><img loading="lazy" src="../assets/f3efa8938a214a759973bdb96fb1ce36.png"></p>
+<p>打开两个 Terminal，分别<code>cd</code>到<code>teprunner-frontend/deploy</code>和<code>teprunner-backend/deploy</code>，执行<code>./build.sh</code>命令。</p>
+<blockquote>
+<p>如果执行提示<code>^M</code>之类报错，那是因为在 Windows 编辑后复制到 Linux 格式不一致，使用<code>apt-get install dos2unix</code>命令安装工具后进行格式转化，比如<code>dos2unix build.sh</code>、<code>dos2unix Dockerfile</code>。</p>
+</blockquote>
+<p>前端构建截图：</p>
+<p><img loading="lazy" src="../assets/cf49779510014daa857b095403a071c4.png"></p>
+<p>第一次因为要下载 node 依赖包和拉取 nginx 镜像，会比较慢，第二次就快很多了。</p>
+<p>后端构建截图：</p>
+<p><img loading="lazy" src="../assets/c3c52984286045108ec634ba5b8eca37.png"></p>
+<p>第一次因为要拉取 python 镜像，会比较慢，第二次就快多了。</p>
+<p>都构建完成后，输入<code>docker images</code>命令就能看到打包好的 Docker 镜像了：</p>
+<p><img loading="lazy" src="../assets/02f313ee50114126b81f666735ff9beb.png"></p>
+<p>启动前端镜像：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker run -p 80:80 teprunner-frontend
+</span></span></code></pre></div><p>启动后端镜像：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker run -p 8099:80 teprunner-backend
+</span></span></code></pre></div><blockquote>
+<p>镜像启动后就变成了 Docker 容器，可以理解为一台虚拟主机。<code>-p</code>参数用于映射 Ubuntu 端口和 Docker 端口。可以添加<code>-d</code>参数让容器在后台运行。<code>docker ps -a</code>查看容器，<code>docker kill CONTAINER</code>或<code>docker stop CONTAINER</code>退出容器。</p>
+</blockquote>
+<p>最后可以在虚拟机中访问<code>http:127.0.0.1</code>进行登录了，本地机器想要访问的话，需要把<code>127.0.0.1</code>改为你的虚拟机实际 IP，比如<code>http://172.16.25.131</code>。</p>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文先介绍了本地运行和 Nginx 部署的示意图，涉及到跨域访问和反向代理。接着编写 deploy 脚本，编译代码，构建镜像。最后部署到 Ubuntu 系统的 Docker 中运行起来。在使用过程中，也感受到了 Docker 这一划时代技术的魅力，如果没有 Docker，我们需要在 Ubuntu 上面安装 nginx、node、python 等软件，有了 Docker，我们只需要安装 Docker，其他都基于 Docker 镜像构建就可以了。teprunner 测试平台的用例采用的是代码形式，这就涉及到了代码存放位置的问题，为了让 pytest 能调用执行，肯定是存放到文件里面的。本文实践给了个重要提醒，如果后端把代码直接写入磁盘文件，每次打包镜像部署后，就会把已保存的用例代码抹掉。解决这个问题的第一个办法是用 K8S，第二个办法是把代码存数据库。学习版采用了第二个办法存数据库，执行时动态从数据库拿代码生成文件。第一个办法思路借鉴：</p>
+<p><img loading="lazy" src="../assets/b731f565cb7447bbb3fef75df0662273.png"></p>
+<p>最后，简单聊下 Docker 和 K8S，Docker 是 Docker 公司的，K8S 是 Google 的，Docker 是家小公司搞的，在创建之初，并没有考虑到“容器编排”这个功能，2014 年 Google 推出 Kubernetes 用于解决大规模场景下 Docker 容器编排的问题，2016 年 Kubernetes 发布 CRI 统一接口，虽然 Docker 也在 2016 年发布了 Docker Swarm，带来了 Docker 在多主机多容器的编排解决方案，但是已经无法阻挡 K8S 取得这场容器编排战争的胜利。</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.cnblogs.com/riwang/p/11883332.html">https://www.cnblogs.com/riwang/p/11883332.html</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/334787180">https://zhuanlan.zhihu.com/p/334787180</a></p>
+<p><a href="https://testerhome.com/topics/27860">https://testerhome.com/topics/27860</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/teprunner/">Teprunner</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/pytestx%E5%AE%B9%E5%99%A8%E5%8C%96%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/">
+    <span class="title">« 上一页</span>
+    <span>pytestx 容器化执行引擎</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/webdriver%E4%BD%BF%E7%94%A8%E5%B7%B2%E6%89%93%E5%BC%80%E8%BF%87%E7%9A%84chrome/">
+    <span class="title">下一页 »</span>
+    <span>webdriver 使用已打开过的 chrome</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#本地运行">本地运行</a></li>
+    <li><a href="#nginx-部署">Nginx 部署</a></li>
+    <li><a href="#编写-deploy-脚本">编写 deploy 脚本</a></li>
+    <li><a href="#部署到-ubuntu-系统-docker">部署到 Ubuntu 系统 Docker</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

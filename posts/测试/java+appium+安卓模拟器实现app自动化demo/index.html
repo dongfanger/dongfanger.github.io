@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>java&#43;appium&#43;安卓模拟器实现 app 自动化 Demo | 测试开发刚哥</title>
+<meta name="keywords" content="移动端">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+环境搭建
+据说，很多人都被繁琐的环境搭建给吓到了。
+是的，确实，繁琐。
+node.js
+下载地址：
+https://nodejs.org/en/download/
+cmd 输入 node -v，出现下图说明成功：
+
+JDK
+下载地址：
+https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+百度一下“配置 Java”，配置环境变量。
+cmd 输入 java -version，出现下图说明成功：
+
+Android SDK
+下载地址：
+https://www.androiddevtools.cn/
+
+
+百度一下&quot;配置 Android SDK 环境变量&quot;。
+cmd 输入 adb，出现下图说明成功：
+
+Appium Desktop
+下载地址：
+https://github.com/appium/appium-desktop/releases
+或
+https://testerhome.com/topics/680
+
+
+Maven
+下载地址：
+http://maven.apache.org/download.cgi
+百度一下“ maven 环境配置”。
+cmd 输入 mvn -version，出现下图说明成功：
+
+IntelliJ IDEA
+下载地址：
+http://www.jetbrains.com/idea/
+安卓模拟器
+下载地址：
+https://www.yeshen.com/
+把 Android SDK 目录下 \platform-tool 的 adb.exe 拷贝。
+打开 Nox\bin 目录，粘贴替换 adb.exe。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java&#43;appium&#43;%E5%AE%89%E5%8D%93%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%AE%9E%E7%8E%B0app%E8%87%AA%E5%8A%A8%E5%8C%96demo/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java&#43;appium&#43;%E5%AE%89%E5%8D%93%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%AE%9E%E7%8E%B0app%E8%87%AA%E5%8A%A8%E5%8C%96demo/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java&#43;appium&#43;%E5%AE%89%E5%8D%93%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%AE%9E%E7%8E%B0app%E8%87%AA%E5%8A%A8%E5%8C%96demo/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="java&#43;appium&#43;安卓模拟器实现 app 自动化 Demo">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+环境搭建 据说，很多人都被繁琐的环境搭建给吓到了。
+是的，确实，繁琐。
+node.js 下载地址：
+https://nodejs.org/en/download/
+cmd 输入 node -v，出现下图说明成功：
+JDK 下载地址：
+https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+百度一下“配置 Java”，配置环境变量。
+cmd 输入 java -version，出现下图说明成功：
+Android SDK 下载地址：
+https://www.androiddevtools.cn/
+百度一下&#34;配置 Android SDK 环境变量&#34;。
+cmd 输入 adb，出现下图说明成功：
+Appium Desktop 下载地址：
+https://github.com/appium/appium-desktop/releases
+或
+https://testerhome.com/topics/680
+Maven 下载地址：
+http://maven.apache.org/download.cgi
+百度一下“ maven 环境配置”。
+cmd 输入 mvn -version，出现下图说明成功：
+IntelliJ IDEA 下载地址：
+http://www.jetbrains.com/idea/
+安卓模拟器 下载地址：
+https://www.yeshen.com/
+把 Android SDK 目录下 \platform-tool 的 adb.exe 拷贝。
+打开 Nox\bin 目录，粘贴替换 adb.exe。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:tag" content="移动端">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="java&#43;appium&#43;安卓模拟器实现 app 自动化 Demo">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+环境搭建 据说，很多人都被繁琐的环境搭建给吓到了。
+是的，确实，繁琐。
+node.js 下载地址：
+https://nodejs.org/en/download/
+cmd 输入 node -v，出现下图说明成功：
+JDK 下载地址：
+https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+百度一下“配置 Java”，配置环境变量。
+cmd 输入 java -version，出现下图说明成功：
+Android SDK 下载地址：
+https://www.androiddevtools.cn/
+百度一下&#34;配置 Android SDK 环境变量&#34;。
+cmd 输入 adb，出现下图说明成功：
+Appium Desktop 下载地址：
+https://github.com/appium/appium-desktop/releases
+或
+https://testerhome.com/topics/680
+Maven 下载地址：
+http://maven.apache.org/download.cgi
+百度一下“ maven 环境配置”。
+cmd 输入 mvn -version，出现下图说明成功：
+IntelliJ IDEA 下载地址：
+http://www.jetbrains.com/idea/
+安卓模拟器 下载地址：
+https://www.yeshen.com/
+把 Android SDK 目录下 \platform-tool 的 adb.exe 拷贝。
+打开 Nox\bin 目录，粘贴替换 adb.exe。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "java+appium+安卓模拟器实现 app 自动化 Demo",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java+appium+%E5%AE%89%E5%8D%93%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%AE%9E%E7%8E%B0app%E8%87%AA%E5%8A%A8%E5%8C%96demo/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "java+appium+安卓模拟器实现 app 自动化 Demo",
+  "name": "java\u002bappium\u002b安卓模拟器实现 app 自动化 Demo",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n环境搭建 据说，很多人都被繁琐的环境搭建给吓到了。\n是的，确实，繁琐。\nnode.js 下载地址：\nhttps://nodejs.org/en/download/\ncmd 输入 node -v，出现下图说明成功：\nJDK 下载地址：\nhttps://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html\n百度一下“配置 Java”，配置环境变量。\ncmd 输入 java -version，出现下图说明成功：\nAndroid SDK 下载地址：\nhttps://www.androiddevtools.cn/\n百度一下\u0026quot;配置 Android SDK 环境变量\u0026quot;。\ncmd 输入 adb，出现下图说明成功：\nAppium Desktop 下载地址：\nhttps://github.com/appium/appium-desktop/releases\n或\nhttps://testerhome.com/topics/680\nMaven 下载地址：\nhttp://maven.apache.org/download.cgi\n百度一下“ maven 环境配置”。\ncmd 输入 mvn -version，出现下图说明成功：\nIntelliJ IDEA 下载地址：\nhttp://www.jetbrains.com/idea/\n安卓模拟器 下载地址：\nhttps://www.yeshen.com/\n把 Android SDK 目录下 \\platform-tool 的 adb.exe 拷贝。\n打开 Nox\\bin 目录，粘贴替换 adb.exe。\n",
+  "keywords": [
+    "移动端"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n环境搭建 据说，很多人都被繁琐的环境搭建给吓到了。\n是的，确实，繁琐。\nnode.js 下载地址：\nhttps://nodejs.org/en/download/\ncmd 输入 node -v，出现下图说明成功：\nJDK 下载地址：\nhttps://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html\n百度一下“配置 Java”，配置环境变量。\ncmd 输入 java -version，出现下图说明成功：\nAndroid SDK 下载地址：\nhttps://www.androiddevtools.cn/\n百度一下\"配置 Android SDK 环境变量\"。\ncmd 输入 adb，出现下图说明成功：\nAppium Desktop 下载地址：\nhttps://github.com/appium/appium-desktop/releases\n或\nhttps://testerhome.com/topics/680\nMaven 下载地址：\nhttp://maven.apache.org/download.cgi\n百度一下“ maven 环境配置”。\ncmd 输入 mvn -version，出现下图说明成功：\nIntelliJ IDEA 下载地址：\nhttp://www.jetbrains.com/idea/\n安卓模拟器 下载地址：\nhttps://www.yeshen.com/\n把 Android SDK 目录下 \\platform-tool 的 adb.exe 拷贝。\n打开 Nox\\bin 目录，粘贴替换 adb.exe。\n打开模拟器。\ncmd 输入 adb connect 127.0.0.1:62001，如下：\n再输入 adb devices，如下\n有道计算器 下载地址：\nhttp://math.youdao.com/\n下载后，apk 文件存放在某目录下即可。\n将 apk 文件直接拖入安卓模拟器中：\n至此，环境搭建完毕，共安装了 8 个程序。\n实现步骤 打开 IntelliJ。\n创建 maven 项目：\n点击 ok 后，复制下面代码到 pom.xm 中：\nio.appium java-client 4.1.2 org.testng testng 6.14.2 复制粘贴下面代码：\nimport org.testng.annotations.Test; import org.testng.annotations.BeforeClass; import org.testng.annotations.AfterClass; import io.appium.java_client.AppiumDriver; import io.appium.java_client.android.AndroidDriver; import java.net.URL; import org.openqa.selenium.remote.CapabilityType; import org.openqa.selenium.remote.DesiredCapabilities; public class AppDemo { private AppiumDriver driver; @BeforeClass public void setup() throws Exception { DesiredCapabilities cap = new DesiredCapabilities(); cap.setCapability(CapabilityType.BROWSER_NAME, \"\"); cap.setCapability(\"platformName\", \"Android\"); //指定测试平台 cap.setCapability(\"deviceName\", \"127.0.0.1:62001\"); //指定测试机的ID,通过adb命令`adb devices`获取 cap.setCapability(\"platformVersion\", \"5.1.1\"); //将上面获取到的包名和Activity名设置为值 cap.setCapability(\"appPackage\", \"com.youdao.calculator\"); cap.setCapability(\"appActivity\", \"com.youdao.calculator.activities.MainActivity\"); // //A new session could not be created的解决方法 // cap.setCapability(\"appWaitActivity\", \"com.meizu.flyme.calculator.Calculator\"); // //每次启动时覆盖session，否则第二次后运行会报错不能新建session // cap.setCapability(\"sessionOverride\", true); driver = new AndroidDriver(new URL(\"http://127.0.0.1:4723/wd/hub\"), cap); } @Test public void plus() throws Exception { Thread.sleep(3000); int width = driver.manage().window().getSize().width; int height = driver.manage().window().getSize().height; int x0 = (int)(width * 0.8); // 起始x坐标 int x1 = (int)(height * 0.2); // 终止x坐标 int y = (int)(height * 0.5); // y坐标 for (int i=0; i\u003c5; i++) { driver.swipe(x0, y, x1, y, 500); Thread.sleep(1000); } driver.findElementById(\"com.youdao.calculator:id/guide_button\").click(); for (int i=0; i\u003c6; i++) { driver.findElementByXPath(\"//android.webkit.WebView[@text='Mathbot Editor']\").click(); Thread.sleep(1000); } String btn_xpath = \"//*[@resource-id='com.youdao.calculator:id/view_pager_keyboard']/android.widget.GridView/android.widget.FrameLayout[%d]/android.widget.FrameLayout\"; driver.findElementByXPath(String.format(btn_xpath, 7)).click(); driver.findElementByXPath(String.format(btn_xpath, 10)).click(); driver.findElementByXPath(String.format(btn_xpath, 8)).click(); Thread.sleep(3000); } @AfterClass public void tearDown() throws Exception { driver.quit(); } } 文件右键 run：\n然后可以看到脚本在跑了，\n打开安卓模拟器，\n一会就看到，\n计算器 app 在自己动了！\n",
+  "wordCount" : "278",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-01T00:00:00Z",
+  "dateModified": "2026-01-01T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java+appium+%E5%AE%89%E5%8D%93%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%AE%9E%E7%8E%B0app%E8%87%AA%E5%8A%A8%E5%8C%96demo/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      java&#43;appium&#43;安卓模拟器实现 app 自动化 Demo
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-01T00:00:00+00:00'>2026-01-01</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E7%A7%BB%E5%8A%A8%E7%AB%AF/'>#移动端</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="环境搭建">环境搭建<a hidden class="anchor" aria-hidden="true" href="#环境搭建">#</a></h1>
+<p>据说，很多人都被繁琐的环境搭建给吓到了。</p>
+<p>是的，确实，繁琐。</p>
+<h2 id="nodejs">node.js<a hidden class="anchor" aria-hidden="true" href="#nodejs">#</a></h2>
+<p>下载地址：</p>
+<p><a href="https://nodejs.org/en/download/">https://nodejs.org/en/download/</a></p>
+<p>cmd 输入 node -v，出现下图说明成功：</p>
+<p><img loading="lazy" src="../assets/9a8a97cbb71242eeba95dfda59f7d141.png"></p>
+<h2 id="jdk">JDK<a hidden class="anchor" aria-hidden="true" href="#jdk">#</a></h2>
+<p>下载地址：</p>
+<p><a href="https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html</a></p>
+<p>百度一下“配置 Java”，配置环境变量。</p>
+<p>cmd 输入 java -version，出现下图说明成功：</p>
+<p><img loading="lazy" src="../assets/147d699f24154e4cbdb6c3da1c03b5fa.png"></p>
+<h2 id="android-sdk">Android SDK<a hidden class="anchor" aria-hidden="true" href="#android-sdk">#</a></h2>
+<p>下载地址：</p>
+<p><a href="https://www.androiddevtools.cn/">https://www.androiddevtools.cn/</a></p>
+<p><img loading="lazy" src="../assets/7611fee79e654c34842a7d9877ba3f51.png"></p>
+<p><img loading="lazy" src="../assets/0e592229d5de460caf92ccde1004760c.png"></p>
+<p>百度一下&quot;配置 Android SDK 环境变量&quot;。</p>
+<p>cmd 输入 adb，出现下图说明成功：</p>
+<p><img loading="lazy" src="../assets/aa74daf57c50425a98dbd916d1a1cea0.png"></p>
+<h2 id="appium-desktop">Appium Desktop<a hidden class="anchor" aria-hidden="true" href="#appium-desktop">#</a></h2>
+<p>下载地址：</p>
+<p><a href="https://github.com/appium/appium-desktop/releases">https://github.com/appium/appium-desktop/releases</a></p>
+<p>或</p>
+<p><a href="https://testerhome.com/topics/680">https://testerhome.com/topics/680</a></p>
+<p><img loading="lazy" src="../assets/bc6783ed94584136bbb7bec00ecb67e1.png"></p>
+<p><img loading="lazy" src="../assets/d335ce8b69474881ba5a09e3c9aa880a.png"></p>
+<h2 id="maven">Maven<a hidden class="anchor" aria-hidden="true" href="#maven">#</a></h2>
+<p>下载地址：</p>
+<p><a href="http://maven.apache.org/download.cgi">http://maven.apache.org/download.cgi</a></p>
+<p>百度一下“ maven 环境配置”。</p>
+<p>cmd 输入 mvn -version，出现下图说明成功：</p>
+<p><img loading="lazy" src="../assets/2b4136dfdb6b45d3a33061601eacd9d4.png"></p>
+<h2 id="intellij-idea">IntelliJ IDEA<a hidden class="anchor" aria-hidden="true" href="#intellij-idea">#</a></h2>
+<p>下载地址：</p>
+<p><a href="http://www.jetbrains.com/idea/">http://www.jetbrains.com/idea/</a></p>
+<h2 id="安卓模拟器">安卓模拟器<a hidden class="anchor" aria-hidden="true" href="#安卓模拟器">#</a></h2>
+<p>下载地址：</p>
+<p><a href="https://www.yeshen.com/">https://www.yeshen.com/</a></p>
+<p>把 Android SDK 目录下 <code>\platform-tool</code> 的 adb.exe 拷贝。</p>
+<p>打开 <code>Nox\bin</code> 目录，粘贴替换 adb.exe。</p>
+<p>打开模拟器。</p>
+<p>cmd 输入 <code>adb connect 127.0.0.1:62001</code>，如下：</p>
+<p><img loading="lazy" src="../assets/613ee9e972a14d9da75749a5a9afc507.png"></p>
+<p>再输入 <code>adb devices</code>，如下</p>
+<p><img loading="lazy" src="../assets/18d404f9720d4d23a5d30524487ea62d.png"></p>
+<h2 id="有道计算器">有道计算器<a hidden class="anchor" aria-hidden="true" href="#有道计算器">#</a></h2>
+<p>下载地址：</p>
+<p><a href="http://math.youdao.com/">http://math.youdao.com/</a></p>
+<p>下载后，apk 文件存放在某目录下即可。</p>
+<p>将 apk 文件直接拖入安卓模拟器中：</p>
+<p><img loading="lazy" src="../assets/c842e7561c0a46ad8dd01a6ec0d7c039.png"></p>
+<p><img loading="lazy" src="../assets/0a35dbd6c8b84d71bea2c9a517ea11ba.png"></p>
+<p><strong>至此，环境搭建完毕，共安装了 8 个程序。</strong></p>
+<h1 id="实现步骤">实现步骤<a hidden class="anchor" aria-hidden="true" href="#实现步骤">#</a></h1>
+<p>打开 IntelliJ。</p>
+<p>创建 maven 项目：</p>
+<p><img loading="lazy" src="../assets/946de6215d274328af767dff671a73f8.png"></p>
+<p><img loading="lazy" src="../assets/00afc96cf651411c981a57f1f7e66dcf.png"></p>
+<p><img loading="lazy" src="../assets/faf9d364ab5c4c74a2cb3f1919b9e975.png"></p>
+<p><img loading="lazy" src="../assets/72d0d4bea3fd4615b5c36bcad1a173a8.png"></p>
+<p><img loading="lazy" src="../assets/9bda2675d29d4d6bba8e32c079d3f8f9.png"></p>
+<p>点击 ok 后，复制下面代码到 pom.xm 中：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>  <span style="color:#0550ae">&lt;dependencies&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;groupId&gt;</span>io.appium<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;artifactId&gt;</span>java-client<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;version&gt;</span>4.1.2<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;groupId&gt;</span>org.testng<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;artifactId&gt;</span>testng<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">&lt;version&gt;</span>6.14.2<span style="color:#0550ae">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/dependencies&gt;</span>
+</span></span></code></pre></div><p><img loading="lazy" src="../assets/e3ba5c3dcd9e4f1e865c0868310a6871.png"></p>
+<p><img loading="lazy" src="../assets/e0a2189eba074037a27040cedc1bad70.png">
+<img loading="lazy" src="../assets/0cadd342eb6c4918964ce1c1b960ea16.png"></p>
+<p><img loading="lazy" src="../assets/4a7a1ea225c341efa0b5d2de5d475a6e.png"></p>
+<p>复制粘贴下面代码：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.testng.annotations.Test</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.testng.annotations.BeforeClass</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.testng.annotations.AfterClass</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">io.appium.java_client.AppiumDriver</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">io.appium.java_client.android.AndroidDriver</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.net.URL</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.openqa.selenium.remote.CapabilityType</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.openqa.selenium.remote.DesiredCapabilities</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">AppDemo</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span>AppiumDriver<span style="color:#fff"> </span>driver<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@BeforeClass</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">setup</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>Exception<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>DesiredCapabilities<span style="color:#fff"> </span>cap<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>DesiredCapabilities<span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>cap<span style="color:#1f2328">.</span><span style="color:#1f2328">setCapability</span><span style="color:#1f2328">(</span>CapabilityType<span style="color:#1f2328">.</span><span style="color:#1f2328">BROWSER_NAME</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>cap<span style="color:#1f2328">.</span><span style="color:#1f2328">setCapability</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;platformName&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;Android&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff"> </span><span style="color:#57606a">//指定测试平台</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>cap<span style="color:#1f2328">.</span><span style="color:#1f2328">setCapability</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;deviceName&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;127.0.0.1:62001&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff"> </span><span style="color:#57606a">//指定测试机的ID,通过adb命令`adb devices`获取</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>cap<span style="color:#1f2328">.</span><span style="color:#1f2328">setCapability</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;platformVersion&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;5.1.1&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">//将上面获取到的包名和Activity名设置为值</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>cap<span style="color:#1f2328">.</span><span style="color:#1f2328">setCapability</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;appPackage&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;com.youdao.calculator&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>cap<span style="color:#1f2328">.</span><span style="color:#1f2328">setCapability</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;appActivity&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;com.youdao.calculator.activities.MainActivity&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">//        //A new session could not be created的解决方法</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">//        cap.setCapability(&#34;appWaitActivity&#34;, &#34;com.meizu.flyme.calculator.Calculator&#34;);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">//        //每次启动时覆盖session，否则第二次后运行会报错不能新建session</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">//        cap.setCapability(&#34;sessionOverride&#34;, true);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>driver<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>AndroidDriver<span style="color:#1f2328">(</span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>URL<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;http://127.0.0.1:4723/wd/hub&#34;</span><span style="color:#1f2328">),</span><span style="color:#fff"> </span>cap<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Test</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">plus</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>Exception<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>Thread<span style="color:#1f2328">.</span><span style="color:#1f2328">sleep</span><span style="color:#1f2328">(</span>3000<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>width<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>driver<span style="color:#1f2328">.</span><span style="color:#1f2328">manage</span><span style="color:#1f2328">().</span><span style="color:#1f2328">window</span><span style="color:#1f2328">().</span><span style="color:#1f2328">getSize</span><span style="color:#1f2328">().</span><span style="color:#1f2328">width</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>height<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>driver<span style="color:#1f2328">.</span><span style="color:#1f2328">manage</span><span style="color:#1f2328">().</span><span style="color:#1f2328">window</span><span style="color:#1f2328">().</span><span style="color:#1f2328">getSize</span><span style="color:#1f2328">().</span><span style="color:#1f2328">height</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>x0<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#1f2328">)(</span>width<span style="color:#fff"> </span><span style="color:#0550ae">*</span><span style="color:#fff"> </span>0<span style="color:#1f2328">.</span><span style="color:#1f2328">8</span><span style="color:#1f2328">);</span><span style="color:#fff">  </span><span style="color:#57606a">// 起始x坐标</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>x1<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#1f2328">)(</span>height<span style="color:#fff"> </span><span style="color:#0550ae">*</span><span style="color:#fff"> </span>0<span style="color:#1f2328">.</span><span style="color:#1f2328">2</span><span style="color:#1f2328">);</span><span style="color:#fff">  </span><span style="color:#57606a">// 终止x坐标</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>y<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#1f2328">)(</span>height<span style="color:#fff"> </span><span style="color:#0550ae">*</span><span style="color:#fff"> </span>0<span style="color:#1f2328">.</span><span style="color:#1f2328">5</span><span style="color:#1f2328">);</span><span style="color:#fff">  </span><span style="color:#57606a">// y坐标</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>i<span style="color:#0550ae">=</span>0<span style="color:#1f2328">;</span><span style="color:#fff"> </span>i<span style="color:#0550ae">&lt;</span>5<span style="color:#1f2328">;</span><span style="color:#fff"> </span>i<span style="color:#0550ae">++</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>driver<span style="color:#1f2328">.</span><span style="color:#1f2328">swipe</span><span style="color:#1f2328">(</span>x0<span style="color:#1f2328">,</span><span style="color:#fff"> </span>y<span style="color:#1f2328">,</span><span style="color:#fff"> </span>x1<span style="color:#1f2328">,</span><span style="color:#fff"> </span>y<span style="color:#1f2328">,</span><span style="color:#fff"> </span>500<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>Thread<span style="color:#1f2328">.</span><span style="color:#1f2328">sleep</span><span style="color:#1f2328">(</span>1000<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>driver<span style="color:#1f2328">.</span><span style="color:#1f2328">findElementById</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;com.youdao.calculator:id/guide_button&#34;</span><span style="color:#1f2328">).</span><span style="color:#1f2328">click</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">for</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>i<span style="color:#0550ae">=</span>0<span style="color:#1f2328">;</span><span style="color:#fff"> </span>i<span style="color:#0550ae">&lt;</span>6<span style="color:#1f2328">;</span><span style="color:#fff"> </span>i<span style="color:#0550ae">++</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>driver<span style="color:#1f2328">.</span><span style="color:#1f2328">findElementByXPath</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;//android.webkit.WebView[@text=&#39;Mathbot Editor&#39;]&#34;</span><span style="color:#1f2328">).</span><span style="color:#1f2328">click</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>Thread<span style="color:#1f2328">.</span><span style="color:#1f2328">sleep</span><span style="color:#1f2328">(</span>1000<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>String<span style="color:#fff"> </span>btn_xpath<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;//*[@resource-id=&#39;com.youdao.calculator:id/view_pager_keyboard&#39;]/android.widget.GridView/android.widget.FrameLayout[%d]/android.widget.FrameLayout&#34;</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>driver<span style="color:#1f2328">.</span><span style="color:#1f2328">findElementByXPath</span><span style="color:#1f2328">(</span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span>btn_xpath<span style="color:#1f2328">,</span><span style="color:#fff"> </span>7<span style="color:#1f2328">)).</span><span style="color:#1f2328">click</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>driver<span style="color:#1f2328">.</span><span style="color:#1f2328">findElementByXPath</span><span style="color:#1f2328">(</span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span>btn_xpath<span style="color:#1f2328">,</span><span style="color:#fff"> </span>10<span style="color:#1f2328">)).</span><span style="color:#1f2328">click</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>driver<span style="color:#1f2328">.</span><span style="color:#1f2328">findElementByXPath</span><span style="color:#1f2328">(</span>String<span style="color:#1f2328">.</span><span style="color:#1f2328">format</span><span style="color:#1f2328">(</span>btn_xpath<span style="color:#1f2328">,</span><span style="color:#fff"> </span>8<span style="color:#1f2328">)).</span><span style="color:#1f2328">click</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>Thread<span style="color:#1f2328">.</span><span style="color:#1f2328">sleep</span><span style="color:#1f2328">(</span>3000<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@AfterClass</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">tearDown</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>Exception<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>driver<span style="color:#1f2328">.</span><span style="color:#1f2328">quit</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>文件右键 run：</p>
+<p><img loading="lazy" src="../assets/f6b896cff8f04ddfab8cb564baed7a1b.png"></p>
+<p>然后可以看到脚本在跑了，</p>
+<p>打开安卓模拟器，</p>
+<p>一会就看到，</p>
+<p>计算器 app 在自己动了！</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E7%A7%BB%E5%8A%A8%E7%AB%AF/">移动端</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/java%E6%96%B0%E4%B8%80%E4%BB%A3%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6junit5%E9%80%9F%E8%A7%88/">
+    <span class="title">« 上一页</span>
+    <span>Java 新一代单元测试框架 JUnit5 速览</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%807%E4%B8%AAweb%E6%9C%AF%E8%AF%AD%E8%A7%A3%E6%9E%90/">
+    <span class="title">下一页 »</span>
+    <span>JavaWeb 开发基础 7 个 Web 术语解析</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#环境搭建">环境搭建</a>
+      <ul>
+        <li><a href="#nodejs">node.js</a></li>
+        <li><a href="#jdk">JDK</a></li>
+        <li><a href="#android-sdk">Android SDK</a></li>
+        <li><a href="#appium-desktop">Appium Desktop</a></li>
+        <li><a href="#maven">Maven</a></li>
+        <li><a href="#intellij-idea">IntelliJ IDEA</a></li>
+        <li><a href="#安卓模拟器">安卓模拟器</a></li>
+        <li><a href="#有道计算器">有道计算器</a></li>
+      </ul>
+    </li>
+    <li><a href="#实现步骤">实现步骤</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

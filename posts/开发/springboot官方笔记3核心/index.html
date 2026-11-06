@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>SpringBoot 官方笔记 3 核心 | 测试开发刚哥</title>
+<meta name="keywords" content="Spring">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+SpringApplication
+By default, INFO logging messages are shown, including some relevant startup details, such as the user that launched the application.
+Lazy Initialization
+When lazy initialization is enabled, beans are created as they are needed rather than during application startup.
+spring.main.lazy-initialization=true
+@Lazy(false) annotation：disable lazy initialization for certain beans
+Customizing the Banner
+adding a banner.txt file to your classpath or by setting the spring.banner.location property to the location of such a file. If the file has an encoding other than UTF-8, you can set spring.banner.charset.">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B03%E6%A0%B8%E5%BF%83/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B03%E6%A0%B8%E5%BF%83/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B03%E6%A0%B8%E5%BF%83/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="SpringBoot 官方笔记 3 核心">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+SpringApplication By default, INFO logging messages are shown, including some relevant startup details, such as the user that launched the application.
+Lazy Initialization
+When lazy initialization is enabled, beans are created as they are needed rather than during application startup.
+spring.main.lazy-initialization=true @Lazy(false) annotation：disable lazy initialization for certain beans
+Customizing the Banner
+adding a banner.txt file to your classpath or by setting the spring.banner.location property to the location of such a file. If the file has an encoding other than UTF-8, you can set spring.banner.charset.">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:tag" content="Spring">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="SpringBoot 官方笔记 3 核心">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+SpringApplication By default, INFO logging messages are shown, including some relevant startup details, such as the user that launched the application.
+Lazy Initialization
+When lazy initialization is enabled, beans are created as they are needed rather than during application startup.
+spring.main.lazy-initialization=true @Lazy(false) annotation：disable lazy initialization for certain beans
+Customizing the Banner
+adding a banner.txt file to your classpath or by setting the spring.banner.location property to the location of such a file. If the file has an encoding other than UTF-8, you can set spring.banner.charset.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "SpringBoot 官方笔记 3 核心",
+      "item": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B03%E6%A0%B8%E5%BF%83/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SpringBoot 官方笔记 3 核心",
+  "name": "SpringBoot 官方笔记 3 核心",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nSpringApplication By default, INFO logging messages are shown, including some relevant startup details, such as the user that launched the application.\nLazy Initialization\nWhen lazy initialization is enabled, beans are created as they are needed rather than during application startup.\nspring.main.lazy-initialization=true @Lazy(false) annotation：disable lazy initialization for certain beans\nCustomizing the Banner\nadding a banner.txt file to your classpath or by setting the spring.banner.location property to the location of such a file. If the file has an encoding other than UTF-8, you can set spring.banner.charset.\n",
+  "keywords": [
+    "Spring"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nSpringApplication By default, INFO logging messages are shown, including some relevant startup details, such as the user that launched the application.\nLazy Initialization\nWhen lazy initialization is enabled, beans are created as they are needed rather than during application startup.\nspring.main.lazy-initialization=true @Lazy(false) annotation：disable lazy initialization for certain beans\nCustomizing the Banner\nadding a banner.txt file to your classpath or by setting the spring.banner.location property to the location of such a file. If the file has an encoding other than UTF-8, you can set spring.banner.charset.\nSpringApplication.setBanner(…​) method\nspring.main.banner-mode property System.out(console)、logger (log)、not produced at all (off)\nThe printed banner is registered as a singleton bean under the following name: springBootBanner.\nCustomizing SpringApplication\nimport org.springframework.boot.Banner; import org.springframework.boot.SpringApplication; import org.springframework.boot.autoconfigure.SpringBootApplication; @SpringBootApplication public class MyApplication { public static void main(String[] args) { SpringApplication application = new SpringApplication(MyApplication.class); application.setBannerMode(Banner.Mode.OFF); application.run(args); } } The internal state of Spring Boot applications is mostly represented by the Spring ApplicationContext.\nInternally, Spring Boot uses events to handle a variety of tasks. Application events are sent in the following order, as your application runs:\nAn ApplicationStartingEvent is sent at the start of a run but before any processing, except for the registration of listeners and initializers.\nAn ApplicationEnvironmentPreparedEvent is sent when the Environment to be used in the context is known but before the context is created.\nAn ApplicationContextInitializedEvent is sent when the ApplicationContext is prepared and ApplicationContextInitializers have been called but before any bean definitions are loaded.\nAn ApplicationPreparedEvent is sent just before the refresh is started but after bean definitions have been loaded.\nAn ApplicationStartedEvent is sent after the context has been refreshed but before any application and command-line runners have been called.\nAn AvailabilityChangeEvent is sent right after with LivenessState.CORRECT to indicate that the application is considered as live.\nAn ApplicationReadyEvent is sent after any application and command-line runners have been called.\nAn AvailabilityChangeEvent is sent right after with ReadinessState.ACCEPTING_TRAFFIC to indicate that the application is ready to service requests.\nAn ApplicationFailedEvent is sent if there is an exception on startup.\nAccessing Application Arguments\nimport java.util.List; import org.springframework.boot.ApplicationArguments; import org.springframework.stereotype.Component; @Component public class MyBean { public MyBean(ApplicationArguments args) { boolean debug = args.containsOption(\"debug\"); List\u003cString\u003e files = args.getNonOptionArgs(); if (debug) { System.out.println(files); } // if run with \"--debug logfile.txt\" prints [\"logfile.txt\"] } } If you need to run some specific code once the SpringApplication has started, you can implement the ApplicationRunner or CommandLineRunner interfaces.\nimport org.springframework.boot.CommandLineRunner; import org.springframework.stereotype.Component; @Component public class MyCommandLineRunner implements CommandLineRunner { @Override public void run(String... args) { // Do something... } } Application Exit\nEach SpringApplication registers a shutdown hook with the JVM to ensure that the ApplicationContext closes gracefully on exit.\nExternalized Configuration Sources are considered in the following order:\nDefault properties (specified by setting SpringApplication.setDefaultProperties).\n@PropertySource annotations on your @Configuration classes. Please note that such property sources are not added to the Environment until the application context is being refreshed. This is too late to configure certain properties such as logging.* and spring.main.* which are read before refresh begins.\nConfig data (such as application.properties files).\nA RandomValuePropertySource that has properties only in random.*.\nOS environment variables.\nJava System properties (System.getProperties()).\nJNDI attributes from java:comp/env.\nServletContext init parameters.\nServletConfig init parameters.\nProperties from SPRING_APPLICATION_JSON (inline JSON embedded in an environment variable or system property).\nCommand line arguments.\nproperties attribute on your tests. Available on @SpringBootTest and the test annotations for testing a particular slice of your application.\n@DynamicPropertySource annotations in your tests.\n@TestPropertySource annotations on your tests.\nDevtools global settings properties in the $HOME/.config/spring-boot directory when devtools is active.\nConfig data files are considered in the following order:\nApplication properties packaged inside your jar (application.properties and YAML variants).\nProfile-specific application properties packaged inside your jar (application-{profile}.properties and YAML variants).\nApplication properties outside of your packaged jar (application.properties and YAML variants).\nProfile-specific application properties outside of your packaged jar (application-{profile}.properties and YAML variants).\nIf you have configuration files with both .propertiesand YAML format in the same location, .properties takes precedence.\n读取配置：\nProperty values can be injected directly into your beans by using the @Value annotation, accessed through Spring’s Environmentabstraction, or be bound to structured objects through @ConfigurationProperties.\nimport org.springframework.beans.factory.annotation.Value; import org.springframework.stereotype.Component; @Component public class MyBean { @Value(\"${name}\") private String name; // ... } command line properties (that is, arguments starting with --, such as --server.port=9000) always take precedence over file-based property sources.\nSpring Boot will automatically find and load application.properties and application.yaml files from the following locations when your application starts:\nFrom the classpath\nThe classpath root\nThe classpath /config package\nFrom the current directory\nThe current directory\nThe config/ subdirectory in the current directory\nImmediate child directories of the config/ subdirectory\nWildcard locations only work with external directories. You cannot use a wildcard in a classpath: location.\nProfile Specific Files\napplication-{profile}. For example, if your application activates a profile named prod and uses YAML files, then both application.yaml and application-prod.yaml will be considered.\nconfigtree：\netc/ config/ myapp/ username password spring.config.import=optional:configtree:/etc/config/ You can then access or inject myapp.username and myapp.password properties from the Environment in the usual way.\nProperty placeholders can also specify a default value using a : to separate the default value from the property name, for example ${name:default}.\napp.name=MyApp app.description=${app.name} is a Spring Boot application written by ${username:Unknown} Working With YAML\nIf you use “Starters”, SnakeYAML is automatically provided by spring-boot-starter.\nYAML files cannot be loaded by using the @PropertySource or @TestPropertySource annotations. So, in the case that you need to load values that way, you need to use a properties file.\nThe YamlPropertiesFactoryBeanloads YAML as Properties and the YamlMapFactoryBean loads YAML as a Map. YamlPropertySourceLoader class if you want to load YAML as a Spring PropertySource.\nConfiguring Random Values\nRandomValuePropertySource\nmy.secret=${random.value} my.number=${random.int} my.bignumber=${random.long} my.uuid=${random.uuid} my.number-less-than-ten=${random.int(10)} my.number-in-range=${random.int[1024,65536]} Type-safe Configuration Properties\n@ConfigurationProperties\nRelaxed Binding\nAs an example, consider the following @ConfigurationProperties class:\nimport org.springframework.boot.context.properties.ConfigurationProperties; @ConfigurationProperties(prefix = \"my.main-project.person\") public class MyPersonProperties { private String firstName; public String getFirstName() { return this.firstName; } public void setFirstName(String firstName) { this.firstName = firstName; } } With the preceding code, the following properties names can all be used:\nmy.main-project.person.first-name Kebab case, which is recommended for use in .properties and YAML files.\nmy.main-project.person.firstName Standard camel case syntax.\nmy.main-project.person.first_name Underscore notation, which is an alternative format for use in .properties and YAML files.\nMY_MAINPROJECT_PERSON_FIRSTNAME Upper case format, which is recommended when using system environment variables.\nWe recommend that, when possible, properties are stored in lower-case kebab format, such as my.person.first-name=Rod.\nProfiles make it be available only in certain environments\nimport org.springframework.context.annotation.Configuration; import org.springframework.context.annotation.Profile; @Configuration(proxyBeanMethods = false) @Profile(\"production\") public class ProductionConfiguration { // ... } Logging By default, if you use the “Starters”, Logback is used for logging.\nLog Format\n2023-06-22T12:08:05.861Z INFO 22768 --- [ main] o.s.b.d.f.s.MyApplication : Starting MyApplication using Java 17.0.7 with PID 22768 (/opt/apps/myapp.jar started by myuser in /opt/apps/) 2023-06-22T12:08:05.872Z INFO 22768 --- [ main] o.s.b.d.f.s.MyApplication : No active profile set, falling back to 1 default profile: \"default\" 2023-06-22T12:08:09.854Z INFO 22768 --- [ main] o.s.b.w.embedded.tomcat.TomcatWebServer : Tomcat initialized with port(s): 8080 (http) 2023-06-22T12:08:09.892Z INFO 22768 --- [ main] o.apache.catalina.core.StandardService : Starting service [Tomcat] 2023-06-22T12:08:09.892Z INFO 22768 --- [ main] o.apache.catalina.core.StandardEngine : Starting Servlet engine: [Apache Tomcat/10.1.10] 2023-06-22T12:08:10.160Z INFO 22768 --- [ main] o.a.c.c.C.[Tomcat].[localhost].[/] : Initializing Spring embedded WebApplicationContext 2023-06-22T12:08:10.162Z INFO 22768 --- [ main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4038 ms 2023-06-22T12:08:11.512Z INFO 22768 --- [ main] o.s.b.w.embedded.tomcat.TomcatWebServer : Tomcat started on port(s): 8080 (http) with context path '' 2023-06-22T12:08:11.534Z INFO 22768 --- [ main] o.s.b.d.f.s.MyApplication : Started MyApplication in 7.251 seconds (process running for 8.584) Date and Time: Millisecond precision and easily sortable.\nLog Level: ERROR, WARN, INFO, DEBUG, or TRACE.\nProcess ID.\nA --- separator to distinguish the start of actual log messages.\nThread name: Enclosed in square brackets (may be truncated for console output).\nLogger name: This is usually the source class name (often abbreviated).\nThe log message.\nInternationalization spring.messages.basename=messages,config.i18n.messages spring.messages.fallback-to-system-locale=false JSON Jackson is the preferred and default library. Auto-configuration for Jackson is provided and Jackson is part of spring-boot-starter-json.\n@JsonComponent Custom Serializers and Deserializers\nimport java.io.IOException; import com.fasterxml.jackson.core.JsonGenerator; import com.fasterxml.jackson.core.JsonParser; import com.fasterxml.jackson.core.ObjectCodec; import com.fasterxml.jackson.databind.DeserializationContext; import com.fasterxml.jackson.databind.JsonDeserializer; import com.fasterxml.jackson.databind.JsonNode; import com.fasterxml.jackson.databind.JsonSerializer; import com.fasterxml.jackson.databind.SerializerProvider; import org.springframework.boot.jackson.JsonComponent; @JsonComponent public class MyJsonComponent { public static class Serializer extends JsonSerializer\u003cMyObject\u003e { @Override public void serialize(MyObject value, JsonGenerator jgen, SerializerProvider serializers) throws IOException { jgen.writeStartObject(); jgen.writeStringField(\"name\", value.getName()); jgen.writeNumberField(\"age\", value.getAge()); jgen.writeEndObject(); } } public static class Deserializer extends JsonDeserializer\u003cMyObject\u003e { @Override public MyObject deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException { ObjectCodec codec = jsonParser.getCodec(); JsonNode tree = codec.readTree(jsonParser); String name = tree.get(\"name\").textValue(); int age = tree.get(\"age\").intValue(); return new MyObject(name, age); } } } Task Execution and Scheduling In the absence of an Executor bean in the context, Spring Boot auto-configures a ThreadPoolTaskExecutor with sensible defaults that can be automatically associated to asynchronous task execution (@EnableAsync) and Spring MVC asynchronous request processing.\nA ThreadPoolTaskScheduler can also be auto-configured if need to be associated to scheduled task execution (using @EnableScheduling for instance).\nTesting Most developers use the spring-boot-starter-test “Starter”, which imports both Spring Boot test modules as well as JUnit Jupiter, AssertJ, Hamcrest, and a number of other useful libraries.\nJUnit 5: The de-facto standard for unit testing Java applications.\nSpring Test \u0026 Spring Boot Test: Utilities and integration test support for Spring Boot applications.\nAssertJ: A fluent assertion library.\nHamcrest: A library of matcher objects (also known as constraints or predicates).\nMockito: A Java mocking framework.\nJSONassert: An assertion library for JSON.\nJsonPath: XPath for JSON.\nOne of the major advantages of dependency injection is that it should make your code easier to unit test. You can instantiate objects by using the new operator without even involving Spring. You can also use mock objects instead of real dependencies.\nBy default, @SpringBootTest will not start a server. You can use the webEnvironment attribute of @SpringBootTest to further refine how your tests run:\nMOCK(Default) : Loads a web ApplicationContext and provides a mock web environment. Embedded servers are not started when using this annotation. If a web environment is not available on your classpath, this mode transparently falls back to creating a regular non-web ApplicationContext. It can be used in conjunction with @AutoConfigureMockMvc or @AutoConfigureWebTestClient for mock-based testing of your web application.\nRANDOM_PORT: Loads a WebServerApplicationContext and provides a real web environment. Embedded servers are started and listen on a random port.\nDEFINED_PORT: Loads a WebServerApplicationContext and provides a real web environment. Embedded servers are started and listen on a defined port (from your application.properties) or on the default port of 8080.\nNONE: Loads an ApplicationContext by using SpringApplication but does not provide any web environment (mock or otherwise).\nDocker Compose Support A compose.yml file is typically created next to your application which defines and configures service containers.\norg.springframework.boot spring-boot-docker-compose true Creating Your Own Auto-configuration Classes that implement auto-configuration are annotated with @AutoConfiguration.\nSSL spring.ssl.bundle.jks.mybundle.key.alias=application spring.ssl.bundle.jks.mybundle.keystore.location=classpath:application.p12 spring.ssl.bundle.jks.mybundle.keystore.password=secret spring.ssl.bundle.jks.mybundle.keystore.type=PKCS12 参考资料：\nhttps://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features\n",
+  "wordCount" : "1793",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-06T00:00:00Z",
+  "dateModified": "2026-01-06T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B03%E6%A0%B8%E5%BF%83/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      SpringBoot 官方笔记 3 核心
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-06T00:00:00+00:00'>2026-01-06</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E5%BC%80%E5%8F%91/'>开发</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/spring/'>#Spring</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="springapplication">SpringApplication<a hidden class="anchor" aria-hidden="true" href="#springapplication">#</a></h1>
+<p>By default, <code>INFO</code> logging messages are shown, including some relevant startup details, such as the user that launched the application.</p>
+<p><strong>Lazy Initialization</strong></p>
+<p>When lazy initialization is enabled, beans are created as they are needed rather than during application startup.</p>
+<pre tabindex="0"><code>spring.main.lazy-initialization=true
+</code></pre><p><code>@Lazy(false)</code> annotation：disable lazy initialization for certain beans</p>
+<p><strong>Customizing the Banner</strong></p>
+<p>adding a <code>banner.txt</code> file to your classpath or by setting the <code>spring.banner.location</code> property to the location of such a file. If the file has an encoding other than UTF-8, you can set <code>spring.banner.charset</code>.</p>
+<p><code>SpringApplication.setBanner(…​)</code> method</p>
+<p><code>spring.main.banner-mode</code> property <code>System.out</code>(<code>console</code>)、logger (<code>log</code>)、not produced at all (<code>off</code>)</p>
+<p>The printed banner is registered as a singleton bean under the following name: <code>springBootBanner</code>.</p>
+<p><strong>Customizing SpringApplication</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.Banner</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.SpringApplication</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.autoconfigure.SpringBootApplication</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@SpringBootApplication</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyApplication</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">main</span><span style="color:#1f2328">(</span>String<span style="color:#0550ae">[]</span><span style="color:#fff"> </span>args<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>SpringApplication<span style="color:#fff"> </span>application<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>SpringApplication<span style="color:#1f2328">(</span>MyApplication<span style="color:#1f2328">.</span><span style="color:#1f2328">class</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>application<span style="color:#1f2328">.</span><span style="color:#1f2328">setBannerMode</span><span style="color:#1f2328">(</span>Banner<span style="color:#1f2328">.</span><span style="color:#1f2328">Mode</span><span style="color:#1f2328">.</span><span style="color:#1f2328">OFF</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>application<span style="color:#1f2328">.</span><span style="color:#1f2328">run</span><span style="color:#1f2328">(</span>args<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>The internal state of Spring Boot applications is mostly represented by the Spring <code>ApplicationContext</code>.</p>
+<p>Internally, Spring Boot uses events to handle a variety of tasks. <strong>Application events</strong> are sent in the following order, as your application runs:</p>
+<ol>
+<li>
+<p>An <code>ApplicationStartingEvent</code> is sent at the start of a run but before any processing, except for the registration of listeners and initializers.</p>
+</li>
+<li>
+<p>An <code>ApplicationEnvironmentPreparedEvent</code> is sent when the <code>Environment</code> to be used in the context is known but before the context is created.</p>
+</li>
+<li>
+<p>An <code>ApplicationContextInitializedEvent</code> is sent when the <code>ApplicationContext</code> is prepared and ApplicationContextInitializers have been called but before any bean definitions are loaded.</p>
+</li>
+<li>
+<p>An <code>ApplicationPreparedEvent</code> is sent just before the refresh is started but after bean definitions have been loaded.</p>
+</li>
+<li>
+<p>An <code>ApplicationStartedEvent</code> is sent after the context has been refreshed but before any application and command-line runners have been called.</p>
+</li>
+<li>
+<p>An <code>AvailabilityChangeEvent</code> is sent right after with <code>LivenessState.CORRECT</code> to indicate that the application is considered as live.</p>
+</li>
+<li>
+<p>An <code>ApplicationReadyEvent</code> is sent after any <a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.spring-application.command-line-runner">application and command-line runners</a> have been called.</p>
+</li>
+<li>
+<p>An <code>AvailabilityChangeEvent</code> is sent right after with <code>ReadinessState.ACCEPTING_TRAFFIC</code> to indicate that the application is ready to service requests.</p>
+</li>
+<li>
+<p>An <code>ApplicationFailedEvent</code> is sent if there is an exception on startup.</p>
+</li>
+</ol>
+<p><strong>Accessing Application Arguments</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.util.List</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.ApplicationArguments</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.stereotype.Component</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@Component</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyBean</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#6639ba">MyBean</span><span style="color:#1f2328">(</span>ApplicationArguments<span style="color:#fff"> </span>args<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">boolean</span><span style="color:#fff"> </span>debug<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>args<span style="color:#1f2328">.</span><span style="color:#1f2328">containsOption</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;debug&#34;</span><span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span>List<span style="color:#0550ae">&lt;</span>String<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span>files<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>args<span style="color:#1f2328">.</span><span style="color:#1f2328">getNonOptionArgs</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span>debug<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>System<span style="color:#1f2328">.</span><span style="color:#1f2328">out</span><span style="color:#1f2328">.</span><span style="color:#1f2328">println</span><span style="color:#1f2328">(</span>files<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// if run with &#34;--debug logfile.txt&#34; prints [&#34;logfile.txt&#34;]</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>If you need to run some specific code once the <code>SpringApplication</code> has started, you can implement the <code>ApplicationRunner</code> or <code>CommandLineRunner</code> interfaces.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.CommandLineRunner</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.stereotype.Component</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@Component</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyCommandLineRunner</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span>CommandLineRunner<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">run</span><span style="color:#1f2328">(</span>String<span style="color:#1f2328">...</span><span style="color:#fff"> </span>args<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#57606a">// Do something...</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>Application Exit</strong></p>
+<p>Each <code>SpringApplication</code> registers a shutdown hook with the JVM to ensure that the <code>ApplicationContext</code> closes gracefully on exit.</p>
+<h1 id="externalized-configuration">Externalized Configuration<a hidden class="anchor" aria-hidden="true" href="#externalized-configuration">#</a></h1>
+<p>Sources are considered in the following order:</p>
+<ol>
+<li>
+<p>Default properties (specified by setting <code>SpringApplication.setDefaultProperties</code>).</p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-framework/docs/6.0.10/javadoc-api/org/springframework/context/annotation/PropertySource.html"><code>@PropertySource</code></a> annotations on your <code>@Configuration</code> classes. Please note that such property sources are not added to the <code>Environment</code> until the application context is being refreshed. This is too late to configure certain properties such as <code>logging.*</code> and <code>spring.main.*</code> which are read before refresh begins.</p>
+</li>
+<li>
+<p>Config data (such as <code>application.properties</code> files).</p>
+</li>
+<li>
+<p>A <code>RandomValuePropertySource</code> that has properties only in <code>random.*</code>.</p>
+</li>
+<li>
+<p>OS environment variables.</p>
+</li>
+<li>
+<p>Java System properties (<code>System.getProperties()</code>).</p>
+</li>
+<li>
+<p>JNDI attributes from <code>java:comp/env</code>.</p>
+</li>
+<li>
+<p><code>ServletContext</code> init parameters.</p>
+</li>
+<li>
+<p><code>ServletConfig</code> init parameters.</p>
+</li>
+<li>
+<p>Properties from <code>SPRING_APPLICATION_JSON</code> (inline JSON embedded in an environment variable or system property).</p>
+</li>
+<li>
+<p>Command line arguments.</p>
+</li>
+<li>
+<p><code>properties</code> attribute on your tests. Available on <a href="https://docs.spring.io/spring-boot/docs/3.1.1/api/org/springframework/boot/test/context/SpringBootTest.html"><code>@SpringBootTest</code></a> and the <a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing.spring-boot-applications.autoconfigured-tests">test annotations for testing a particular slice of your application</a>.</p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-framework/docs/6.0.10/javadoc-api/org/springframework/test/context/DynamicPropertySource.html"><code>@DynamicPropertySource</code></a> annotations in your tests.</p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-framework/docs/6.0.10/javadoc-api/org/springframework/test/context/TestPropertySource.html"><code>@TestPropertySource</code></a> annotations on your tests.</p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using.devtools.globalsettings">Devtools global settings properties</a> in the <code>$HOME/.config/spring-boot</code> directory when devtools is active.</p>
+</li>
+</ol>
+<p>Config data files are considered in the following order:</p>
+<ol>
+<li>
+<p><a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.external-config.files">Application properties</a> packaged inside your jar (<code>application.properties</code> and YAML variants).</p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.external-config.files.profile-specific">Profile-specific application properties</a> packaged inside your jar (<code>application-{profile}.properties</code> and YAML variants).</p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.external-config.files">Application properties</a> outside of your packaged jar (<code>application.properties</code> and YAML variants).</p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.external-config.files.profile-specific">Profile-specific application properties</a> outside of your packaged jar (<code>application-{profile}.properties</code> and YAML variants).</p>
+</li>
+</ol>
+<p><strong>If you have configuration files with both <code>.properties</code>and YAML format in the same location, <code>.properties</code> takes precedence.</strong></p>
+<p>读取配置：</p>
+<p>Property values can be injected directly into your beans by using the <code>@Value</code> annotation, accessed through Spring’s <code>Environment</code>abstraction, or be <a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.external-config.typesafe-configuration-properties">bound to structured objects</a> through <code>@ConfigurationProperties</code>.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.beans.factory.annotation.Value</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.stereotype.Component</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@Component</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyBean</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#0550ae">@Value</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;${name}&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>name<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// ...</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p><strong>command line properties (that is, arguments starting with <code>--</code>, such as <code>--server.port=9000</code>) always take precedence over file-based property sources.</strong></p>
+<p>Spring Boot will automatically find and load <code>application.properties</code> and <code>application.yaml</code> files from the following locations when your application starts:</p>
+<ol>
+<li>
+<p>From the classpath</p>
+<ol>
+<li>
+<p>The classpath root</p>
+</li>
+<li>
+<p>The classpath <code>/config</code> package</p>
+</li>
+</ol>
+</li>
+<li>
+<p>From the current directory</p>
+<ol>
+<li>
+<p>The current directory</p>
+</li>
+<li>
+<p>The <code>config/</code> subdirectory in the current directory</p>
+</li>
+<li>
+<p>Immediate child directories of the <code>config/</code> subdirectory</p>
+</li>
+</ol>
+</li>
+</ol>
+<p><strong>Wildcard locations only work with external directories. You cannot use a wildcard in a classpath: location.</strong></p>
+<p><strong>Profile Specific Files</strong></p>
+<p><code>application-{profile}</code>. For example, if your application activates a profile named <code>prod</code> and uses YAML files, then both <code>application.yaml</code> and <code>application-prod.yaml</code> will be considered.</p>
+<p>configtree：</p>
+<pre tabindex="0"><code>etc/
+  config/
+    myapp/
+      username
+      password
+</code></pre><pre tabindex="0"><code>spring.config.import=optional:configtree:/etc/config/
+</code></pre><p>You can then access or inject <code>myapp.username</code> and <code>myapp.password</code> properties from the <code>Environment</code> in the usual way.</p>
+<p><strong>Property placeholders</strong> can also specify a default value using a <code>:</code> to separate the default value from the property name, for example <code>${name:default}</code>.</p>
+<pre tabindex="0"><code>app.name=MyApp
+app.description=${app.name} is a Spring Boot application written by ${username:Unknown}
+</code></pre><p><strong>Working With YAML</strong></p>
+<p>If you use “Starters”, SnakeYAML is automatically provided by <code>spring-boot-starter</code>.</p>
+<blockquote>
+<p>YAML files cannot be loaded by using the <code>@PropertySource</code> or <code>@TestPropertySource</code> annotations. So, in the case that you need to load values that way, you need to use a properties file.</p>
+</blockquote>
+<p>The <code>YamlPropertiesFactoryBean</code>loads YAML as <code>Properties</code> and the <code>YamlMapFactoryBean</code> loads YAML as a <code>Map</code>. <code>YamlPropertySourceLoader</code> class if you want to load YAML as a Spring <code>PropertySource</code>.</p>
+<p><strong>Configuring Random Values</strong></p>
+<p>RandomValuePropertySource</p>
+<pre tabindex="0"><code>my.secret=${random.value}
+my.number=${random.int}
+my.bignumber=${random.long}
+my.uuid=${random.uuid}
+my.number-less-than-ten=${random.int(10)}
+my.number-in-range=${random.int[1024,65536]}
+</code></pre><p><strong>Type-safe Configuration Properties</strong></p>
+<p>@ConfigurationProperties</p>
+<p><strong>Relaxed Binding</strong></p>
+<p>As an example, consider the following <code>@ConfigurationProperties</code> class:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.context.properties.ConfigurationProperties</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@ConfigurationProperties</span><span style="color:#1f2328">(</span>prefix<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;my.main-project.person&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyPersonProperties</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">private</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span>firstName<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>String<span style="color:#fff"> </span><span style="color:#6639ba">getFirstName</span><span style="color:#1f2328">()</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">firstName</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">setFirstName</span><span style="color:#1f2328">(</span>String<span style="color:#fff"> </span>firstName<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">this</span><span style="color:#1f2328">.</span><span style="color:#1f2328">firstName</span><span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>firstName<span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>With the preceding code, the following properties names can all be used:</p>
+<ul>
+<li>
+<p><code>my.main-project.person.first-name</code> Kebab case, which is recommended for use in <code>.properties</code> and YAML files.</p>
+</li>
+<li>
+<p><code>my.main-project.person.firstName</code> Standard camel case syntax.</p>
+</li>
+<li>
+<p><code>my.main-project.person.first_name</code>  Underscore notation, which is an alternative format for use in <code>.properties</code> and YAML files.</p>
+</li>
+<li>
+<p><code>MY_MAINPROJECT_PERSON_FIRSTNAME</code>  Upper case format, which is recommended when using system environment variables.</p>
+</li>
+</ul>
+<p>We recommend that, when possible, properties are stored in lower-case kebab format, such as my.person.first-name=Rod.</p>
+<h1 id="profiles">Profiles<a hidden class="anchor" aria-hidden="true" href="#profiles">#</a></h1>
+<p>make it be available only in certain environments</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.context.annotation.Configuration</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.context.annotation.Profile</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@Configuration</span><span style="color:#1f2328">(</span>proxyBeanMethods<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span><span style="color:#cf222e">false</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@Profile</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;production&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ProductionConfiguration</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#57606a">// ...</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h1 id="logging">Logging<a hidden class="anchor" aria-hidden="true" href="#logging">#</a></h1>
+<p>By default, if you use the “Starters”, Logback is used for logging.</p>
+<p><strong>Log Format</strong></p>
+<pre tabindex="0"><code>2023-06-22T12:08:05.861Z  INFO 22768 --- [           main] o.s.b.d.f.s.MyApplication                : Starting MyApplication using Java 17.0.7 with PID 22768 (/opt/apps/myapp.jar started by myuser in /opt/apps/)
+2023-06-22T12:08:05.872Z  INFO 22768 --- [           main] o.s.b.d.f.s.MyApplication                : No active profile set, falling back to 1 default profile: &#34;default&#34;
+2023-06-22T12:08:09.854Z  INFO 22768 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2023-06-22T12:08:09.892Z  INFO 22768 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2023-06-22T12:08:09.892Z  INFO 22768 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.10]
+2023-06-22T12:08:10.160Z  INFO 22768 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2023-06-22T12:08:10.162Z  INFO 22768 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4038 ms
+2023-06-22T12:08:11.512Z  INFO 22768 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path &#39;&#39;
+2023-06-22T12:08:11.534Z  INFO 22768 --- [           main] o.s.b.d.f.s.MyApplication                : Started MyApplication in 7.251 seconds (process running for 8.584)
+</code></pre><ul>
+<li>
+<p>Date and Time: Millisecond precision and easily sortable.</p>
+</li>
+<li>
+<p>Log Level: <code>ERROR</code>, <code>WARN</code>, <code>INFO</code>, <code>DEBUG</code>, or <code>TRACE</code>.</p>
+</li>
+<li>
+<p>Process ID.</p>
+</li>
+<li>
+<p>A <code>---</code> separator to distinguish the start of actual log messages.</p>
+</li>
+<li>
+<p>Thread name: Enclosed in square brackets (may be truncated for console output).</p>
+</li>
+<li>
+<p>Logger name: This is usually the source class name (often abbreviated).</p>
+</li>
+<li>
+<p>The log message.</p>
+</li>
+</ul>
+<h1 id="internationalization">Internationalization<a hidden class="anchor" aria-hidden="true" href="#internationalization">#</a></h1>
+<pre tabindex="0"><code>spring.messages.basename=messages,config.i18n.messages
+spring.messages.fallback-to-system-locale=false
+</code></pre><h1 id="json">JSON<a hidden class="anchor" aria-hidden="true" href="#json">#</a></h1>
+<p>Jackson is the preferred and default library. Auto-configuration for Jackson is provided and Jackson is part of <code>spring-boot-starter-json</code>.</p>
+<p>@JsonComponent Custom Serializers and Deserializers</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">java.io.IOException</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">com.fasterxml.jackson.core.JsonGenerator</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">com.fasterxml.jackson.core.JsonParser</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">com.fasterxml.jackson.core.ObjectCodec</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">com.fasterxml.jackson.databind.DeserializationContext</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">com.fasterxml.jackson.databind.JsonDeserializer</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">com.fasterxml.jackson.databind.JsonNode</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">com.fasterxml.jackson.databind.JsonSerializer</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">com.fasterxml.jackson.databind.SerializerProvider</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span><span style="color:#fff"> </span><span style="color:#24292e">org.springframework.boot.jackson.JsonComponent</span><span style="color:#1f2328">;</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#0550ae">@JsonComponent</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">MyJsonComponent</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Serializer</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>JsonSerializer<span style="color:#0550ae">&lt;</span>MyObject<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">void</span><span style="color:#fff"> </span><span style="color:#6639ba">serialize</span><span style="color:#1f2328">(</span>MyObject<span style="color:#fff"> </span>value<span style="color:#1f2328">,</span><span style="color:#fff"> </span>JsonGenerator<span style="color:#fff"> </span>jgen<span style="color:#1f2328">,</span><span style="color:#fff"> </span>SerializerProvider<span style="color:#fff"> </span>serializers<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>IOException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>jgen<span style="color:#1f2328">.</span><span style="color:#1f2328">writeStartObject</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>jgen<span style="color:#1f2328">.</span><span style="color:#1f2328">writeStringField</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;name&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">.</span><span style="color:#1f2328">getName</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>jgen<span style="color:#1f2328">.</span><span style="color:#1f2328">writeNumberField</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;age&#34;</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span>value<span style="color:#1f2328">.</span><span style="color:#1f2328">getAge</span><span style="color:#1f2328">());</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>jgen<span style="color:#1f2328">.</span><span style="color:#1f2328">writeEndObject</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span><span style="color:#cf222e">static</span><span style="color:#fff"> </span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Deserializer</span><span style="color:#fff"> </span><span style="color:#cf222e">extends</span><span style="color:#fff"> </span>JsonDeserializer<span style="color:#0550ae">&lt;</span>MyObject<span style="color:#0550ae">&gt;</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#0550ae">@Override</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">public</span><span style="color:#fff"> </span>MyObject<span style="color:#fff"> </span><span style="color:#6639ba">deserialize</span><span style="color:#1f2328">(</span>JsonParser<span style="color:#fff"> </span>jsonParser<span style="color:#1f2328">,</span><span style="color:#fff"> </span>DeserializationContext<span style="color:#fff"> </span>ctxt<span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">throws</span><span style="color:#fff"> </span>IOException<span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>ObjectCodec<span style="color:#fff"> </span>codec<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>jsonParser<span style="color:#1f2328">.</span><span style="color:#1f2328">getCodec</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>JsonNode<span style="color:#fff"> </span>tree<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>codec<span style="color:#1f2328">.</span><span style="color:#1f2328">readTree</span><span style="color:#1f2328">(</span>jsonParser<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span>String<span style="color:#fff"> </span>name<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>tree<span style="color:#1f2328">.</span><span style="color:#1f2328">get</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;name&#34;</span><span style="color:#1f2328">).</span><span style="color:#1f2328">textValue</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">int</span><span style="color:#fff"> </span>age<span style="color:#fff"> </span><span style="color:#0550ae">=</span><span style="color:#fff"> </span>tree<span style="color:#1f2328">.</span><span style="color:#1f2328">get</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;age&#34;</span><span style="color:#1f2328">).</span><span style="color:#1f2328">intValue</span><span style="color:#1f2328">();</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">            </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">new</span><span style="color:#fff"> </span>MyObject<span style="color:#1f2328">(</span>name<span style="color:#1f2328">,</span><span style="color:#fff"> </span>age<span style="color:#1f2328">);</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><h1 id="task-execution-and-scheduling">Task Execution and Scheduling<a hidden class="anchor" aria-hidden="true" href="#task-execution-and-scheduling">#</a></h1>
+<p>In the absence of an <code>Executor</code> bean in the context, Spring Boot auto-configures a <code>ThreadPoolTaskExecutor</code> with sensible defaults that can be automatically associated to asynchronous task execution (<code>@EnableAsync</code>) and Spring MVC asynchronous request processing.</p>
+<p>A <code>ThreadPoolTaskScheduler</code> can also be auto-configured if need to be associated to scheduled task execution (using <code>@EnableScheduling</code> for instance).</p>
+<h1 id="testing">Testing<a hidden class="anchor" aria-hidden="true" href="#testing">#</a></h1>
+<p>Most developers use the <code>spring-boot-starter-test</code> “Starter”, which imports both Spring Boot test modules as well as JUnit Jupiter, AssertJ, Hamcrest, and a number of other useful libraries.</p>
+<ul>
+<li>
+<p><a href="https://junit.org/junit5/">JUnit 5</a>: The de-facto standard for unit testing Java applications.</p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-framework/docs/6.0.10/reference/html/testing.html#integration-testing">Spring Test</a> &amp; Spring Boot Test: Utilities and integration test support for Spring Boot applications.</p>
+</li>
+<li>
+<p><a href="https://assertj.github.io/doc/">AssertJ</a>: A fluent assertion library.</p>
+</li>
+<li>
+<p><a href="https://github.com/hamcrest/JavaHamcrest">Hamcrest</a>: A library of matcher objects (also known as constraints or predicates).</p>
+</li>
+<li>
+<p><a href="https://site.mockito.org/">Mockito</a>: A Java mocking framework.</p>
+</li>
+<li>
+<p><a href="https://github.com/skyscreamer/JSONassert">JSONassert</a>: An assertion library for JSON.</p>
+</li>
+<li>
+<p><a href="https://github.com/jayway/JsonPath">JsonPath</a>: XPath for JSON.</p>
+</li>
+</ul>
+<p><strong>One of the major advantages of dependency injection is that it should make your code easier to unit test.</strong> You can instantiate objects by using the <code>new</code> operator without even involving Spring. You can also use <em>mock objects</em> instead of real dependencies.</p>
+<p>By default, <code>@SpringBootTest</code> will not start a server. You can use the <code>webEnvironment</code> attribute of <code>@SpringBootTest</code> to further refine how your tests run:</p>
+<ul>
+<li>
+<p><code>MOCK</code>(Default) : Loads a web <code>ApplicationContext</code> and provides a mock web environment. Embedded servers are not started when using this annotation. If a web environment is not available on your classpath, this mode transparently falls back to creating a regular non-web <code>ApplicationContext</code>. It can be used in conjunction with <a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing.spring-boot-applications.with-mock-environment"><code>@AutoConfigureMockMvc</code> or <code>@AutoConfigureWebTestClient</code></a> for mock-based testing of your web application.</p>
+</li>
+<li>
+<p><code>RANDOM_PORT</code>: Loads a <code>WebServerApplicationContext</code> and provides a real web environment. Embedded servers are started and listen on a random port.</p>
+</li>
+<li>
+<p><code>DEFINED_PORT</code>: Loads a <code>WebServerApplicationContext</code> and provides a real web environment. Embedded servers are started and listen on a defined port (from your <code>application.properties</code>) or on the default port of <code>8080</code>.</p>
+</li>
+<li>
+<p><code>NONE</code>: Loads an <code>ApplicationContext</code> by using <code>SpringApplication</code> but does not provide <em>any</em> web environment (mock or otherwise).</p>
+</li>
+</ul>
+<h1 id="docker-compose-support">Docker Compose Support<a hidden class="anchor" aria-hidden="true" href="#docker-compose-support">#</a></h1>
+<p>A <code>compose.yml</code> file is typically created next to your application which defines and configures service containers.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#0550ae">&lt;dependencies&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#0550ae">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;artifactId&gt;</span>spring-boot-docker-compose<span style="color:#0550ae">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&lt;optional&gt;</span>true<span style="color:#0550ae">&lt;/optional&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">&lt;/dependencies&gt;</span>
+</span></span></code></pre></div><h1 id="creating-your-own-auto-configuration">Creating Your Own Auto-configuration<a hidden class="anchor" aria-hidden="true" href="#creating-your-own-auto-configuration">#</a></h1>
+<p>Classes that implement auto-configuration are annotated with <code>@AutoConfiguration</code>.</p>
+<h1 id="ssl">SSL<a hidden class="anchor" aria-hidden="true" href="#ssl">#</a></h1>
+<pre tabindex="0"><code>spring.ssl.bundle.jks.mybundle.key.alias=application
+spring.ssl.bundle.jks.mybundle.keystore.location=classpath:application.p12
+spring.ssl.bundle.jks.mybundle.keystore.password=secret
+spring.ssl.bundle.jks.mybundle.keystore.type=PKCS12
+</code></pre><blockquote>
+<p>参考资料：</p>
+<p><a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features">https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/spring/">Spring</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/pytest%E6%96%AD%E8%A8%80%E6%8A%80%E5%B7%A7/">
+    <span class="title">« 上一页</span>
+    <span>pytest 断言技巧</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8Ffixtures%E7%94%A8%E4%BE%8B%E4%B8%89%E8%80%85%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB/">
+    <span class="title">下一页 »</span>
+    <span>tep 环境变量、fixtures、用例三者之间的关系</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#springapplication">SpringApplication</a></li>
+    <li><a href="#externalized-configuration">Externalized Configuration</a></li>
+    <li><a href="#profiles">Profiles</a></li>
+    <li><a href="#logging">Logging</a></li>
+    <li><a href="#internationalization">Internationalization</a></li>
+    <li><a href="#json">JSON</a></li>
+    <li><a href="#task-execution-and-scheduling">Task Execution and Scheduling</a></li>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#docker-compose-support">Docker Compose Support</a></li>
+    <li><a href="#creating-your-own-auto-configuration">Creating Your Own Auto-configuration</a></li>
+    <li><a href="#ssl">SSL</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

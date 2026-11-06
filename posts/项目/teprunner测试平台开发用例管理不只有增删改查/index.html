@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>teprunner 测试平台开发用例管理不只有增删改查 | 测试开发刚哥</title>
+<meta name="keywords" content="teprunner">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+本文开发内容
+用例管理是对用例进行增删改查，按照前面文章的思路，把它做出来应该不难，如果你已经自己写好了，那么可以和本文提交的代码比较下看看。除了增删改查，用例管理还需要提供运行用例的入口，在操作列添加一个运行按钮，单条用例运行，并弹窗展示运行结果。用例列表需要能看到每条用例执行情况，添加表格列用于展示，其中“运行结果”列要有超链接，点击查看上次运行结果。为了避免修改别人用例出错，还需要有个复制用例功能。除了在线编辑，平台应支持下载项目环境到本地，无缝切换到 PyCharm，让新用户快速上手。综上所述，本文开发内容如下：
+
+用例增删改查。
+运行按钮，点击后弹出“运行用例结果”。
+添加表格展示列，其中“运行结果”用颜色区分不同结果状态：passed，failed，error，点击超链接后弹出“查看用例结果”。
+复制按钮，点击后生成一条复制的新用例。
+新增/编辑页面，添加运行按钮。
+运行/查看页面，添加编辑按钮。
+下载环境到本地。
+
+工作量主要在前端，后端先做一部分。
+编写后端代码
+编辑 teprunner/urls.py，添加路由：
+
+除了增删改查，还添加了 2 个接口，一个用于获取用例运行的结果，一个用于复制测试用例。
+编辑 teprunner/models.py，添加模型：
+
+第一个 Model 是 Case，没有定义 name 字段，实际上用例 ID 和用例描述已经够用了，name 不知道填什么，有点多余。第二个 Model 是 CaseResult，会记录运行结果，这个运行结果是从 pytest 执行日志最后一行的 Summary 截取出来的，比如 1 passed，1 failed，耗时也是从 Summary 截取出来的。output 存放代码运行后打到控制台的输出日志。最后三个字段记录运行环境、运行人和运行时间，运行时间取的数据库记录被添加/更新的时间。添加好以后迁移到数据库中：
+python manage.py makemigrations
+python manage.py migrate
+编辑 teprunner/serializers.py，添加序列化器，第一个序列化器是 CaseSerializer：
+
+只关联了 Case 模型的字段。
+第二个序列化器是 CaseListSerializer：
+
+它主要用来返回用例列表的数据，除了用例本身，还需要用例结果。serializers.SerializerMethodField 用于自定义序列化字段，定义好字段后，在下面添加get_前缀&#43;字段名的方法，这是 Django 的规则，然后在方法内部添加取值代码，比如 get_result()，instance 是指 Meta.model 定义的模型，这里就等同于 Case，通过 instance.id 获取到 Case.id 并赋值给 case_id 变量，从 CaseResult 的对象中过滤 case_id 匹配的用例结果，按运行时间倒序，取最新 1 条结果的 result 字段的值。其他字段的处理是类似的，runTime 这里做了下日期格式化：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E7%94%A8%E4%BE%8B%E7%AE%A1%E7%90%86%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E7%94%A8%E4%BE%8B%E7%AE%A1%E7%90%86%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E7%94%A8%E4%BE%8B%E7%AE%A1%E7%90%86%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="teprunner 测试平台开发用例管理不只有增删改查">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+本文开发内容 用例管理是对用例进行增删改查，按照前面文章的思路，把它做出来应该不难，如果你已经自己写好了，那么可以和本文提交的代码比较下看看。除了增删改查，用例管理还需要提供运行用例的入口，在操作列添加一个运行按钮，单条用例运行，并弹窗展示运行结果。用例列表需要能看到每条用例执行情况，添加表格列用于展示，其中“运行结果”列要有超链接，点击查看上次运行结果。为了避免修改别人用例出错，还需要有个复制用例功能。除了在线编辑，平台应支持下载项目环境到本地，无缝切换到 PyCharm，让新用户快速上手。综上所述，本文开发内容如下：
+用例增删改查。 运行按钮，点击后弹出“运行用例结果”。 添加表格展示列，其中“运行结果”用颜色区分不同结果状态：passed，failed，error，点击超链接后弹出“查看用例结果”。 复制按钮，点击后生成一条复制的新用例。 新增/编辑页面，添加运行按钮。 运行/查看页面，添加编辑按钮。 下载环境到本地。 工作量主要在前端，后端先做一部分。
+编写后端代码 编辑 teprunner/urls.py，添加路由：
+除了增删改查，还添加了 2 个接口，一个用于获取用例运行的结果，一个用于复制测试用例。
+编辑 teprunner/models.py，添加模型：
+第一个 Model 是 Case，没有定义 name 字段，实际上用例 ID 和用例描述已经够用了，name 不知道填什么，有点多余。第二个 Model 是 CaseResult，会记录运行结果，这个运行结果是从 pytest 执行日志最后一行的 Summary 截取出来的，比如 1 passed，1 failed，耗时也是从 Summary 截取出来的。output 存放代码运行后打到控制台的输出日志。最后三个字段记录运行环境、运行人和运行时间，运行时间取的数据库记录被添加/更新的时间。添加好以后迁移到数据库中：
+python manage.py makemigrations python manage.py migrate 编辑 teprunner/serializers.py，添加序列化器，第一个序列化器是 CaseSerializer：
+只关联了 Case 模型的字段。
+第二个序列化器是 CaseListSerializer：
+它主要用来返回用例列表的数据，除了用例本身，还需要用例结果。serializers.SerializerMethodField 用于自定义序列化字段，定义好字段后，在下面添加get_前缀&#43;字段名的方法，这是 Django 的规则，然后在方法内部添加取值代码，比如 get_result()，instance 是指 Meta.model 定义的模型，这里就等同于 Case，通过 instance.id 获取到 Case.id 并赋值给 case_id 变量，从 CaseResult 的对象中过滤 case_id 匹配的用例结果，按运行时间倒序，取最新 1 条结果的 result 字段的值。其他字段的处理是类似的，runTime 这里做了下日期格式化：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-05T00:00:00+00:00">
+    <meta property="article:tag" content="Teprunner">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="teprunner 测试平台开发用例管理不只有增删改查">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+本文开发内容 用例管理是对用例进行增删改查，按照前面文章的思路，把它做出来应该不难，如果你已经自己写好了，那么可以和本文提交的代码比较下看看。除了增删改查，用例管理还需要提供运行用例的入口，在操作列添加一个运行按钮，单条用例运行，并弹窗展示运行结果。用例列表需要能看到每条用例执行情况，添加表格列用于展示，其中“运行结果”列要有超链接，点击查看上次运行结果。为了避免修改别人用例出错，还需要有个复制用例功能。除了在线编辑，平台应支持下载项目环境到本地，无缝切换到 PyCharm，让新用户快速上手。综上所述，本文开发内容如下：
+用例增删改查。 运行按钮，点击后弹出“运行用例结果”。 添加表格展示列，其中“运行结果”用颜色区分不同结果状态：passed，failed，error，点击超链接后弹出“查看用例结果”。 复制按钮，点击后生成一条复制的新用例。 新增/编辑页面，添加运行按钮。 运行/查看页面，添加编辑按钮。 下载环境到本地。 工作量主要在前端，后端先做一部分。
+编写后端代码 编辑 teprunner/urls.py，添加路由：
+除了增删改查，还添加了 2 个接口，一个用于获取用例运行的结果，一个用于复制测试用例。
+编辑 teprunner/models.py，添加模型：
+第一个 Model 是 Case，没有定义 name 字段，实际上用例 ID 和用例描述已经够用了，name 不知道填什么，有点多余。第二个 Model 是 CaseResult，会记录运行结果，这个运行结果是从 pytest 执行日志最后一行的 Summary 截取出来的，比如 1 passed，1 failed，耗时也是从 Summary 截取出来的。output 存放代码运行后打到控制台的输出日志。最后三个字段记录运行环境、运行人和运行时间，运行时间取的数据库记录被添加/更新的时间。添加好以后迁移到数据库中：
+python manage.py makemigrations python manage.py migrate 编辑 teprunner/serializers.py，添加序列化器，第一个序列化器是 CaseSerializer：
+只关联了 Case 模型的字段。
+第二个序列化器是 CaseListSerializer：
+它主要用来返回用例列表的数据，除了用例本身，还需要用例结果。serializers.SerializerMethodField 用于自定义序列化字段，定义好字段后，在下面添加get_前缀&#43;字段名的方法，这是 Django 的规则，然后在方法内部添加取值代码，比如 get_result()，instance 是指 Meta.model 定义的模型，这里就等同于 Case，通过 instance.id 获取到 Case.id 并赋值给 case_id 变量，从 CaseResult 的对象中过滤 case_id 匹配的用例结果，按运行时间倒序，取最新 1 条结果的 result 字段的值。其他字段的处理是类似的，runTime 这里做了下日期格式化：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "teprunner 测试平台开发用例管理不只有增删改查",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E7%94%A8%E4%BE%8B%E7%AE%A1%E7%90%86%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "teprunner 测试平台开发用例管理不只有增删改查",
+  "name": "teprunner 测试平台开发用例管理不只有增删改查",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n本文开发内容 用例管理是对用例进行增删改查，按照前面文章的思路，把它做出来应该不难，如果你已经自己写好了，那么可以和本文提交的代码比较下看看。除了增删改查，用例管理还需要提供运行用例的入口，在操作列添加一个运行按钮，单条用例运行，并弹窗展示运行结果。用例列表需要能看到每条用例执行情况，添加表格列用于展示，其中“运行结果”列要有超链接，点击查看上次运行结果。为了避免修改别人用例出错，还需要有个复制用例功能。除了在线编辑，平台应支持下载项目环境到本地，无缝切换到 PyCharm，让新用户快速上手。综上所述，本文开发内容如下：\n用例增删改查。 运行按钮，点击后弹出“运行用例结果”。 添加表格展示列，其中“运行结果”用颜色区分不同结果状态：passed，failed，error，点击超链接后弹出“查看用例结果”。 复制按钮，点击后生成一条复制的新用例。 新增/编辑页面，添加运行按钮。 运行/查看页面，添加编辑按钮。 下载环境到本地。 工作量主要在前端，后端先做一部分。\n编写后端代码 编辑 teprunner/urls.py，添加路由：\n除了增删改查，还添加了 2 个接口，一个用于获取用例运行的结果，一个用于复制测试用例。\n编辑 teprunner/models.py，添加模型：\n第一个 Model 是 Case，没有定义 name 字段，实际上用例 ID 和用例描述已经够用了，name 不知道填什么，有点多余。第二个 Model 是 CaseResult，会记录运行结果，这个运行结果是从 pytest 执行日志最后一行的 Summary 截取出来的，比如 1 passed，1 failed，耗时也是从 Summary 截取出来的。output 存放代码运行后打到控制台的输出日志。最后三个字段记录运行环境、运行人和运行时间，运行时间取的数据库记录被添加/更新的时间。添加好以后迁移到数据库中：\npython manage.py makemigrations python manage.py migrate 编辑 teprunner/serializers.py，添加序列化器，第一个序列化器是 CaseSerializer：\n只关联了 Case 模型的字段。\n第二个序列化器是 CaseListSerializer：\n它主要用来返回用例列表的数据，除了用例本身，还需要用例结果。serializers.SerializerMethodField 用于自定义序列化字段，定义好字段后，在下面添加get_前缀+字段名的方法，这是 Django 的规则，然后在方法内部添加取值代码，比如 get_result()，instance 是指 Meta.model 定义的模型，这里就等同于 Case，通过 instance.id 获取到 Case.id 并赋值给 case_id 变量，从 CaseResult 的对象中过滤 case_id 匹配的用例结果，按运行时间倒序，取最新 1 条结果的 result 字段的值。其他字段的处理是类似的，runTime 这里做了下日期格式化：\n",
+  "keywords": [
+    "teprunner"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n本文开发内容 用例管理是对用例进行增删改查，按照前面文章的思路，把它做出来应该不难，如果你已经自己写好了，那么可以和本文提交的代码比较下看看。除了增删改查，用例管理还需要提供运行用例的入口，在操作列添加一个运行按钮，单条用例运行，并弹窗展示运行结果。用例列表需要能看到每条用例执行情况，添加表格列用于展示，其中“运行结果”列要有超链接，点击查看上次运行结果。为了避免修改别人用例出错，还需要有个复制用例功能。除了在线编辑，平台应支持下载项目环境到本地，无缝切换到 PyCharm，让新用户快速上手。综上所述，本文开发内容如下：\n用例增删改查。 运行按钮，点击后弹出“运行用例结果”。 添加表格展示列，其中“运行结果”用颜色区分不同结果状态：passed，failed，error，点击超链接后弹出“查看用例结果”。 复制按钮，点击后生成一条复制的新用例。 新增/编辑页面，添加运行按钮。 运行/查看页面，添加编辑按钮。 下载环境到本地。 工作量主要在前端，后端先做一部分。\n编写后端代码 编辑 teprunner/urls.py，添加路由：\n除了增删改查，还添加了 2 个接口，一个用于获取用例运行的结果，一个用于复制测试用例。\n编辑 teprunner/models.py，添加模型：\n第一个 Model 是 Case，没有定义 name 字段，实际上用例 ID 和用例描述已经够用了，name 不知道填什么，有点多余。第二个 Model 是 CaseResult，会记录运行结果，这个运行结果是从 pytest 执行日志最后一行的 Summary 截取出来的，比如 1 passed，1 failed，耗时也是从 Summary 截取出来的。output 存放代码运行后打到控制台的输出日志。最后三个字段记录运行环境、运行人和运行时间，运行时间取的数据库记录被添加/更新的时间。添加好以后迁移到数据库中：\npython manage.py makemigrations python manage.py migrate 编辑 teprunner/serializers.py，添加序列化器，第一个序列化器是 CaseSerializer：\n只关联了 Case 模型的字段。\n第二个序列化器是 CaseListSerializer：\n它主要用来返回用例列表的数据，除了用例本身，还需要用例结果。serializers.SerializerMethodField 用于自定义序列化字段，定义好字段后，在下面添加get_前缀+字段名的方法，这是 Django 的规则，然后在方法内部添加取值代码，比如 get_result()，instance 是指 Meta.model 定义的模型，这里就等同于 Case，通过 instance.id 获取到 Case.id 并赋值给 case_id 变量，从 CaseResult 的对象中过滤 case_id 匹配的用例结果，按运行时间倒序，取最新 1 条结果的 result 字段的值。其他字段的处理是类似的，runTime 这里做了下日期格式化：\n第三个序列化器是 CaseResultSerializer：\n只关联了 CaseResult 模型的字段，runTime 同样做了日期格式化。从这里也能更清晰的看到，instance 就是指的自己！\n新建 teprunner/views/case.py 文件，添加视图，先把简单的两个视图做了，第一个视图是 case_result：\n这里是个知识点，采用@api_view 注解的函数视图，如果想用序列化器，那么采用这种方式。\n第二个视图是 copy_case：\n根据 case_id 查找到现有 Case 对象，在 case.desc 后面添加--复制后缀，其他字段数据复用，保存，就完成复制用例了。\n第三个视图是 CaseViewSet：\n继承了 ModelViewSet，重写了 list 列表查询，因为如果不重写，默认返回的结果是 serializer_class = CaseSerializer 序列化器的内容。我们需要的是 CaseListSerializer 这个序列化器的内容。这里也是一个知识点！如果想在类视图中，使用 serializer_class 以外的序列化器加分页，采用这种方式。\n重写的 list 方法首先添加了 project_id、case_id、desc、api 四个过滤条件，与前端的当前项目、用例 ID 搜索框、用例描述搜索框、API 路径搜索框一一对应。__icontains表示包含，相当于模糊匹配，i忽略大小写。接着用到了自定义分页的类，按照统一的分页格式，返回序列化器的数据。\n最后，重写了 update 方法，用现有的创建人进行更新。\n编写前端代码 编辑 router/index.js，添加路由：\n编辑 views/teprunner/index.vue，添加菜单项：\n新建 views/teprunner/case/CaseManagement.vue 文件，增删改查基础代码不再另加赘述，挑选新代码：\n在运行结果列，添加了超链接，点击后打开用例结果弹窗，这个弹窗查看和运行用例都会用到，用第一个参数 type 做区分：\ngetResultColor 方法返回颜色样式：\n由于用例结果弹窗和用例列表表格都会有这个字段，于是把 resultColor 方法提取到了 utils/commonMethods.js 文件中：\nCaseManagement.vue 是一个父组件，它有 3 个子组件，如下图所示：\n通过 import 后，添加标签代码引入：\n是否显示弹窗通过 DialogFormVisible 的 true/false 来控制，DialogTitle 指定弹窗标题。:开头是父组件向子组件传值， @开头是接受子组件发过来的 emit 事件通知，从而调用父组件中方法。这样就把这几个组件绑定在一起了！\n从这里开始，这几个组件之间的关系会稍微有点绕，读不懂的话多结合源码看看！\n有个小细节，运行按钮打开的弹框在关闭后，需要刷新用例列表更新数据，表格超链接打开的弹框关闭后不需要刷新：\n代码的意思是在打开弹窗时给 this.afterCloseRefreshList 赋值为 true/false，在关闭弹窗时判断要不要刷新列表。\n接下来对这三个弹窗逐一进行开发。新建 views/teprunner/case/AddCase.vue 文件，增改代码不再赘述，添加 1 个运行按钮：\n点击后调用：\n首先校验必填项，校验通过后，发起请求：\n增加了一个 type 参数，因为选择保存或者运行，是两种类型，只有点击运行按钮，才用 emit 注册运行事件。新增用例的时候，没有用例 ID，就不能直接运行用例，为了解决这个问题，把保存后接口响应中的 ID，作为运行用例 ID。\n新建 views/teprunner/case/CaseResult.vue 文件：\n把代码编辑区设置为只读和自动换行。添加编辑按钮：\n点击后调用：\n关闭弹窗，注册编辑事件。\n这里把刚才结合到一起说一下，“运行/查看用例结果”弹框和“新增/编辑用例”弹框可以通过运行/编辑按钮相互切换，它们是通过注册事件，发送到父组件 CaseManagement.vue，再分别通知下去来实现的：\n打开结果弹窗后，调用接口查询用例描述和创建人：\n根据类型执行 runCase 或 getResult：\n最后，新建 views/teprunner/case/WriteDown.vue 文件，大同小异，新代码是：\n从百度搜来的，把后端返回的二进制文件字节流组装成压缩包，打开系统弹窗，下载文件。\n小插曲 这一版比第一版代码优化了不少，尤其是几个组件之间如何传值这里，简化了很多，比如把执行用例从 CaseManagement.vue 转移到 CaseResult.vue 中来调用。在折腾过程中，也基本掌握了组件传值的写法，总结如下：\n①父组件传值给子组件：子组件 props 接收，父组件标签绑定 data 传值，比如：\n## 父组件 data() { return { runEnv: \"\", }; }, ## 子组件 props: { runEnv: { type: String, default: \"\", }, }, ②子组件通知父组件：子组件 this.$emit 注册事件，父组件标签@调用，比如：\n## 父组件 closeCaseResultDialog() { console.log(\"close\"); }, ## 子组件 close() { this.$emit(\"closeCaseResultDialog\"); }, ③子组件修改父组件传值：先把子组件 props 赋值给子组件 data，再 watch 子组件 data，比如：\n## 父组件 data() { return { runEnv: \"\", }; }, ## 子组件 props: { runEnv: { type: String, default: \"\", }, }, data() { return { runEnv: this.runEnv, }; }, watch: { runEnv(val) { this.caseForm.runEnv = val; }, }, 第一版有很多第三种方式的代码，因为要把 CaseManagement 的执行结果传到 CaseResult 中去，在关闭弹窗时又需要清空，这些数据是从 CaseManagement 传过来的，直接改 Vue 会报错：禁止子组件直接修改父组件数据，防止数据错乱。比较麻烦，重写这一版优化了很多。\n小结 本文的后端开发除了增删改查，还给出了 Django REST framework 函数视图如何引用序列化器，类视图重写方法如何引用非 serializer_class 绑定序列化器加分页。前端开发稍微有点复杂，尤其是父子组件如何传值，可能结合代码看看会更便于理解。从开篇写到这里，用户管理、项目管理、环境变量、fixtures、用例增删改查、运行用例、结果展示、下载环境，以 tep 为中间层的测试平台壳子已经做好了，万事已具备，只等 pytest 注入灵魂。\n",
+  "wordCount" : "323",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-05T00:00:00Z",
+  "dateModified": "2026-01-05T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E7%94%A8%E4%BE%8B%E7%AE%A1%E7%90%86%E4%B8%8D%E5%8F%AA%E6%9C%89%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      teprunner 测试平台开发用例管理不只有增删改查
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-05T00:00:00+00:00'>2026-01-05</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/teprunner/'>#Teprunner</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="本文开发内容">本文开发内容<a hidden class="anchor" aria-hidden="true" href="#本文开发内容">#</a></h1>
+<p>用例管理是对用例进行增删改查，按照前面文章的思路，把它做出来应该不难，如果你已经自己写好了，那么可以和本文提交的代码比较下看看。除了增删改查，用例管理还需要提供运行用例的入口，在操作列添加一个运行按钮，单条用例运行，并弹窗展示运行结果。用例列表需要能看到每条用例执行情况，添加表格列用于展示，其中“运行结果”列要有超链接，点击查看上次运行结果。为了避免修改别人用例出错，还需要有个复制用例功能。除了在线编辑，平台应支持下载项目环境到本地，无缝切换到 PyCharm，让新用户快速上手。综上所述，本文开发内容如下：</p>
+<ul>
+<li>用例增删改查。</li>
+<li>运行按钮，点击后弹出“运行用例结果”。</li>
+<li>添加表格展示列，其中“运行结果”用颜色区分不同结果状态：passed，failed，error，点击超链接后弹出“查看用例结果”。</li>
+<li>复制按钮，点击后生成一条复制的新用例。</li>
+<li>新增/编辑页面，添加运行按钮。</li>
+<li>运行/查看页面，添加编辑按钮。</li>
+<li>下载环境到本地。</li>
+</ul>
+<p>工作量主要在前端，后端先做一部分。</p>
+<h1 id="编写后端代码">编写后端代码<a hidden class="anchor" aria-hidden="true" href="#编写后端代码">#</a></h1>
+<p>编辑 teprunner/urls.py，添加路由：</p>
+<p><img loading="lazy" src="../assets/212bda04278c4eea864f64edbe8e6c2b.png"></p>
+<p>除了增删改查，还添加了 2 个接口，一个用于获取用例运行的结果，一个用于复制测试用例。</p>
+<p>编辑 teprunner/models.py，添加模型：</p>
+<p><img loading="lazy" src="../assets/ebbca98ae0734477b8b8ee8a2b2713bd.png"></p>
+<p>第一个 Model 是 Case，没有定义 name 字段，实际上用例 ID 和用例描述已经够用了，name 不知道填什么，有点多余。第二个 Model 是 CaseResult，会记录运行结果，这个运行结果是从 pytest 执行日志最后一行的 Summary 截取出来的，比如 1 passed，1 failed，耗时也是从 Summary 截取出来的。output 存放代码运行后打到控制台的输出日志。最后三个字段记录运行环境、运行人和运行时间，运行时间取的数据库记录被添加/更新的时间。添加好以后迁移到数据库中：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>python manage.py makemigrations
+</span></span><span style="display:flex;"><span>python manage.py migrate
+</span></span></code></pre></div><p>编辑 teprunner/serializers.py，添加序列化器，第一个序列化器是 CaseSerializer：</p>
+<p><img loading="lazy" src="../assets/fd7c0235d6684a7aae21827c39a2af96.png"></p>
+<p>只关联了 Case 模型的字段。</p>
+<p>第二个序列化器是 CaseListSerializer：</p>
+<p><img loading="lazy" src="../assets/096c709c347f463d9d4c9d1f946d7947.png"></p>
+<p>它主要用来返回用例列表的数据，除了用例本身，还需要用例结果。serializers.SerializerMethodField 用于自定义序列化字段，定义好字段后，在下面添加<code>get_前缀+字段名</code>的方法，这是 Django 的规则，然后在方法内部添加取值代码，比如 get_result()，instance 是指 Meta.model 定义的模型，这里就等同于 Case，通过 instance.id 获取到 Case.id 并赋值给 case_id 变量，从 CaseResult 的对象中过滤 case_id 匹配的用例结果，按运行时间倒序，取最新 1 条结果的 result 字段的值。其他字段的处理是类似的，runTime 这里做了下日期格式化：</p>
+<p><img loading="lazy" src="../assets/499311186fe74d6bbcee6823a98568e9.png"></p>
+<p>第三个序列化器是 CaseResultSerializer：</p>
+<p><img loading="lazy" src="../assets/4b27b96941f743458fa42081b8e935fb.png"></p>
+<p>只关联了 CaseResult 模型的字段，runTime 同样做了日期格式化。从这里也能更清晰的看到，instance 就是指的自己！</p>
+<p>新建 teprunner/views/case.py 文件，添加视图，先把简单的两个视图做了，第一个视图是 case_result：</p>
+<p><img loading="lazy" src="../assets/81e74079171b400ea9fa0cc15e2d4f84.png"></p>
+<p>这里是个知识点，采用@api_view 注解的函数视图，如果想用序列化器，那么采用这种方式。</p>
+<p>第二个视图是 copy_case：</p>
+<p><img loading="lazy" src="../assets/d4b66089366b4b229daddb4fc2a34f1a.png"></p>
+<p>根据 case_id 查找到现有 Case 对象，在 case.desc 后面添加<code>--复制</code>后缀，其他字段数据复用，保存，就完成复制用例了。</p>
+<p>第三个视图是 CaseViewSet：</p>
+<p><img loading="lazy" src="../assets/90921afa5bca4b8cb2702cad9dd684b2.png"></p>
+<p>继承了 ModelViewSet，重写了 list 列表查询，因为如果不重写，默认返回的结果是 serializer_class = CaseSerializer 序列化器的内容。我们需要的是 CaseListSerializer 这个序列化器的内容。这里也是一个知识点！如果想在类视图中，使用 serializer_class 以外的序列化器加分页，采用这种方式。</p>
+<p>重写的 list 方法首先添加了 project_id、case_id、desc、api 四个过滤条件，与前端的当前项目、用例 ID 搜索框、用例描述搜索框、API 路径搜索框一一对应。<code>__icontains</code>表示包含，相当于模糊匹配，<code>i</code>忽略大小写。接着用到了自定义分页的类，按照统一的分页格式，返回序列化器的数据。</p>
+<p>最后，重写了 update 方法，用现有的创建人进行更新。</p>
+<h1 id="编写前端代码">编写前端代码<a hidden class="anchor" aria-hidden="true" href="#编写前端代码">#</a></h1>
+<p>编辑 router/index.js，添加路由：</p>
+<p><img loading="lazy" src="../assets/69b335361608450fb0556aba32e09d7c.png"></p>
+<p>编辑 views/teprunner/index.vue，添加菜单项：</p>
+<p><img loading="lazy" src="../assets/640655751b4b436dac0745857a6277fb.png"></p>
+<p>新建 views/teprunner/case/CaseManagement.vue 文件，增删改查基础代码不再另加赘述，挑选新代码：</p>
+<p><img loading="lazy" src="../assets/2781b1acd3b94379bbcf00bd2bd680c2.png"></p>
+<p>在运行结果列，添加了超链接，点击后打开用例结果弹窗，这个弹窗查看和运行用例都会用到，用第一个参数 type 做区分：</p>
+<p><img loading="lazy" src="../assets/4dc3075bbd7a4f8c8fa13fd55a671c43.png"></p>
+<p>getResultColor 方法返回颜色样式：</p>
+<p><img loading="lazy" src="../assets/410d96b7b51e4d6dbe08cd0630826c06.png"></p>
+<p>由于用例结果弹窗和用例列表表格都会有这个字段，于是把 resultColor 方法提取到了 utils/commonMethods.js 文件中：</p>
+<p><img loading="lazy" src="../assets/0ed151d7f10d4d7eb7c372791fd864e0.png"></p>
+<p>CaseManagement.vue 是一个父组件，它有 3 个子组件，如下图所示：</p>
+<p><img loading="lazy" src="../assets/acca7566c3964a9c9054b84a6e155371.png"></p>
+<p>通过 import 后，添加标签代码引入：</p>
+<p><img loading="lazy" src="../assets/c0bb29a4d8d8477f931c89d133ddfa77.png"></p>
+<p><img loading="lazy" src="../assets/a6572cbc9616490aaa6fb03a7e576ac3.png"></p>
+<p>是否显示弹窗通过 DialogFormVisible 的 true/false 来控制，DialogTitle 指定弹窗标题。<code>:</code>开头是父组件向子组件传值， <code>@</code>开头是接受子组件发过来的 emit 事件通知，从而调用父组件中方法。这样就把这几个组件绑定在一起了！</p>
+<blockquote>
+<p>从这里开始，这几个组件之间的关系会稍微有点绕，读不懂的话多结合源码看看！</p>
+</blockquote>
+<p>有个小细节，运行按钮打开的弹框在关闭后，需要刷新用例列表更新数据，表格超链接打开的弹框关闭后不需要刷新：</p>
+<p><img loading="lazy" src="../assets/d1cf8a0090dd49cc9bc229791a621168.png"></p>
+<p>代码的意思是在打开弹窗时给 this.afterCloseRefreshList 赋值为 true/false，在关闭弹窗时判断要不要刷新列表。</p>
+<p>接下来对这三个弹窗逐一进行开发。新建 views/teprunner/case/AddCase.vue 文件，增改代码不再赘述，添加 1 个运行按钮：</p>
+<p><img loading="lazy" src="../assets/96083f43c39745babca7fb4372202da8.png"></p>
+<p>点击后调用：</p>
+<p><img loading="lazy" src="../assets/dc835b19a1b24838a347a9452757c1a2.png"></p>
+<p>首先校验必填项，校验通过后，发起请求：</p>
+<p><img loading="lazy" src="../assets/feb2eff432ba47448f75b638719d8a4f.png"></p>
+<p>增加了一个 type 参数，因为选择保存或者运行，是两种类型，只有点击运行按钮，才用 emit 注册运行事件。新增用例的时候，没有用例 ID，就不能直接运行用例，为了解决这个问题，把保存后接口响应中的 ID，作为运行用例 ID。</p>
+<p>新建 views/teprunner/case/CaseResult.vue 文件：</p>
+<p><img loading="lazy" src="../assets/805f09dfada84efb8d7c402db9642ad1.png"></p>
+<p>把代码编辑区设置为只读和自动换行。添加编辑按钮：</p>
+<p><img loading="lazy" src="../assets/5b0efe661c4e4786ae02ccd92b97651f.png"></p>
+<p>点击后调用：</p>
+<p><img loading="lazy" src="../assets/c187e1e80f704fc28a986dcee4b7e0f0.png"></p>
+<p>关闭弹窗，注册编辑事件。</p>
+<p>这里把刚才结合到一起说一下，“运行/查看用例结果”弹框和“新增/编辑用例”弹框可以通过运行/编辑按钮相互切换，它们是通过注册事件，发送到父组件 CaseManagement.vue，再分别通知下去来实现的：</p>
+<p><img loading="lazy" src="../assets/4086a393979a4a318e16b13791e51e71.png"></p>
+<p>打开结果弹窗后，调用接口查询用例描述和创建人：</p>
+<p><img loading="lazy" src="../assets/7a970551311e4cab955df4fba4477337.png"></p>
+<p>根据类型执行 runCase 或 getResult：</p>
+<p><img loading="lazy" src="../assets/7ecf8f9ca7fc4335b01962129ab6a4b9.png"></p>
+<p>最后，新建 views/teprunner/case/WriteDown.vue 文件，大同小异，新代码是：</p>
+<p><img loading="lazy" src="../assets/0f93db1e24f344fbb55d907c90926932.png"></p>
+<p>从百度搜来的，把后端返回的二进制文件字节流组装成压缩包，打开系统弹窗，下载文件。</p>
+<h1 id="小插曲">小插曲<a hidden class="anchor" aria-hidden="true" href="#小插曲">#</a></h1>
+<p>这一版比第一版代码优化了不少，尤其是几个组件之间如何传值这里，简化了很多，比如把执行用例从 CaseManagement.vue 转移到 CaseResult.vue 中来调用。在折腾过程中，也基本掌握了组件传值的写法，总结如下：</p>
+<p>①父组件传值给子组件：子组件 props 接收，父组件标签绑定 data 传值，比如：</p>
+<pre tabindex="0"><code>## 父组件
+&lt;CaseResultDialog :runEnv.sync=&#34;runEnv&#34; /&gt;
+
+data() {
+  return {
+    runEnv: &#34;&#34;,
+  };
+},
+    
+## 子组件
+props: {
+  runEnv: {
+    type: String,
+    default: &#34;&#34;,
+  },
+},
+</code></pre><p>②子组件通知父组件：子组件 this.$emit 注册事件，父组件标签@调用，比如：</p>
+<pre tabindex="0"><code>## 父组件
+&lt;CaseResultDialog 
+  @closeCaseResultDialog=&#34;closeCaseResultDialog&#34;
+/&gt;
+
+closeCaseResultDialog() {
+  console.log(&#34;close&#34;);
+},
+    
+## 子组件
+close() {
+    this.$emit(&#34;closeCaseResultDialog&#34;);
+},
+</code></pre><p>③子组件修改父组件传值：先把子组件 props 赋值给子组件 data，再 watch 子组件 data，比如：</p>
+<pre tabindex="0"><code>## 父组件
+&lt;CaseResultDialog :runEnv.sync=&#34;runEnv&#34; /&gt;
+
+data() {
+  return {
+    runEnv: &#34;&#34;,
+  };
+},
+
+## 子组件
+props: {
+  runEnv: {
+    type: String,
+    default: &#34;&#34;,
+  },
+},
+    
+data() {
+  return {
+    runEnv: this.runEnv,
+  };
+},
+    
+watch: {
+  runEnv(val) {
+    this.caseForm.runEnv = val;
+  },
+},
+</code></pre><blockquote>
+<p>第一版有很多第三种方式的代码，因为要把 CaseManagement 的执行结果传到 CaseResult 中去，在关闭弹窗时又需要清空，这些数据是从 CaseManagement 传过来的，直接改 Vue 会报错：禁止子组件直接修改父组件数据，防止数据错乱。比较麻烦，重写这一版优化了很多。</p>
+</blockquote>
+<h1 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h1>
+<p>本文的后端开发除了增删改查，还给出了 Django REST framework 函数视图如何引用序列化器，类视图重写方法如何引用非 serializer_class 绑定序列化器加分页。前端开发稍微有点复杂，尤其是父子组件如何传值，可能结合代码看看会更便于理解。从开篇写到这里，用户管理、项目管理、环境变量、fixtures、用例增删改查、运行用例、结果展示、下载环境，以 tep 为中间层的测试平台壳子已经做好了，万事已具备，只等 pytest 注入灵魂。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/teprunner/">Teprunner</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep0.6.0%E6%9B%B4%E6%96%B0%E8%81%8A%E8%81%8Apytest%E5%8F%98%E9%87%8F%E6%8E%A5%E5%8F%A3%E7%94%A8%E4%BE%8B3%E4%B8%AA%E7%BA%A7%E5%88%AB%E5%A4%8D%E7%94%A8/">
+    <span class="title">« 上一页</span>
+    <span>tep0.6.0 更新聊聊 pytest 变量接口用例 3 个级别复用</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9A%84%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/">
+    <span class="title">下一页 »</span>
+    <span>端到端自动化的开源框架</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#本文开发内容">本文开发内容</a></li>
+    <li><a href="#编写后端代码">编写后端代码</a></li>
+    <li><a href="#编写前端代码">编写前端代码</a></li>
+    <li><a href="#小插曲">小插曲</a></li>
+    <li><a href="#小结">小结</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

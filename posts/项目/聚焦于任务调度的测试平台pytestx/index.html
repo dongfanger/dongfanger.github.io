@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>聚焦于任务调度的测试平台 pytestx | 测试开发刚哥</title>
+<meta name="keywords" content="pytestx">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+设计理念
+聚焦于任务调度，接口自动化 80%本地编写，20%交由平台管理。
+如果使用 pytest 做接口自动化，那么个人认为最好的编写工具是 PyCharm，任何低代码测试平台都无法取代。当然不会代码，或者不使用 pytest，那低代码测试平台，或者 yaml，甚至 excel 写自动化用例，都是可以接受的。而在使用 pytest 这个特定场景里面，要做平台化，平台的功能就需要仔细斟酌。既然编写用例最好使用 PyCharm，平台也就只能专注于用例编排和任务调度，即创建任务，关联用例，批量运行，以及定时，并行，通知等。
+pytestx正是基于此理念设计的一款纯粹的任务调度平台。
+
+平台架构
+
+tep1.0.0 的延续
+tep1.0.0 版本已经封版，在 pytestx 中对它进行了延续。
+从 pypi 到 git
+tep 是上传到 pypi 的，通过 pip 命令安装，使用 tep startproject 命令创建项目脚手架，代码结构分为项目代码和 tep 代码。改造后的 tep 只有项目代码，存放在：
+https://gitee.com/dongfanger/tep-project.git
+也就是说，在这个项目中，能看到整个 tep 全貌。之前的 tep 内核代码，比如 fixtures 自动寻找、内置 fixture、环境变量等，全部迁移到了项目代码里面，尤其是 conftest.py 的文件内容。pip install tep 顺带安装的依赖包，也整理到了 requirements.txt，按照说明安装即可。
+pytest-html 替换 allure
+由重到轻，化繁为简，pytest-html 能够满足数据&#43;日志的报告需要，最新的 V3.2.0 版本的界面尚可。诚然 allure 漂亮，但安装 Java、下载 Allure、配置环境变量、安装 pytest-allure、添加 pytest hook 还是相对麻烦。更重要的是，要支持平台在线查看报告，减少存储占用，pytest-html 无疑是更好的选择。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E8%81%9A%E7%84%A6%E4%BA%8E%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6%E7%9A%84%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0pytestx/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E8%81%9A%E7%84%A6%E4%BA%8E%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6%E7%9A%84%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0pytestx/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E8%81%9A%E7%84%A6%E4%BA%8E%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6%E7%9A%84%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0pytestx/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="聚焦于任务调度的测试平台 pytestx">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+设计理念 聚焦于任务调度，接口自动化 80%本地编写，20%交由平台管理。
+如果使用 pytest 做接口自动化，那么个人认为最好的编写工具是 PyCharm，任何低代码测试平台都无法取代。当然不会代码，或者不使用 pytest，那低代码测试平台，或者 yaml，甚至 excel 写自动化用例，都是可以接受的。而在使用 pytest 这个特定场景里面，要做平台化，平台的功能就需要仔细斟酌。既然编写用例最好使用 PyCharm，平台也就只能专注于用例编排和任务调度，即创建任务，关联用例，批量运行，以及定时，并行，通知等。
+pytestx正是基于此理念设计的一款纯粹的任务调度平台。
+平台架构 tep1.0.0 的延续 tep1.0.0 版本已经封版，在 pytestx 中对它进行了延续。
+从 pypi 到 git
+tep 是上传到 pypi 的，通过 pip 命令安装，使用 tep startproject 命令创建项目脚手架，代码结构分为项目代码和 tep 代码。改造后的 tep 只有项目代码，存放在：
+https://gitee.com/dongfanger/tep-project.git
+也就是说，在这个项目中，能看到整个 tep 全貌。之前的 tep 内核代码，比如 fixtures 自动寻找、内置 fixture、环境变量等，全部迁移到了项目代码里面，尤其是 conftest.py 的文件内容。pip install tep 顺带安装的依赖包，也整理到了 requirements.txt，按照说明安装即可。
+pytest-html 替换 allure
+由重到轻，化繁为简，pytest-html 能够满足数据&#43;日志的报告需要，最新的 V3.2.0 版本的界面尚可。诚然 allure 漂亮，但安装 Java、下载 Allure、配置环境变量、安装 pytest-allure、添加 pytest hook 还是相对麻烦。更重要的是，要支持平台在线查看报告，减少存储占用，pytest-html 无疑是更好的选择。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:tag" content="Pytestx">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="聚焦于任务调度的测试平台 pytestx">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+设计理念 聚焦于任务调度，接口自动化 80%本地编写，20%交由平台管理。
+如果使用 pytest 做接口自动化，那么个人认为最好的编写工具是 PyCharm，任何低代码测试平台都无法取代。当然不会代码，或者不使用 pytest，那低代码测试平台，或者 yaml，甚至 excel 写自动化用例，都是可以接受的。而在使用 pytest 这个特定场景里面，要做平台化，平台的功能就需要仔细斟酌。既然编写用例最好使用 PyCharm，平台也就只能专注于用例编排和任务调度，即创建任务，关联用例，批量运行，以及定时，并行，通知等。
+pytestx正是基于此理念设计的一款纯粹的任务调度平台。
+平台架构 tep1.0.0 的延续 tep1.0.0 版本已经封版，在 pytestx 中对它进行了延续。
+从 pypi 到 git
+tep 是上传到 pypi 的，通过 pip 命令安装，使用 tep startproject 命令创建项目脚手架，代码结构分为项目代码和 tep 代码。改造后的 tep 只有项目代码，存放在：
+https://gitee.com/dongfanger/tep-project.git
+也就是说，在这个项目中，能看到整个 tep 全貌。之前的 tep 内核代码，比如 fixtures 自动寻找、内置 fixture、环境变量等，全部迁移到了项目代码里面，尤其是 conftest.py 的文件内容。pip install tep 顺带安装的依赖包，也整理到了 requirements.txt，按照说明安装即可。
+pytest-html 替换 allure
+由重到轻，化繁为简，pytest-html 能够满足数据&#43;日志的报告需要，最新的 V3.2.0 版本的界面尚可。诚然 allure 漂亮，但安装 Java、下载 Allure、配置环境变量、安装 pytest-allure、添加 pytest hook 还是相对麻烦。更重要的是，要支持平台在线查看报告，减少存储占用，pytest-html 无疑是更好的选择。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "聚焦于任务调度的测试平台 pytestx",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E8%81%9A%E7%84%A6%E4%BA%8E%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6%E7%9A%84%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0pytestx/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "聚焦于任务调度的测试平台 pytestx",
+  "name": "聚焦于任务调度的测试平台 pytestx",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n设计理念 聚焦于任务调度，接口自动化 80%本地编写，20%交由平台管理。\n如果使用 pytest 做接口自动化，那么个人认为最好的编写工具是 PyCharm，任何低代码测试平台都无法取代。当然不会代码，或者不使用 pytest，那低代码测试平台，或者 yaml，甚至 excel 写自动化用例，都是可以接受的。而在使用 pytest 这个特定场景里面，要做平台化，平台的功能就需要仔细斟酌。既然编写用例最好使用 PyCharm，平台也就只能专注于用例编排和任务调度，即创建任务，关联用例，批量运行，以及定时，并行，通知等。\npytestx正是基于此理念设计的一款纯粹的任务调度平台。\n平台架构 tep1.0.0 的延续 tep1.0.0 版本已经封版，在 pytestx 中对它进行了延续。\n从 pypi 到 git\ntep 是上传到 pypi 的，通过 pip 命令安装，使用 tep startproject 命令创建项目脚手架，代码结构分为项目代码和 tep 代码。改造后的 tep 只有项目代码，存放在：\nhttps://gitee.com/dongfanger/tep-project.git\n也就是说，在这个项目中，能看到整个 tep 全貌。之前的 tep 内核代码，比如 fixtures 自动寻找、内置 fixture、环境变量等，全部迁移到了项目代码里面，尤其是 conftest.py 的文件内容。pip install tep 顺带安装的依赖包，也整理到了 requirements.txt，按照说明安装即可。\npytest-html 替换 allure\n由重到轻，化繁为简，pytest-html 能够满足数据+日志的报告需要，最新的 V3.2.0 版本的界面尚可。诚然 allure 漂亮，但安装 Java、下载 Allure、配置环境变量、安装 pytest-allure、添加 pytest hook 还是相对麻烦。更重要的是，要支持平台在线查看报告，减少存储占用，pytest-html 无疑是更好的选择。\n",
+  "keywords": [
+    "pytestx"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n设计理念 聚焦于任务调度，接口自动化 80%本地编写，20%交由平台管理。\n如果使用 pytest 做接口自动化，那么个人认为最好的编写工具是 PyCharm，任何低代码测试平台都无法取代。当然不会代码，或者不使用 pytest，那低代码测试平台，或者 yaml，甚至 excel 写自动化用例，都是可以接受的。而在使用 pytest 这个特定场景里面，要做平台化，平台的功能就需要仔细斟酌。既然编写用例最好使用 PyCharm，平台也就只能专注于用例编排和任务调度，即创建任务，关联用例，批量运行，以及定时，并行，通知等。\npytestx正是基于此理念设计的一款纯粹的任务调度平台。\n平台架构 tep1.0.0 的延续 tep1.0.0 版本已经封版，在 pytestx 中对它进行了延续。\n从 pypi 到 git\ntep 是上传到 pypi 的，通过 pip 命令安装，使用 tep startproject 命令创建项目脚手架，代码结构分为项目代码和 tep 代码。改造后的 tep 只有项目代码，存放在：\nhttps://gitee.com/dongfanger/tep-project.git\n也就是说，在这个项目中，能看到整个 tep 全貌。之前的 tep 内核代码，比如 fixtures 自动寻找、内置 fixture、环境变量等，全部迁移到了项目代码里面，尤其是 conftest.py 的文件内容。pip install tep 顺带安装的依赖包，也整理到了 requirements.txt，按照说明安装即可。\npytest-html 替换 allure\n由重到轻，化繁为简，pytest-html 能够满足数据+日志的报告需要，最新的 V3.2.0 版本的界面尚可。诚然 allure 漂亮，但安装 Java、下载 Allure、配置环境变量、安装 pytest-allure、添加 pytest hook 还是相对麻烦。更重要的是，要支持平台在线查看报告，减少存储占用，pytest-html 无疑是更好的选择。\n下载脚手架\n既可以从使用 git clone 下载代码，也可以从页面下载，就像 spring.io 那样：\nfastapi 到 django\n之前的示例代码是调用的 fastapi 启动的应用，pytestx 则将示例代码的接口换成了 Django 自身的 mock 接口。\nteprunner 的延续 pytestx 的基础代码是从 teprunner 来的，对数据库设计、代码规范、项目结构做了优化。\n任务管理 一、同步项目\n同步项目，是把项目配置的 Git 仓库地址和分支，更新到本地沙箱中，项目之间完全隔离。\n并把用例落库：\n二、任务关联用例\n创建任务，任务关联用例，就形成了新的用例集。\n三、容器化运行\n当前是假容器，未真正引入 Docker，所谓容器，是指每次运行，都将用例拉取到新的目录，批量执行：\n四、生成报告\npytest 命令生成 html 报告，存放于 reports，借助于 Django 挂载页面，从页面点击，在线查看报告：\n体验平台 下载源码：https://github.com/dongfanger/pytestx\n安装依赖：前端（npm install）后端（pip install -r requirements.txt）\n启动服务：前端（npm run serve）后端（python manage.py runserver）\n即可畅快体验。\n学习交流 添加微信 cekaigang，加入交流群，欢快讨论吧。\n参考资料：\nhttps://github.com/dongfanger/pytestx\n",
+  "wordCount" : "132",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-01T00:00:00Z",
+  "dateModified": "2026-01-01T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E8%81%9A%E7%84%A6%E4%BA%8E%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6%E7%9A%84%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0pytestx/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      聚焦于任务调度的测试平台 pytestx
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-01T00:00:00+00:00'>2026-01-01</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/pytestx/'>#Pytestx</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="设计理念">设计理念<a hidden class="anchor" aria-hidden="true" href="#设计理念">#</a></h1>
+<p><strong>聚焦于任务调度</strong>，接口自动化 80%本地编写，20%交由平台管理。</p>
+<p>如果使用 pytest 做接口自动化，那么个人认为最好的编写工具是 PyCharm，任何低代码测试平台都无法取代。当然不会代码，或者不使用 pytest，那低代码测试平台，或者 yaml，甚至 excel 写自动化用例，都是可以接受的。而在使用 pytest 这个特定场景里面，要做平台化，平台的功能就需要仔细斟酌。既然编写用例最好使用 PyCharm，平台也就只能专注于用例编排和任务调度，即创建任务，关联用例，批量运行，以及定时，并行，通知等。</p>
+<p><strong>pytestx</strong>正是基于此理念设计的一款纯粹的任务调度平台。</p>
+<p><img loading="lazy" src="../assets/883d930149b2437da1b3f410b1835ffa.png"></p>
+<h1 id="平台架构">平台架构<a hidden class="anchor" aria-hidden="true" href="#平台架构">#</a></h1>
+<p><img loading="lazy" src="../assets/82056831880343ad8a090709ee6abd26.png"></p>
+<h1 id="tep100-的延续">tep1.0.0 的延续<a hidden class="anchor" aria-hidden="true" href="#tep100-的延续">#</a></h1>
+<p>tep1.0.0 版本已经封版，在 pytestx 中对它进行了延续。</p>
+<p><strong>从 pypi 到 git</strong></p>
+<p>tep 是上传到 pypi 的，通过 pip 命令安装，使用 tep startproject 命令创建项目脚手架，代码结构分为项目代码和 tep 代码。改造后的 tep 只有项目代码，存放在：</p>
+<p><a href="https://gitee.com/dongfanger/tep-project.git">https://gitee.com/dongfanger/tep-project.git</a></p>
+<p>也就是说，在这个项目中，能看到整个 tep 全貌。之前的 tep 内核代码，比如 fixtures 自动寻找、内置 fixture、环境变量等，全部迁移到了项目代码里面，尤其是 conftest.py 的文件内容。pip install tep 顺带安装的依赖包，也整理到了 requirements.txt，按照说明安装即可。</p>
+<p><strong>pytest-html 替换 allure</strong></p>
+<p>由重到轻，化繁为简，pytest-html 能够满足数据+日志的报告需要，最新的 V3.2.0 版本的界面尚可。诚然 allure 漂亮，但安装 Java、下载 Allure、配置环境变量、安装 pytest-allure、添加 pytest hook 还是相对麻烦。更重要的是，要支持平台在线查看报告，减少存储占用，pytest-html 无疑是更好的选择。</p>
+<p><strong>下载脚手架</strong></p>
+<p>既可以从使用 git clone 下载代码，也可以从页面下载，就像 spring.io 那样：</p>
+<p><img loading="lazy" src="../assets/78d828f0b74c457a9a610ff093891909.png"></p>
+<p><strong>fastapi 到 django</strong></p>
+<p>之前的示例代码是调用的 fastapi 启动的应用，pytestx 则将示例代码的接口换成了 Django 自身的 mock 接口。</p>
+<h1 id="teprunner-的延续">teprunner 的延续<a hidden class="anchor" aria-hidden="true" href="#teprunner-的延续">#</a></h1>
+<p>pytestx 的基础代码是从 teprunner 来的，对数据库设计、代码规范、项目结构做了优化。</p>
+<p><img loading="lazy" src="../assets/89f0add05f4145f586844c02be511aef.png"></p>
+<h1 id="任务管理">任务管理<a hidden class="anchor" aria-hidden="true" href="#任务管理">#</a></h1>
+<p><img loading="lazy" src="../assets/f22f47846fc5419284141f72f7259d22.png"></p>
+<p><strong>一、同步项目</strong></p>
+<p>同步项目，是把项目配置的 Git 仓库地址和分支，更新到本地沙箱中，项目之间完全隔离。</p>
+<p><img loading="lazy" src="../assets/5422dbfe859f44cf8127e852542d1d17.png"></p>
+<p>并把用例落库：</p>
+<p><img loading="lazy" src="../assets/481995032b754a7baed495bf29f3cd10.png"></p>
+<p><strong>二、任务关联用例</strong></p>
+<p>创建任务，任务关联用例，就形成了新的用例集。</p>
+<p><strong>三、容器化运行</strong></p>
+<p>当前是假容器，未真正引入 Docker，所谓容器，是指每次运行，都将用例拉取到新的目录，批量执行：</p>
+<p><img loading="lazy" src="../assets/711257c91504476f8679320e277c53e7.png"></p>
+<p>四、生成报告</p>
+<p>pytest 命令生成 html 报告，存放于 reports，借助于 Django 挂载页面，从页面点击，在线查看报告：</p>
+<p><img loading="lazy" src="../assets/bee4ca83f58a4fad98d3814f98d07729.png"></p>
+<h1 id="体验平台">体验平台<a hidden class="anchor" aria-hidden="true" href="#体验平台">#</a></h1>
+<p>下载源码：https://github.com/dongfanger/pytestx</p>
+<p>安装依赖：前端（npm install）后端（pip install -r requirements.txt）</p>
+<p>启动服务：前端（npm run serve）后端（python manage.py runserver）</p>
+<p>即可畅快体验。</p>
+<h1 id="学习交流">学习交流<a hidden class="anchor" aria-hidden="true" href="#学习交流">#</a></h1>
+<p>添加微信 cekaigang，加入交流群，欢快讨论吧。</p>
+<p><img loading="lazy" src="../assets/67f63522e3fb431485eea9bb21983888.png"></p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://github.com/dongfanger/pytestx">https://github.com/dongfanger/pytestx</a></p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/pytestx/">Pytestx</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8E%86%E5%8F%B2%E4%BA%BA%E7%89%A9%E4%B9%8B%E5%86%AF%E8%AF%BA%E4%BE%9D%E6%9B%BC/">
+    <span class="title">« 上一页</span>
+    <span>计算机历史人物之冯·诺依曼</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/">
+    <span class="title">下一页 »</span>
+    <span>录制脚本与元素定位</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#设计理念">设计理念</a></li>
+    <li><a href="#平台架构">平台架构</a></li>
+    <li><a href="#tep100-的延续">tep1.0.0 的延续</a></li>
+    <li><a href="#teprunner-的延续">teprunner 的延续</a></li>
+    <li><a href="#任务管理">任务管理</a></li>
+    <li><a href="#体验平台">体验平台</a></li>
+    <li><a href="#学习交流">学习交流</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

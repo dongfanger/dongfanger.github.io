@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>tep0.9.5 支持自定义扩展 request | 测试开发刚哥</title>
+<meta name="keywords" content="tep">
+<meta name="description" content="tep0.9.5 更新了以下内容：">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep0.9.5%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95request/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep0.9.5%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95request/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep0.9.5%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95request/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="tep0.9.5 支持自定义扩展 request">
+  <meta property="og:description" content="tep0.9.5 更新了以下内容：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-10T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-10T00:00:00+00:00">
+    <meta property="article:tag" content="Tep">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="tep0.9.5 支持自定义扩展 request">
+  <meta name="twitter:description" content="tep0.9.5 更新了以下内容：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "tep0.9.5 支持自定义扩展 request",
+      "item": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep0.9.5%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95request/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "tep0.9.5 支持自定义扩展 request",
+  "name": "tep0.9.5 支持自定义扩展 request",
+  "description": "tep0.9.5 更新了以下内容：",
+  "keywords": [
+    "tep"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\ntep0.9.5 更新了以下内容：\n自定义 request 请求日志 Allure 报告添加 request 描述 猴子补丁扩展 request fixtures 支持多层级目录 FastAPI 替代 Flask 升级 tep 到 0.9.5 版本，使用tep startproject demo创建项目脚手架，开箱即用以上新功能。\n1.自定义 request 请求日志 tep 默认的 request 请求日志如下所示：\n2022-01-22 20:00:26.335 | INFO | tep.client:tep_request_monkey_patch:44 - method:\"post\" url:\"http://127.0.0.1:5000/login\" headers:{\"Content-Type\": \"application/json\"} json:{\"username\": \"dongfanger\", \"password\": \"123456\"} status:200 response:{\"token\":\"de2e3ffu29\"} elapsed:0.000s 全部都在一行，假如想换行显示，那么可以在utils/http_client.py文件中修改 request_monkey_patch 代码：\n在测试代码中把from tep.client import request改成from utils.http_client import request：\n日志就会变成换行显示了：\n2022-01-22 20:04:05.379 | INFO | utils.http_client:request_monkey_patch:38 - method:\"post\" headers:{\"Content-Type\": \"application/json\"} json:{\"username\": \"dongfanger\", \"password\": \"123456\"} status:200 response:{\"token\":\"de2e3ffu29\"} elapsed:0.000s 2.Allure 报告添加 request 描述 tep 的 Allure 报告默认会有个request \u0026 response：\n可以给 request 添加 desc 参数，在 Allure 测试报告中添加描述：\n运行以下命令，然后打开 Allure 测试报告：\npytest -s test_request_monkey_patch.py --tep-reports 3.猴子补丁扩展 request 前面的“自定义 request 请求日志”和“Allure 报告添加 request 描述”已经展示了如何通过猴子补丁扩展日志和扩展报告，您还可以为 request 扩展更多想要的功能，只需要实现utils/http_client.py里面的 request_monkey_patch 函数即可：\n#!/usr/bin/python ## encoding=utf-8 import decimal import json import time import allure from loguru import logger from tep import client from tep.client import TepResponse def request_monkey_patch(req, *args, **kwargs): start = time.process_time() desc = \"\" if \"desc\" in kwargs: desc = kwargs.get(\"desc\") kwargs.pop(\"desc\") response = req(*args, **kwargs) end = time.process_time() elapsed = str(decimal.Decimal(\"%.3f\" % float(end - start))) + \"s\" log4a = \"{}\\n{}status:{}\\nresponse:{}\\nelapsed:{}\" try: kv = \"\" for k, v in kwargs.items(): # if not json, str() try: v = json.dumps(v, ensure_ascii=False) except TypeError: v = str(v) kv += f\"{k}:{v}\\n\" if args: method = f'\\nmethod:\"{args[0]}\" ' else: method = \"\" request_response = log4a.format(method, kv, response.status_code, response.text, elapsed) logger.info(request_response) allure.attach(request_response, f'{desc} request \u0026 response', allure.attachment_type.TEXT) except AttributeError: logger.error(\"request failed\") except TypeError: logger.warning(log4a) return TepResponse(response) def request(method, url, **kwargs): client.tep_request_monkey_patch = request_monkey_patch return client.request(method, url, **kwargs) 4.fixtures 支持多层级目录 tep 之前一直只能支持 fixtures 的根目录的fixture_*.py文件自动导入，现在能支持多层级目录了：\n测试代码test_multi_fixture.py：\n#!/usr/bin/python ## encoding=utf-8 def test(fixture_second, fixture_three): pass 能运行成功。自动导入多层目录的代码实现如下：\n## 自动导入fixtures _fixtures_dir = os.path.join(_project_dir, \"fixtures\") for root, _, files in os.walk(_fixtures_dir): for file in files: if file.startswith(\"fixture_\") and file.endswith(\".py\"): full_path = os.path.join(root, file) import_path = full_path.replace(_fixtures_dir, \"\").replace(\"\\\\\", \".\").replace(\"/\", \".\").replace(\".py\", \"\") try: fixture_path = \"fixtures\" + import_path exec(f\"from {fixture_path} import *\") except: fixture_path = \".fixtures\" + import_path exec(f\"from {fixture_path} import *\") 5.FastAPI 替代 Flask 因为 HttpRunner 用的 FastAPI，所以我也把 Flask 替换成了 FastAPI，在utils/fastapi_mock.py文件中可以找到代码实现的简易 Mock：\n#!/usr/bin/python ## encoding=utf-8 import uvicorn from fastapi import FastAPI, Request app = FastAPI() @app.post(\"/login\") async def login(req: Request): body = await req.json() if body[\"username\"] == \"dongfanger\" and body[\"password\"] == \"123456\": return {\"token\": \"de2e3ffu29\"} return \"\" @app.get(\"/searchSku\") def search_sku(req: Request): if req.headers.get(\"token\") == \"de2e3ffu29\" and req.query_params.get(\"skuName\") == \"电子书\": return {\"skuId\": \"222\", \"price\": \"2.3\"} return \"\" @app.post(\"/addCart\") async def add_cart(req: Request): body = await req.json() if req.headers.get(\"token\") == \"de2e3ffu29\" and body[\"skuId\"] == \"222\": return {\"skuId\": \"222\", \"price\": \"2.3\", \"skuNum\": \"3\", \"totalPrice\": \"6.9\"} return \"\" @app.post(\"/order\") async def order(req: Request): body = await req.json() if req.headers.get(\"token\") == \"de2e3ffu29\" and body[\"skuId\"] == \"222\": return {\"orderId\": \"333\"} return \"\" @app.post(\"/pay\") async def pay(req: Request): body = await req.json() if req.headers.get(\"token\") == \"de2e3ffu29\" and body[\"orderId\"] == \"333\": return {\"success\": \"true\"} return \"\" if __name__ == '__main__': uvicorn.run(\"fastapi_mock:app\", host=\"127.0.0.1\", port=5000) 最后，感谢@zhangwk02 提交的 Pull requests，虽然写的代码被我全部优化了，但是提供了很棒的想法和动力。\n",
+  "wordCount" : "458",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-10T00:00:00Z",
+  "dateModified": "2026-01-10T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep0.9.5%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95request/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      tep0.9.5 支持自定义扩展 request
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-10T00:00:00+00:00'>2026-01-10</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E9%A1%B9%E7%9B%AE/'>项目</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/tep/'>#Tep</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<p>tep0.9.5 更新了以下内容：</p>
+<ol>
+<li>自定义 request 请求日志</li>
+<li>Allure 报告添加 request 描述</li>
+<li>猴子补丁扩展 request</li>
+<li>fixtures 支持多层级目录</li>
+<li>FastAPI 替代 Flask</li>
+</ol>
+<p>升级 tep 到 0.9.5 版本，使用<code>tep startproject demo</code>创建项目脚手架，开箱即用以上新功能。</p>
+<h1 id="1自定义-request-请求日志">1.自定义 request 请求日志<a hidden class="anchor" aria-hidden="true" href="#1自定义-request-请求日志">#</a></h1>
+<p>tep 默认的 request 请求日志如下所示：</p>
+<pre tabindex="0"><code>2022-01-22 20:00:26.335 | INFO     | tep.client:tep_request_monkey_patch:44 - method:&#34;post&#34;  url:&#34;http://127.0.0.1:5000/login&#34;  headers:{&#34;Content-Type&#34;: &#34;application/json&#34;}  json:{&#34;username&#34;: &#34;dongfanger&#34;, &#34;password&#34;: &#34;123456&#34;}  status:200  response:{&#34;token&#34;:&#34;de2e3ffu29&#34;}  elapsed:0.000s
+</code></pre><p>全部都在一行，假如想换行显示，那么可以在<code>utils/http_client.py</code>文件中修改 request_monkey_patch 代码：</p>
+<p><img loading="lazy" src="../assets/62ee6e79624545c6a18dfc7b2ab410a7.png"></p>
+<p>在测试代码中把<code>from tep.client import request</code>改成<code>from utils.http_client import request</code>：</p>
+<p><img loading="lazy" src="../assets/35d509c4943948e88277602c776cead3.png"></p>
+<p>日志就会变成换行显示了：</p>
+<pre tabindex="0"><code>2022-01-22 20:04:05.379 | INFO     | utils.http_client:request_monkey_patch:38 - 
+method:&#34;post&#34; 
+headers:{&#34;Content-Type&#34;: &#34;application/json&#34;}
+json:{&#34;username&#34;: &#34;dongfanger&#34;, &#34;password&#34;: &#34;123456&#34;}
+status:200
+response:{&#34;token&#34;:&#34;de2e3ffu29&#34;}
+elapsed:0.000s
+</code></pre><h1 id="2allure-报告添加-request-描述">2.Allure 报告添加 request 描述<a hidden class="anchor" aria-hidden="true" href="#2allure-报告添加-request-描述">#</a></h1>
+<p>tep 的 Allure 报告默认会有个<code>request &amp; response</code>：</p>
+<p><img loading="lazy" src="../assets/5d6642abe2da40f785aecdf3c7a0caad.png"></p>
+<p>可以给 request 添加 desc 参数，在 Allure 测试报告中添加描述：</p>
+<p><img loading="lazy" src="../assets/2f5ab344a4e946d6a2c5f9e3d09caa29.png"></p>
+<p>运行以下命令，然后打开 Allure 测试报告：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>pytest -s test_request_monkey_patch.py --tep-reports
+</span></span></code></pre></div><p><img loading="lazy" src="../assets/99bfe42cd6eb4662afc1449feb09b9bf.png"></p>
+<h1 id="3猴子补丁扩展-request">3.猴子补丁扩展 request<a hidden class="anchor" aria-hidden="true" href="#3猴子补丁扩展-request">#</a></h1>
+<p>前面的“自定义 request 请求日志”和“Allure 报告添加 request 描述”已经展示了如何通过猴子补丁扩展日志和扩展报告，您还可以为 request 扩展更多想要的功能，只需要实现<code>utils/http_client.py</code>里面的 request_monkey_patch 函数即可：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">#!/usr/bin/python</span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## encoding=utf-8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">decimal</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">json</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">time</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">allure</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">loguru</span> <span style="color:#cf222e">import</span> logger
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep</span> <span style="color:#cf222e">import</span> client
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tep.client</span> <span style="color:#cf222e">import</span> TepResponse
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">request_monkey_patch</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    start <span style="color:#0550ae">=</span> time<span style="color:#0550ae">.</span>process_time<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    desc <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#0a3069">&#34;desc&#34;</span> <span style="color:#0550ae">in</span> kwargs<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        desc <span style="color:#0550ae">=</span> kwargs<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;desc&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        kwargs<span style="color:#0550ae">.</span>pop<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;desc&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    response <span style="color:#0550ae">=</span> req<span style="color:#1f2328">(</span><span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    end <span style="color:#0550ae">=</span> time<span style="color:#0550ae">.</span>process_time<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    elapsed <span style="color:#0550ae">=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>decimal<span style="color:#0550ae">.</span>Decimal<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">%.3f</span><span style="color:#0a3069">&#34;</span> <span style="color:#0550ae">%</span> <span style="color:#6639ba">float</span><span style="color:#1f2328">(</span>end <span style="color:#0550ae">-</span> start<span style="color:#1f2328">)))</span> <span style="color:#0550ae">+</span> <span style="color:#0a3069">&#34;s&#34;</span>
+</span></span><span style="display:flex;"><span>    log4a <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;</span><span style="color:#0a3069">{}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">{}</span><span style="color:#0a3069">status:</span><span style="color:#0a3069">{}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">response:</span><span style="color:#0a3069">{}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">elapsed:</span><span style="color:#0a3069">{}</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        kv <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> k<span style="color:#1f2328">,</span> v <span style="color:#0550ae">in</span> kwargs<span style="color:#0550ae">.</span>items<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a"># if not json, str()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                v <span style="color:#0550ae">=</span> json<span style="color:#0550ae">.</span>dumps<span style="color:#1f2328">(</span>v<span style="color:#1f2328">,</span> ensure_ascii<span style="color:#0550ae">=</span><span style="color:#cf222e">False</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">except</span> TypeError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                v <span style="color:#0550ae">=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>v<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            kv <span style="color:#0550ae">+=</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">{</span>k<span style="color:#0a3069">}</span><span style="color:#0a3069">:</span><span style="color:#0a3069">{</span>v<span style="color:#0a3069">}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> args<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            method <span style="color:#0550ae">=</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#39;</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">method:&#34;</span><span style="color:#0a3069">{</span>args<span style="color:#1f2328">[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">]</span><span style="color:#0a3069">}</span><span style="color:#0a3069">&#34; &#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            method <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        request_response <span style="color:#0550ae">=</span> log4a<span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>method<span style="color:#1f2328">,</span> kv<span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>status_code<span style="color:#1f2328">,</span> response<span style="color:#0550ae">.</span>text<span style="color:#1f2328">,</span> elapsed<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        logger<span style="color:#0550ae">.</span>info<span style="color:#1f2328">(</span>request_response<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        allure<span style="color:#0550ae">.</span>attach<span style="color:#1f2328">(</span>request_response<span style="color:#1f2328">,</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#39;</span><span style="color:#0a3069">{</span>desc<span style="color:#0a3069">}</span><span style="color:#0a3069"> request &amp; response&#39;</span><span style="color:#1f2328">,</span> allure<span style="color:#0550ae">.</span>attachment_type<span style="color:#0550ae">.</span>TEXT<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">except</span> AttributeError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        logger<span style="color:#0550ae">.</span>error<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;request failed&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">except</span> TypeError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        logger<span style="color:#0550ae">.</span>warning<span style="color:#1f2328">(</span>log4a<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> TepResponse<span style="color:#1f2328">(</span>response<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">request</span><span style="color:#1f2328">(</span>method<span style="color:#1f2328">,</span> url<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    client<span style="color:#0550ae">.</span>tep_request_monkey_patch <span style="color:#0550ae">=</span> request_monkey_patch
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> client<span style="color:#0550ae">.</span>request<span style="color:#1f2328">(</span>method<span style="color:#1f2328">,</span> url<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span></code></pre></div><h1 id="4fixtures-支持多层级目录">4.fixtures 支持多层级目录<a hidden class="anchor" aria-hidden="true" href="#4fixtures-支持多层级目录">#</a></h1>
+<p>tep 之前一直只能支持 fixtures 的根目录的<code>fixture_*.py</code>文件自动导入，现在能支持多层级目录了：</p>
+<p><img loading="lazy" src="../assets/1ac4a759e4ea432d995150e7d8478b85.png"></p>
+<p>测试代码<code>test_multi_fixture.py</code>：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">#!/usr/bin/python</span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## encoding=utf-8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">test</span><span style="color:#1f2328">(</span>fixture_second<span style="color:#1f2328">,</span> fixture_three<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">pass</span>
+</span></span></code></pre></div><p>能运行成功。自动导入多层目录的代码实现如下：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">## 自动导入fixtures</span>
+</span></span><span style="display:flex;"><span>_fixtures_dir <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>_project_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;fixtures&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span> root<span style="color:#1f2328">,</span> _<span style="color:#1f2328">,</span> files <span style="color:#0550ae">in</span> os<span style="color:#0550ae">.</span>walk<span style="color:#1f2328">(</span>_fixtures_dir<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> file <span style="color:#0550ae">in</span> files<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> file<span style="color:#0550ae">.</span>startswith<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;fixture_&#34;</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">and</span> file<span style="color:#0550ae">.</span>endswith<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;.py&#34;</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            full_path <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>root<span style="color:#1f2328">,</span> file<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            import_path <span style="color:#0550ae">=</span> full_path<span style="color:#0550ae">.</span>replace<span style="color:#1f2328">(</span>_fixtures_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">)</span><span style="color:#0550ae">.</span>replace<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">\\</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.&#34;</span><span style="color:#1f2328">)</span><span style="color:#0550ae">.</span>replace<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.&#34;</span><span style="color:#1f2328">)</span><span style="color:#0550ae">.</span>replace<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;.py&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                fixture_path <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;fixtures&#34;</span> <span style="color:#0550ae">+</span> import_path
+</span></span><span style="display:flex;"><span>                exec<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;from </span><span style="color:#0a3069">{</span>fixture_path<span style="color:#0a3069">}</span><span style="color:#0a3069"> import *&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">except</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                fixture_path <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;.fixtures&#34;</span> <span style="color:#0550ae">+</span> import_path
+</span></span><span style="display:flex;"><span>                exec<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;from </span><span style="color:#0a3069">{</span>fixture_path<span style="color:#0a3069">}</span><span style="color:#0a3069"> import *&#34;</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><h1 id="5fastapi-替代-flask">5.FastAPI 替代 Flask<a hidden class="anchor" aria-hidden="true" href="#5fastapi-替代-flask">#</a></h1>
+<p>因为 HttpRunner 用的 FastAPI，所以我也把 Flask 替换成了 FastAPI，在<code>utils/fastapi_mock.py</code>文件中可以找到代码实现的简易 Mock：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a">#!/usr/bin/python</span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">## encoding=utf-8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">uvicorn</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">fastapi</span> <span style="color:#cf222e">import</span> FastAPI<span style="color:#1f2328">,</span> Request
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>app <span style="color:#0550ae">=</span> FastAPI<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@app.post</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/login&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">async</span> <span style="color:#cf222e">def</span> <span style="color:#6639ba">login</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">:</span> Request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> <span style="color:#cf222e">await</span> req<span style="color:#0550ae">.</span>json<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;dongfanger&#34;</span> <span style="color:#0550ae">and</span> body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;123456&#34;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;de2e3ffu29&#34;</span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@app.get</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/searchSku&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">search_sku</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">:</span> Request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> req<span style="color:#0550ae">.</span>headers<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;de2e3ffu29&#34;</span> <span style="color:#0550ae">and</span> req<span style="color:#0550ae">.</span>query_params<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;skuName&#34;</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;电子书&#34;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;222&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;price&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;2.3&#34;</span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@app.post</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/addCart&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">async</span> <span style="color:#cf222e">def</span> <span style="color:#6639ba">add_cart</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">:</span> Request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> <span style="color:#cf222e">await</span> req<span style="color:#0550ae">.</span>json<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> req<span style="color:#0550ae">.</span>headers<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;de2e3ffu29&#34;</span> <span style="color:#0550ae">and</span> body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;222&#34;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;222&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;price&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;2.3&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;skuNum&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;3&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;totalPrice&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;6.9&#34;</span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@app.post</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/order&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">async</span> <span style="color:#cf222e">def</span> <span style="color:#6639ba">order</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">:</span> Request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> <span style="color:#cf222e">await</span> req<span style="color:#0550ae">.</span>json<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> req<span style="color:#0550ae">.</span>headers<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;de2e3ffu29&#34;</span> <span style="color:#0550ae">and</span> body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;skuId&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;222&#34;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;333&#34;</span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">@app.post</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;/pay&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">async</span> <span style="color:#cf222e">def</span> <span style="color:#6639ba">pay</span><span style="color:#1f2328">(</span>req<span style="color:#1f2328">:</span> Request<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    body <span style="color:#0550ae">=</span> <span style="color:#cf222e">await</span> req<span style="color:#0550ae">.</span>json<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> req<span style="color:#0550ae">.</span>headers<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;token&#34;</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;de2e3ffu29&#34;</span> <span style="color:#0550ae">and</span> body<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;orderId&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;333&#34;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#34;success&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;true&#34;</span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span> <span style="color:#953800">__name__</span> <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#39;__main__&#39;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    uvicorn<span style="color:#0550ae">.</span>run<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;fastapi_mock:app&#34;</span><span style="color:#1f2328">,</span> host<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;127.0.0.1&#34;</span><span style="color:#1f2328">,</span> port<span style="color:#0550ae">=</span><span style="color:#0550ae">5000</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>最后，感谢@zhangwk02 提交的 Pull requests，虽然写的代码被我全部优化了，但是提供了很棒的想法和动力。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/tep/">Tep</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/springboot%E5%AE%98%E6%96%B9%E7%AC%94%E8%AE%B07io/">
+    <span class="title">« 上一页</span>
+    <span>SpringBoot 官方笔记 7IO</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/teprunner%E9%87%8D%E7%A3%85%E6%9B%B4%E6%96%B0git%E6%89%93%E9%80%9Apycharm%E4%B8%8E%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0/">
+    <span class="title">下一页 »</span>
+    <span>teprunner 重磅更新 Git 打通 PyCharm 与测试平台</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#1自定义-request-请求日志">1.自定义 request 请求日志</a></li>
+    <li><a href="#2allure-报告添加-request-描述">2.Allure 报告添加 request 描述</a></li>
+    <li><a href="#3猴子补丁扩展-request">3.猴子补丁扩展 request</a></li>
+    <li><a href="#4fixtures-支持多层级目录">4.fixtures 支持多层级目录</a></li>
+    <li><a href="#5fastapi-替代-flask">5.FastAPI 替代 Flask</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

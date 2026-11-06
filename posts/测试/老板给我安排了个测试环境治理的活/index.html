@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>老板给我安排了个测试环境治理的活 | 测试开发刚哥</title>
+<meta name="keywords" content="自动化">
+<meta name="description" content="
+本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+
+测试环境困局
+测试环境治理专项是在我入职 2 个月接手的活，用“烂摊子”来形容一点也不为过。年久失修，需求基本没有在测试环境使用，想用也有很多问题。人员缺乏信心，之前负责测试环境的同学抱怨极多，外部推不动，内部又没有技术能力支撑，负能量已经蔓延到整个团队。当然，我也是其中一员，这事确实难搞。在技术部测试环境平台化的大方向下，需要每个组出一个接口人来牵头，考虑到我以前写过测试平台，乱七八糟的事都整过，老板就指定了我。
+What，测试环境是什么？
+测试环境是一套能够支撑业务系统运行的环境，是相对于预发环境和生产环境来说完全隔离的环境。测试环境=应用&#43;数据&#43;配置&#43;依赖服务。应用包含系统应用和中间件等，数据就是测试物料，配置针对测试环境应该有单独的一套，依赖服务要跟外部联调好以后整个环境才是可用的。测试环境治理就是通过内部搭建和外部联调，保障业务系统能够在完全隔离的环境中运行。
+Why，为什么要做测试环境？
+测试环境是为了隔离。如果只有一套生产环境，那么开发、测试、上线等活动，可能会对线上系统稳定性造成影响，可能会污染线上用户数据，可能引起客户投诉甚至资产损失，所以需要有一套完全隔离的测试环境。
+Who，谁来负责测试环境？
+每个测试人员都需要具备测试环境搭建能力。当然可以推动运维或研发来搭建测试环境，但是测试人员需要具备搭建能力，能够自主编译，构建，部署，遇到问题能够根据日志做初步定位，将问题抛出推动研发或外部依赖方解决。
+When，什么时间做测试环境？
+测试环境治理需要前置到研发自测阶段。在实践过程中，测试同学暴露出来最多的问题是，没有时间投入到测试环境搭建中，一方面是缺乏动力，不肯迈出艰难的第一步，另一方面也是跟项目节奏有关，研发就算用测试环境自测，也会在预发联调好以后再提测，到测试手上时，已经有可用的预发环境了，就不会再去用测试环境。“项目时间紧，测试环境不好用，直接用预发测吧”，顺理成章的就成为了很合理的借口。所以需要从提测，前置到，研发自测，做测试环境治理：
+
+Where，从哪里入手测试环境？
+测试环境治理需要从上往下才能推动，先有文化，才有行动。假如只有某个部门想做测试环境治理，外部依赖基本上是推不动的，一个人呐喊得再愤怒其他人也可能无动于衷。所以得先把测试环境治理这件事，跟老板沟通，从高层入手，把它定义为一项政治任务，从上往下层层递进。
+How，怎么做测试环境？
+工欲善其事，必先利其器，公司的基建比较完善，给测试人员搭建测试环境降低了很大难度。设想一下，假如只能折腾 Docker 和 K8S，那可能需要专门的运维才能搞得定环境，对测试来说门槛就会比较高了，除了少数技术能力强的，其他同学基本没有什么可操作性。测试环境平台化就是武器。公司有个部署平台叫做 JDOS，日常运维都是在这上面操作，没有运维人员，环境全靠开发人员和测试人员自己整。JDOS 已经是页面化操作了，但它对测试环境没有特殊的应用场景，是个大而全的平台，所以二级部门开了一个测试环境平台，Env，&ldquo;一款全流程自动化测试环境搭建的利器&rdquo;。
+Env 的核心思想是1&#43;N。1代表稳定分组（分组≈Pod），搭建稳定分组需要经过创建系统，创建应用，创建集群，申请机器，代码编译构建，部署镜像，修改配置等操作，需要选取 master 稳定版本，这样才能对外提供稳定服务。N是克隆1产生的多个分组，相互隔离，能让开发同学复用测试搭建好的环境，完成冒烟自测等过程；也能在多业务联调测试时，通过平台快速搭建一套全链路测试环境。
+Env 提供了环境监控的功能。对于搭建好的稳定环境，它可以每天监控机器是否可用，服务是否正常，镜像是否老旧，等等等，让你及时维护环境，保障稳定性。
+Env 提供了一键搭建的功能。新克隆的环境，只要点一下“一键搭建”，就会基于稳定分组，自动化搭建一套新环境，大大节约了时间成本。
+Env 提供了拓扑画图的功能。将多个应用拖到一张拓扑图里面，根据依赖关系连线，能够直观了解到应用之间的依赖关系。基于拓扑来克隆新环境，也能批量克隆多个应用。假如多项目需求并行迭代，想要多套联调的测试环境，就可以克隆多套新环境。
+Env 还解决了一个资源浪费的问题，以前搭建测试环境比较随意，申请资源也很容易，其实会导致很多机器用过后，一直空置在那里。Env 收拢了申请资源入口，基于 Env 来创建稳定分组，只能有 1 个，想要更多必须走审批。而对于克隆的新环境，也会有期限，14 天以后会自动释放，想要延期也必须走审批。
+我所负责的第一件事，就是用 Env 来搭建一张拓扑图，把组内所有应用都从 JDOS 迁移到 Env 上，维持稳定环境对外提供支撑对接，克隆环境对内支持多项目并行。
+搭建测试环境只是起步，测试环境治理的目标是需求能够使用测试环境。对于外部依赖少的业务模块来说，这相对容易。对于外部依赖很多的业务模块来说，这就很难了。那么该如何推动这件事呢？
+第 1 个策略是共建，让研发和测试一起来搭建和维护测试环境。
+第 2 个策略是做功能验证，梳理出链路用例，跟踪验证结果，识别卡点问题：
+
+对于卡点问题的处理，把干系人单独拉群对，响应超过 3 天就往上抛，一定会遇到推不动的问题，那么办法只能找自己的上游负责人，层层向上反馈，让上面的负责人去找对方负责人，然后推动对方的下游同学来协助解决。卡点问题记录后需要做问题分类，做好统计，这既是工作量的体现，也是每周进度汇报的依据：
+
+
+第 3 个策略就是制定 kpi，强制大家使用测试环境完成绩效。
+How much，测试环境做到什么程度？
+测试环境的 kpi 能反应出测试环境应该做到什么程度，可以使用需求使用测试环境占比和测试环境 bug 占比。需求使用测试环境占比的计算公式是打标了测试环境的提测卡片数/总的提测卡片数，测试在点击开始测试时，选择是否使用测试环境进行打标。测试环境 bug 占比的计算公式是测试环境bug/(测试环境bug&#43;预发环境bug&#43;生产环境bug)，在提交缺陷时选择环境类型进行打标。测试环境 bug 占比的意义更大，因为使用测试环境与否，最终的体现还是落在缺陷上面的，比较容易量化，需求使用测试环境占比不是很确定，需求多少功能在测试环境使用了，相对来说不是很好度量，但也可以作为辅助指标进行观察。">
+<meta name="author" content="测试开发刚哥">
+<link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E8%80%81%E6%9D%BF%E7%BB%99%E6%88%91%E5%AE%89%E6%8E%92%E4%BA%86%E4%B8%AA%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83%E6%B2%BB%E7%90%86%E7%9A%84%E6%B4%BB/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://dongfanger.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://dongfanger.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://dongfanger.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E8%80%81%E6%9D%BF%E7%BB%99%E6%88%91%E5%AE%89%E6%8E%92%E4%BA%86%E4%B8%AA%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83%E6%B2%BB%E7%90%86%E7%9A%84%E6%B4%BB/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E8%80%81%E6%9D%BF%E7%BB%99%E6%88%91%E5%AE%89%E6%8E%92%E4%BA%86%E4%B8%AA%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83%E6%B2%BB%E7%90%86%E7%9A%84%E6%B4%BB/">
+  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:title" content="老板给我安排了个测试环境治理的活">
+  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+测试环境困局 测试环境治理专项是在我入职 2 个月接手的活，用“烂摊子”来形容一点也不为过。年久失修，需求基本没有在测试环境使用，想用也有很多问题。人员缺乏信心，之前负责测试环境的同学抱怨极多，外部推不动，内部又没有技术能力支撑，负能量已经蔓延到整个团队。当然，我也是其中一员，这事确实难搞。在技术部测试环境平台化的大方向下，需要每个组出一个接口人来牵头，考虑到我以前写过测试平台，乱七八糟的事都整过，老板就指定了我。
+What，测试环境是什么？ 测试环境是一套能够支撑业务系统运行的环境，是相对于预发环境和生产环境来说完全隔离的环境。测试环境=应用&#43;数据&#43;配置&#43;依赖服务。应用包含系统应用和中间件等，数据就是测试物料，配置针对测试环境应该有单独的一套，依赖服务要跟外部联调好以后整个环境才是可用的。测试环境治理就是通过内部搭建和外部联调，保障业务系统能够在完全隔离的环境中运行。
+Why，为什么要做测试环境？ 测试环境是为了隔离。如果只有一套生产环境，那么开发、测试、上线等活动，可能会对线上系统稳定性造成影响，可能会污染线上用户数据，可能引起客户投诉甚至资产损失，所以需要有一套完全隔离的测试环境。
+Who，谁来负责测试环境？ 每个测试人员都需要具备测试环境搭建能力。当然可以推动运维或研发来搭建测试环境，但是测试人员需要具备搭建能力，能够自主编译，构建，部署，遇到问题能够根据日志做初步定位，将问题抛出推动研发或外部依赖方解决。
+When，什么时间做测试环境？ 测试环境治理需要前置到研发自测阶段。在实践过程中，测试同学暴露出来最多的问题是，没有时间投入到测试环境搭建中，一方面是缺乏动力，不肯迈出艰难的第一步，另一方面也是跟项目节奏有关，研发就算用测试环境自测，也会在预发联调好以后再提测，到测试手上时，已经有可用的预发环境了，就不会再去用测试环境。“项目时间紧，测试环境不好用，直接用预发测吧”，顺理成章的就成为了很合理的借口。所以需要从提测，前置到，研发自测，做测试环境治理：
+Where，从哪里入手测试环境？ 测试环境治理需要从上往下才能推动，先有文化，才有行动。假如只有某个部门想做测试环境治理，外部依赖基本上是推不动的，一个人呐喊得再愤怒其他人也可能无动于衷。所以得先把测试环境治理这件事，跟老板沟通，从高层入手，把它定义为一项政治任务，从上往下层层递进。
+How，怎么做测试环境？ 工欲善其事，必先利其器，公司的基建比较完善，给测试人员搭建测试环境降低了很大难度。设想一下，假如只能折腾 Docker 和 K8S，那可能需要专门的运维才能搞得定环境，对测试来说门槛就会比较高了，除了少数技术能力强的，其他同学基本没有什么可操作性。测试环境平台化就是武器。公司有个部署平台叫做 JDOS，日常运维都是在这上面操作，没有运维人员，环境全靠开发人员和测试人员自己整。JDOS 已经是页面化操作了，但它对测试环境没有特殊的应用场景，是个大而全的平台，所以二级部门开了一个测试环境平台，Env，“一款全流程自动化测试环境搭建的利器”。
+Env 的核心思想是1&#43;N。1代表稳定分组（分组≈Pod），搭建稳定分组需要经过创建系统，创建应用，创建集群，申请机器，代码编译构建，部署镜像，修改配置等操作，需要选取 master 稳定版本，这样才能对外提供稳定服务。N是克隆1产生的多个分组，相互隔离，能让开发同学复用测试搭建好的环境，完成冒烟自测等过程；也能在多业务联调测试时，通过平台快速搭建一套全链路测试环境。
+Env 提供了环境监控的功能。对于搭建好的稳定环境，它可以每天监控机器是否可用，服务是否正常，镜像是否老旧，等等等，让你及时维护环境，保障稳定性。
+Env 提供了一键搭建的功能。新克隆的环境，只要点一下“一键搭建”，就会基于稳定分组，自动化搭建一套新环境，大大节约了时间成本。
+Env 提供了拓扑画图的功能。将多个应用拖到一张拓扑图里面，根据依赖关系连线，能够直观了解到应用之间的依赖关系。基于拓扑来克隆新环境，也能批量克隆多个应用。假如多项目需求并行迭代，想要多套联调的测试环境，就可以克隆多套新环境。
+Env 还解决了一个资源浪费的问题，以前搭建测试环境比较随意，申请资源也很容易，其实会导致很多机器用过后，一直空置在那里。Env 收拢了申请资源入口，基于 Env 来创建稳定分组，只能有 1 个，想要更多必须走审批。而对于克隆的新环境，也会有期限，14 天以后会自动释放，想要延期也必须走审批。
+我所负责的第一件事，就是用 Env 来搭建一张拓扑图，把组内所有应用都从 JDOS 迁移到 Env 上，维持稳定环境对外提供支撑对接，克隆环境对内支持多项目并行。
+搭建测试环境只是起步，测试环境治理的目标是需求能够使用测试环境。对于外部依赖少的业务模块来说，这相对容易。对于外部依赖很多的业务模块来说，这就很难了。那么该如何推动这件事呢？
+第 1 个策略是共建，让研发和测试一起来搭建和维护测试环境。
+第 2 个策略是做功能验证，梳理出链路用例，跟踪验证结果，识别卡点问题：
+对于卡点问题的处理，把干系人单独拉群对，响应超过 3 天就往上抛，一定会遇到推不动的问题，那么办法只能找自己的上游负责人，层层向上反馈，让上面的负责人去找对方负责人，然后推动对方的下游同学来协助解决。卡点问题记录后需要做问题分类，做好统计，这既是工作量的体现，也是每周进度汇报的依据：
+第 3 个策略就是制定 kpi，强制大家使用测试环境完成绩效。
+How much，测试环境做到什么程度？ 测试环境的 kpi 能反应出测试环境应该做到什么程度，可以使用需求使用测试环境占比和测试环境 bug 占比。需求使用测试环境占比的计算公式是打标了测试环境的提测卡片数/总的提测卡片数，测试在点击开始测试时，选择是否使用测试环境进行打标。测试环境 bug 占比的计算公式是测试环境bug/(测试环境bug&#43;预发环境bug&#43;生产环境bug)，在提交缺陷时选择环境类型进行打标。测试环境 bug 占比的意义更大，因为使用测试环境与否，最终的体现还是落在缺陷上面的，比较容易量化，需求使用测试环境占比不是很确定，需求多少功能在测试环境使用了，相对来说不是很好度量，但也可以作为辅助指标进行观察。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-06T00:00:00+00:00">
+    <meta property="article:tag" content="自动化">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="老板给我安排了个测试环境治理的活">
+  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
+测试环境困局 测试环境治理专项是在我入职 2 个月接手的活，用“烂摊子”来形容一点也不为过。年久失修，需求基本没有在测试环境使用，想用也有很多问题。人员缺乏信心，之前负责测试环境的同学抱怨极多，外部推不动，内部又没有技术能力支撑，负能量已经蔓延到整个团队。当然，我也是其中一员，这事确实难搞。在技术部测试环境平台化的大方向下，需要每个组出一个接口人来牵头，考虑到我以前写过测试平台，乱七八糟的事都整过，老板就指定了我。
+What，测试环境是什么？ 测试环境是一套能够支撑业务系统运行的环境，是相对于预发环境和生产环境来说完全隔离的环境。测试环境=应用&#43;数据&#43;配置&#43;依赖服务。应用包含系统应用和中间件等，数据就是测试物料，配置针对测试环境应该有单独的一套，依赖服务要跟外部联调好以后整个环境才是可用的。测试环境治理就是通过内部搭建和外部联调，保障业务系统能够在完全隔离的环境中运行。
+Why，为什么要做测试环境？ 测试环境是为了隔离。如果只有一套生产环境，那么开发、测试、上线等活动，可能会对线上系统稳定性造成影响，可能会污染线上用户数据，可能引起客户投诉甚至资产损失，所以需要有一套完全隔离的测试环境。
+Who，谁来负责测试环境？ 每个测试人员都需要具备测试环境搭建能力。当然可以推动运维或研发来搭建测试环境，但是测试人员需要具备搭建能力，能够自主编译，构建，部署，遇到问题能够根据日志做初步定位，将问题抛出推动研发或外部依赖方解决。
+When，什么时间做测试环境？ 测试环境治理需要前置到研发自测阶段。在实践过程中，测试同学暴露出来最多的问题是，没有时间投入到测试环境搭建中，一方面是缺乏动力，不肯迈出艰难的第一步，另一方面也是跟项目节奏有关，研发就算用测试环境自测，也会在预发联调好以后再提测，到测试手上时，已经有可用的预发环境了，就不会再去用测试环境。“项目时间紧，测试环境不好用，直接用预发测吧”，顺理成章的就成为了很合理的借口。所以需要从提测，前置到，研发自测，做测试环境治理：
+Where，从哪里入手测试环境？ 测试环境治理需要从上往下才能推动，先有文化，才有行动。假如只有某个部门想做测试环境治理，外部依赖基本上是推不动的，一个人呐喊得再愤怒其他人也可能无动于衷。所以得先把测试环境治理这件事，跟老板沟通，从高层入手，把它定义为一项政治任务，从上往下层层递进。
+How，怎么做测试环境？ 工欲善其事，必先利其器，公司的基建比较完善，给测试人员搭建测试环境降低了很大难度。设想一下，假如只能折腾 Docker 和 K8S，那可能需要专门的运维才能搞得定环境，对测试来说门槛就会比较高了，除了少数技术能力强的，其他同学基本没有什么可操作性。测试环境平台化就是武器。公司有个部署平台叫做 JDOS，日常运维都是在这上面操作，没有运维人员，环境全靠开发人员和测试人员自己整。JDOS 已经是页面化操作了，但它对测试环境没有特殊的应用场景，是个大而全的平台，所以二级部门开了一个测试环境平台，Env，“一款全流程自动化测试环境搭建的利器”。
+Env 的核心思想是1&#43;N。1代表稳定分组（分组≈Pod），搭建稳定分组需要经过创建系统，创建应用，创建集群，申请机器，代码编译构建，部署镜像，修改配置等操作，需要选取 master 稳定版本，这样才能对外提供稳定服务。N是克隆1产生的多个分组，相互隔离，能让开发同学复用测试搭建好的环境，完成冒烟自测等过程；也能在多业务联调测试时，通过平台快速搭建一套全链路测试环境。
+Env 提供了环境监控的功能。对于搭建好的稳定环境，它可以每天监控机器是否可用，服务是否正常，镜像是否老旧，等等等，让你及时维护环境，保障稳定性。
+Env 提供了一键搭建的功能。新克隆的环境，只要点一下“一键搭建”，就会基于稳定分组，自动化搭建一套新环境，大大节约了时间成本。
+Env 提供了拓扑画图的功能。将多个应用拖到一张拓扑图里面，根据依赖关系连线，能够直观了解到应用之间的依赖关系。基于拓扑来克隆新环境，也能批量克隆多个应用。假如多项目需求并行迭代，想要多套联调的测试环境，就可以克隆多套新环境。
+Env 还解决了一个资源浪费的问题，以前搭建测试环境比较随意，申请资源也很容易，其实会导致很多机器用过后，一直空置在那里。Env 收拢了申请资源入口，基于 Env 来创建稳定分组，只能有 1 个，想要更多必须走审批。而对于克隆的新环境，也会有期限，14 天以后会自动释放，想要延期也必须走审批。
+我所负责的第一件事，就是用 Env 来搭建一张拓扑图，把组内所有应用都从 JDOS 迁移到 Env 上，维持稳定环境对外提供支撑对接，克隆环境对内支持多项目并行。
+搭建测试环境只是起步，测试环境治理的目标是需求能够使用测试环境。对于外部依赖少的业务模块来说，这相对容易。对于外部依赖很多的业务模块来说，这就很难了。那么该如何推动这件事呢？
+第 1 个策略是共建，让研发和测试一起来搭建和维护测试环境。
+第 2 个策略是做功能验证，梳理出链路用例，跟踪验证结果，识别卡点问题：
+对于卡点问题的处理，把干系人单独拉群对，响应超过 3 天就往上抛，一定会遇到推不动的问题，那么办法只能找自己的上游负责人，层层向上反馈，让上面的负责人去找对方负责人，然后推动对方的下游同学来协助解决。卡点问题记录后需要做问题分类，做好统计，这既是工作量的体现，也是每周进度汇报的依据：
+第 3 个策略就是制定 kpi，强制大家使用测试环境完成绩效。
+How much，测试环境做到什么程度？ 测试环境的 kpi 能反应出测试环境应该做到什么程度，可以使用需求使用测试环境占比和测试环境 bug 占比。需求使用测试环境占比的计算公式是打标了测试环境的提测卡片数/总的提测卡片数，测试在点击开始测试时，选择是否使用测试环境进行打标。测试环境 bug 占比的计算公式是测试环境bug/(测试环境bug&#43;预发环境bug&#43;生产环境bug)，在提交缺陷时选择环境类型进行打标。测试环境 bug 占比的意义更大，因为使用测试环境与否，最终的体现还是落在缺陷上面的，比较容易量化，需求使用测试环境占比不是很确定，需求多少功能在测试环境使用了，相对来说不是很好度量，但也可以作为辅助指标进行观察。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://dongfanger.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "老板给我安排了个测试环境治理的活",
+      "item": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E8%80%81%E6%9D%BF%E7%BB%99%E6%88%91%E5%AE%89%E6%8E%92%E4%BA%86%E4%B8%AA%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83%E6%B2%BB%E7%90%86%E7%9A%84%E6%B4%BB/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "老板给我安排了个测试环境治理的活",
+  "name": "老板给我安排了个测试环境治理的活",
+  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n测试环境困局 测试环境治理专项是在我入职 2 个月接手的活，用“烂摊子”来形容一点也不为过。年久失修，需求基本没有在测试环境使用，想用也有很多问题。人员缺乏信心，之前负责测试环境的同学抱怨极多，外部推不动，内部又没有技术能力支撑，负能量已经蔓延到整个团队。当然，我也是其中一员，这事确实难搞。在技术部测试环境平台化的大方向下，需要每个组出一个接口人来牵头，考虑到我以前写过测试平台，乱七八糟的事都整过，老板就指定了我。\nWhat，测试环境是什么？ 测试环境是一套能够支撑业务系统运行的环境，是相对于预发环境和生产环境来说完全隔离的环境。测试环境=应用+数据+配置+依赖服务。应用包含系统应用和中间件等，数据就是测试物料，配置针对测试环境应该有单独的一套，依赖服务要跟外部联调好以后整个环境才是可用的。测试环境治理就是通过内部搭建和外部联调，保障业务系统能够在完全隔离的环境中运行。\nWhy，为什么要做测试环境？ 测试环境是为了隔离。如果只有一套生产环境，那么开发、测试、上线等活动，可能会对线上系统稳定性造成影响，可能会污染线上用户数据，可能引起客户投诉甚至资产损失，所以需要有一套完全隔离的测试环境。\nWho，谁来负责测试环境？ 每个测试人员都需要具备测试环境搭建能力。当然可以推动运维或研发来搭建测试环境，但是测试人员需要具备搭建能力，能够自主编译，构建，部署，遇到问题能够根据日志做初步定位，将问题抛出推动研发或外部依赖方解决。\nWhen，什么时间做测试环境？ 测试环境治理需要前置到研发自测阶段。在实践过程中，测试同学暴露出来最多的问题是，没有时间投入到测试环境搭建中，一方面是缺乏动力，不肯迈出艰难的第一步，另一方面也是跟项目节奏有关，研发就算用测试环境自测，也会在预发联调好以后再提测，到测试手上时，已经有可用的预发环境了，就不会再去用测试环境。“项目时间紧，测试环境不好用，直接用预发测吧”，顺理成章的就成为了很合理的借口。所以需要从提测，前置到，研发自测，做测试环境治理：\nWhere，从哪里入手测试环境？ 测试环境治理需要从上往下才能推动，先有文化，才有行动。假如只有某个部门想做测试环境治理，外部依赖基本上是推不动的，一个人呐喊得再愤怒其他人也可能无动于衷。所以得先把测试环境治理这件事，跟老板沟通，从高层入手，把它定义为一项政治任务，从上往下层层递进。\nHow，怎么做测试环境？ 工欲善其事，必先利其器，公司的基建比较完善，给测试人员搭建测试环境降低了很大难度。设想一下，假如只能折腾 Docker 和 K8S，那可能需要专门的运维才能搞得定环境，对测试来说门槛就会比较高了，除了少数技术能力强的，其他同学基本没有什么可操作性。测试环境平台化就是武器。公司有个部署平台叫做 JDOS，日常运维都是在这上面操作，没有运维人员，环境全靠开发人员和测试人员自己整。JDOS 已经是页面化操作了，但它对测试环境没有特殊的应用场景，是个大而全的平台，所以二级部门开了一个测试环境平台，Env，\u0026ldquo;一款全流程自动化测试环境搭建的利器\u0026rdquo;。\nEnv 的核心思想是1+N。1代表稳定分组（分组≈Pod），搭建稳定分组需要经过创建系统，创建应用，创建集群，申请机器，代码编译构建，部署镜像，修改配置等操作，需要选取 master 稳定版本，这样才能对外提供稳定服务。N是克隆1产生的多个分组，相互隔离，能让开发同学复用测试搭建好的环境，完成冒烟自测等过程；也能在多业务联调测试时，通过平台快速搭建一套全链路测试环境。\nEnv 提供了环境监控的功能。对于搭建好的稳定环境，它可以每天监控机器是否可用，服务是否正常，镜像是否老旧，等等等，让你及时维护环境，保障稳定性。\nEnv 提供了一键搭建的功能。新克隆的环境，只要点一下“一键搭建”，就会基于稳定分组，自动化搭建一套新环境，大大节约了时间成本。\nEnv 提供了拓扑画图的功能。将多个应用拖到一张拓扑图里面，根据依赖关系连线，能够直观了解到应用之间的依赖关系。基于拓扑来克隆新环境，也能批量克隆多个应用。假如多项目需求并行迭代，想要多套联调的测试环境，就可以克隆多套新环境。\nEnv 还解决了一个资源浪费的问题，以前搭建测试环境比较随意，申请资源也很容易，其实会导致很多机器用过后，一直空置在那里。Env 收拢了申请资源入口，基于 Env 来创建稳定分组，只能有 1 个，想要更多必须走审批。而对于克隆的新环境，也会有期限，14 天以后会自动释放，想要延期也必须走审批。\n我所负责的第一件事，就是用 Env 来搭建一张拓扑图，把组内所有应用都从 JDOS 迁移到 Env 上，维持稳定环境对外提供支撑对接，克隆环境对内支持多项目并行。\n搭建测试环境只是起步，测试环境治理的目标是需求能够使用测试环境。对于外部依赖少的业务模块来说，这相对容易。对于外部依赖很多的业务模块来说，这就很难了。那么该如何推动这件事呢？\n第 1 个策略是共建，让研发和测试一起来搭建和维护测试环境。\n第 2 个策略是做功能验证，梳理出链路用例，跟踪验证结果，识别卡点问题：\n对于卡点问题的处理，把干系人单独拉群对，响应超过 3 天就往上抛，一定会遇到推不动的问题，那么办法只能找自己的上游负责人，层层向上反馈，让上面的负责人去找对方负责人，然后推动对方的下游同学来协助解决。卡点问题记录后需要做问题分类，做好统计，这既是工作量的体现，也是每周进度汇报的依据：\n第 3 个策略就是制定 kpi，强制大家使用测试环境完成绩效。\nHow much，测试环境做到什么程度？ 测试环境的 kpi 能反应出测试环境应该做到什么程度，可以使用需求使用测试环境占比和测试环境 bug 占比。需求使用测试环境占比的计算公式是打标了测试环境的提测卡片数/总的提测卡片数，测试在点击开始测试时，选择是否使用测试环境进行打标。测试环境 bug 占比的计算公式是测试环境bug/(测试环境bug+预发环境bug+生产环境bug)，在提交缺陷时选择环境类型进行打标。测试环境 bug 占比的意义更大，因为使用测试环境与否，最终的体现还是落在缺陷上面的，比较容易量化，需求使用测试环境占比不是很确定，需求多少功能在测试环境使用了，相对来说不是很好度量，但也可以作为辅助指标进行观察。\n",
+  "keywords": [
+    "自动化"
+  ],
+  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n测试环境困局 测试环境治理专项是在我入职 2 个月接手的活，用“烂摊子”来形容一点也不为过。年久失修，需求基本没有在测试环境使用，想用也有很多问题。人员缺乏信心，之前负责测试环境的同学抱怨极多，外部推不动，内部又没有技术能力支撑，负能量已经蔓延到整个团队。当然，我也是其中一员，这事确实难搞。在技术部测试环境平台化的大方向下，需要每个组出一个接口人来牵头，考虑到我以前写过测试平台，乱七八糟的事都整过，老板就指定了我。\nWhat，测试环境是什么？ 测试环境是一套能够支撑业务系统运行的环境，是相对于预发环境和生产环境来说完全隔离的环境。测试环境=应用+数据+配置+依赖服务。应用包含系统应用和中间件等，数据就是测试物料，配置针对测试环境应该有单独的一套，依赖服务要跟外部联调好以后整个环境才是可用的。测试环境治理就是通过内部搭建和外部联调，保障业务系统能够在完全隔离的环境中运行。\nWhy，为什么要做测试环境？ 测试环境是为了隔离。如果只有一套生产环境，那么开发、测试、上线等活动，可能会对线上系统稳定性造成影响，可能会污染线上用户数据，可能引起客户投诉甚至资产损失，所以需要有一套完全隔离的测试环境。\nWho，谁来负责测试环境？ 每个测试人员都需要具备测试环境搭建能力。当然可以推动运维或研发来搭建测试环境，但是测试人员需要具备搭建能力，能够自主编译，构建，部署，遇到问题能够根据日志做初步定位，将问题抛出推动研发或外部依赖方解决。\nWhen，什么时间做测试环境？ 测试环境治理需要前置到研发自测阶段。在实践过程中，测试同学暴露出来最多的问题是，没有时间投入到测试环境搭建中，一方面是缺乏动力，不肯迈出艰难的第一步，另一方面也是跟项目节奏有关，研发就算用测试环境自测，也会在预发联调好以后再提测，到测试手上时，已经有可用的预发环境了，就不会再去用测试环境。“项目时间紧，测试环境不好用，直接用预发测吧”，顺理成章的就成为了很合理的借口。所以需要从提测，前置到，研发自测，做测试环境治理：\nWhere，从哪里入手测试环境？ 测试环境治理需要从上往下才能推动，先有文化，才有行动。假如只有某个部门想做测试环境治理，外部依赖基本上是推不动的，一个人呐喊得再愤怒其他人也可能无动于衷。所以得先把测试环境治理这件事，跟老板沟通，从高层入手，把它定义为一项政治任务，从上往下层层递进。\nHow，怎么做测试环境？ 工欲善其事，必先利其器，公司的基建比较完善，给测试人员搭建测试环境降低了很大难度。设想一下，假如只能折腾 Docker 和 K8S，那可能需要专门的运维才能搞得定环境，对测试来说门槛就会比较高了，除了少数技术能力强的，其他同学基本没有什么可操作性。测试环境平台化就是武器。公司有个部署平台叫做 JDOS，日常运维都是在这上面操作，没有运维人员，环境全靠开发人员和测试人员自己整。JDOS 已经是页面化操作了，但它对测试环境没有特殊的应用场景，是个大而全的平台，所以二级部门开了一个测试环境平台，Env，“一款全流程自动化测试环境搭建的利器”。\nEnv 的核心思想是1+N。1代表稳定分组（分组≈Pod），搭建稳定分组需要经过创建系统，创建应用，创建集群，申请机器，代码编译构建，部署镜像，修改配置等操作，需要选取 master 稳定版本，这样才能对外提供稳定服务。N是克隆1产生的多个分组，相互隔离，能让开发同学复用测试搭建好的环境，完成冒烟自测等过程；也能在多业务联调测试时，通过平台快速搭建一套全链路测试环境。\nEnv 提供了环境监控的功能。对于搭建好的稳定环境，它可以每天监控机器是否可用，服务是否正常，镜像是否老旧，等等等，让你及时维护环境，保障稳定性。\nEnv 提供了一键搭建的功能。新克隆的环境，只要点一下“一键搭建”，就会基于稳定分组，自动化搭建一套新环境，大大节约了时间成本。\nEnv 提供了拓扑画图的功能。将多个应用拖到一张拓扑图里面，根据依赖关系连线，能够直观了解到应用之间的依赖关系。基于拓扑来克隆新环境，也能批量克隆多个应用。假如多项目需求并行迭代，想要多套联调的测试环境，就可以克隆多套新环境。\nEnv 还解决了一个资源浪费的问题，以前搭建测试环境比较随意，申请资源也很容易，其实会导致很多机器用过后，一直空置在那里。Env 收拢了申请资源入口，基于 Env 来创建稳定分组，只能有 1 个，想要更多必须走审批。而对于克隆的新环境，也会有期限，14 天以后会自动释放，想要延期也必须走审批。\n我所负责的第一件事，就是用 Env 来搭建一张拓扑图，把组内所有应用都从 JDOS 迁移到 Env 上，维持稳定环境对外提供支撑对接，克隆环境对内支持多项目并行。\n搭建测试环境只是起步，测试环境治理的目标是需求能够使用测试环境。对于外部依赖少的业务模块来说，这相对容易。对于外部依赖很多的业务模块来说，这就很难了。那么该如何推动这件事呢？\n第 1 个策略是共建，让研发和测试一起来搭建和维护测试环境。\n第 2 个策略是做功能验证，梳理出链路用例，跟踪验证结果，识别卡点问题：\n对于卡点问题的处理，把干系人单独拉群对，响应超过 3 天就往上抛，一定会遇到推不动的问题，那么办法只能找自己的上游负责人，层层向上反馈，让上面的负责人去找对方负责人，然后推动对方的下游同学来协助解决。卡点问题记录后需要做问题分类，做好统计，这既是工作量的体现，也是每周进度汇报的依据：\n第 3 个策略就是制定 kpi，强制大家使用测试环境完成绩效。\nHow much，测试环境做到什么程度？ 测试环境的 kpi 能反应出测试环境应该做到什么程度，可以使用需求使用测试环境占比和测试环境 bug 占比。需求使用测试环境占比的计算公式是打标了测试环境的提测卡片数/总的提测卡片数，测试在点击开始测试时，选择是否使用测试环境进行打标。测试环境 bug 占比的计算公式是测试环境bug/(测试环境bug+预发环境bug+生产环境bug)，在提交缺陷时选择环境类型进行打标。测试环境 bug 占比的意义更大，因为使用测试环境与否，最终的体现还是落在缺陷上面的，比较容易量化，需求使用测试环境占比不是很确定，需求多少功能在测试环境使用了，相对来说不是很好度量，但也可以作为辅助指标进行观察。\n测试环境破局 测试环境关联了很多东西，比如物料、自动化、精准、流水线等，都可以围绕测试环境来做文章。测试环境既是团队重点，也是是我个人的大案例，目前已经解决了部分困难，要想做出一鸣惊人的成绩，还需要站在更高的角度去看待整个事情，这也是一个全新的挑战，需要不断刷新自己，突破。\n",
+  "wordCount" : "74",
+  "inLanguage": "zh",
+  "datePublished": "2026-01-06T00:00:00Z",
+  "dateModified": "2026-01-06T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "测试开发刚哥"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E8%80%81%E6%9D%BF%E7%BB%99%E6%88%91%E5%AE%89%E6%8E%92%E4%BA%86%E4%B8%AA%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83%E6%B2%BB%E7%90%86%E7%9A%84%E6%B4%BB/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "测试开发刚哥",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dongfanger.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <div id="page-loader" aria-hidden="true">
+        <span class="loader-text"><span class="prompt">$</span> loading<span class="cursor">_</span></span>
+    </div>
+    <div id="reading-progress"></div>
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://dongfanger.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongfanger.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<div class="post-single-wrapper">
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      老板给我安排了个测试环境治理的活
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-06T00:00:00+00:00'>2026-01-06</span>&nbsp;·&nbsp;<a class='meta-term meta-category' href='https://dongfanger.github.io/categories/%E6%B5%8B%E8%AF%95/'>测试</a>&nbsp;·&nbsp;<a class='meta-term meta-tag' href='https://dongfanger.github.io/tags/%E8%87%AA%E5%8A%A8%E5%8C%96/'>#自动化</a>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><blockquote>
+<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
+</blockquote>
+<h1 id="测试环境困局">测试环境困局<a hidden class="anchor" aria-hidden="true" href="#测试环境困局">#</a></h1>
+<p>测试环境治理专项是在我入职 2 个月接手的活，用“烂摊子”来形容一点也不为过。年久失修，需求基本没有在测试环境使用，想用也有很多问题。人员缺乏信心，之前负责测试环境的同学抱怨极多，外部推不动，内部又没有技术能力支撑，负能量已经蔓延到整个团队。当然，我也是其中一员，这事确实难搞。在技术部<strong>测试环境平台化</strong>的大方向下，需要每个组出一个接口人来牵头，考虑到我以前写过测试平台，乱七八糟的事都整过，老板就指定了我。</p>
+<h1 id="what测试环境是什么">What，测试环境是什么？<a hidden class="anchor" aria-hidden="true" href="#what测试环境是什么">#</a></h1>
+<p>测试环境是一套能够支撑业务系统运行的环境，是相对于预发环境和生产环境来说完全隔离的环境。<strong>测试环境=应用+数据+配置+依赖服务</strong>。应用包含系统应用和中间件等，数据就是测试物料，配置针对测试环境应该有单独的一套，依赖服务要跟外部联调好以后整个环境才是可用的。测试环境治理就是通过内部搭建和外部联调，保障业务系统能够在完全隔离的环境中运行。</p>
+<h1 id="why为什么要做测试环境">Why，为什么要做测试环境？<a hidden class="anchor" aria-hidden="true" href="#why为什么要做测试环境">#</a></h1>
+<p>测试环境是为了隔离。如果只有一套生产环境，那么开发、测试、上线等活动，可能会对线上系统稳定性造成影响，可能会污染线上用户数据，可能引起客户投诉甚至资产损失，所以<strong>需要有一套完全隔离的测试环境</strong>。</p>
+<h1 id="who谁来负责测试环境">Who，谁来负责测试环境？<a hidden class="anchor" aria-hidden="true" href="#who谁来负责测试环境">#</a></h1>
+<p><strong>每个测试人员</strong>都需要具备测试环境搭建能力。当然可以推动运维或研发来搭建测试环境，但是测试人员需要具备搭建能力，能够自主编译，构建，部署，遇到问题能够根据日志做初步定位，将问题抛出推动研发或外部依赖方解决。</p>
+<h1 id="when什么时间做测试环境">When，什么时间做测试环境？<a hidden class="anchor" aria-hidden="true" href="#when什么时间做测试环境">#</a></h1>
+<p>测试环境治理需要<strong>前置到研发自测阶段</strong>。在实践过程中，测试同学暴露出来最多的问题是，没有时间投入到测试环境搭建中，一方面是缺乏动力，不肯迈出艰难的第一步，另一方面也是跟项目节奏有关，研发就算用测试环境自测，也会在预发联调好以后再提测，到测试手上时，已经有可用的预发环境了，就不会再去用测试环境。“项目时间紧，测试环境不好用，直接用预发测吧”，顺理成章的就成为了很合理的借口。所以需要从提测，前置到，研发自测，做测试环境治理：</p>
+<p><img loading="lazy" src="../assets/366febbd0a19441881cdffe1a55b1ea4.png"></p>
+<h1 id="where从哪里入手测试环境">Where，从哪里入手测试环境？<a hidden class="anchor" aria-hidden="true" href="#where从哪里入手测试环境">#</a></h1>
+<p>测试环境治理需要<strong>从上往下</strong>才能推动，先有文化，才有行动。假如只有某个部门想做测试环境治理，外部依赖基本上是推不动的，一个人呐喊得再愤怒其他人也可能无动于衷。所以得先把测试环境治理这件事，跟老板沟通，从高层入手，把它定义为一项政治任务，从上往下层层递进。</p>
+<h1 id="how怎么做测试环境">How，怎么做测试环境？<a hidden class="anchor" aria-hidden="true" href="#how怎么做测试环境">#</a></h1>
+<p>工欲善其事，必先利其器，公司的基建比较完善，给测试人员搭建测试环境降低了很大难度。设想一下，假如只能折腾 Docker 和 K8S，那可能需要专门的运维才能搞得定环境，对测试来说门槛就会比较高了，除了少数技术能力强的，其他同学基本没有什么可操作性。<strong>测试环境平台化就是武器</strong>。公司有个部署平台叫做 JDOS，日常运维都是在这上面操作，没有运维人员，环境全靠开发人员和测试人员自己整。JDOS 已经是页面化操作了，但它对测试环境没有特殊的应用场景，是个大而全的平台，所以二级部门开了一个测试环境平台，Env，&ldquo;一款全流程自动化测试环境搭建的利器&rdquo;。</p>
+<p>Env 的核心思想是<code>1+N</code>。<code>1</code>代表稳定分组（分组≈Pod），搭建稳定分组需要经过创建系统，创建应用，创建集群，申请机器，代码编译构建，部署镜像，修改配置等操作，需要选取 master 稳定版本，这样才能对外提供稳定服务。<code>N</code>是克隆<code>1</code>产生的多个分组，相互隔离，能让开发同学复用测试搭建好的环境，完成冒烟自测等过程；也能在多业务联调测试时，通过平台快速搭建一套全链路测试环境。</p>
+<p>Env 提供了环境监控的功能。对于搭建好的稳定环境，它可以每天监控机器是否可用，服务是否正常，镜像是否老旧，等等等，让你及时维护环境，保障稳定性。</p>
+<p>Env 提供了一键搭建的功能。新克隆的环境，只要点一下“一键搭建”，就会基于稳定分组，自动化搭建一套新环境，大大节约了时间成本。</p>
+<p>Env 提供了拓扑画图的功能。将多个应用拖到一张拓扑图里面，根据依赖关系连线，能够直观了解到应用之间的依赖关系。基于拓扑来克隆新环境，也能批量克隆多个应用。假如多项目需求并行迭代，想要多套联调的测试环境，就可以克隆多套新环境。</p>
+<p>Env 还解决了一个资源浪费的问题，以前搭建测试环境比较随意，申请资源也很容易，其实会导致很多机器用过后，一直空置在那里。Env 收拢了申请资源入口，基于 Env 来创建稳定分组，只能有 1 个，想要更多必须走审批。而对于克隆的新环境，也会有期限，14 天以后会自动释放，想要延期也必须走审批。</p>
+<p>我所负责的第一件事，就是用 Env 来搭建一张拓扑图，把组内所有应用都从 JDOS 迁移到 Env 上，<strong>维持稳定环境对外提供支撑对接，克隆环境对内支持多项目并行</strong>。</p>
+<p>搭建测试环境只是起步，<strong>测试环境治理的目标是需求能够使用测试环境</strong>。对于外部依赖少的业务模块来说，这相对容易。对于外部依赖很多的业务模块来说，这就很难了。那么该如何推动这件事呢？</p>
+<p>第 1 个策略是共建，让研发和测试一起来搭建和维护测试环境。</p>
+<p>第 2 个策略是做功能验证，梳理出链路用例，跟踪验证结果，识别卡点问题：</p>
+<p><img loading="lazy" src="../assets/993f842d5d314b23a877f507494f3697.png"></p>
+<p>对于卡点问题的处理，把干系人单独拉群对，响应超过 3 天就往上抛，<strong>一定会遇到推不动的问题，那么办法只能找自己的上游负责人，层层向上反馈，让上面的负责人去找对方负责人，然后推动对方的下游同学来协助解决</strong>。卡点问题记录后需要做问题分类，做好统计，这既是工作量的体现，也是每周进度汇报的依据：</p>
+<p><img loading="lazy" src="../assets/546328b1b59744b9951e185dea9319fd.png"></p>
+<p><img loading="lazy" src="../assets/687bb904572e48f9ad64703e7e3a6f86.png"></p>
+<p>第 3 个策略就是制定 kpi，强制大家使用测试环境完成绩效。</p>
+<h1 id="how-much测试环境做到什么程度">How much，测试环境做到什么程度？<a hidden class="anchor" aria-hidden="true" href="#how-much测试环境做到什么程度">#</a></h1>
+<p>测试环境的 kpi 能反应出测试环境应该做到什么程度，可以使用<strong>需求使用测试环境占比</strong>和<strong>测试环境 bug 占比</strong>。需求使用测试环境占比的计算公式是<code>打标了测试环境的提测卡片数/总的提测卡片数</code>，测试在点击开始测试时，选择是否使用测试环境进行打标。测试环境 bug 占比的计算公式是<code>测试环境bug/(测试环境bug+预发环境bug+生产环境bug)</code>，在提交缺陷时选择环境类型进行打标。测试环境 bug 占比的意义更大，因为使用测试环境与否，最终的体现还是落在缺陷上面的，比较容易量化，需求使用测试环境占比不是很确定，需求多少功能在测试环境使用了，相对来说不是很好度量，但也可以作为辅助指标进行观察。</p>
+<h1 id="测试环境破局">测试环境破局<a hidden class="anchor" aria-hidden="true" href="#测试环境破局">#</a></h1>
+<p>测试环境关联了很多东西，比如物料、自动化、精准、流水线等，都可以围绕测试环境来做文章。测试环境既是团队重点，也是是我个人的大案例，目前已经解决了部分困难，要想做出一鸣惊人的成绩，还需要站在更高的角度去看待整个事情，这也是一个全新的挑战，需要不断刷新自己，突破。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://dongfanger.github.io/tags/%E8%87%AA%E5%8A%A8%E5%8C%96/">自动化</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BF%AB%E7%94%A8djangorestframework%E5%86%99%E5%86%99api%E5%90%A7/">
+    <span class="title">« 上一页</span>
+    <span>快用 DjangoRESTframework 写写 API 吧</span>
+  </a>
+  <a class="next" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E6%9D%A1%E4%BB%B6%E5%BE%AA%E7%8E%AF%E8%AF%AD%E5%8F%A5%E7%BB%84%E6%88%90%E4%BA%86python%E4%BB%A3%E7%A0%81%E7%9A%84%E9%AA%A8%E6%9E%B6/">
+    <span class="title">下一页 »</span>
+    <span>条件循环语句组成了 Python 代码的骨架</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+<aside class="toc-sidebar"><div class="toc-sidebar-title">目录</div>
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#测试环境困局">测试环境困局</a></li>
+    <li><a href="#what测试环境是什么">What，测试环境是什么？</a></li>
+    <li><a href="#why为什么要做测试环境">Why，为什么要做测试环境？</a></li>
+    <li><a href="#who谁来负责测试环境">Who，谁来负责测试环境？</a></li>
+    <li><a href="#when什么时间做测试环境">When，什么时间做测试环境？</a></li>
+    <li><a href="#where从哪里入手测试环境">Where，从哪里入手测试环境？</a></li>
+    <li><a href="#how怎么做测试环境">How，怎么做测试环境？</a></li>
+    <li><a href="#how-much测试环境做到什么程度">How much，测试环境做到什么程度？</a></li>
+    <li><a href="#测试环境破局">测试环境破局</a></li>
+  </ul>
+</nav>
+
+</aside>
+</div>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script>
+(function () {
+    
+    function hideLoader() {
+        var loader = document.getElementById('page-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+    if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 200);
+    } else {
+        window.addEventListener('load', function () { setTimeout(hideLoader, 200); });
+    }
+    
+    setTimeout(hideLoader, 3000);
+
+    
+    function updateProgress() {
+        var bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop || document.body.scrollTop || 0;
+        var height = doc.scrollHeight - doc.clientHeight;
+        var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    
+    var headings = Array.prototype.slice.call(
+        document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    var tocLinks = Array.prototype.slice.call(
+        document.querySelectorAll('.toc-sidebar #TableOfContents a')
+    );
+    if (headings.length && tocLinks.length) {
+        function onScrollSpy() {
+            var pos = window.scrollY + 80;
+            var currentId = headings[0] ? headings[0].id : null;
+            headings.forEach(function (h) {
+                if (h.offsetTop <= pos) currentId = h.id;
+            });
+            tocLinks.forEach(function (a) {
+                var id = (a.getAttribute('href') || '').replace('#', '');
+                if (id === currentId) a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+        window.addEventListener('scroll', onScrollSpy, { passive: true });
+        onScrollSpy();
+    }
+})();
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                target.scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                target.scrollIntoView();
+            }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
