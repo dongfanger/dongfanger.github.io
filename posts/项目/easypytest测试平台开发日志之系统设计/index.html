@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>EasyPytest 测试平台开发日志之系统设计 | 测试开发刚哥</title>
+<title>EasyPytest 测试平台开发日志之系统设计 | 全栈开发刚哥</title>
 <meta name="keywords" content="EasyPytest">
 <meta name="description" content="EasyPytest 测试平台，帮你高效管理 Pytest 测试用例。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/easypytest%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97%E4%B9%8B%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/easypytest%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97%E4%B9%8B%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="EasyPytest 测试平台开发日志之系统设计">
   <meta property="og:description" content="EasyPytest 测试平台，帮你高效管理 Pytest 测试用例。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "EasyPytest"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nEasyPytest 测试平台，帮你高效管理 Pytest 测试用例。\nEP 平台的定位是 Pytest 测试用例管理平台，80%的自动化用例开发在 PyCharm 等专业的 IDE 中进行，20%的用例调度和结果查看就交给 EP 平台来管理。\nEP 平台是对 teprunner 测试平台的一次全新升级，迭代一的开发目标是将后端 Django 切换为 FastAPI，代码以更合理更精简更规范的方式重构，并做部分功能优化。\n相对于 teprunner 平台，重新设计的 EasyPytest 平台有 2 个较大变化：\n1、用例支持串行和并行（pytest-xdist）；\n2、测试计划的结果直接链接到 Allure HTML 报告（FastAPI mount）；\n业务架构图 系统架构图 数据库设计 SET NAMES utf8mb4; SET FOREIGN_KEY_CHECKS = 0; DROP TABLE IF EXISTS `user`; CREATE TABLE `user` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `username` varchar(32) NOT NULL COMMENT '用户名', `nickname` varchar(32) NOT NULL COMMENT '昵称', `password` varchar(128) NOT NULL COMMENT '密码', `is_superuser` tinyint(2) DEFAULT '0' COMMENT '是否管理员：0-否，1-是', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用户表'; DROP TABLE IF EXISTS `project`; CREATE TABLE `project` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '项目名称', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='项目表'; DROP TABLE IF EXISTS `environment`; CREATE TABLE `environment` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(32) NOT NULL COMMENT '环境名称', `project_id` bigint(20) NOT NULL COMMENT '项目id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='环境表'; DROP TABLE IF EXISTS `variable`; CREATE TABLE `variable` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '变量名', `value` varchar(512) NOT NULL COMMENT '变量值', `desc` varchar(256) NOT NULL COMMENT '变量描述', `project_id` bigint(20) NOT NULL COMMENT '项目id', `env_id` bigint(20) NOT NULL COMMENT '环境id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='变量表'; DROP TABLE IF EXISTS `fixture`; CREATE TABLE `fixture` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT 'fixture名称', `code` text NOT NULL COMMENT 'fixture代码', `desc` varchar(256) NOT NULL COMMENT 'fixture描述', `project_id` bigint(20) NOT NULL COMMENT '项目id', `creator_id` bigint(20) NOT NULL COMMENT '创建人id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用例依赖表'; DROP TABLE IF EXISTS `case`; CREATE TABLE `case` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '用例名称', `code` text NOT NULL COMMENT '用例代码', `desc` varchar(256) NOT NULL COMMENT '用例描述', `project_id` bigint(20) NOT NULL COMMENT '项目id', `creator_id` bigint(20) NOT NULL COMMENT '创建人id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用例表'; DROP TABLE IF EXISTS `result`; CREATE TABLE `result` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `case_id` bigint(20) NOT NULL COMMENT '用例id', `status` varchar(32) NOT NULL COMMENT '结果状态', `log` text NOT NULL COMMENT '运行日志', `elapsed` varchar(32) NOT NULL COMMENT '运行耗时', `run_env_id` bigint(20) NOT NULL COMMENT '运行环境id', `run_user_id` bigint(20) NOT NULL COMMENT '运行用户id', `run_time` timestamp NOT NULL COMMENT '运行时间', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用例结果表'; DROP TABLE IF EXISTS `plan`; CREATE TABLE `plan` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '计划名称', `onoff` tinyint(2) NOT NULL COMMENT '启动开关：0-关闭，1-启动', `crontab` varchar(128) NOT NULL COMMENT 'crontab执行周期表达式', `run_env_id` bigint(20) NOT NULL COMMENT '运行环境id', `creator_id` bigint(20) NOT NULL COMMENT '创建人id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='测试计划表'; DROP TABLE IF EXISTS `plan_case`; CREATE TABLE `plan_case` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `plan_id` bigint(20) NOT NULL COMMENT '计划id', `case_id` bigint(20) NOT NULL COMMENT '用例id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='计划用例关系表'; DROP TABLE IF EXISTS `report`; CREATE TABLE `report` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `plan_id` bigint(20) NOT NULL COMMENT '计划id', `location` varchar(256) NOT NULL COMMENT '报告地址', `run_env_id` bigint(20) NOT NULL COMMENT '运行环境id', `run_user_id` bigint(20) NOT NULL COMMENT '运行用户id', `run_time` timestamp NOT NULL COMMENT '运行时间', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='测试报告表'; 接口设计 接口文档使用 FastAPI 生成，源码：\nhttps://gitee.com/dongfanger/ep-api\n项目目录结构设计 参考 FastAPI 官方项目生成器：\nhttps://github.com/tiangolo/full-stack-fastapi-postgresql\n生成的示例项目：\n设计 EP 平台的项目目录结构：\n各模块尽量独立，以尽量减少多人协作开发代码冲突，提高编码效率。\nEP 平台在开发过程中会不定期发布开发日志，开发完成后也会有完善的帮助手册，后续迭代应该还会采用报名+多人协作开发的模式，欢迎持续关注~\n参考资料：\n开发阶段源码： https://gitee.com/dongfanger/easy-pytest\n发布阶段源码： https://github.com/dongfanger/EasyPytest\n",
-  "wordCount" : "763",
+  "articleBody": "EasyPytest 测试平台，帮你高效管理 Pytest 测试用例。\nEP 平台的定位是 Pytest 测试用例管理平台，80%的自动化用例开发在 PyCharm 等专业的 IDE 中进行，20%的用例调度和结果查看就交给 EP 平台来管理。\nEP 平台是对 teprunner 测试平台的一次全新升级，迭代一的开发目标是将后端 Django 切换为 FastAPI，代码以更合理更精简更规范的方式重构，并做部分功能优化。\n相对于 teprunner 平台，重新设计的 EasyPytest 平台有 2 个较大变化：\n1、用例支持串行和并行（pytest-xdist）；\n2、测试计划的结果直接链接到 Allure HTML 报告（FastAPI mount）；\n业务架构图 系统架构图 数据库设计 SET NAMES utf8mb4; SET FOREIGN_KEY_CHECKS = 0; DROP TABLE IF EXISTS `user`; CREATE TABLE `user` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `username` varchar(32) NOT NULL COMMENT '用户名', `nickname` varchar(32) NOT NULL COMMENT '昵称', `password` varchar(128) NOT NULL COMMENT '密码', `is_superuser` tinyint(2) DEFAULT '0' COMMENT '是否管理员：0-否，1-是', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用户表'; DROP TABLE IF EXISTS `project`; CREATE TABLE `project` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '项目名称', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='项目表'; DROP TABLE IF EXISTS `environment`; CREATE TABLE `environment` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(32) NOT NULL COMMENT '环境名称', `project_id` bigint(20) NOT NULL COMMENT '项目id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='环境表'; DROP TABLE IF EXISTS `variable`; CREATE TABLE `variable` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '变量名', `value` varchar(512) NOT NULL COMMENT '变量值', `desc` varchar(256) NOT NULL COMMENT '变量描述', `project_id` bigint(20) NOT NULL COMMENT '项目id', `env_id` bigint(20) NOT NULL COMMENT '环境id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='变量表'; DROP TABLE IF EXISTS `fixture`; CREATE TABLE `fixture` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT 'fixture名称', `code` text NOT NULL COMMENT 'fixture代码', `desc` varchar(256) NOT NULL COMMENT 'fixture描述', `project_id` bigint(20) NOT NULL COMMENT '项目id', `creator_id` bigint(20) NOT NULL COMMENT '创建人id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用例依赖表'; DROP TABLE IF EXISTS `case`; CREATE TABLE `case` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '用例名称', `code` text NOT NULL COMMENT '用例代码', `desc` varchar(256) NOT NULL COMMENT '用例描述', `project_id` bigint(20) NOT NULL COMMENT '项目id', `creator_id` bigint(20) NOT NULL COMMENT '创建人id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用例表'; DROP TABLE IF EXISTS `result`; CREATE TABLE `result` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `case_id` bigint(20) NOT NULL COMMENT '用例id', `status` varchar(32) NOT NULL COMMENT '结果状态', `log` text NOT NULL COMMENT '运行日志', `elapsed` varchar(32) NOT NULL COMMENT '运行耗时', `run_env_id` bigint(20) NOT NULL COMMENT '运行环境id', `run_user_id` bigint(20) NOT NULL COMMENT '运行用户id', `run_time` timestamp NOT NULL COMMENT '运行时间', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='用例结果表'; DROP TABLE IF EXISTS `plan`; CREATE TABLE `plan` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `name` varchar(64) NOT NULL COMMENT '计划名称', `onoff` tinyint(2) NOT NULL COMMENT '启动开关：0-关闭，1-启动', `crontab` varchar(128) NOT NULL COMMENT 'crontab执行周期表达式', `run_env_id` bigint(20) NOT NULL COMMENT '运行环境id', `creator_id` bigint(20) NOT NULL COMMENT '创建人id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='测试计划表'; DROP TABLE IF EXISTS `plan_case`; CREATE TABLE `plan_case` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `plan_id` bigint(20) NOT NULL COMMENT '计划id', `case_id` bigint(20) NOT NULL COMMENT '用例id', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='计划用例关系表'; DROP TABLE IF EXISTS `report`; CREATE TABLE `report` ( `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增id', `plan_id` bigint(20) NOT NULL COMMENT '计划id', `location` varchar(256) NOT NULL COMMENT '报告地址', `run_env_id` bigint(20) NOT NULL COMMENT '运行环境id', `run_user_id` bigint(20) NOT NULL COMMENT '运行用户id', `run_time` timestamp NOT NULL COMMENT '运行时间', `is_deleted` tinyint(2) DEFAULT '0' COMMENT '是否逻辑删除：0-否，1-是', `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间', `updated_at` timestamp NULL DEFAULT NULL COMMENT '最近修改时间', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8 COMMENT='测试报告表'; 接口设计 接口文档使用 FastAPI 生成，源码：\nhttps://gitee.com/dongfanger/ep-api\n项目目录结构设计 参考 FastAPI 官方项目生成器：\nhttps://github.com/tiangolo/full-stack-fastapi-postgresql\n生成的示例项目：\n设计 EP 平台的项目目录结构：\n各模块尽量独立，以尽量减少多人协作开发代码冲突，提高编码效率。\nEP 平台在开发过程中会不定期发布开发日志，开发完成后也会有完善的帮助手册，后续迭代应该还会采用报名+多人协作开发的模式，欢迎持续关注~\n参考资料：\n开发阶段源码： https://gitee.com/dongfanger/easy-pytest\n发布阶段源码： https://github.com/dongfanger/EasyPytest\n",
+  "wordCount" : "762",
   "inLanguage": "zh",
   "datePublished": "2026-01-01T00:00:00Z",
   "dateModified": "2026-01-01T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p><strong>EasyPytest 测试平台，帮你高效管理 Pytest 测试用例。</strong></p>
+  <div class="post-content md-content"><p><strong>EasyPytest 测试平台，帮你高效管理 Pytest 测试用例。</strong></p>
 <p>EP 平台的定位是 Pytest 测试用例管理平台，80%的自动化用例开发在 PyCharm 等专业的 IDE 中进行，20%的用例调度和结果查看就交给 EP 平台来管理。</p>
 <p>EP 平台是对 teprunner 测试平台的一次全新升级，迭代一的开发目标是将后端 Django 切换为 FastAPI，代码以更合理更精简更规范的方式重构，并做部分功能优化。</p>
 <p>相对于 teprunner 平台，重新设计的 EasyPytest 平台有 2 个较大变化：</p>
@@ -421,7 +393,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -555,19 +527,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

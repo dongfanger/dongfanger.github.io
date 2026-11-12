@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>tep 支持 MVC 架构实现用例数据分离 | 测试开发刚哥</title>
+<title>tep 支持 MVC 架构实现用例数据分离 | 全栈开发刚哥</title>
 <meta name="keywords" content="tep">
 <meta name="description" content="大家好，我是刚哥。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E6%94%AF%E6%8C%81mvc%E6%9E%B6%E6%9E%84%E5%AE%9E%E7%8E%B0%E7%94%A8%E4%BE%8B%E6%95%B0%E6%8D%AE%E5%88%86%E7%A6%BB/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E6%94%AF%E6%8C%81mvc%E6%9E%B6%E6%9E%84%E5%AE%9E%E7%8E%B0%E7%94%A8%E4%BE%8B%E6%95%B0%E6%8D%AE%E5%88%86%E7%A6%BB/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="tep 支持 MVC 架构实现用例数据分离">
   <meta property="og:description" content="大家好，我是刚哥。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "tep"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n大家好，我是刚哥。\ntep 已经支持了两种开发模式：用例数据一体和 HttpRunner（第三版）。HttpRunner 已经众所周知，此处不做过多介绍。用例数据一体指的是把用例和数据都写在一个 test.py 文件里面，这样的好处是简单直接明了，特别适合刚开始用 pytest 写自动化代码的同学，从上往下一气呵成就完成了一个自动化用例，收获成就感的同时，也能很方便的共享给其他人使用，单个文件就能跑起来。\n但是当我在公司用 SpringBoot 开发了一个后端服务后，尝到了 MVC 架构所带来的高可维护性，加上在跟各位大佬聊天时，也听说很多公司对接口自动化做了分层设计，于是让 tep 支持用例数据分离的开发，已经变得很重要了。用例数据分离指的是用例只有逻辑没有数据，这样在修改数据的时候，用例基本不需要变化就能适应，用例看起来是非常简洁的，就像这样：\nclass Test: case_vars = TepVars() case_vars.vars_ = { \"domain\": \"http://127.0.0.1:5000\", \"skuNum\": \"3\" } def test(self): # 登录 Login(Test).post() # 搜索商品 SearchSku(Test).get() # 添加购物车 AddCart(Test).post() # 下单 Order(Test).post() # 支付 Pay(Test).post() 这就是 tep 支持的用例数据分离的用例的样子。\n我增加了一个 services 文件夹，用于存放接口：\n先看下登录 Login.py：\nclass Login(BaseRequest): def post(self): response = self.request( \"post\", url=self.case_vars.get(\"domain\") + \"/login\", headers={\"Content-Type\": \"application/json\"}, json={ \"username\": \"dongfanger\", \"password\": \"123456\", } ) assert response.status_code \u003c 400 self.case_vars.put(\"token\", response.jmespath(\"token\")) 必须继承 BaseRequest。 self.request 和 requests.request 用法完全一致。 self.case_vars 用于在测试用例的测试步骤之间传递变量，有 get 和 put 两个操作。 response.jmespath(\"token\")是封装了 requests.Response 后添加的方法，替代jmespath.search(\"token\", response.json())的写法。 BaseRequest 的定义如下：\nimport jmespath from requests import Response from tep.client import request class TepResponse(Response): def __init__(self, response): super().__init__() for k, v in response.__dict__.items(): self.__dict__[k] = v def jmespath(self, expression): return jmespath.search(expression, self.json()) class BaseRequest: def __init__(self, clazz): self.case_vars = clazz.case_vars def request(self, method, url, **kwargs): response = request(method, url, **kwargs) return TepResponse(response) TepResponse 对 requests.Response 做了封装，添加了 jmespath 方法。 BaseRequest 的__init__在初始化时传入测试类（test.py 里面测试用例的类），提取 case_vars 对象，这样接口类继承以后，就能用 self.case_vars 来 get 和 put 变量了。 同时调用 tep.client.request，并把 response 以封装后的 TepResponse 返回。 那么问题来了，**如何在接口之间传递参数呢？**请看 test_login_pay_mvc.py、Login 和 SearchSku 这三段代码：\n## test_login_pay_mvc.py class Test: case_vars = TepVars() case_vars.vars_ = { \"domain\": \"http://127.0.0.1:5000\", \"skuNum\": \"3\" } def test(self): # 登录 Login(Test).post() # 搜索商品 SearchSku(Test).get() # 添加购物车 AddCart(Test).post() # 下单 Order(Test).post() # 支付 Pay(Test).post() ## Login.py class Login(BaseRequest): def post(self): response = self.request( \"post\", url=self.case_vars.get(\"domain\") + \"/login\", headers={\"Content-Type\": \"application/json\"}, json={ \"username\": \"dongfanger\", \"password\": \"123456\", } ) assert response.status_code \u003c 400 self.case_vars.put(\"token\", response.jmespath(\"token\")) ## SearchSku.py class SearchSku(BaseRequest): def get(self): response = self.request( \"get\", url=self.case_vars.get(\"domain\") + \"/searchSku\", headers={\"token\": self.case_vars.get(\"token\")}, params={\"skuName\": \"电子书\"} ) self.case_vars.put(\"skuId\", response.jmespath(\"skuId\")) self.case_vars.put(\"skuPrice\", response.jmespath(\"price\")) assert response.status_code \u003c 400 test_login_pay_mvc.py 文件的 Test 测试用例里面，定义了用例级别的变量：domain。 Login.py 文件通过self.case_vars.get(\"domain\")获取 domain，然后把 token 通过self.case_vars.put(\"token\", response.jmespath(\"token\"))存入 token。 SearchSku.py 文件通过 self.case_vars.get(“token”)获取 token，并用self.case_vars.put()存入 skuId 和 skuPrice，供下一个接口 AddCart 使用，以此类推。 用例数据分离的写法遵从了 MVC 架构，并借鉴了 HttpRunner 和 JMeter 的部分设计，相比于用例数据一体，可能编写体验没有那么方便，但是维护性和可复用性都很高，其中接口类的 get 和 post 可以根据数据需要定义多个如 get_a 和 post_b 等，以支持多种数据，略微有一丢丢复杂，适合有代码经验的同学。\n**如何才能使用用例数据一体、用例数据分离、HttpRunner3 种开发模式呢？**等 tep0.9.4 版本发布后进行升级，用tep startproject demo命令创建项目脚手架，就会包含登录到下单流程的全部 3 种开发模式示例代码，开箱即用，一键运行成功。\n从此刻开始，tep 实用性已经提升了一个档次，但是我将停下它的脚步，将注意力放到 HttpRunner3 的源码学习中，并产出一系列文章，站在巨人的肩膀上，才能看得更远。为什么 HttpRunner 如此重要？因为毕竟 tep 的技术就是从 HttpRunner 学来的。\n",
-  "wordCount" : "316",
+  "articleBody": "大家好，我是刚哥。\ntep 已经支持了两种开发模式：用例数据一体和 HttpRunner（第三版）。HttpRunner 已经众所周知，此处不做过多介绍。用例数据一体指的是把用例和数据都写在一个 test.py 文件里面，这样的好处是简单直接明了，特别适合刚开始用 pytest 写自动化代码的同学，从上往下一气呵成就完成了一个自动化用例，收获成就感的同时，也能很方便的共享给其他人使用，单个文件就能跑起来。\n但是当我在公司用 SpringBoot 开发了一个后端服务后，尝到了 MVC 架构所带来的高可维护性，加上在跟各位大佬聊天时，也听说很多公司对接口自动化做了分层设计，于是让 tep 支持用例数据分离的开发，已经变得很重要了。用例数据分离指的是用例只有逻辑没有数据，这样在修改数据的时候，用例基本不需要变化就能适应，用例看起来是非常简洁的，就像这样：\nclass Test: case_vars = TepVars() case_vars.vars_ = { \"domain\": \"http://127.0.0.1:5000\", \"skuNum\": \"3\" } def test(self): # 登录 Login(Test).post() # 搜索商品 SearchSku(Test).get() # 添加购物车 AddCart(Test).post() # 下单 Order(Test).post() # 支付 Pay(Test).post() 这就是 tep 支持的用例数据分离的用例的样子。\n我增加了一个 services 文件夹，用于存放接口：\n先看下登录 Login.py：\nclass Login(BaseRequest): def post(self): response = self.request( \"post\", url=self.case_vars.get(\"domain\") + \"/login\", headers={\"Content-Type\": \"application/json\"}, json={ \"username\": \"dongfanger\", \"password\": \"123456\", } ) assert response.status_code \u003c 400 self.case_vars.put(\"token\", response.jmespath(\"token\")) 必须继承 BaseRequest。 self.request 和 requests.request 用法完全一致。 self.case_vars 用于在测试用例的测试步骤之间传递变量，有 get 和 put 两个操作。 response.jmespath(\"token\")是封装了 requests.Response 后添加的方法，替代jmespath.search(\"token\", response.json())的写法。 BaseRequest 的定义如下：\nimport jmespath from requests import Response from tep.client import request class TepResponse(Response): def __init__(self, response): super().__init__() for k, v in response.__dict__.items(): self.__dict__[k] = v def jmespath(self, expression): return jmespath.search(expression, self.json()) class BaseRequest: def __init__(self, clazz): self.case_vars = clazz.case_vars def request(self, method, url, **kwargs): response = request(method, url, **kwargs) return TepResponse(response) TepResponse 对 requests.Response 做了封装，添加了 jmespath 方法。 BaseRequest 的__init__在初始化时传入测试类（test.py 里面测试用例的类），提取 case_vars 对象，这样接口类继承以后，就能用 self.case_vars 来 get 和 put 变量了。 同时调用 tep.client.request，并把 response 以封装后的 TepResponse 返回。 那么问题来了，**如何在接口之间传递参数呢？**请看 test_login_pay_mvc.py、Login 和 SearchSku 这三段代码：\n## test_login_pay_mvc.py class Test: case_vars = TepVars() case_vars.vars_ = { \"domain\": \"http://127.0.0.1:5000\", \"skuNum\": \"3\" } def test(self): # 登录 Login(Test).post() # 搜索商品 SearchSku(Test).get() # 添加购物车 AddCart(Test).post() # 下单 Order(Test).post() # 支付 Pay(Test).post() ## Login.py class Login(BaseRequest): def post(self): response = self.request( \"post\", url=self.case_vars.get(\"domain\") + \"/login\", headers={\"Content-Type\": \"application/json\"}, json={ \"username\": \"dongfanger\", \"password\": \"123456\", } ) assert response.status_code \u003c 400 self.case_vars.put(\"token\", response.jmespath(\"token\")) ## SearchSku.py class SearchSku(BaseRequest): def get(self): response = self.request( \"get\", url=self.case_vars.get(\"domain\") + \"/searchSku\", headers={\"token\": self.case_vars.get(\"token\")}, params={\"skuName\": \"电子书\"} ) self.case_vars.put(\"skuId\", response.jmespath(\"skuId\")) self.case_vars.put(\"skuPrice\", response.jmespath(\"price\")) assert response.status_code \u003c 400 test_login_pay_mvc.py 文件的 Test 测试用例里面，定义了用例级别的变量：domain。 Login.py 文件通过self.case_vars.get(\"domain\")获取 domain，然后把 token 通过self.case_vars.put(\"token\", response.jmespath(\"token\"))存入 token。 SearchSku.py 文件通过 self.case_vars.get(“token”)获取 token，并用self.case_vars.put()存入 skuId 和 skuPrice，供下一个接口 AddCart 使用，以此类推。 用例数据分离的写法遵从了 MVC 架构，并借鉴了 HttpRunner 和 JMeter 的部分设计，相比于用例数据一体，可能编写体验没有那么方便，但是维护性和可复用性都很高，其中接口类的 get 和 post 可以根据数据需要定义多个如 get_a 和 post_b 等，以支持多种数据，略微有一丢丢复杂，适合有代码经验的同学。\n**如何才能使用用例数据一体、用例数据分离、HttpRunner3 种开发模式呢？**等 tep0.9.4 版本发布后进行升级，用tep startproject demo命令创建项目脚手架，就会包含登录到下单流程的全部 3 种开发模式示例代码，开箱即用，一键运行成功。\n从此刻开始，tep 实用性已经提升了一个档次，但是我将停下它的脚步，将注意力放到 HttpRunner3 的源码学习中，并产出一系列文章，站在巨人的肩膀上，才能看得更远。为什么 HttpRunner 如此重要？因为毕竟 tep 的技术就是从 HttpRunner 学来的。\n",
+  "wordCount" : "315",
   "inLanguage": "zh",
   "datePublished": "2026-01-09T00:00:00Z",
   "dateModified": "2026-01-09T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>大家好，我是刚哥。</p>
+  <div class="post-content md-content"><p>大家好，我是刚哥。</p>
 <p>tep 已经支持了两种开发模式：用例数据一体和 HttpRunner（第三版）。HttpRunner 已经众所周知，此处不做过多介绍。<strong>用例数据一体</strong>指的是把用例和数据都写在一个 test.py 文件里面，这样的好处是简单直接明了，特别适合刚开始用 pytest 写自动化代码的同学，从上往下一气呵成就完成了一个自动化用例，收获成就感的同时，也能很方便的共享给其他人使用，单个文件就能跑起来。</p>
 <p>但是当我在公司用 SpringBoot 开发了一个后端服务后，尝到了 MVC 架构所带来的高可维护性，加上在跟各位大佬聊天时，也听说很多公司对接口自动化做了分层设计，于是让 tep 支持用例数据分离的开发，已经变得很重要了。<strong>用例数据分离</strong>指的是用例只有逻辑没有数据，这样在修改数据的时候，用例基本不需要变化就能适应，用例看起来是非常简洁的，就像这样：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Test</span><span style="color:#1f2328">:</span>
@@ -377,7 +349,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -511,19 +483,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

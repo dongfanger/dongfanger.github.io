@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>接口自动化，用例独立还是用例复用 | 测试开发刚哥</title>
+<title>接口自动化，用例独立还是用例复用 | 全栈开发刚哥</title>
 <meta name="keywords" content="个人思考">
 <meta name="description" content="用例独立。用例相互之间没有依赖，随便拉出一条用例就能执行。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E9%9A%8F%E7%AC%94/%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E7%8B%AC%E7%AB%8B%E8%BF%98%E6%98%AF%E7%94%A8%E4%BE%8B%E5%A4%8D%E7%94%A8/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E9%9A%8F%E7%AC%94/%E6%8E%A5%E5%8F%A3%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%A8%E4%BE%8B%E7%8B%AC%E7%AB%8B%E8%BF%98%E6%98%AF%E7%94%A8%E4%BE%8B%E5%A4%8D%E7%94%A8/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="接口自动化，用例独立还是用例复用">
   <meta property="og:description" content="用例独立。用例相互之间没有依赖，随便拉出一条用例就能执行。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "个人思考"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n用例独立。用例相互之间没有依赖，随便拉出一条用例就能执行。\n这是我在文章《接口自动化框架设计漫谈 V1.0》提到的，也是我一直坚持的接口自动化用例设计方式。\n这么做的依据是某些开源测试框架是这样设计的，某些公司测试平台也是这么设计的，自然而然就这样认为了。最近公司平台做了升级，能够支持用例复用了，让我重新思考接口自动化的用例，到底是独立还是复用。\n为什么用例独立？我个人理解，用例独立，可能有点受限于技术实现，比如 YAML 编写用例，或者平台编写用例，实现成本和取得收益对比来看，用例独立是一种均衡的选择。当然用例独立也有好处：隔离性、可维护性、并行执行、错误定位、数据隔离、报告清晰。\n其实从代码复用角度来看，用例复用能提高编写效率，把相对稳定的步骤组装成用例，再复用给其他用例，减少重复代码的编写与维护。\n如果使用 tep 测试框架，个人推荐使用 fixture 来实现用例复用，借助依赖注入技术，避免循环 import 等问题。\n举例，有 1 条用例 case_hello，打招呼，name 是变量，代码如下：\n## fixture/fixture_case_hello.py import pytest from tep import v @pytest.fixture(scope='session') def case_hello(): def main(): msg = 'Hello ${name}' msg = v(msg) print(msg) return main case_hello 定义为 fixture，放在 fixture 目录下并以fixture_开头命名文件，tep 框架会自动识别为 pytest fixture。其中变量处理使用了函数v()。\n新建 1 条用例 test_case_reuse，复用 case_hello，代码如下：\n## test_case_reuse.py from tep import v, step def test(case_hello): v({ \"name\": \"Gang\" }) case_hello() step('welcome', step_welcome) def step_welcome(): print('Welcome to tep') case_hello 内部包装了 1 个内部函数 main，返回的是函数引用，所以在用例中进行函数调用case_hello()就能实现用例复用。变量 name 使用函数v()定义，在用例之间共享。函数v()可以理解为内部变量池，跟 JMeter 的 vars 类似，详情可以参考文章《Python 处理接口数据，这个函数太香了》。\n总结，用例尽量保持独立，如果需要复用，把重复代码封装为用例，在用例级别进行复用。\n",
-  "wordCount" : "91",
+  "articleBody": "用例独立。用例相互之间没有依赖，随便拉出一条用例就能执行。\n这是我在文章《接口自动化框架设计漫谈 V1.0》提到的，也是我一直坚持的接口自动化用例设计方式。\n这么做的依据是某些开源测试框架是这样设计的，某些公司测试平台也是这么设计的，自然而然就这样认为了。最近公司平台做了升级，能够支持用例复用了，让我重新思考接口自动化的用例，到底是独立还是复用。\n为什么用例独立？我个人理解，用例独立，可能有点受限于技术实现，比如 YAML 编写用例，或者平台编写用例，实现成本和取得收益对比来看，用例独立是一种均衡的选择。当然用例独立也有好处：隔离性、可维护性、并行执行、错误定位、数据隔离、报告清晰。\n其实从代码复用角度来看，用例复用能提高编写效率，把相对稳定的步骤组装成用例，再复用给其他用例，减少重复代码的编写与维护。\n如果使用 tep 测试框架，个人推荐使用 fixture 来实现用例复用，借助依赖注入技术，避免循环 import 等问题。\n举例，有 1 条用例 case_hello，打招呼，name 是变量，代码如下：\n## fixture/fixture_case_hello.py import pytest from tep import v @pytest.fixture(scope='session') def case_hello(): def main(): msg = 'Hello ${name}' msg = v(msg) print(msg) return main case_hello 定义为 fixture，放在 fixture 目录下并以fixture_开头命名文件，tep 框架会自动识别为 pytest fixture。其中变量处理使用了函数v()。\n新建 1 条用例 test_case_reuse，复用 case_hello，代码如下：\n## test_case_reuse.py from tep import v, step def test(case_hello): v({ \"name\": \"Gang\" }) case_hello() step('welcome', step_welcome) def step_welcome(): print('Welcome to tep') case_hello 内部包装了 1 个内部函数 main，返回的是函数引用，所以在用例中进行函数调用case_hello()就能实现用例复用。变量 name 使用函数v()定义，在用例之间共享。函数v()可以理解为内部变量池，跟 JMeter 的 vars 类似，详情可以参考文章《Python 处理接口数据，这个函数太香了》。\n总结，用例尽量保持独立，如果需要复用，把重复代码封装为用例，在用例级别进行复用。\n",
+  "wordCount" : "90",
   "inLanguage": "zh",
   "datePublished": "2026-01-19T00:00:00Z",
   "dateModified": "2026-01-19T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>用例独立。用例相互之间没有依赖，随便拉出一条用例就能执行。</p>
+  <div class="post-content md-content"><p>用例独立。用例相互之间没有依赖，随便拉出一条用例就能执行。</p>
 <p>这是我在文章《接口自动化框架设计漫谈 V1.0》提到的，也是我一直坚持的接口自动化用例设计方式。</p>
 <p>这么做的依据是某些开源测试框架是这样设计的，某些公司测试平台也是这么设计的，自然而然就这样认为了。最近公司平台做了升级，能够支持用例复用了，让我重新思考接口自动化的用例，到底是独立还是复用。</p>
 <p>为什么用例独立？我个人理解，用例独立，可能有点受限于技术实现，比如 YAML 编写用例，或者平台编写用例，实现成本和取得收益对比来看，用例独立是一种均衡的选择。当然用例独立也有好处：隔离性、可维护性、并行执行、错误定位、数据隔离、报告清晰。</p>
@@ -283,7 +255,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -417,19 +389,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

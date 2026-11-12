@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>关于 FastAPI 异步并发的技术背景和细节 | 测试开发刚哥</title>
+<title>关于 FastAPI 异步并发的技术背景和细节 | 全栈开发刚哥</title>
 <meta name="keywords" content="FastAPI">
 <meta name="description" content="FastAPI 的路径操作函数，可以使用async def定义：">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%85%B3%E4%BA%8Efastapi%E5%BC%82%E6%AD%A5%E5%B9%B6%E5%8F%91%E7%9A%84%E6%8A%80%E6%9C%AF%E8%83%8C%E6%99%AF%E5%92%8C%E7%BB%86%E8%8A%82/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%85%B3%E4%BA%8Efastapi%E5%BC%82%E6%AD%A5%E5%B9%B6%E5%8F%91%E7%9A%84%E6%8A%80%E6%9C%AF%E8%83%8C%E6%99%AF%E5%92%8C%E7%BB%86%E8%8A%82/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="关于 FastAPI 异步并发的技术背景和细节">
   <meta property="og:description" content="FastAPI 的路径操作函数，可以使用async def定义：">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "FastAPI"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nFastAPI 的路径操作函数，可以使用async def定义：\nfrom typing import Union from fastapi import FastAPI app = FastAPI() @app.get(\"/\") async def read_root(): return {\"Hello\": \"World\"} @app.get(\"/items/{item_id}\") async def read_item(item_id: int, q: Union[str, None] = None): return {\"item_id\": item_id, \"q\": q} 这算得上是 FastAPI 的典型特征之一。\n关于这个框架设计，有哪些技术背景和细节呢？\n技术背景 在 Python 语法里面，如果你想异步请求三方库，需要使用 await：\nresults = await some_library() 使用了 await 就必须在 def 前面加上 async：\n@app.get('/') async def read_results(): results = await some_library() return results 这是 Python 语法规定。\nFastAPI 并不要求所有的路径操作函数，都必须定义为 async，假如你要实时访问某些三方库，可以简单的使用 def 就行，不用加上 await：\n@app.get('/') def results(): results = some_library() return results 但是无论你是否使用 async，FastAPI 都将异步工作，以达到\"Fast\"的运行速度。\n看完文章就明白这句话的意思了。\n技术细节 Python 新版本已经原生支持异步代码了。所谓异步代码，指的是编程语言，会告诉计算机程序，在某个时刻停下来，等待其他任务完成后，再继续运行。在等待期间，计算机程序可以去干点别的事情，而不用一直卡在那里。这些“其他任务”，通常指的是耗时较长的 IO 操作，比如：\n客户端通过网络发送数据；\n服务端通过网络发送数据；\n程序从磁盘读取文件内容；\n程序将文件内容写入磁盘；\n远程 API 操作；\n数据库操作；\n数据库查询返回结果；\n这些操作主要阻塞在 IO 等待，所以又叫做 IO 密集型。\n并发和并行 异步有时候也叫做并发。并发(Concurrency)和并行(parallelism)是不同的概念，并发是指一个处理器同时处理多个任务，并行是指多个处理器同时处理多个不同的任务，并发是逻辑上的同时发生，并行是物理上的同时发生。\n并发\n餐厅有 1 个服务员和 1 个厨子。\n你带女朋友到餐厅排队点汉堡：\n你们给服务员说来 2 个汉堡：\n服务员给厨师说做 2 个汉堡：\n然后给了你们一个排号：\n你们开心的等，因为有排号，不需要担心别人会抢走：\n叫号了：\n取了汉堡高高兴兴的吃：\n并行\n餐厅有 5 个服务员兼厨子。\n你们看哪个窗口有空位：\n到餐台点 2 个汉堡：\n服务员自己跑到厨房做汉堡：\n你们只能站在原地等，如果走开，可能会被其他人拿走：\n汉堡做好了：\n你的女朋友不开心：\n从这个买汉堡的漫画中，可以看到并行比并发会做更多无意义的等待，并行需要 5 个人（5 个服务员兼厨子），并发只需要 2 个人（1 个服务员 1 个厨子）。这就是为什么很多 Web 框架要设计成异步并发了，因为很多客户端会发请求给服务端，然后服务端响应给客户端，如果有太多无用的等待，那么整个应用将慢得无法使用。而且硬件资源有限，并发也能更高效利用资源，节约成本。\n并发一定就比并行好吗？也不是，只有在出现很多等待时，并发才比并行好。比如你们要打扫房间，一间一间的打扫，没有等待，那么并发和并行就没有区别，如果你再叫 3 个朋友一起打扫，并行就能更快打扫完。这种执行时间完全取决于任务本身而不是等待的情况，又叫做 CPU 密集型。计算机里的 CPU 密集型操作通常需要更复杂的数据计算，比如：\n音频或图片处理；\n计算机视觉；\n机器学习；\n深度学习；\nFastAPI 既支持异步并发，也支持多线程并行。\nasync 和 await 异步并发使用 async 和 await 来实现。\nasync定义函数：\nasync def get_burgers(number: int): # Do some asynchronous stuff to create the burgers return burgers await调用函数：\n@app.get('/burgers') async def read_burgers(): burgers = await get_burgers(2) return burgers 细节中的细节 FastAPI 会对路径操作函数(path operation function)和依赖(dependencies)进行特殊处理。这个特殊处理是：如果你把函数定义为 def 而不是 async def，那么 FastAPI 会把它放到单独的线程池中，异步执行，这就是 FastAPI 精彩的地方。就像官方所说，如果你不清楚你函数里面的调用是不是异步(能不能用 await)，那么就把它定义为普通函数，FastAPI 会采用多线程的方式处理。乱用 async，在 async 里面有同步调用，则会变成串行，Fast 秒变 Slow。\n而对于其他函数，FastAPI 则不会管，def 就是同步调用，立马返回结果。\n现在回过头来看前面的那句话：但是无论你是否使用 async，FastAPI 都将异步工作，以达到\"Fast\"的运行速度。应该更加明白了。\n参考资料：\nConcurrency and async / await - FastAPI https://fastapi.tiangolo.com/async/\n很火的 Fastapi 框架，用 async 函数真的比普通函数快吗？https://blog.csdn.net/yyw794/article/details/108859240\n",
-  "wordCount" : "236",
+  "articleBody": "FastAPI 的路径操作函数，可以使用async def定义：\nfrom typing import Union from fastapi import FastAPI app = FastAPI() @app.get(\"/\") async def read_root(): return {\"Hello\": \"World\"} @app.get(\"/items/{item_id}\") async def read_item(item_id: int, q: Union[str, None] = None): return {\"item_id\": item_id, \"q\": q} 这算得上是 FastAPI 的典型特征之一。\n关于这个框架设计，有哪些技术背景和细节呢？\n技术背景 在 Python 语法里面，如果你想异步请求三方库，需要使用 await：\nresults = await some_library() 使用了 await 就必须在 def 前面加上 async：\n@app.get('/') async def read_results(): results = await some_library() return results 这是 Python 语法规定。\nFastAPI 并不要求所有的路径操作函数，都必须定义为 async，假如你要实时访问某些三方库，可以简单的使用 def 就行，不用加上 await：\n@app.get('/') def results(): results = some_library() return results 但是无论你是否使用 async，FastAPI 都将异步工作，以达到\"Fast\"的运行速度。\n看完文章就明白这句话的意思了。\n技术细节 Python 新版本已经原生支持异步代码了。所谓异步代码，指的是编程语言，会告诉计算机程序，在某个时刻停下来，等待其他任务完成后，再继续运行。在等待期间，计算机程序可以去干点别的事情，而不用一直卡在那里。这些“其他任务”，通常指的是耗时较长的 IO 操作，比如：\n客户端通过网络发送数据；\n服务端通过网络发送数据；\n程序从磁盘读取文件内容；\n程序将文件内容写入磁盘；\n远程 API 操作；\n数据库操作；\n数据库查询返回结果；\n这些操作主要阻塞在 IO 等待，所以又叫做 IO 密集型。\n并发和并行 异步有时候也叫做并发。并发(Concurrency)和并行(parallelism)是不同的概念，并发是指一个处理器同时处理多个任务，并行是指多个处理器同时处理多个不同的任务，并发是逻辑上的同时发生，并行是物理上的同时发生。\n并发\n餐厅有 1 个服务员和 1 个厨子。\n你带女朋友到餐厅排队点汉堡：\n你们给服务员说来 2 个汉堡：\n服务员给厨师说做 2 个汉堡：\n然后给了你们一个排号：\n你们开心的等，因为有排号，不需要担心别人会抢走：\n叫号了：\n取了汉堡高高兴兴的吃：\n并行\n餐厅有 5 个服务员兼厨子。\n你们看哪个窗口有空位：\n到餐台点 2 个汉堡：\n服务员自己跑到厨房做汉堡：\n你们只能站在原地等，如果走开，可能会被其他人拿走：\n汉堡做好了：\n你的女朋友不开心：\n从这个买汉堡的漫画中，可以看到并行比并发会做更多无意义的等待，并行需要 5 个人（5 个服务员兼厨子），并发只需要 2 个人（1 个服务员 1 个厨子）。这就是为什么很多 Web 框架要设计成异步并发了，因为很多客户端会发请求给服务端，然后服务端响应给客户端，如果有太多无用的等待，那么整个应用将慢得无法使用。而且硬件资源有限，并发也能更高效利用资源，节约成本。\n并发一定就比并行好吗？也不是，只有在出现很多等待时，并发才比并行好。比如你们要打扫房间，一间一间的打扫，没有等待，那么并发和并行就没有区别，如果你再叫 3 个朋友一起打扫，并行就能更快打扫完。这种执行时间完全取决于任务本身而不是等待的情况，又叫做 CPU 密集型。计算机里的 CPU 密集型操作通常需要更复杂的数据计算，比如：\n音频或图片处理；\n计算机视觉；\n机器学习；\n深度学习；\nFastAPI 既支持异步并发，也支持多线程并行。\nasync 和 await 异步并发使用 async 和 await 来实现。\nasync定义函数：\nasync def get_burgers(number: int): # Do some asynchronous stuff to create the burgers return burgers await调用函数：\n@app.get('/burgers') async def read_burgers(): burgers = await get_burgers(2) return burgers 细节中的细节 FastAPI 会对路径操作函数(path operation function)和依赖(dependencies)进行特殊处理。这个特殊处理是：如果你把函数定义为 def 而不是 async def，那么 FastAPI 会把它放到单独的线程池中，异步执行，这就是 FastAPI 精彩的地方。就像官方所说，如果你不清楚你函数里面的调用是不是异步(能不能用 await)，那么就把它定义为普通函数，FastAPI 会采用多线程的方式处理。乱用 async，在 async 里面有同步调用，则会变成串行，Fast 秒变 Slow。\n而对于其他函数，FastAPI 则不会管，def 就是同步调用，立马返回结果。\n现在回过头来看前面的那句话：但是无论你是否使用 async，FastAPI 都将异步工作，以达到\"Fast\"的运行速度。应该更加明白了。\n参考资料：\nConcurrency and async / await - FastAPI https://fastapi.tiangolo.com/async/\n很火的 Fastapi 框架，用 async 函数真的比普通函数快吗？https://blog.csdn.net/yyw794/article/details/108859240\n",
+  "wordCount" : "235",
   "inLanguage": "zh",
   "datePublished": "2026-01-03T00:00:00Z",
   "dateModified": "2026-01-03T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>FastAPI 的路径操作函数，可以使用<code>async def</code>定义：</p>
+  <div class="post-content md-content"><p>FastAPI 的路径操作函数，可以使用<code>async def</code>定义：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">typing</span> <span style="color:#cf222e">import</span> Union
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">fastapi</span> <span style="color:#cf222e">import</span> FastAPI
@@ -388,7 +360,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -522,19 +494,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>webdriver 使用已打开过的 chrome | 测试开发刚哥</title>
+<title>webdriver 使用已打开过的 chrome | 全栈开发刚哥</title>
 <meta name="keywords" content="自动化, UI自动化">
 <meta name="description" content="基本功能：">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/webdriver%E4%BD%BF%E7%94%A8%E5%B7%B2%E6%89%93%E5%BC%80%E8%BF%87%E7%9A%84chrome/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/webdriver%E4%BD%BF%E7%94%A8%E5%B7%B2%E6%89%93%E5%BC%80%E8%BF%87%E7%9A%84chrome/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="webdriver 使用已打开过的 chrome">
   <meta property="og:description" content="基本功能：">
   <meta property="og:locale" content="zh_cn">
@@ -115,14 +112,14 @@
   "keywords": [
     "自动化", "UI自动化"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n基本功能：\n执行脚本a，打开一个chrome，脚本a执行完成，chrome未关闭。 执行脚本b，继续使用a打开的chrome，不新启浏览器。 附加：\n如果已打开的chrome未关闭，则在chrome中新建标签页来打开新的页面。 如果已打开的chrome已关闭，则新启浏览器。 最近用 python+selenium+pytest，写了个测试小工具用来自动化登陆浏览器，一方面是方便管理网址、账号、密码，存放在脚本中，另一方面也省去了频繁输入登陆网站的操作，节省了不少时间。\n但这个小工具用起来存在明显问题：每次都新启一个浏览器，多了后就是这样的\n根本不知道谁是谁。\n于是就想到要实现前面提到的这些功能。\n首先要解决的第一个问题就是，怎么重新使用已打开的 chrome。百度后知晓，是通过 session_id。浏览器都有一个 session_id，拿到这个 session_id 就可以通过 webdriver.Remote 去调 chrome。\ndriver = webdriver.Chrome() params[\"session_id\"] = driver.session_id params[\"server_url\"] = driver.command_executor._url driver = webdriver.Remote(command_executor=params[\"server_url\"]) driver.session_id = params[\"session_id\"] 经过试验，python 存在一个坑是每次初始化就会调 start_session 去新开一个空白的浏览器。网上有解决方案是继承 Remote，重写 start_session 方法。然而，仔细看完代码就发现，何必多此一举，直接 quit()就搞定。\ndriver = webdriver.Remote(command_executor=params[\"server_url\"]) driver.quit() # 退出start_session新开的空白浏览器 driver.session_id = params[\"session_id\"] quit 是 quit 了，但 driver 还存在呀，所以还是多理清思路，才能避免走冤枉路。\n然后要解决的第二个问题就是，如何在执行脚本 b 的时候再接着用 session。当然就是存本地咯。这里用到的是 pickle，能很方便的在本地存取变量。\n存\nwith open(session_file, 'wb') as f: pickle.dump(params, f) 取\nwith open(session_file, 'rb') as f: params = pickle.load(f) 第三个问题就是新开标签页和切换窗口。\ndriver.execute_script('window.open(\"\");') # 调js driver.switch_to.window(driver.window_handles[-1]) # 切换到最后一个页签 最后要解决的一个问题就是，如果已经打开的 chrome 关掉了，从本地文件读取的 session 就会过时。拿这个过时 session 去用，就会”chrome not reachable“。解决思路就是，捕获 driver 抛出的 WebDriverException，重新创建新的 driver。\ntry: driver = webdriver.Remote(command_executor=params[\"server_url\"]) driver.quit() # 退出start_session新开的空白浏览器 driver.session_id = params[\"session_id\"] driver.execute_script('window.open(\"\");') driver.switch_to.window(driver.window_handles[-1]) except: driver = create_driver() 完整代码\nsession_file = 'browser_session.data' def create_driver(): driver = webdriver.Chrome() with open(session_file, 'wb') as f: params = {\"session_id\": driver.session_id, \"server_url\": driver.command_executor._url} pickle.dump(params, f) return driver if not Path(session_file).exists(): driver = create_driver() else: with open(session_file, 'rb') as f: params = pickle.load(f) try: driver = webdriver.Remote(command_executor=params[\"server_url\"]) driver.quit() # 退出start_session新开的空白浏览器 driver.session_id = params[\"session_id\"] driver.execute_script('window.open(\"\");') driver.switch_to.window(driver.window_handles[-1]) except: driver = create_driver() ",
-  "wordCount" : "172",
+  "articleBody": "基本功能：\n执行脚本a，打开一个chrome，脚本a执行完成，chrome未关闭。 执行脚本b，继续使用a打开的chrome，不新启浏览器。 附加：\n如果已打开的chrome未关闭，则在chrome中新建标签页来打开新的页面。 如果已打开的chrome已关闭，则新启浏览器。 最近用 python+selenium+pytest，写了个测试小工具用来自动化登陆浏览器，一方面是方便管理网址、账号、密码，存放在脚本中，另一方面也省去了频繁输入登陆网站的操作，节省了不少时间。\n但这个小工具用起来存在明显问题：每次都新启一个浏览器，多了后就是这样的\n根本不知道谁是谁。\n于是就想到要实现前面提到的这些功能。\n首先要解决的第一个问题就是，怎么重新使用已打开的 chrome。百度后知晓，是通过 session_id。浏览器都有一个 session_id，拿到这个 session_id 就可以通过 webdriver.Remote 去调 chrome。\ndriver = webdriver.Chrome() params[\"session_id\"] = driver.session_id params[\"server_url\"] = driver.command_executor._url driver = webdriver.Remote(command_executor=params[\"server_url\"]) driver.session_id = params[\"session_id\"] 经过试验，python 存在一个坑是每次初始化就会调 start_session 去新开一个空白的浏览器。网上有解决方案是继承 Remote，重写 start_session 方法。然而，仔细看完代码就发现，何必多此一举，直接 quit()就搞定。\ndriver = webdriver.Remote(command_executor=params[\"server_url\"]) driver.quit() # 退出start_session新开的空白浏览器 driver.session_id = params[\"session_id\"] quit 是 quit 了，但 driver 还存在呀，所以还是多理清思路，才能避免走冤枉路。\n然后要解决的第二个问题就是，如何在执行脚本 b 的时候再接着用 session。当然就是存本地咯。这里用到的是 pickle，能很方便的在本地存取变量。\n存\nwith open(session_file, 'wb') as f: pickle.dump(params, f) 取\nwith open(session_file, 'rb') as f: params = pickle.load(f) 第三个问题就是新开标签页和切换窗口。\ndriver.execute_script('window.open(\"\");') # 调js driver.switch_to.window(driver.window_handles[-1]) # 切换到最后一个页签 最后要解决的一个问题就是，如果已经打开的 chrome 关掉了，从本地文件读取的 session 就会过时。拿这个过时 session 去用，就会”chrome not reachable“。解决思路就是，捕获 driver 抛出的 WebDriverException，重新创建新的 driver。\ntry: driver = webdriver.Remote(command_executor=params[\"server_url\"]) driver.quit() # 退出start_session新开的空白浏览器 driver.session_id = params[\"session_id\"] driver.execute_script('window.open(\"\");') driver.switch_to.window(driver.window_handles[-1]) except: driver = create_driver() 完整代码\nsession_file = 'browser_session.data' def create_driver(): driver = webdriver.Chrome() with open(session_file, 'wb') as f: params = {\"session_id\": driver.session_id, \"server_url\": driver.command_executor._url} pickle.dump(params, f) return driver if not Path(session_file).exists(): driver = create_driver() else: with open(session_file, 'rb') as f: params = pickle.load(f) try: driver = webdriver.Remote(command_executor=params[\"server_url\"]) driver.quit() # 退出start_session新开的空白浏览器 driver.session_id = params[\"session_id\"] driver.execute_script('window.open(\"\");') driver.switch_to.window(driver.window_handles[-1]) except: driver = create_driver() ",
+  "wordCount" : "171",
   "inLanguage": "zh",
   "datePublished": "2026-01-03T00:00:00Z",
   "dateModified": "2026-01-03T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -130,7 +127,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -147,29 +144,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -215,10 +190,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>基本功能：</p>
+  <div class="post-content md-content"><p>基本功能：</p>
 <pre tabindex="0"><code>执行脚本a，打开一个chrome，脚本a执行完成，chrome未关闭。
 执行脚本b，继续使用a打开的chrome，不新启浏览器。
 </code></pre><p>附加：</p>
@@ -314,7 +286,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -448,19 +420,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

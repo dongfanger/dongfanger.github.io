@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Python 并发编程从入门到进阶 | 测试开发刚哥</title>
+<title>Python 并发编程从入门到进阶 | 全栈开发刚哥</title>
 <meta name="keywords" content="Python">
 <meta name="description" content="本文是 Python 进阶系列专题的最后一篇文章了，学习一下 Python 并发编程。懂得并发编程，就算是真正进阶了。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%BF%9B%E9%98%B6/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%BF%9B%E9%98%B6/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="Python 并发编程从入门到进阶">
   <meta property="og:description" content="本文是 Python 进阶系列专题的最后一篇文章了，学习一下 Python 并发编程。懂得并发编程，就算是真正进阶了。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Python"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n本文是 Python 进阶系列专题的最后一篇文章了，学习一下 Python 并发编程。懂得并发编程，就算是真正进阶了。\nPython 多线程 Python 有真正的多线程吗？我本来以为是没有的。因为 CPython 解释器本身就不是线程安全的，因此有全局解释器锁（GIL），一次只允许使用一个线程执行 Python 字节码。换句话说，Python 即便是有多线程，也会受 GIL 限制，按顺序执行。所以我就以为 Python 是没有多线程的，也就是一个 Python 进程不能同时使用多个 CPU 核心。然而，Python 标准库中所有执行阻塞型 I/O 操作的函数，在等待操作系统返回结果时，都会释放 GIL，允许其他线程运行。这就意味着 Python 线程在 I/O 密集型应用中还是可以发挥作用的，比如一个 Python 线程等待网络响应时，阻塞型 I/O 函数会释放 GIL，再运行一个线程。再比如 time.sleep()函数也会释放 GIL。\nPython 多进程 但是对于 CPU 密集型应用来说，要想利用所有可用的 CPU 核心，就得使用多进程，规避 GIL。\n多线程与多进程对比 什么时候用多线程？什么时候用多进程？\nI/O 密集型应用使用多线程，CPU 密集型应用使用多进程。\n什么是 I/O 密集型应用？什么是 CPU 密集型应用？\n简单来说，I/O 密集一般涉及到网络、磁盘 IO。而 CPU 密集指的是计算比较多。\n创建多线程可以使用 concurrent.futures，创建多进程可以使用 multiprocessing。\n多线程与协程对比 多线程存在着切换开销，同时为了避免写变量冲突，在控制共享资源时需要加锁，因此编写程序会比较复杂比较困难。而协程是通过单线程实现的并发，既能自由切换，也不需要锁机制，执行效率要高很多。\n多线程和协程有个共同点是只对 I/O 密集型应用有效，因为 GIL 限制。如果想处理 CPU 密集型应用，那么可以结合多进程一起使用，以提高 CPU 使用率。\nasyncio 包 asyncio 包比较多用来实现 Python 协程并发，原书在这一章节引用了很多示例，穿插了很多代码，导致我看起来有点乱，不是很清楚到底该怎么使用这个包。所以我看了一下官方文档：\nhttps://docs.python.org/3/library/asyncio.html\n从 Python3.5 开始引入了async 和 await，替代了@asyncio.coroutine 和 yield from 语法，语义更简洁更明确了。并且从 Python3.7 开始引入了asyncio.run()，替代了这一串代码：\nloop = asyncio.get_event_loop() try: loop.run_until_complete(main()) finally: loop.close() 创建 task 的语法也发生了变化，可以用asyncio.create_task：\nasync def coro(): ... ## In Python 3.7+ task = asyncio.create_task(coro()) ... ## This works in all Python versions but is less readable task = asyncio.ensure_future(coro()) ... 对于多个并行 task 可以用asyncio.gather，替代 asyncio.wait：\ntask_list = [] for i in range(5): task = asyncio.create_task(async_func(i)) task_list.append(task) done, pending = await asyncio.wait(task_list, timeout=None) for done_task in done: print((f\"[{current_time()}] 得到执行结果 {done_task.result()}\")) task_list = [] for i in range(5): task = asyncio.create_task(func(i)) task_list.append(task) results = await asyncio.gather(*task_list) for result in results: print((f\"[{current_time()}] 得到执行结果 {result}\")) 所以对于第三方包的学习，最好是看看最新的官方文档，说不定已经进行了很多优化。\n最后，完结，撒花。\n我会把《流畅的 Python》这本书送给大家，感谢一直以来的关注。\n参考资料：\n《流畅的 Python》 第 17 章使用 future 处理并发 第 18 章使用 asyncio 包处理并发\nhttps://blog.csdn.net/youanyyou/article/details/78990156\nhttps://zhuanlan.zhihu.com/p/104918655\nhttps://www.cnblogs.com/liugp/p/11072823.html\nhttps://www.jianshu.com/p/6872bf356af7\n",
-  "wordCount" : "201",
+  "articleBody": "本文是 Python 进阶系列专题的最后一篇文章了，学习一下 Python 并发编程。懂得并发编程，就算是真正进阶了。\nPython 多线程 Python 有真正的多线程吗？我本来以为是没有的。因为 CPython 解释器本身就不是线程安全的，因此有全局解释器锁（GIL），一次只允许使用一个线程执行 Python 字节码。换句话说，Python 即便是有多线程，也会受 GIL 限制，按顺序执行。所以我就以为 Python 是没有多线程的，也就是一个 Python 进程不能同时使用多个 CPU 核心。然而，Python 标准库中所有执行阻塞型 I/O 操作的函数，在等待操作系统返回结果时，都会释放 GIL，允许其他线程运行。这就意味着 Python 线程在 I/O 密集型应用中还是可以发挥作用的，比如一个 Python 线程等待网络响应时，阻塞型 I/O 函数会释放 GIL，再运行一个线程。再比如 time.sleep()函数也会释放 GIL。\nPython 多进程 但是对于 CPU 密集型应用来说，要想利用所有可用的 CPU 核心，就得使用多进程，规避 GIL。\n多线程与多进程对比 什么时候用多线程？什么时候用多进程？\nI/O 密集型应用使用多线程，CPU 密集型应用使用多进程。\n什么是 I/O 密集型应用？什么是 CPU 密集型应用？\n简单来说，I/O 密集一般涉及到网络、磁盘 IO。而 CPU 密集指的是计算比较多。\n创建多线程可以使用 concurrent.futures，创建多进程可以使用 multiprocessing。\n多线程与协程对比 多线程存在着切换开销，同时为了避免写变量冲突，在控制共享资源时需要加锁，因此编写程序会比较复杂比较困难。而协程是通过单线程实现的并发，既能自由切换，也不需要锁机制，执行效率要高很多。\n多线程和协程有个共同点是只对 I/O 密集型应用有效，因为 GIL 限制。如果想处理 CPU 密集型应用，那么可以结合多进程一起使用，以提高 CPU 使用率。\nasyncio 包 asyncio 包比较多用来实现 Python 协程并发，原书在这一章节引用了很多示例，穿插了很多代码，导致我看起来有点乱，不是很清楚到底该怎么使用这个包。所以我看了一下官方文档：\nhttps://docs.python.org/3/library/asyncio.html\n从 Python3.5 开始引入了async 和 await，替代了@asyncio.coroutine 和 yield from 语法，语义更简洁更明确了。并且从 Python3.7 开始引入了asyncio.run()，替代了这一串代码：\nloop = asyncio.get_event_loop() try: loop.run_until_complete(main()) finally: loop.close() 创建 task 的语法也发生了变化，可以用asyncio.create_task：\nasync def coro(): ... ## In Python 3.7+ task = asyncio.create_task(coro()) ... ## This works in all Python versions but is less readable task = asyncio.ensure_future(coro()) ... 对于多个并行 task 可以用asyncio.gather，替代 asyncio.wait：\ntask_list = [] for i in range(5): task = asyncio.create_task(async_func(i)) task_list.append(task) done, pending = await asyncio.wait(task_list, timeout=None) for done_task in done: print((f\"[{current_time()}] 得到执行结果 {done_task.result()}\")) task_list = [] for i in range(5): task = asyncio.create_task(func(i)) task_list.append(task) results = await asyncio.gather(*task_list) for result in results: print((f\"[{current_time()}] 得到执行结果 {result}\")) 所以对于第三方包的学习，最好是看看最新的官方文档，说不定已经进行了很多优化。\n最后，完结，撒花。\n我会把《流畅的 Python》这本书送给大家，感谢一直以来的关注。\n参考资料：\n《流畅的 Python》 第 17 章使用 future 处理并发 第 18 章使用 asyncio 包处理并发\nhttps://blog.csdn.net/youanyyou/article/details/78990156\nhttps://zhuanlan.zhihu.com/p/104918655\nhttps://www.cnblogs.com/liugp/p/11072823.html\nhttps://www.jianshu.com/p/6872bf356af7\n",
+  "wordCount" : "200",
   "inLanguage": "zh",
   "datePublished": "2026-02-02T00:00:00Z",
   "dateModified": "2026-02-02T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>本文是 Python 进阶系列专题的最后一篇文章了，学习一下 Python 并发编程。懂得并发编程，就算是真正进阶了。</p>
+  <div class="post-content md-content"><p>本文是 Python 进阶系列专题的最后一篇文章了，学习一下 Python 并发编程。懂得并发编程，就算是真正进阶了。</p>
 <h1 id="python-多线程">Python 多线程<a hidden class="anchor" aria-hidden="true" href="#python-多线程">#</a></h1>
 <p>Python 有真正的多线程吗？我本来以为是没有的。因为 CPython 解释器本身就不是线程安全的，因此有全局解释器锁（GIL），一次只允许使用一个线程执行 Python 字节码。换句话说，Python 即便是有多线程，也会受 GIL 限制，按顺序执行。所以我就以为 Python 是没有多线程的，也就是一个 Python 进程不能同时使用多个 CPU 核心。然而，<strong>Python 标准库中所有执行阻塞型 I/O 操作的函数，在等待操作系统返回结果时，都会释放 GIL，允许其他线程运行</strong>。这就意味着 Python 线程在 I/O 密集型应用中还是可以发挥作用的，比如一个 Python 线程等待网络响应时，阻塞型 I/O 函数会释放 GIL，再运行一个线程。再比如 time.sleep()函数也会释放 GIL。</p>
 <h1 id="python-多进程">Python 多进程<a hidden class="anchor" aria-hidden="true" href="#python-多进程">#</a></h1>
@@ -316,7 +288,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -450,19 +422,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

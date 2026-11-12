@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>深度剖析 Python 字典和集合（上） | 测试开发刚哥</title>
+<title>深度剖析 Python 字典和集合（上） | 全栈开发刚哥</title>
 <meta name="keywords" content="Python">
 <meta name="description" content="“字典这个数据结构活跃在所有 Python 程序的背后，即便你的源码里并没有直接用到它”，摘抄自《代码之美》第 18 章 Python 的字典类：如何打造全能战士。字典是 Python 语言的基石！在函数的关键字参数、实例的属性和模块的命名空间都能够看到它的身影，我们自己写代码时也经常会用到。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90python%E5%AD%97%E5%85%B8%E5%92%8C%E9%9B%86%E5%90%88%E4%B8%8A/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90python%E5%AD%97%E5%85%B8%E5%92%8C%E9%9B%86%E5%90%88%E4%B8%8A/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="深度剖析 Python 字典和集合（上）">
   <meta property="og:description" content="“字典这个数据结构活跃在所有 Python 程序的背后，即便你的源码里并没有直接用到它”，摘抄自《代码之美》第 18 章 Python 的字典类：如何打造全能战士。字典是 Python 语言的基石！在函数的关键字参数、实例的属性和模块的命名空间都能够看到它的身影，我们自己写代码时也经常会用到。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Python"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n“字典这个数据结构活跃在所有 Python 程序的背后，即便你的源码里并没有直接用到它”，摘抄自《代码之美》第 18 章 Python 的字典类：如何打造全能战士。字典是 Python 语言的基石！在函数的关键字参数、实例的属性和模块的命名空间都能够看到它的身影，我们自己写代码时也经常会用到。\n“集合”这个概念在 Python 中算是比较年轻的，使用率也比较低，我只在元素去重和求差集并集时使用过。\n字典和集合有个共同点，它们都是基于同一种数据结构实现的：散列表，又叫做哈希表，Hash Table。要理解集合和字典，得先理解散列表。要理解散列表，得先理解可散列的数据类型。\n可散列的数据类型 在 Python 词汇表中，关于可散列类型的定义有这样一段话：\n“如果一个对象是可散列的，那么在这个对象的生命周期中，它的散列值是不变的，而且这个对象需要实现__hash__（）方法。另外可散列对象还要有__eq__()方法，这样才能跟其他键做比较。如果两个可散列对象是相等的，那么它们的散列值一定是一样的。”\n重点是散列值不变！\n字典的键必须是可散列的，否则变来变去就找不到映射了。\n于是可以得知原子不可变数据类型（str、bytes、和数值类型）都是可散列类型，frozenset 冻结不可变集合，也是可散列的。元组有两种情况，一、如果所有元素都是可散列的数据类型，那么元组是可散列的，二、如果元组里面的元素是其他可变类型的引用，那么元组是不可散列的，示例：\n\u003e\u003e\u003e tt = (1, 2, (30, 40)) \u003e\u003e\u003e hash(tt) -3907003130834322577 \u003e\u003e\u003e tl = (1, 2, [30, 40]) \u003e\u003e\u003e hash(tl) Traceback (most recent call last): File \"\", line 1, in \u003cmodule\u003e TypeError: unhashable type: 'list' \u003e\u003e\u003e tf = (1, 2, frozenset([30, 40])) \u003e\u003e\u003e hash(tf) 5149391500123939311 其中tl元组包含了列表（可变），hash()函数报错了。\n散列表简介 假设你们班级 100 个同学每个人的学号是由院系-年级-班级-编号组成，例如学号为 01100168 表示是 01 系-10 级-01 班-68 号。为了快速查找到 68 号的成绩信息，可以建立一张表，但是不能用学号作为下标，学号的数值实在太大。因此将学号除以 1100100 取余，即得到编号作为该表的下标。要查找学号为 01100168 的成绩的时候，只要直接访问表下标为 68 的数据即可。\n散列表就是一张表，它通过计算一个关于键值的函数，将所需查询的数据映射到表中一个位置来访问记录，这加快了查询速度。这个映射函数称作散列函数，存放记录的表称作散列表。再举个例子，比如下面这几个人物，按数组存储：\n这样我要找到沈嘉文的电话号码，需要顺序查找对比整个数组，第一个余罪，不是，第二个傅老大，不是，直到第三个才找到沈嘉文。换成散列表：\n左边是姓名首字母的 Key，右边是电话号码的 Value，当我们要查找沈嘉文的时候，通过计算，在 s 位置，1 次查找就找到了。\n为了不让本文显得生硬，接下来先介绍字典和集合，最后再看看散列表是如何实现它们的。\n字典 Mapping 和 MutableMapping Mapping 和 MutableMapping 是 collections.abc 模块中的两个抽象基类，它们的作用是作为形式化的文档，定义了构建一个映射类型所需要的最基本的接口。比如判断是否是映射类型：\n\u003e\u003e\u003e from collections import abc \u003e\u003e\u003e my_dict = {} \u003e\u003e\u003e isinstance(my_dict, abc.Mapping) True 非抽象映射类型一般不会直接继承这两个抽象基类，而是会直接对 dict 或 collections.UserDict 进行扩展。正是如此，Python 标准库里的所有映射类型都是利用 dict 来实现的。\ndict 构造方法 dict 构造方法如下：\n\u003e\u003e\u003e a = dict(one=1, two=2, three=3) \u003e\u003e\u003e b = {\"one\": 1, \"two\": 2, \"three\": 3} \u003e\u003e\u003e c = dict(zip([\"one\", \"two\", \"three\"], [1, 2, 3])) \u003e\u003e\u003e d = dict([(\"two\", 2), (\"one\", 1), (\"three\", 3)]) \u003e\u003e\u003e e = dict({\"three\": 3, \"one\": 1, \"two\": 2}) \u003e\u003e\u003e a == b == c == d == e True 一共竟然有五种！还有第六种：字典推导，跟列表推导和生成器表达式类似：\n\u003e\u003e\u003e my_list = [(\"two\", 2), (\"one\", 1), (\"three\", 3)] \u003e\u003e\u003e my_dict = {en: num for en, num in my_list} \u003e\u003e\u003e my_dict {'two': 2, 'one': 1, 'three': 3} 常见映射方法 除了 dict，还有两个 dict 的变种：defaultdict 和 OrderedDict，它们对常见映射方法的支持区别如下：\n鸭子类型 鸭子类型是动态语言的说法，指一个对象只要“看起来像鸭子，走起路来像鸭子”，那它就可以被看做是鸭子。比如：\nclass Animal(object): def run(self): print(\"The animal is running...\") class Dog(Animal): def run(self): print('The dog is running...') class Cat(Animal): def run(self): print('The cat is running...') def make_run(animal): animal.run() dog = Dog() cat = Cat() make_run(dog) make_run(cat) 对于 make_run() 函数来说，传入的参数并不一定需要是 Animal 类型的，只需要保证传入的对象有一个 run() 方法即可。\n在静态语言中，如果需要传入 Animal 类型，则传入的对象就必须是 Animal 类型或者它的子类，否则，将无法调用 run() 方法。\nupdate update 方法用来更新字典里对应的条目，它处理参数 m 的方式，是典型的“鸭子类型”。函数首先检查 m 是否有 keys 方法，如果有，那么 update 函数就把它当作映射对象来处理，不关心是不是真的映射类型。如果没有，函数会把 m 当作包含了键值对(key, value)元素的迭代器。\nPython 里大多数映射类型的构造方法都采用了类似的逻辑。\nsetdefault 当字典 d[k]不能找到正确的键的时候，Python 会抛出异常。也许每个 Python 使用者都知道可以用 d.get(k, default)来代替 d[k]，给找不到的键一个默认的返回值。但是要更新字典时，该怎么办呢？比如要在 my_dict 中添加键为 b，值为列表[1, 2, 3, 4, 5, 6]的键值对：\nmy_dict = {\"a\": 1} key = \"b\" my_list = range(2, 7) ## {\"a\": 1, \"b\": [2, 3, 4, 5, 6]} 不能用mylist[key] = my_list，必须用 for 循环动态 append。\n方法 1，先添加空列表，再 append：\nmy_dict[key] = [] for i in my_list: my_dict[key].append(i) 方法 2，第一次没有键，先用 get 查询返回空列表，再 append，再赋值：\nfor i in my_list: temp = my_dict.get(key, []) temp.append(i) my_dict[key] = temp 方法 3，先用 if 判断，再 append：\nfor i in my_list: if key not in my_dict: my_dict[key] = [] my_dict[key].append(i) 方法 4，一行代码：\nfor i in my_list: # 除了for循环，一行代码 my_dict.setdefault(key, []).append(i) Python 骚操作总是这么多！setdefault 你学会了么？\nsetdefault 只需要进行一次键查询就可以完成操作，节省键查询，程序更高效。\ndefaultdict 字典变种 有没有办法直接执行my_dict[key].append(i)呢？答案是有的，借助 defaultdict 可以实现：\nimport collections my_dict = collections.defaultdict(list) my_dict[\"a\"] = 1 key = \"b\" my_list = range(2, 7) for i in my_list: my_dict[key].append(i) my_dict[key]会按以下步骤执行：\n调用 list()来建立一个新列表。 把这个新列表作为值，key 作为它的键，放到 my_dict 中。 返回这个列表的引用。 通过列表引用继续执行 append()函数。\ndefaultdict 的__init__(self, default_factory=None, **kwargs)有个参数 default_factory 用来生成默认值，必须是可调用对象。比如：\ndef init_list(): return [0] my_dict = collections.defaultdict(init_list) 注意了！此时 my_dict 的值是{}空字典，default_factory 只会在__getitem__里被调用，也就是说my_dict[key]时才会用这个默认值：\nprint(my_dict) # defaultdict(, {}) print(my_dict[\"b\"]) # defaultdict(, {'b': [0]}) my_dict.get(“b”)不会调用__getitem__，不会使用 default_factory，返回值为 None。\n为什么 get 不会调用__getitem__?__getitem__是为[]提供的语法糖，get()已经是取值方法了，不需要这个语法糖。\ndefault_factory 默认为 None，如果不指定，查询不存在的键会触发 KeyError，这个道理和[]取值是一样的。\n所有这一切背后的功臣其实是魔法方法__missing__。所有的映射类型在处理找不到的键的时候，都会牵扯到__missing__方法。基类 dict 并没有定义这个方法，但是 dict 是能知道它的，如果一个类继承了 dict，然后实现了__missing__方法，Python 就会自动调用它，而不是抛出一个 KeyError 异常。\n__missing__只会被__getitem__调用，这就是 default_factory 只对__getitem__有作用的原因！\n示例如下，当用非字符串键查询时，转换为字符串键查询：\nclass StrKeyDict0(dict): # \u003c1\u003e def __missing__(self, key): if isinstance(key, str): # \u003c2\u003e 不加这个判断，如果str(key)不存在，就会第3处再次调用__missing__无限递归 raise KeyError(key) return self[str(key)] # \u003c3\u003e def get(self, key, default=None): try: return self[key] # \u003c4\u003e except KeyError: return default # \u003c5\u003e # k in my_dict 会导致__contains__递归调用，所以这里用了self.keys() def __contains__(self, key): return key in self.keys() or str(key) in self.keys() # \u003c6\u003e 像k in my_dict.keys()这种操作在 Python3 中是很快的，而且即便映射类型对象很庞大也没关系，这是因为 dict.keys()的返回值是一个“视图”。\nOrderdDict 及其他字典变种 collections.OrderedDict\n在 Django REST framework 中的分页就用到了 OrderedDict，返回分页数据必须是有序的，否则会提示 UnOrdered。OrderedDict 的 popitem 方法默认删除并返回字典里的最后一个元素（栈），如果加了参数 OrderedDict(last=False)，那么它会删除并返回第一个被添加进度的元素（队列）。\ncollections.ChainMap\n示例：\nimport builtins pylookup = ChainMap(locals(), globals(), vars(builtins)) 该类型可以容纳多个不同的映射对象，在按键查找时，这些对象会被当作一个整体被逐一查找。\ncollections.Counter\n示例：\n\u003e\u003e\u003e import collections \u003e\u003e\u003e ct = collections.Counter(\"abracadabra\") \u003e\u003e\u003e ct Counter({'a': 5, 'b': 2, 'r': 2, 'c': 1, 'd': 1}) \u003e\u003e\u003e ct.update(\"aaaaazzz\") \u003e\u003e\u003e ct Counter({'a': 10, 'z': 3, 'b': 2, 'r': 2, 'c': 1, 'd': 1}) \u003e\u003e\u003e ct.most_common() [('a', 10), ('z', 3), ('b', 2), ('r', 2), ('c', 1), ('d', 1)] \u003e\u003e\u003e ct.most_common(2) [('a', 10), ('z', 3)] Counter 是用来给可散列表对象计数的。\ncollections.UserDict\n让用户继承写子类。\n它比 dict 更适合继承的原因是，后者有时会在某些方法的实现上走一些捷径，导致我们不得不在它的子类中重写这些方法，而 UserDict 就不需要。\n不可变映射类型 借助 MappingProxyType，可以实现不可变字典。它返回的是一个只读的视图，会跟随源字典动态展示，但是无法对源字典做出改动。示例：\n\u003e\u003e\u003e from types import MappingProxyType \u003e\u003e\u003e d = {1: \"A\"} \u003e\u003e\u003e d_proxy = MappingProxyType(d) \u003e\u003e\u003e d_proxy mappingproxy({1: 'A'}) \u003e\u003e\u003e d_proxy[1] 'A' \u003e\u003e\u003e d_proxy[2] = \"x\" Traceback (most recent call last): File \"\", line 1, in \u003cmodule\u003e TypeError: 'mappingproxy' object does not support item assignment \u003e\u003e\u003e d[2] = \"B\" \u003e\u003e\u003e d_proxy mappingproxy({1: 'A', 2: 'B'}) 小结 本文为上篇，主要介绍了散列表和字典，包含了一些 Python 骚操作，也用示例解释了什么是鸭子类型。下篇将介绍集合，以及散列表是如何实现 dict 和 set 的。\n参考资料：\n《流畅的 Python》\nhttps://zhuanlan.zhihu.com/p/64853220\nhttps://www.jianshu.com/p/101c263cd93e\nhttp://www.woshipm.com/pmd/805326.html\nhttps://zhuanlan.zhihu.com/p/149463934?from_voters_page=true\nhttps://www.jianshu.com/p/e97044a8169a\nhttps://github.com/fluentpython/example-code/blob/master/03-dict-set/strkeydict0.py\n",
-  "wordCount" : "703",
+  "articleBody": "“字典这个数据结构活跃在所有 Python 程序的背后，即便你的源码里并没有直接用到它”，摘抄自《代码之美》第 18 章 Python 的字典类：如何打造全能战士。字典是 Python 语言的基石！在函数的关键字参数、实例的属性和模块的命名空间都能够看到它的身影，我们自己写代码时也经常会用到。\n“集合”这个概念在 Python 中算是比较年轻的，使用率也比较低，我只在元素去重和求差集并集时使用过。\n字典和集合有个共同点，它们都是基于同一种数据结构实现的：散列表，又叫做哈希表，Hash Table。要理解集合和字典，得先理解散列表。要理解散列表，得先理解可散列的数据类型。\n可散列的数据类型 在 Python 词汇表中，关于可散列类型的定义有这样一段话：\n“如果一个对象是可散列的，那么在这个对象的生命周期中，它的散列值是不变的，而且这个对象需要实现__hash__（）方法。另外可散列对象还要有__eq__()方法，这样才能跟其他键做比较。如果两个可散列对象是相等的，那么它们的散列值一定是一样的。”\n重点是散列值不变！\n字典的键必须是可散列的，否则变来变去就找不到映射了。\n于是可以得知原子不可变数据类型（str、bytes、和数值类型）都是可散列类型，frozenset 冻结不可变集合，也是可散列的。元组有两种情况，一、如果所有元素都是可散列的数据类型，那么元组是可散列的，二、如果元组里面的元素是其他可变类型的引用，那么元组是不可散列的，示例：\n\u003e\u003e\u003e tt = (1, 2, (30, 40)) \u003e\u003e\u003e hash(tt) -3907003130834322577 \u003e\u003e\u003e tl = (1, 2, [30, 40]) \u003e\u003e\u003e hash(tl) Traceback (most recent call last): File \"\", line 1, in \u003cmodule\u003e TypeError: unhashable type: 'list' \u003e\u003e\u003e tf = (1, 2, frozenset([30, 40])) \u003e\u003e\u003e hash(tf) 5149391500123939311 其中tl元组包含了列表（可变），hash()函数报错了。\n散列表简介 假设你们班级 100 个同学每个人的学号是由院系-年级-班级-编号组成，例如学号为 01100168 表示是 01 系-10 级-01 班-68 号。为了快速查找到 68 号的成绩信息，可以建立一张表，但是不能用学号作为下标，学号的数值实在太大。因此将学号除以 1100100 取余，即得到编号作为该表的下标。要查找学号为 01100168 的成绩的时候，只要直接访问表下标为 68 的数据即可。\n散列表就是一张表，它通过计算一个关于键值的函数，将所需查询的数据映射到表中一个位置来访问记录，这加快了查询速度。这个映射函数称作散列函数，存放记录的表称作散列表。再举个例子，比如下面这几个人物，按数组存储：\n这样我要找到沈嘉文的电话号码，需要顺序查找对比整个数组，第一个余罪，不是，第二个傅老大，不是，直到第三个才找到沈嘉文。换成散列表：\n左边是姓名首字母的 Key，右边是电话号码的 Value，当我们要查找沈嘉文的时候，通过计算，在 s 位置，1 次查找就找到了。\n为了不让本文显得生硬，接下来先介绍字典和集合，最后再看看散列表是如何实现它们的。\n字典 Mapping 和 MutableMapping Mapping 和 MutableMapping 是 collections.abc 模块中的两个抽象基类，它们的作用是作为形式化的文档，定义了构建一个映射类型所需要的最基本的接口。比如判断是否是映射类型：\n\u003e\u003e\u003e from collections import abc \u003e\u003e\u003e my_dict = {} \u003e\u003e\u003e isinstance(my_dict, abc.Mapping) True 非抽象映射类型一般不会直接继承这两个抽象基类，而是会直接对 dict 或 collections.UserDict 进行扩展。正是如此，Python 标准库里的所有映射类型都是利用 dict 来实现的。\ndict 构造方法 dict 构造方法如下：\n\u003e\u003e\u003e a = dict(one=1, two=2, three=3) \u003e\u003e\u003e b = {\"one\": 1, \"two\": 2, \"three\": 3} \u003e\u003e\u003e c = dict(zip([\"one\", \"two\", \"three\"], [1, 2, 3])) \u003e\u003e\u003e d = dict([(\"two\", 2), (\"one\", 1), (\"three\", 3)]) \u003e\u003e\u003e e = dict({\"three\": 3, \"one\": 1, \"two\": 2}) \u003e\u003e\u003e a == b == c == d == e True 一共竟然有五种！还有第六种：字典推导，跟列表推导和生成器表达式类似：\n\u003e\u003e\u003e my_list = [(\"two\", 2), (\"one\", 1), (\"three\", 3)] \u003e\u003e\u003e my_dict = {en: num for en, num in my_list} \u003e\u003e\u003e my_dict {'two': 2, 'one': 1, 'three': 3} 常见映射方法 除了 dict，还有两个 dict 的变种：defaultdict 和 OrderedDict，它们对常见映射方法的支持区别如下：\n鸭子类型 鸭子类型是动态语言的说法，指一个对象只要“看起来像鸭子，走起路来像鸭子”，那它就可以被看做是鸭子。比如：\nclass Animal(object): def run(self): print(\"The animal is running...\") class Dog(Animal): def run(self): print('The dog is running...') class Cat(Animal): def run(self): print('The cat is running...') def make_run(animal): animal.run() dog = Dog() cat = Cat() make_run(dog) make_run(cat) 对于 make_run() 函数来说，传入的参数并不一定需要是 Animal 类型的，只需要保证传入的对象有一个 run() 方法即可。\n在静态语言中，如果需要传入 Animal 类型，则传入的对象就必须是 Animal 类型或者它的子类，否则，将无法调用 run() 方法。\nupdate update 方法用来更新字典里对应的条目，它处理参数 m 的方式，是典型的“鸭子类型”。函数首先检查 m 是否有 keys 方法，如果有，那么 update 函数就把它当作映射对象来处理，不关心是不是真的映射类型。如果没有，函数会把 m 当作包含了键值对(key, value)元素的迭代器。\nPython 里大多数映射类型的构造方法都采用了类似的逻辑。\nsetdefault 当字典 d[k]不能找到正确的键的时候，Python 会抛出异常。也许每个 Python 使用者都知道可以用 d.get(k, default)来代替 d[k]，给找不到的键一个默认的返回值。但是要更新字典时，该怎么办呢？比如要在 my_dict 中添加键为 b，值为列表[1, 2, 3, 4, 5, 6]的键值对：\nmy_dict = {\"a\": 1} key = \"b\" my_list = range(2, 7) ## {\"a\": 1, \"b\": [2, 3, 4, 5, 6]} 不能用mylist[key] = my_list，必须用 for 循环动态 append。\n方法 1，先添加空列表，再 append：\nmy_dict[key] = [] for i in my_list: my_dict[key].append(i) 方法 2，第一次没有键，先用 get 查询返回空列表，再 append，再赋值：\nfor i in my_list: temp = my_dict.get(key, []) temp.append(i) my_dict[key] = temp 方法 3，先用 if 判断，再 append：\nfor i in my_list: if key not in my_dict: my_dict[key] = [] my_dict[key].append(i) 方法 4，一行代码：\nfor i in my_list: # 除了for循环，一行代码 my_dict.setdefault(key, []).append(i) Python 骚操作总是这么多！setdefault 你学会了么？\nsetdefault 只需要进行一次键查询就可以完成操作，节省键查询，程序更高效。\ndefaultdict 字典变种 有没有办法直接执行my_dict[key].append(i)呢？答案是有的，借助 defaultdict 可以实现：\nimport collections my_dict = collections.defaultdict(list) my_dict[\"a\"] = 1 key = \"b\" my_list = range(2, 7) for i in my_list: my_dict[key].append(i) my_dict[key]会按以下步骤执行：\n调用 list()来建立一个新列表。 把这个新列表作为值，key 作为它的键，放到 my_dict 中。 返回这个列表的引用。 通过列表引用继续执行 append()函数。\ndefaultdict 的__init__(self, default_factory=None, **kwargs)有个参数 default_factory 用来生成默认值，必须是可调用对象。比如：\ndef init_list(): return [0] my_dict = collections.defaultdict(init_list) 注意了！此时 my_dict 的值是{}空字典，default_factory 只会在__getitem__里被调用，也就是说my_dict[key]时才会用这个默认值：\nprint(my_dict) # defaultdict(, {}) print(my_dict[\"b\"]) # defaultdict(, {'b': [0]}) my_dict.get(“b”)不会调用__getitem__，不会使用 default_factory，返回值为 None。\n为什么 get 不会调用__getitem__?__getitem__是为[]提供的语法糖，get()已经是取值方法了，不需要这个语法糖。\ndefault_factory 默认为 None，如果不指定，查询不存在的键会触发 KeyError，这个道理和[]取值是一样的。\n所有这一切背后的功臣其实是魔法方法__missing__。所有的映射类型在处理找不到的键的时候，都会牵扯到__missing__方法。基类 dict 并没有定义这个方法，但是 dict 是能知道它的，如果一个类继承了 dict，然后实现了__missing__方法，Python 就会自动调用它，而不是抛出一个 KeyError 异常。\n__missing__只会被__getitem__调用，这就是 default_factory 只对__getitem__有作用的原因！\n示例如下，当用非字符串键查询时，转换为字符串键查询：\nclass StrKeyDict0(dict): # \u003c1\u003e def __missing__(self, key): if isinstance(key, str): # \u003c2\u003e 不加这个判断，如果str(key)不存在，就会第3处再次调用__missing__无限递归 raise KeyError(key) return self[str(key)] # \u003c3\u003e def get(self, key, default=None): try: return self[key] # \u003c4\u003e except KeyError: return default # \u003c5\u003e # k in my_dict 会导致__contains__递归调用，所以这里用了self.keys() def __contains__(self, key): return key in self.keys() or str(key) in self.keys() # \u003c6\u003e 像k in my_dict.keys()这种操作在 Python3 中是很快的，而且即便映射类型对象很庞大也没关系，这是因为 dict.keys()的返回值是一个“视图”。\nOrderdDict 及其他字典变种 collections.OrderedDict\n在 Django REST framework 中的分页就用到了 OrderedDict，返回分页数据必须是有序的，否则会提示 UnOrdered。OrderedDict 的 popitem 方法默认删除并返回字典里的最后一个元素（栈），如果加了参数 OrderedDict(last=False)，那么它会删除并返回第一个被添加进度的元素（队列）。\ncollections.ChainMap\n示例：\nimport builtins pylookup = ChainMap(locals(), globals(), vars(builtins)) 该类型可以容纳多个不同的映射对象，在按键查找时，这些对象会被当作一个整体被逐一查找。\ncollections.Counter\n示例：\n\u003e\u003e\u003e import collections \u003e\u003e\u003e ct = collections.Counter(\"abracadabra\") \u003e\u003e\u003e ct Counter({'a': 5, 'b': 2, 'r': 2, 'c': 1, 'd': 1}) \u003e\u003e\u003e ct.update(\"aaaaazzz\") \u003e\u003e\u003e ct Counter({'a': 10, 'z': 3, 'b': 2, 'r': 2, 'c': 1, 'd': 1}) \u003e\u003e\u003e ct.most_common() [('a', 10), ('z', 3), ('b', 2), ('r', 2), ('c', 1), ('d', 1)] \u003e\u003e\u003e ct.most_common(2) [('a', 10), ('z', 3)] Counter 是用来给可散列表对象计数的。\ncollections.UserDict\n让用户继承写子类。\n它比 dict 更适合继承的原因是，后者有时会在某些方法的实现上走一些捷径，导致我们不得不在它的子类中重写这些方法，而 UserDict 就不需要。\n不可变映射类型 借助 MappingProxyType，可以实现不可变字典。它返回的是一个只读的视图，会跟随源字典动态展示，但是无法对源字典做出改动。示例：\n\u003e\u003e\u003e from types import MappingProxyType \u003e\u003e\u003e d = {1: \"A\"} \u003e\u003e\u003e d_proxy = MappingProxyType(d) \u003e\u003e\u003e d_proxy mappingproxy({1: 'A'}) \u003e\u003e\u003e d_proxy[1] 'A' \u003e\u003e\u003e d_proxy[2] = \"x\" Traceback (most recent call last): File \"\", line 1, in \u003cmodule\u003e TypeError: 'mappingproxy' object does not support item assignment \u003e\u003e\u003e d[2] = \"B\" \u003e\u003e\u003e d_proxy mappingproxy({1: 'A', 2: 'B'}) 小结 本文为上篇，主要介绍了散列表和字典，包含了一些 Python 骚操作，也用示例解释了什么是鸭子类型。下篇将介绍集合，以及散列表是如何实现 dict 和 set 的。\n参考资料：\n《流畅的 Python》\nhttps://zhuanlan.zhihu.com/p/64853220\nhttps://www.jianshu.com/p/101c263cd93e\nhttp://www.woshipm.com/pmd/805326.html\nhttps://zhuanlan.zhihu.com/p/149463934?from_voters_page=true\nhttps://www.jianshu.com/p/e97044a8169a\nhttps://github.com/fluentpython/example-code/blob/master/03-dict-set/strkeydict0.py\n",
+  "wordCount" : "702",
   "inLanguage": "zh",
   "datePublished": "2026-01-14T00:00:00Z",
   "dateModified": "2026-01-14T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>“字典这个数据结构活跃在所有 Python 程序的背后，即便你的源码里并没有直接用到它”，摘抄自《代码之美》第 18 章 Python 的字典类：如何打造全能战士。字典是 Python 语言的基石！在函数的关键字参数、实例的属性和模块的命名空间都能够看到它的身影，我们自己写代码时也经常会用到。</p>
+  <div class="post-content md-content"><p>“字典这个数据结构活跃在所有 Python 程序的背后，即便你的源码里并没有直接用到它”，摘抄自《代码之美》第 18 章 Python 的字典类：如何打造全能战士。字典是 Python 语言的基石！在函数的关键字参数、实例的属性和模块的命名空间都能够看到它的身影，我们自己写代码时也经常会用到。</p>
 <p>“集合”这个概念在 Python 中算是比较年轻的，使用率也比较低，我只在元素去重和求差集并集时使用过。</p>
 <p>字典和集合有个共同点，它们都是基于同一种数据结构实现的：散列表，又叫做哈希表，Hash Table。要理解集合和字典，得先理解散列表。要理解散列表，得先理解可散列的数据类型。</p>
 <h1 id="可散列的数据类型">可散列的数据类型<a hidden class="anchor" aria-hidden="true" href="#可散列的数据类型">#</a></h1>
@@ -502,7 +474,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -636,19 +608,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

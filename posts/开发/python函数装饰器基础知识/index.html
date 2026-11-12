@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Python 函数装饰器基础知识 | 测试开发刚哥</title>
+<title>Python 函数装饰器基础知识 | 全栈开发刚哥</title>
 <meta name="keywords" content="Python">
 <meta name="description" content="函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%87%BD%E6%95%B0%E8%A3%85%E9%A5%B0%E5%99%A8%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="Python 函数装饰器基础知识">
   <meta property="og:description" content="函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Python"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。\n函数装饰器是什么 函数装饰器是一个可调用对象，它的参数是另外一个函数。比如：\n@decorate def target(): print(\"running target()\") 跟下面代码效果是一样的：\ndef target(): print(\"running target()\") target = decorate(target) 简单实现@decorate:\ndef decorate(func): def inner(): print(\"running inner()\") return inner 测试一下：\n\u003e\u003e\u003e target() running inner() \u003e\u003e\u003e target \u003cfunction decorate.\u003clocals\u003e.inner at 0x04899D18\u003e 新的 target 是 decorate(target)返回的 inner 函数。\n因为装饰器只是代码优化的一种手段，不像 if 语句 for 语句那样，决定了程序流程，所以严格来说，装饰器只是语法糖。它有两个特性，一是能把被装饰的函数替换成其他函数，二是装饰器在加载模块时立即执行。\n装饰器在导入时执行 若想真正理解装饰器，需要区分导入时和运行时。函数装饰器在导入模块时立即执行，而被装饰的函数只在明确调用时运行。\n接下来通过示例对这个特性进行说明，新建 registration.py 模块：\nregistry = [] def register(func): # 装饰器函数也可以不定义内部函数 print(\"running register(%s)\" % func) registry.append(func) return func @register def f1(): print(\"running f1()\") @register def f2(): print(\"running f2()\") def f3(): print(\"running f3()\") def main(): print(\"running main()\") print(\"registry -\u003e\", registry) f1() f2() f3() if __name__ == \"__main__\": main() 从结果能看出来：\n@register 作用到 f1 和 f2 上，在导入时，在 main()调用前就执行了。 f3 没有装饰器，就没有在 main()调用前执行@register。 在 main()调用后，明确调用 f1()、f2()、f3()才执行函数。 import 模块能看得更明显：\n\u003e\u003e\u003e import registration running register(\u003cfunction f1 at 0x0189A730\u003e) running register(\u003cfunction f2 at 0x0189A6E8\u003e) 装饰器在导入时就执行了。\n使用装饰器改进策略模式 在《Python 设计模式知多少》文章中提到了装饰器可以更优雅的实现策略模式的最佳策略，它的实现代码如下：\npromos = [] def promotion(promo_func): promos.append(promo_func) return promo_func @promotion def fidelity(order): \"\"\"5% discount for customers with 1000 or more fidelity points\"\"\" return order.total() * .05 if order.customer.fidelity \u003e= 1000 else 0 @promotion def bulk_item(order): \"\"\"10% discount for each LineItem with 20 or more units\"\"\" discount = 0 for item in order.cart: if item.quantity \u003e= 20: discount += item.total() * .1 return discount @promotion def large_order(order): \"\"\"7% discount for orders with 10 or more distinct items\"\"\" distinct_items = {item.product for item in order.cart} if len(distinct_items) \u003e= 10: return order.total() * .07 return 0 def best_promo(order): \"\"\"Select best discount available \"\"\" return max(promo(order) for promo in promos) 它解决了\"如果想要添加新的促销策略，那么要定义相应函数并添加到 promos 列表中\"这个缺陷，并有更多优点：\n新的促销策略，用@promotion 装饰器即可添加。 促销策略函数不用以_promo 结尾，可以任意命令。 促销策略可以在任意模块定义，只需要使用@promotion 装饰器即可。 小结 本文首先介绍了函数装饰器是一个可调用对象，它的参数是另外一个函数。严格来说，它只是语法糖。要理解装饰器，需要区别导入时和运行时，装饰器在导入时就会执行。最后使用装饰器对策略模式的最佳策略进行了优化。为了进一步学习函数装饰器，得先明白另外一个很重要的概念：闭包。\n参考资料：\n《流畅的 Python》\n",
-  "wordCount" : "250",
+  "articleBody": "函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。\n函数装饰器是什么 函数装饰器是一个可调用对象，它的参数是另外一个函数。比如：\n@decorate def target(): print(\"running target()\") 跟下面代码效果是一样的：\ndef target(): print(\"running target()\") target = decorate(target) 简单实现@decorate:\ndef decorate(func): def inner(): print(\"running inner()\") return inner 测试一下：\n\u003e\u003e\u003e target() running inner() \u003e\u003e\u003e target \u003cfunction decorate.\u003clocals\u003e.inner at 0x04899D18\u003e 新的 target 是 decorate(target)返回的 inner 函数。\n因为装饰器只是代码优化的一种手段，不像 if 语句 for 语句那样，决定了程序流程，所以严格来说，装饰器只是语法糖。它有两个特性，一是能把被装饰的函数替换成其他函数，二是装饰器在加载模块时立即执行。\n装饰器在导入时执行 若想真正理解装饰器，需要区分导入时和运行时。函数装饰器在导入模块时立即执行，而被装饰的函数只在明确调用时运行。\n接下来通过示例对这个特性进行说明，新建 registration.py 模块：\nregistry = [] def register(func): # 装饰器函数也可以不定义内部函数 print(\"running register(%s)\" % func) registry.append(func) return func @register def f1(): print(\"running f1()\") @register def f2(): print(\"running f2()\") def f3(): print(\"running f3()\") def main(): print(\"running main()\") print(\"registry -\u003e\", registry) f1() f2() f3() if __name__ == \"__main__\": main() 从结果能看出来：\n@register 作用到 f1 和 f2 上，在导入时，在 main()调用前就执行了。 f3 没有装饰器，就没有在 main()调用前执行@register。 在 main()调用后，明确调用 f1()、f2()、f3()才执行函数。 import 模块能看得更明显：\n\u003e\u003e\u003e import registration running register(\u003cfunction f1 at 0x0189A730\u003e) running register(\u003cfunction f2 at 0x0189A6E8\u003e) 装饰器在导入时就执行了。\n使用装饰器改进策略模式 在《Python 设计模式知多少》文章中提到了装饰器可以更优雅的实现策略模式的最佳策略，它的实现代码如下：\npromos = [] def promotion(promo_func): promos.append(promo_func) return promo_func @promotion def fidelity(order): \"\"\"5% discount for customers with 1000 or more fidelity points\"\"\" return order.total() * .05 if order.customer.fidelity \u003e= 1000 else 0 @promotion def bulk_item(order): \"\"\"10% discount for each LineItem with 20 or more units\"\"\" discount = 0 for item in order.cart: if item.quantity \u003e= 20: discount += item.total() * .1 return discount @promotion def large_order(order): \"\"\"7% discount for orders with 10 or more distinct items\"\"\" distinct_items = {item.product for item in order.cart} if len(distinct_items) \u003e= 10: return order.total() * .07 return 0 def best_promo(order): \"\"\"Select best discount available \"\"\" return max(promo(order) for promo in promos) 它解决了\"如果想要添加新的促销策略，那么要定义相应函数并添加到 promos 列表中\"这个缺陷，并有更多优点：\n新的促销策略，用@promotion 装饰器即可添加。 促销策略函数不用以_promo 结尾，可以任意命令。 促销策略可以在任意模块定义，只需要使用@promotion 装饰器即可。 小结 本文首先介绍了函数装饰器是一个可调用对象，它的参数是另外一个函数。严格来说，它只是语法糖。要理解装饰器，需要区别导入时和运行时，装饰器在导入时就会执行。最后使用装饰器对策略模式的最佳策略进行了优化。为了进一步学习函数装饰器，得先明白另外一个很重要的概念：闭包。\n参考资料：\n《流畅的 Python》\n",
+  "wordCount" : "249",
   "inLanguage": "zh",
   "datePublished": "2026-01-19T00:00:00Z",
   "dateModified": "2026-01-19T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。</p>
+  <div class="post-content md-content"><p>函数装饰器是 Python 语言最优秀的设计之一，它以非常简洁的方式增强了函数的行为，让崎岖不平之路变得平坦顺畅。</p>
 <h1 id="函数装饰器是什么">函数装饰器是什么<a hidden class="anchor" aria-hidden="true" href="#函数装饰器是什么">#</a></h1>
 <p>函数装饰器是一个可调用对象，它的参数是另外一个函数。比如：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">@decorate</span>
@@ -371,7 +343,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -505,19 +477,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

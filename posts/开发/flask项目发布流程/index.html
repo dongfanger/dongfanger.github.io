@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Flask 项目发布流程 | 测试开发刚哥</title>
+<title>Flask 项目发布流程 | 全栈开发刚哥</title>
 <meta name="keywords" content="Flask">
 <meta name="description" content="本文继续对 Flask 官方教程进行学习，我就直接跳过 Templates、Static Files、Blog Blueprint 三小节了，因为基本不会在实际项目中用到这些技术，有时间多学习下前端才是。这篇文章把 Make the Project Installable、Test Coverage、Deploy to Production 这三小节汇总来学习。我觉得这是官方给出的一个 Flask 项目发布流程，">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/flask%E9%A1%B9%E7%9B%AE%E5%8F%91%E5%B8%83%E6%B5%81%E7%A8%8B/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/flask%E9%A1%B9%E7%9B%AE%E5%8F%91%E5%B8%83%E6%B5%81%E7%A8%8B/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="Flask 项目发布流程">
   <meta property="og:description" content="本文继续对 Flask 官方教程进行学习，我就直接跳过 Templates、Static Files、Blog Blueprint 三小节了，因为基本不会在实际项目中用到这些技术，有时间多学习下前端才是。这篇文章把 Make the Project Installable、Test Coverage、Deploy to Production 这三小节汇总来学习。我觉得这是官方给出的一个 Flask 项目发布流程，">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Flask"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n本文继续对 Flask 官方教程进行学习，我就直接跳过 Templates、Static Files、Blog Blueprint 三小节了，因为基本不会在实际项目中用到这些技术，有时间多学习下前端才是。这篇文章把 Make the Project Installable、Test Coverage、Deploy to Production 这三小节汇总来学习。我觉得这是官方给出的一个 Flask 项目发布流程，如下图所示：\n这跟我在大型项目中接触到的发布流程大同小异。尤其是对于我们测试来说，跑单元测试这个环节还是有必要好好了解一下的，幸运的是，得益于 Python 的简单，理解起来会更容易些。所谓一通百通，Flask 的单测懂了，其他语言的单测也通了。\n项目打包 创建 setup.py 文件：\nfrom setuptools import find_packages, setup setup( name='flaskr', version='1.0.0', packages=find_packages(), include_package_data=True, zip_safe=False, install_requires=[ 'flask', ], ) packages 指定 Python 包，find_packages()函数会自动查找。 include_package_data 表示包括其他文件比如静态（static）文件和模板（templates）文件。 如果还需要包括其他数据，那么就创建 MANIFEST.in 文件：\ninclude flaskr/schema.sql graft flaskr/static graft flaskr/templates global-exclude *.pyc 其中 global-exclude 排除了*.pyc文件。\n接着就可以使用 pip 命令安装了：\n$ pip install -e . 安装以后就能用pip list命令查看：\n$ pip list Package Version Location -------------- --------- ---------------------------------- click 6.7 Flask 1.0 flaskr 1.0.0 /home/user/Projects/flask-tutorial itsdangerous 0.24 Jinja2 2.10 MarkupSafe 1.0 pip 9.0.3 setuptools 39.0.1 Werkzeug 0.14.1 wheel 0.30.0 这个过程是这样的：pip 在当前目录找到setup.py文件，然后根据文件描述把项目文件打包后安装到本地。安装以后就能在任何位置使用flask run来启动应用了，而不仅仅是在flask-turorial目录下。\n跑单元测试 单元测试不能保证程序没有 Bug，但却是在开发阶段保障代码质量的有效手段。拿我们公司举例来说，开发提测和上线，都会把单元测试作为卡点，单测覆盖率没有达到 45%是不能提测和上线的。\nFlask 项目的单元测试要用到两个工具，一个是我们非常熟悉的 pytest，还有一个是 coverage，先安装它们：\n$ pip install pytest coverage 新建 tests/data.sql 文件，插入一些测试数据：\nINSERT INTO user (username, password) VALUES ('test', 'pbkdf2:sha256:50000$TCI4GzcX$0de171a4f4dac32e3364c7ddc7c14f3e2fa61f2d17574483f7ffbb431b4acb2f'), ('other', 'pbkdf2:sha256:50000$kJPKsz6N$d2d4784f1b030a9761f5ccaeeaca413f27f2ecb76d6168407af962ddce849f79'); INSERT INTO post (title, body, author_id, created) VALUES ('test title', 'test' || x'0a' || 'body', 1, '2018-01-01 00:00:00'); pytest 的 fixture 相当于 setup，可以做一些测试前的初始化工作，新建 tests/conftest.py，编写 fixture：\nimport os import tempfile import pytest from flaskr import create_app from flaskr.db import get_db, init_db with open(os.path.join(os.path.dirname(__file__), 'data.sql'), 'rb') as f: _data_sql = f.read().decode('utf8') @pytest.fixture def app(): db_fd, db_path = tempfile.mkstemp() app = create_app({ 'TESTING': True, 'DATABASE': db_path, }) with app.app_context(): init_db() get_db().executescript(_data_sql) yield app os.close(db_fd) os.unlink(db_path) @pytest.fixture def client(app): return app.test_client() @pytest.fixture def runner(app): return app.test_cli_runner() app\n创建应用，初始化数据库，使用的是测试配置和测试数据。\ntempfile.mkstemp()创建了一个临时文件，返回文件描述符和文件路径。并且把临时文件路径传入了DATABASE，接着插入测试数据。测试结束后关闭和移除临时文件。\nfixture 的 yield 前面的代码相当于 setup，yield 后面的代码相当于 teardown。\nTESTING: True将 Flask 置为测试模式，Flask 内部会进行一些调整以便于进行测试。\nclient\n调用app.test_client返回一个测试客户端，可以用这个客户端给应用发送请求。\nrunner\n调用app.test_cli_runner()返回一个可以执行应用已注册命令的 runner。\n测试一下 Factory：\n# tests/test_factory.py from flaskr import create_app def test_config(): assert not create_app().testing assert create_app({'TESTING': True}).testing def test_hello(client): response = client.get('/hello') assert response.data == b'Hello, World!' 测试一下 Database：\n# tests/test_db.py import sqlite3 import pytest from flaskr.db import get_db def test_get_close_db(app): with app.app_context(): db = get_db() assert db is get_db() with pytest.raises(sqlite3.ProgrammingError) as e: db.execute('SELECT 1') assert 'closed' in str(e.value) def test_init_db_command(runner, monkeypatch): class Recorder(object): called = False def fake_init_db(): Recorder.called = True # monkeypatch是pytest内置的一个fixture，也就是猴子补丁。 monkeypatch.setattr('flaskr.db.init_db', fake_init_db) result = runner.invoke(args=['init-db']) assert 'Initialized' in result.output assert Recorder.called 测试一下 Authentication：\n# tests/conftest.py class AuthActions(object): def __init__(self, client): self._client = client def login(self, username='test', password='test'): return self._client.post( '/auth/login', data={'username': username, 'password': password} ) def logout(self): return self._client.get('/auth/logout') # 这样就可以使用auth.login()进行用户登录 @pytest.fixture def auth(client): return AuthActions(client) # tests/test_auth.py import pytest from flask import g, session from flaskr.db import get_db def test_register(client, app): assert client.get('/auth/register').status_code == 200 response = client.post( '/auth/register', data={'username': 'a', 'password': 'a'} ) assert 'http://localhost/auth/login' == response.headers['Location'] with app.app_context(): assert get_db().execute( \"SELECT * FROM user WHERE username = 'a'\", ).fetchone() is not None @pytest.mark.parametrize(('username', 'password', 'message'), ( ('', '', b'Username is required.'), ('a', '', b'Password is required.'), ('test', 'test', b'already registered'), )) def test_register_validate_input(client, username, password, message): response = client.post( '/auth/register', data={'username': username, 'password': password} ) assert message in response.data def test_login(client, auth): assert client.get('/auth/login').status_code == 200 response = auth.login() assert response.headers['Location'] == 'http://localhost/' # 使用with后就能在上下文中访问session with client: client.get('/') assert session['user_id'] == 1 assert g.user['username'] == 'test' @pytest.mark.parametrize(('username', 'password', 'message'), ( ('a', 'test', b'Incorrect username.'), ('test', 'a', b'Incorrect password.'), )) def test_login_validate_input(auth, username, password, message): response = auth.login(username, password) assert message in response.data def test_logout(client, auth): auth.login() # 使用with后就能在上下文中访问session with client: auth.logout() assert 'user_id' not in session 更多关于 Blog 的测试用例就不在此赘述了，感兴趣的同学可以点击文章尾部链接到官网查看。\n最后用例写完了，就该运行了。在 setup.cfg 文件中添加一些配置，可以适当减少单测冗余：\n[tool:pytest] testpaths = tests [coverage:run] branch = True source = flaskr 然后就可以执行 pytest 了：\n$ pytest ========================= test session starts ========================== platform linux -- Python 3.6.4, pytest-3.5.0, py-1.5.3, pluggy-0.6.0 rootdir: /home/user/Projects/flask-tutorial, inifile: setup.cfg collected 23 items tests/test_auth.py ........ [ 34%] tests/test_blog.py ............ [ 86%] tests/test_db.py .. [ 95%] tests/test_factory.py .. [100%] ====================== 24 passed in 0.64 seconds ======================= pytest -v可以显示每个测试函数。\n单测覆盖率才是灵魂，所以建议这样来跑单测：\n$ coverage run -m pytest 然后查看报告：\n$ coverage report Name Stmts Miss Branch BrPart Cover ------------------------------------------------------ flaskr/__init__.py 21 0 2 0 100% flaskr/auth.py 54 0 22 0 100% flaskr/blog.py 54 0 16 0 100% flaskr/db.py 24 0 4 0 100% ------------------------------------------------------ TOTAL 153 0 44 0 100% 也可以生成 html 报告：\n$ coverage html 发布上线 先安装 wheel 库：\n$ pip install wheel 然后创建.whl文件：\n$ python setup.py bdist_wheel 命令执行后会生成一个dist/flaskr-1.0.0-py3-none-any.whl文件，文件格式是{project name}-{version}-{python tag} -{abi tag}-{platform tag}。\n在服务器上就可以安装了：\n$ pip install flaskr-1.0.0-py3-none-any.whl 因为是新机器，所以需要初始化数据库：\n$ export FLASK_APP=flaskr $ flask init-db 如果是 Python 虚拟环境，那么可以在venv/var/flaskr-instance找到 Flask 实例。\n最后设置下 SECRET_KEY，Flask 官网给出一种生成随机 SECRET_KEY 的方法：\n$ python -c 'import secrets; print(secrets.token_hex())' '192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf' 生成后新建 venv/var/flaskr-instance/config.py 文件粘贴即可：\nSECRET_KEY = '192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf' 至于生产服务器的选取，建议不要使用flask run，因为这是 Werkzeug 提供的开发服务器，既不稳定，也不安全。\n可以使用 WSGI 服务器，比如 Waitress：\n$ pip install waitress $ waitress-serve --call 'flaskr:create_app' Serving on http://0.0.0.0:8080 标准的 WSGI 服务器如下：\nGunicorn\nuWSGI\nGevent，我们组就用的这个：\nfrom gevent.pywsgi import WSGIServer from yourapplication import app http_server = WSGIServer(('', 5000), app) http_server.serve_forever() Twisted Web\nProxy Setups\n参考资料：\nhttps://flask.palletsprojects.com/en/2.0.x/tutorial/install/\nhttps://flask.palletsprojects.com/en/2.0.x/tutorial/tests/\nhttps://flask.palletsprojects.com/en/2.0.x/tutorial/deploy/\n",
-  "wordCount" : "726",
+  "articleBody": "本文继续对 Flask 官方教程进行学习，我就直接跳过 Templates、Static Files、Blog Blueprint 三小节了，因为基本不会在实际项目中用到这些技术，有时间多学习下前端才是。这篇文章把 Make the Project Installable、Test Coverage、Deploy to Production 这三小节汇总来学习。我觉得这是官方给出的一个 Flask 项目发布流程，如下图所示：\n这跟我在大型项目中接触到的发布流程大同小异。尤其是对于我们测试来说，跑单元测试这个环节还是有必要好好了解一下的，幸运的是，得益于 Python 的简单，理解起来会更容易些。所谓一通百通，Flask 的单测懂了，其他语言的单测也通了。\n项目打包 创建 setup.py 文件：\nfrom setuptools import find_packages, setup setup( name='flaskr', version='1.0.0', packages=find_packages(), include_package_data=True, zip_safe=False, install_requires=[ 'flask', ], ) packages 指定 Python 包，find_packages()函数会自动查找。 include_package_data 表示包括其他文件比如静态（static）文件和模板（templates）文件。 如果还需要包括其他数据，那么就创建 MANIFEST.in 文件：\ninclude flaskr/schema.sql graft flaskr/static graft flaskr/templates global-exclude *.pyc 其中 global-exclude 排除了*.pyc文件。\n接着就可以使用 pip 命令安装了：\n$ pip install -e . 安装以后就能用pip list命令查看：\n$ pip list Package Version Location -------------- --------- ---------------------------------- click 6.7 Flask 1.0 flaskr 1.0.0 /home/user/Projects/flask-tutorial itsdangerous 0.24 Jinja2 2.10 MarkupSafe 1.0 pip 9.0.3 setuptools 39.0.1 Werkzeug 0.14.1 wheel 0.30.0 这个过程是这样的：pip 在当前目录找到setup.py文件，然后根据文件描述把项目文件打包后安装到本地。安装以后就能在任何位置使用flask run来启动应用了，而不仅仅是在flask-turorial目录下。\n跑单元测试 单元测试不能保证程序没有 Bug，但却是在开发阶段保障代码质量的有效手段。拿我们公司举例来说，开发提测和上线，都会把单元测试作为卡点，单测覆盖率没有达到 45%是不能提测和上线的。\nFlask 项目的单元测试要用到两个工具，一个是我们非常熟悉的 pytest，还有一个是 coverage，先安装它们：\n$ pip install pytest coverage 新建 tests/data.sql 文件，插入一些测试数据：\nINSERT INTO user (username, password) VALUES ('test', 'pbkdf2:sha256:50000$TCI4GzcX$0de171a4f4dac32e3364c7ddc7c14f3e2fa61f2d17574483f7ffbb431b4acb2f'), ('other', 'pbkdf2:sha256:50000$kJPKsz6N$d2d4784f1b030a9761f5ccaeeaca413f27f2ecb76d6168407af962ddce849f79'); INSERT INTO post (title, body, author_id, created) VALUES ('test title', 'test' || x'0a' || 'body', 1, '2018-01-01 00:00:00'); pytest 的 fixture 相当于 setup，可以做一些测试前的初始化工作，新建 tests/conftest.py，编写 fixture：\nimport os import tempfile import pytest from flaskr import create_app from flaskr.db import get_db, init_db with open(os.path.join(os.path.dirname(__file__), 'data.sql'), 'rb') as f: _data_sql = f.read().decode('utf8') @pytest.fixture def app(): db_fd, db_path = tempfile.mkstemp() app = create_app({ 'TESTING': True, 'DATABASE': db_path, }) with app.app_context(): init_db() get_db().executescript(_data_sql) yield app os.close(db_fd) os.unlink(db_path) @pytest.fixture def client(app): return app.test_client() @pytest.fixture def runner(app): return app.test_cli_runner() app\n创建应用，初始化数据库，使用的是测试配置和测试数据。\ntempfile.mkstemp()创建了一个临时文件，返回文件描述符和文件路径。并且把临时文件路径传入了DATABASE，接着插入测试数据。测试结束后关闭和移除临时文件。\nfixture 的 yield 前面的代码相当于 setup，yield 后面的代码相当于 teardown。\nTESTING: True将 Flask 置为测试模式，Flask 内部会进行一些调整以便于进行测试。\nclient\n调用app.test_client返回一个测试客户端，可以用这个客户端给应用发送请求。\nrunner\n调用app.test_cli_runner()返回一个可以执行应用已注册命令的 runner。\n测试一下 Factory：\n# tests/test_factory.py from flaskr import create_app def test_config(): assert not create_app().testing assert create_app({'TESTING': True}).testing def test_hello(client): response = client.get('/hello') assert response.data == b'Hello, World!' 测试一下 Database：\n# tests/test_db.py import sqlite3 import pytest from flaskr.db import get_db def test_get_close_db(app): with app.app_context(): db = get_db() assert db is get_db() with pytest.raises(sqlite3.ProgrammingError) as e: db.execute('SELECT 1') assert 'closed' in str(e.value) def test_init_db_command(runner, monkeypatch): class Recorder(object): called = False def fake_init_db(): Recorder.called = True # monkeypatch是pytest内置的一个fixture，也就是猴子补丁。 monkeypatch.setattr('flaskr.db.init_db', fake_init_db) result = runner.invoke(args=['init-db']) assert 'Initialized' in result.output assert Recorder.called 测试一下 Authentication：\n# tests/conftest.py class AuthActions(object): def __init__(self, client): self._client = client def login(self, username='test', password='test'): return self._client.post( '/auth/login', data={'username': username, 'password': password} ) def logout(self): return self._client.get('/auth/logout') # 这样就可以使用auth.login()进行用户登录 @pytest.fixture def auth(client): return AuthActions(client) # tests/test_auth.py import pytest from flask import g, session from flaskr.db import get_db def test_register(client, app): assert client.get('/auth/register').status_code == 200 response = client.post( '/auth/register', data={'username': 'a', 'password': 'a'} ) assert 'http://localhost/auth/login' == response.headers['Location'] with app.app_context(): assert get_db().execute( \"SELECT * FROM user WHERE username = 'a'\", ).fetchone() is not None @pytest.mark.parametrize(('username', 'password', 'message'), ( ('', '', b'Username is required.'), ('a', '', b'Password is required.'), ('test', 'test', b'already registered'), )) def test_register_validate_input(client, username, password, message): response = client.post( '/auth/register', data={'username': username, 'password': password} ) assert message in response.data def test_login(client, auth): assert client.get('/auth/login').status_code == 200 response = auth.login() assert response.headers['Location'] == 'http://localhost/' # 使用with后就能在上下文中访问session with client: client.get('/') assert session['user_id'] == 1 assert g.user['username'] == 'test' @pytest.mark.parametrize(('username', 'password', 'message'), ( ('a', 'test', b'Incorrect username.'), ('test', 'a', b'Incorrect password.'), )) def test_login_validate_input(auth, username, password, message): response = auth.login(username, password) assert message in response.data def test_logout(client, auth): auth.login() # 使用with后就能在上下文中访问session with client: auth.logout() assert 'user_id' not in session 更多关于 Blog 的测试用例就不在此赘述了，感兴趣的同学可以点击文章尾部链接到官网查看。\n最后用例写完了，就该运行了。在 setup.cfg 文件中添加一些配置，可以适当减少单测冗余：\n[tool:pytest] testpaths = tests [coverage:run] branch = True source = flaskr 然后就可以执行 pytest 了：\n$ pytest ========================= test session starts ========================== platform linux -- Python 3.6.4, pytest-3.5.0, py-1.5.3, pluggy-0.6.0 rootdir: /home/user/Projects/flask-tutorial, inifile: setup.cfg collected 23 items tests/test_auth.py ........ [ 34%] tests/test_blog.py ............ [ 86%] tests/test_db.py .. [ 95%] tests/test_factory.py .. [100%] ====================== 24 passed in 0.64 seconds ======================= pytest -v可以显示每个测试函数。\n单测覆盖率才是灵魂，所以建议这样来跑单测：\n$ coverage run -m pytest 然后查看报告：\n$ coverage report Name Stmts Miss Branch BrPart Cover ------------------------------------------------------ flaskr/__init__.py 21 0 2 0 100% flaskr/auth.py 54 0 22 0 100% flaskr/blog.py 54 0 16 0 100% flaskr/db.py 24 0 4 0 100% ------------------------------------------------------ TOTAL 153 0 44 0 100% 也可以生成 html 报告：\n$ coverage html 发布上线 先安装 wheel 库：\n$ pip install wheel 然后创建.whl文件：\n$ python setup.py bdist_wheel 命令执行后会生成一个dist/flaskr-1.0.0-py3-none-any.whl文件，文件格式是{project name}-{version}-{python tag} -{abi tag}-{platform tag}。\n在服务器上就可以安装了：\n$ pip install flaskr-1.0.0-py3-none-any.whl 因为是新机器，所以需要初始化数据库：\n$ export FLASK_APP=flaskr $ flask init-db 如果是 Python 虚拟环境，那么可以在venv/var/flaskr-instance找到 Flask 实例。\n最后设置下 SECRET_KEY，Flask 官网给出一种生成随机 SECRET_KEY 的方法：\n$ python -c 'import secrets; print(secrets.token_hex())' '192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf' 生成后新建 venv/var/flaskr-instance/config.py 文件粘贴即可：\nSECRET_KEY = '192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf' 至于生产服务器的选取，建议不要使用flask run，因为这是 Werkzeug 提供的开发服务器，既不稳定，也不安全。\n可以使用 WSGI 服务器，比如 Waitress：\n$ pip install waitress $ waitress-serve --call 'flaskr:create_app' Serving on http://0.0.0.0:8080 标准的 WSGI 服务器如下：\nGunicorn\nuWSGI\nGevent，我们组就用的这个：\nfrom gevent.pywsgi import WSGIServer from yourapplication import app http_server = WSGIServer(('', 5000), app) http_server.serve_forever() Twisted Web\nProxy Setups\n参考资料：\nhttps://flask.palletsprojects.com/en/2.0.x/tutorial/install/\nhttps://flask.palletsprojects.com/en/2.0.x/tutorial/tests/\nhttps://flask.palletsprojects.com/en/2.0.x/tutorial/deploy/\n",
+  "wordCount" : "725",
   "inLanguage": "zh",
   "datePublished": "2026-01-07T00:00:00Z",
   "dateModified": "2026-01-07T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>本文继续对 Flask 官方教程进行学习，我就直接跳过 Templates、Static Files、Blog Blueprint 三小节了，因为基本不会在实际项目中用到这些技术，有时间多学习下前端才是。这篇文章把 Make the Project Installable、Test Coverage、Deploy to Production 这三小节汇总来学习。我觉得这是官方给出的一个 Flask 项目发布流程，如下图所示：</p>
+  <div class="post-content md-content"><p>本文继续对 Flask 官方教程进行学习，我就直接跳过 Templates、Static Files、Blog Blueprint 三小节了，因为基本不会在实际项目中用到这些技术，有时间多学习下前端才是。这篇文章把 Make the Project Installable、Test Coverage、Deploy to Production 这三小节汇总来学习。我觉得这是官方给出的一个 Flask 项目发布流程，如下图所示：</p>
 <p><img loading="lazy" src="../assets/0d791ea7ec49461f975dfb16a759a4fa.png"></p>
 <p>这跟我在大型项目中接触到的发布流程大同小异。尤其是对于我们测试来说，<strong>跑单元测试</strong>这个环节还是有必要好好了解一下的，幸运的是，得益于 Python 的简单，理解起来会更容易些。所谓一通百通，Flask 的单测懂了，其他语言的单测也通了。</p>
 <h1 id="项目打包">项目打包<a hidden class="anchor" aria-hidden="true" href="#项目打包">#</a></h1>
@@ -584,7 +556,7 @@ Serving on http://0.0.0.0:8080
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -718,19 +690,6 @@ Serving on http://0.0.0.0:8080
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>pytest 内核测试平台落地初体验 | 测试开发刚哥</title>
+<title>pytest 内核测试平台落地初体验 | 全栈开发刚哥</title>
 <meta name="keywords" content="teprunner">
 <meta name="description" content="测试平台，有人说它鸡肋，有人说它有用，有人说它轮子，众说纷纭，不如从自身出发，考虑是否要做测试平台：">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E8%90%BD%E5%9C%B0%E5%88%9D%E4%BD%93%E9%AA%8C/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/pytest%E5%86%85%E6%A0%B8%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E8%90%BD%E5%9C%B0%E5%88%9D%E4%BD%93%E9%AA%8C/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="pytest 内核测试平台落地初体验">
   <meta property="og:description" content="测试平台，有人说它鸡肋，有人说它有用，有人说它轮子，众说纷纭，不如从自身出发，考虑是否要做测试平台：">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "teprunner"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n测试平台，有人说它鸡肋，有人说它有用，有人说它轮子，众说纷纭，不如从自身出发，考虑是否要做测试平台：\n第 1 阶段，用 Python+requests 写接口自动化。 第 2 阶段，选择 unitttest 或 pytest，更熟悉 pytest 选了 pytest。 第 3 阶段，快速搭建 pytest 项目脚手架，封装 tep 测试工具。 第 4 阶段，通过 Git 管理测试脚本，多分支合并代码。 第 5 阶段，去除本地环境同步麻烦，方便团队共享脚本。 需要有个测试平台。\n使用篇 环境变量 环境变量是字符串键值对，全局作用域。比如不同环境不同域名：\n使用：env_vars.name。\nfixtures fixtures 即 pytest 的 fixture，可以添加自定义函数，供测试用例使用。比如封装登录接口返回 token：\ntep.fixture提供了url fixture，自动拼接环境变量env_vars.domain + uri。\n测试用例 在前端网页写代码，1 条用例对应 1 个 pytest 的test_name.py文件。比如调用login fixture 登录：\n本地编写 PyCharm 写代码体验更好，正确姿势是从平台下载包含环境变量和 fixtures 等项目结构代码，本地编写用例，调试，跑通后，粘贴到平台上共享和维护：\n本地和平台环境一致，省去前期搭建，关注tests用例。\n扩展能力 用例是 Python 代码，理论上所有 Python 能写出来的，平台都能支持，比如 HTTP、WebSocket、Protobuf 等协议。\n原理篇 pytest 内核 vue2-ace-editor作为前端代码编辑组件。 前端把代码通过 HTTP 请求传给后端。 后端把代码存入 MySQL 数据库。 运行用例，从数据库取出代码，生成 pytest 文件。 Shell 命令调用pytest -s test_name.py，执行测试。 后端把运行结果日志返给前端展示。 之所以要折腾数据库，是因为每次部署后 docker 容器里面的文件会被清掉，只能动态生成。\ntep 脚手架 测试平台功能是从 tep 项目脚手架中抽取出来的：\n把fixture_env_vars.py做成了环境变量功能。 把fixture_login.py等做成了fixtures功能。 把tests做成了测试用例功能。 运行用例 整体流程如下：\ntep startproject project_name\n运行用例时，判断项目目录是否存在，如果不存在就调用tep startproject project_name创建项目脚手架。\n更新 conf.yaml 中 env\n把前端传的当前运行环境更新到conf.yaml文件中：\nenv: qa 动态生成或更新 fixture_env_vars.py 文件\n根据环境变量功能模块的数据，动态生成fixture_env_vars.py文件：\n#!/usr/bin/python ## encoding=utf-8 from tep.dao import mysql_engine from tep.fixture import * @pytest.fixture(scope=\"session\") def env_vars(config): class Clazz(TepVars): env = config[\"env\"] \"\"\"Variables define start\"\"\" # Environment and variables mapping = { \"qa\": { \"domain\": \"https://qa.com\", }, \"release\": { \"domain\": \"https://release.com\", } # Add your environment and variables } # Define properties for auto display domain = mapping[env][\"domain\"] \"\"\"Variables define end\"\"\" return Clazz() 动态生成或更新 fixtures 目录下所有文件\n根据fixtures功能模块的数据，动态生成fixture_login.py等所有文件：\nfrom tep.client import request from tep.fixture import * def _jwt_headers(token): return {\"Content-Type\": \"application/json\", \"authorization\": f\"Bearer {token}\"} @pytest.fixture(scope=\"session\") def login(url): # Code your login logger.info(\"Administrator login\") response = request( \"post\", url=url(\"/api/users/login\"), headers={\"Content-Type\": \"application/json\"}, json={ \"username\": \"admin\", \"password\": \"123456\", } ) assert response.status_code \u003c 400 response_token = jmespath.search(\"token\", response.json()) class Clazz: token = response_token jwt_headers = _jwt_headers(response_token) return Clazz conftest.py 会自动查找后import，tests 用例直接使用。\n动态生成或更新 tests 某个 test_文件\n从数据库拿到用例代码，动态生成test_文件。\nShell 执行 pytest 命令\n从上一步拿到case_path，调用pytest -s case_path执行测试。\n计划后续添加 suite 和 marker 两种批量执行用例方式。\n小结 本文介绍了我第一次做的测试平台的使用和原理，技术栈为 Vue+Django+Django REST Framework+JWT+MySQL+pytest+Git+BitBucket+Drone+Nginx+Docker+K8S，已在公司落地，还未大规模产出，由于服务端有较多磁盘 IO 读写，大量使用后不知道性能如何，目前来看问题不大，需要持续观察和优化。测试平台底层是pytest，用到了tep，那就叫teprunner。\n参考资料：\nhttps://github.com/dongfanger/tep\n",
-  "wordCount" : "268",
+  "articleBody": "测试平台，有人说它鸡肋，有人说它有用，有人说它轮子，众说纷纭，不如从自身出发，考虑是否要做测试平台：\n第 1 阶段，用 Python+requests 写接口自动化。 第 2 阶段，选择 unitttest 或 pytest，更熟悉 pytest 选了 pytest。 第 3 阶段，快速搭建 pytest 项目脚手架，封装 tep 测试工具。 第 4 阶段，通过 Git 管理测试脚本，多分支合并代码。 第 5 阶段，去除本地环境同步麻烦，方便团队共享脚本。 需要有个测试平台。\n使用篇 环境变量 环境变量是字符串键值对，全局作用域。比如不同环境不同域名：\n使用：env_vars.name。\nfixtures fixtures 即 pytest 的 fixture，可以添加自定义函数，供测试用例使用。比如封装登录接口返回 token：\ntep.fixture提供了url fixture，自动拼接环境变量env_vars.domain + uri。\n测试用例 在前端网页写代码，1 条用例对应 1 个 pytest 的test_name.py文件。比如调用login fixture 登录：\n本地编写 PyCharm 写代码体验更好，正确姿势是从平台下载包含环境变量和 fixtures 等项目结构代码，本地编写用例，调试，跑通后，粘贴到平台上共享和维护：\n本地和平台环境一致，省去前期搭建，关注tests用例。\n扩展能力 用例是 Python 代码，理论上所有 Python 能写出来的，平台都能支持，比如 HTTP、WebSocket、Protobuf 等协议。\n原理篇 pytest 内核 vue2-ace-editor作为前端代码编辑组件。 前端把代码通过 HTTP 请求传给后端。 后端把代码存入 MySQL 数据库。 运行用例，从数据库取出代码，生成 pytest 文件。 Shell 命令调用pytest -s test_name.py，执行测试。 后端把运行结果日志返给前端展示。 之所以要折腾数据库，是因为每次部署后 docker 容器里面的文件会被清掉，只能动态生成。\ntep 脚手架 测试平台功能是从 tep 项目脚手架中抽取出来的：\n把fixture_env_vars.py做成了环境变量功能。 把fixture_login.py等做成了fixtures功能。 把tests做成了测试用例功能。 运行用例 整体流程如下：\ntep startproject project_name\n运行用例时，判断项目目录是否存在，如果不存在就调用tep startproject project_name创建项目脚手架。\n更新 conf.yaml 中 env\n把前端传的当前运行环境更新到conf.yaml文件中：\nenv: qa 动态生成或更新 fixture_env_vars.py 文件\n根据环境变量功能模块的数据，动态生成fixture_env_vars.py文件：\n#!/usr/bin/python ## encoding=utf-8 from tep.dao import mysql_engine from tep.fixture import * @pytest.fixture(scope=\"session\") def env_vars(config): class Clazz(TepVars): env = config[\"env\"] \"\"\"Variables define start\"\"\" # Environment and variables mapping = { \"qa\": { \"domain\": \"https://qa.com\", }, \"release\": { \"domain\": \"https://release.com\", } # Add your environment and variables } # Define properties for auto display domain = mapping[env][\"domain\"] \"\"\"Variables define end\"\"\" return Clazz() 动态生成或更新 fixtures 目录下所有文件\n根据fixtures功能模块的数据，动态生成fixture_login.py等所有文件：\nfrom tep.client import request from tep.fixture import * def _jwt_headers(token): return {\"Content-Type\": \"application/json\", \"authorization\": f\"Bearer {token}\"} @pytest.fixture(scope=\"session\") def login(url): # Code your login logger.info(\"Administrator login\") response = request( \"post\", url=url(\"/api/users/login\"), headers={\"Content-Type\": \"application/json\"}, json={ \"username\": \"admin\", \"password\": \"123456\", } ) assert response.status_code \u003c 400 response_token = jmespath.search(\"token\", response.json()) class Clazz: token = response_token jwt_headers = _jwt_headers(response_token) return Clazz conftest.py 会自动查找后import，tests 用例直接使用。\n动态生成或更新 tests 某个 test_文件\n从数据库拿到用例代码，动态生成test_文件。\nShell 执行 pytest 命令\n从上一步拿到case_path，调用pytest -s case_path执行测试。\n计划后续添加 suite 和 marker 两种批量执行用例方式。\n小结 本文介绍了我第一次做的测试平台的使用和原理，技术栈为 Vue+Django+Django REST Framework+JWT+MySQL+pytest+Git+BitBucket+Drone+Nginx+Docker+K8S，已在公司落地，还未大规模产出，由于服务端有较多磁盘 IO 读写，大量使用后不知道性能如何，目前来看问题不大，需要持续观察和优化。测试平台底层是pytest，用到了tep，那就叫teprunner。\n参考资料：\nhttps://github.com/dongfanger/tep\n",
+  "wordCount" : "267",
   "inLanguage": "zh",
   "datePublished": "2026-01-01T00:00:00Z",
   "dateModified": "2026-01-01T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>测试平台，有人说它鸡肋，有人说它有用，有人说它轮子，众说纷纭，不如从自身出发，考虑是否要做测试平台：</p>
+  <div class="post-content md-content"><p>测试平台，有人说它鸡肋，有人说它有用，有人说它轮子，众说纷纭，不如从自身出发，考虑是否要做测试平台：</p>
 <ul>
 <li>第 1 阶段，用 Python+requests 写接口自动化。</li>
 <li>第 2 阶段，选择 unitttest 或 pytest，更熟悉 pytest 选了 pytest。</li>
@@ -404,7 +376,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -538,19 +510,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

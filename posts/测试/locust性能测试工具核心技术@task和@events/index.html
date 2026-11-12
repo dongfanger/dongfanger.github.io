@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Locust 性能测试工具核心技术@task 和@events | 测试开发刚哥</title>
+<title>Locust 性能测试工具核心技术@task 和@events | 全栈开发刚哥</title>
 <meta name="keywords" content="性能测试, Locust">
 <meta name="description" content="Tasks 和 Events 是 Locust 性能测试工具的核心技术，有了它们，Locust 才能称得上是一个性能工具。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/locust%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF@task%E5%92%8C@events/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/locust%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF@task%E5%92%8C@events/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="Locust 性能测试工具核心技术@task 和@events">
   <meta property="og:description" content="Tasks 和 Events 是 Locust 性能测试工具的核心技术，有了它们，Locust 才能称得上是一个性能工具。">
   <meta property="og:locale" content="zh_cn">
@@ -115,14 +112,14 @@
   "keywords": [
     "性能测试", "Locust"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nTasks 和 Events 是 Locust 性能测试工具的核心技术，有了它们，Locust 才能称得上是一个性能工具。\nTasks 从上篇文章知道，locustfile 里面必须要有一个类，继承 User 类，当性能测试开始后，会产生一个 User 类实例，这就是常说的模拟用户。这些用户会选择 task 执行，休眠一会，再选择新的 task，不断迭代。\ntask 是 Python 中的可调用对象，它是一项任务，对于 Web 系统来说，可以是登录、查询、下订单、支付等等。\n@task 装饰器 @task 是定义 task 最简单直接的方式，比如：\nfrom locust import User, task, constant class MyUser(User): wait_time = constant(1) @task def my_task(self): print(\"User instance (%r) executing my_task\" % self) @task 有一个可选参数，用来设置 task 的选择权重，比如：\nfrom locust import User, task, between class MyUser(User): wait_time = between(5, 15) @task(3) def task1(self): pass @task(6) def task2(self): pass task2 比 task1 被选择的可能性大两倍。\ntasks 属性 除了@task 装饰器，还可以设置 User 类的 tasks 属性来定义任务，比如：\nfrom locust import User, constant def my_task(user): pass class MyUser(User): tasks = [my_task] wait_time = constant(1) 注意，my_task()函数有一个参数，它是 User 类的实例。\ntasks 可以是一个列表：\ntasks = [my_task1, my_task2, my_task3] Locust 会使用 Python 中的 random.choice()从里面随机选取。\ntasks 也可以是一个字典：\n{my_task: 3, another_task: 1} 后面的 int 型键值代表的是被选择权重，这个字典等价于列表：\n[my_task, my_task, my_task, another_task] @tag 装饰器 @tag 用来打标记，在运行时选择哪些 task 执行，哪些 task 不执行。比如：\nclass MyUser(User): wait_time = constant(1) @tag('tag1') @task def task1(self): pass @tag('tag1', 'tag2') @task def task2(self): pass @tag('tag3') @task def task3(self): pass @task def task4(self): pass 如果使用--tags tag1，那么只有 task1 和 task2 会被选择。 如果使用--tags tag2 tag3，那么只有 task2 和 task3 会被选择。 如果使用--exclude-tags tag3，那么只有 task1、task2 和 task4 会被选择。 注意，exclude 的优先级更高，如果某个 tag 既包括又排除，那么会被排除。\nEvents @task 定义了性能测试的执行动作，@events 作为补充，定义了测试开始前和测试结束后的处理。\n注意，每个模拟用户开始和结束的处理是使用的 User 类的 on_start()和 on_stop()方法。\ntest_start 和 test_stop 测试开始前和测试结束后触发。示例：\nfrom locust import events @events.test_start.add_listener def on_test_start(environment, **kwargs): print(\"A new test is starting\") @events.test_stop.add_listener def on_test_stop(environment, **kwargs): print(\"A new test is ending\") 分布式执行时，它们只会在 master 节点生效。\ninit init 和 test_start 不同，它会在每个 Locust 进程开始时触发，分布式执行时，每个节点（worker 进程）都会生效。\nfrom locust import events from locust.runners import MasterRunner @events.init.add_listener def on_locust_init(environment, **kwargs): if isinstance(environment.runner, MasterRunner): print(\"I'm on master node\") else: print(\"I'm on a worker or standalone node\") Events 是一项 hook 技术，在学习 Locust 高级用法时再做进一步介绍。\nLocust 项目结构 官方建议如下：\ncommon/\n__init__.py\nauth.py\nconfig.py\nlocustfile.py或者locustfiles/\napi.py\nwebsite.py\nrequirements.txt\nFastHttpUser 从上篇文章可以知道，HttpUser 类比 User 类更常用，它的 client 属性是 HttpSession 类（requests.Session 子类）的一个实例，可以使用 requests 发 HTTP 请求：\n## 使用HttpUser from locust import HttpUser,task,constant class MyUser(User): wait_time = constant(1) @task def my_task1(self): with self.client.get(\"https://www.baidu.com/\", catch_response=True) as res: if res.status_code == 200: print(\"成功\") else: print(\"失败\") 但是 requests 性能是不太好的，如果要产生更高的压力，建议使用 FastHttpUser，性能可以提升 5 到 6 倍：\n## 使用FastHttpUser from locust import task, constant from locust.contrib.fasthttp import FastHttpUser class MyUser(FastHttpUser): wait_time = constant(1) @task def my_task(self): with self.client.get(\"https://www.baidu.com/\", catch_response=True) as response: if response.status_code == 200: print(\"成功\") else: print(\"失败\") 由于它们的 API 不一样，都有各自的适用场景，所以 FastHttpUser 不能完全替代 HttpUser。\n小结 本文严格来说是上篇文章《locustfile 中的 User 类和 HttpUser 类》的下篇，介绍了核心技术 Tasks 和 Events，并给出了官方推荐的项目结构，最后介绍了比 HttpUser 性能更好的 FastHttpUser，如果想要更多的并发，可以考虑使用后者。经过这两篇文章的学习，已经可以开始动手实践使用 Locust 进行性能测试了。如果使用 locust 命令启动后，无法打开网页，可以试试加上参数：locust --web-host=\"127.0.0.1\"。\n参考资料：\nhttps://zhuanlan.zhihu.com/p/118470760\nhttps://docs.locust.io/en/stable/writing-a-locustfile.html#tasks\nhttps://www.axihe.com/tools/locust/increase-performance.html\nhttps://blog.csdn.net/u012002125/article/details/113363768\n",
-  "wordCount" : "385",
+  "articleBody": "Tasks 和 Events 是 Locust 性能测试工具的核心技术，有了它们，Locust 才能称得上是一个性能工具。\nTasks 从上篇文章知道，locustfile 里面必须要有一个类，继承 User 类，当性能测试开始后，会产生一个 User 类实例，这就是常说的模拟用户。这些用户会选择 task 执行，休眠一会，再选择新的 task，不断迭代。\ntask 是 Python 中的可调用对象，它是一项任务，对于 Web 系统来说，可以是登录、查询、下订单、支付等等。\n@task 装饰器 @task 是定义 task 最简单直接的方式，比如：\nfrom locust import User, task, constant class MyUser(User): wait_time = constant(1) @task def my_task(self): print(\"User instance (%r) executing my_task\" % self) @task 有一个可选参数，用来设置 task 的选择权重，比如：\nfrom locust import User, task, between class MyUser(User): wait_time = between(5, 15) @task(3) def task1(self): pass @task(6) def task2(self): pass task2 比 task1 被选择的可能性大两倍。\ntasks 属性 除了@task 装饰器，还可以设置 User 类的 tasks 属性来定义任务，比如：\nfrom locust import User, constant def my_task(user): pass class MyUser(User): tasks = [my_task] wait_time = constant(1) 注意，my_task()函数有一个参数，它是 User 类的实例。\ntasks 可以是一个列表：\ntasks = [my_task1, my_task2, my_task3] Locust 会使用 Python 中的 random.choice()从里面随机选取。\ntasks 也可以是一个字典：\n{my_task: 3, another_task: 1} 后面的 int 型键值代表的是被选择权重，这个字典等价于列表：\n[my_task, my_task, my_task, another_task] @tag 装饰器 @tag 用来打标记，在运行时选择哪些 task 执行，哪些 task 不执行。比如：\nclass MyUser(User): wait_time = constant(1) @tag('tag1') @task def task1(self): pass @tag('tag1', 'tag2') @task def task2(self): pass @tag('tag3') @task def task3(self): pass @task def task4(self): pass 如果使用--tags tag1，那么只有 task1 和 task2 会被选择。 如果使用--tags tag2 tag3，那么只有 task2 和 task3 会被选择。 如果使用--exclude-tags tag3，那么只有 task1、task2 和 task4 会被选择。 注意，exclude 的优先级更高，如果某个 tag 既包括又排除，那么会被排除。\nEvents @task 定义了性能测试的执行动作，@events 作为补充，定义了测试开始前和测试结束后的处理。\n注意，每个模拟用户开始和结束的处理是使用的 User 类的 on_start()和 on_stop()方法。\ntest_start 和 test_stop 测试开始前和测试结束后触发。示例：\nfrom locust import events @events.test_start.add_listener def on_test_start(environment, **kwargs): print(\"A new test is starting\") @events.test_stop.add_listener def on_test_stop(environment, **kwargs): print(\"A new test is ending\") 分布式执行时，它们只会在 master 节点生效。\ninit init 和 test_start 不同，它会在每个 Locust 进程开始时触发，分布式执行时，每个节点（worker 进程）都会生效。\nfrom locust import events from locust.runners import MasterRunner @events.init.add_listener def on_locust_init(environment, **kwargs): if isinstance(environment.runner, MasterRunner): print(\"I'm on master node\") else: print(\"I'm on a worker or standalone node\") Events 是一项 hook 技术，在学习 Locust 高级用法时再做进一步介绍。\nLocust 项目结构 官方建议如下：\ncommon/\n__init__.py\nauth.py\nconfig.py\nlocustfile.py或者locustfiles/\napi.py\nwebsite.py\nrequirements.txt\nFastHttpUser 从上篇文章可以知道，HttpUser 类比 User 类更常用，它的 client 属性是 HttpSession 类（requests.Session 子类）的一个实例，可以使用 requests 发 HTTP 请求：\n## 使用HttpUser from locust import HttpUser,task,constant class MyUser(User): wait_time = constant(1) @task def my_task1(self): with self.client.get(\"https://www.baidu.com/\", catch_response=True) as res: if res.status_code == 200: print(\"成功\") else: print(\"失败\") 但是 requests 性能是不太好的，如果要产生更高的压力，建议使用 FastHttpUser，性能可以提升 5 到 6 倍：\n## 使用FastHttpUser from locust import task, constant from locust.contrib.fasthttp import FastHttpUser class MyUser(FastHttpUser): wait_time = constant(1) @task def my_task(self): with self.client.get(\"https://www.baidu.com/\", catch_response=True) as response: if response.status_code == 200: print(\"成功\") else: print(\"失败\") 由于它们的 API 不一样，都有各自的适用场景，所以 FastHttpUser 不能完全替代 HttpUser。\n小结 本文严格来说是上篇文章《locustfile 中的 User 类和 HttpUser 类》的下篇，介绍了核心技术 Tasks 和 Events，并给出了官方推荐的项目结构，最后介绍了比 HttpUser 性能更好的 FastHttpUser，如果想要更多的并发，可以考虑使用后者。经过这两篇文章的学习，已经可以开始动手实践使用 Locust 进行性能测试了。如果使用 locust 命令启动后，无法打开网页，可以试试加上参数：locust --web-host=\"127.0.0.1\"。\n参考资料：\nhttps://zhuanlan.zhihu.com/p/118470760\nhttps://docs.locust.io/en/stable/writing-a-locustfile.html#tasks\nhttps://www.axihe.com/tools/locust/increase-performance.html\nhttps://blog.csdn.net/u012002125/article/details/113363768\n",
+  "wordCount" : "384",
   "inLanguage": "zh",
   "datePublished": "2026-01-18T00:00:00Z",
   "dateModified": "2026-01-18T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -130,7 +127,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -147,29 +144,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -215,10 +190,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>Tasks 和 Events 是 Locust 性能测试工具的核心技术，有了它们，Locust 才能称得上是一个性能工具。</p>
+  <div class="post-content md-content"><p>Tasks 和 Events 是 Locust 性能测试工具的核心技术，有了它们，Locust 才能称得上是一个性能工具。</p>
 <h1 id="tasks">Tasks<a hidden class="anchor" aria-hidden="true" href="#tasks">#</a></h1>
 <p>从上篇文章知道，locustfile 里面必须要有一个类，继承 User 类，当性能测试开始后，会产生一个 User 类实例，这就是常说的<strong>模拟用户</strong>。这些用户会选择 task 执行，休眠一会，再选择新的 task，不断迭代。</p>
 <p>task 是 Python 中的<strong>可调用对象</strong>，它是一项任务，对于 Web 系统来说，可以是登录、查询、下订单、支付等等。</p>
@@ -425,7 +397,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -559,19 +531,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

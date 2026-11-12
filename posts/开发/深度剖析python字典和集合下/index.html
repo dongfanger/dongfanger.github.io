@@ -5,12 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>深度剖析 Python 字典和集合（下） | 测试开发刚哥</title>
+<title>深度剖析 Python 字典和集合（下） | 全栈开发刚哥</title>
 <meta name="keywords" content="Python">
-<meta name="description" content="
-本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-
-集合
+<meta name="description" content="集合
 集合的字面量是{1}、{1, 2}，和字典有点像，不同的是集合只有值没有键。
 set 构造方法
 set 构造方法如下：
@@ -53,10 +50,12 @@ found = len(set(needles) &amp; set(haystack))
 found = len(set(needles).intersection(haystack))
 集合支持的操作如下：
 
-">
-<meta name="author" content="测试开发刚哥">
+
+散列表揭秘
+这一部分的内容略微有点硬，请注意提前喝点水！">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90python%E5%AD%97%E5%85%B8%E5%92%8C%E9%9B%86%E5%90%88%E4%B8%8B/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -100,11 +99,7 @@ found = len(set(needles).intersection(haystack))
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -114,11 +109,11 @@ found = len(set(needles).intersection(haystack))
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90python%E5%AD%97%E5%85%B8%E5%92%8C%E9%9B%86%E5%90%88%E4%B8%8B/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="深度剖析 Python 字典和集合（下）">
-  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-集合 集合的字面量是{1}、{1, 2}，和字典有点像，不同的是集合只有值没有键。
+  <meta property="og:description" content="集合 集合的字面量是{1}、{1, 2}，和字典有点像，不同的是集合只有值没有键。
 set 构造方法 set 构造方法如下：
 my_set = {1, 2, 3} my_set = set([1, 2, 3]) 前者比后者更快更易读，因为对于前者，Python 会利用一个专门的叫做 BUILD_SET 的字节码来创建集合。而对于后者，Python 必须先从 set 这个名字来查询构造方法，然后新建一个列表，最后再把这个列表传入到构造方法里。
 {}是空字典，空集合必须用set()。
@@ -129,7 +124,8 @@ my_set = {1, 2, 3} my_set = set([1, 2, 3]) 前者比后者更快更易读，因�
 &gt;&gt;&gt; my_list = [1, 2, 2, 3] &gt;&gt;&gt; set(my_list) {1, 2, 3} &gt;&gt;&gt; list(set(my_list)) [1, 2, 3] 除此之外，集合还能进行数学运算，比如求交集、并集、差集等。示例，求 needles 的元素在 haystack 里出现的次数，暴力解法：
 found = 0 for n in needles: if n in haystack: found &#43;= 1 集合解法：
 found = len(needles &amp; haystack) 即使不是 set 也能先转换为 set：
-found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set(needles).intersection(haystack)) 集合支持的操作如下：">
+found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set(needles).intersection(haystack)) 集合支持的操作如下：
+散列表揭秘 这一部分的内容略微有点硬，请注意提前喝点水！">
   <meta property="og:locale" content="zh_cn">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -139,8 +135,7 @@ found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="深度剖析 Python 字典和集合（下）">
-  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-集合 集合的字面量是{1}、{1, 2}，和字典有点像，不同的是集合只有值没有键。
+  <meta name="twitter:description" content="集合 集合的字面量是{1}、{1, 2}，和字典有点像，不同的是集合只有值没有键。
 set 构造方法 set 构造方法如下：
 my_set = {1, 2, 3} my_set = set([1, 2, 3]) 前者比后者更快更易读，因为对于前者，Python 会利用一个专门的叫做 BUILD_SET 的字节码来创建集合。而对于后者，Python 必须先从 set 这个名字来查询构造方法，然后新建一个列表，最后再把这个列表传入到构造方法里。
 {}是空字典，空集合必须用set()。
@@ -151,7 +146,8 @@ my_set = {1, 2, 3} my_set = set([1, 2, 3]) 前者比后者更快更易读，因�
 &gt;&gt;&gt; my_list = [1, 2, 2, 3] &gt;&gt;&gt; set(my_list) {1, 2, 3} &gt;&gt;&gt; list(set(my_list)) [1, 2, 3] 除此之外，集合还能进行数学运算，比如求交集、并集、差集等。示例，求 needles 的元素在 haystack 里出现的次数，暴力解法：
 found = 0 for n in needles: if n in haystack: found &#43;= 1 集合解法：
 found = len(needles &amp; haystack) 即使不是 set 也能先转换为 set：
-found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set(needles).intersection(haystack)) 集合支持的操作如下：">
+found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set(needles).intersection(haystack)) 集合支持的操作如下：
+散列表揭秘 这一部分的内容略微有点硬，请注意提前喝点水！">
 
 
 <script type="application/ld+json">
@@ -180,18 +176,18 @@ found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set
   "@type": "BlogPosting",
   "headline": "深度剖析 Python 字典和集合（下）",
   "name": "深度剖析 Python 字典和集合（下）",
-  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n集合 集合的字面量是{1}、{1, 2}，和字典有点像，不同的是集合只有值没有键。\nset 构造方法 set 构造方法如下：\nmy_set = {1, 2, 3} my_set = set([1, 2, 3]) 前者比后者更快更易读，因为对于前者，Python 会利用一个专门的叫做 BUILD_SET 的字节码来创建集合。而对于后者，Python 必须先从 set 这个名字来查询构造方法，然后新建一个列表，最后再把这个列表传入到构造方法里。\n{}是空字典，空集合必须用set()。\n集合也有集合推导：\n\u0026gt;\u0026gt;\u0026gt; my_set = {x for x in range(1, 4)} \u0026gt;\u0026gt;\u0026gt; my_set {1, 2, 3} \u0026gt;\u0026gt;\u0026gt; type(my_set) \u0026lt;class \u0026#39;set\u0026#39;\u0026gt; 集合还有个不可变类型叫做 frozenset，如同元组之于列表，它的构造函数如下：\n\u0026gt;\u0026gt;\u0026gt; frozenset(range(10)) frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}) 只有这一种方法，没有字面量。\n集合的操作 集合的本质是许多唯一对象的聚集，它最常见的操作是用来去重：\n\u0026gt;\u0026gt;\u0026gt; my_list = [1, 2, 2, 3] \u0026gt;\u0026gt;\u0026gt; set(my_list) {1, 2, 3} \u0026gt;\u0026gt;\u0026gt; list(set(my_list)) [1, 2, 3] 除此之外，集合还能进行数学运算，比如求交集、并集、差集等。示例，求 needles 的元素在 haystack 里出现的次数，暴力解法：\nfound = 0 for n in needles: if n in haystack: found += 1 集合解法：\nfound = len(needles \u0026amp; haystack) 即使不是 set 也能先转换为 set：\nfound = len(set(needles) \u0026amp; set(haystack)) ## 另一种写法 found = len(set(needles).intersection(haystack)) 集合支持的操作如下：\n",
+  "description": "集合 集合的字面量是{1}、{1, 2}，和字典有点像，不同的是集合只有值没有键。\nset 构造方法 set 构造方法如下：\nmy_set = {1, 2, 3} my_set = set([1, 2, 3]) 前者比后者更快更易读，因为对于前者，Python 会利用一个专门的叫做 BUILD_SET 的字节码来创建集合。而对于后者，Python 必须先从 set 这个名字来查询构造方法，然后新建一个列表，最后再把这个列表传入到构造方法里。\n{}是空字典，空集合必须用set()。\n集合也有集合推导：\n\u0026gt;\u0026gt;\u0026gt; my_set = {x for x in range(1, 4)} \u0026gt;\u0026gt;\u0026gt; my_set {1, 2, 3} \u0026gt;\u0026gt;\u0026gt; type(my_set) \u0026lt;class \u0026#39;set\u0026#39;\u0026gt; 集合还有个不可变类型叫做 frozenset，如同元组之于列表，它的构造函数如下：\n\u0026gt;\u0026gt;\u0026gt; frozenset(range(10)) frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}) 只有这一种方法，没有字面量。\n集合的操作 集合的本质是许多唯一对象的聚集，它最常见的操作是用来去重：\n\u0026gt;\u0026gt;\u0026gt; my_list = [1, 2, 2, 3] \u0026gt;\u0026gt;\u0026gt; set(my_list) {1, 2, 3} \u0026gt;\u0026gt;\u0026gt; list(set(my_list)) [1, 2, 3] 除此之外，集合还能进行数学运算，比如求交集、并集、差集等。示例，求 needles 的元素在 haystack 里出现的次数，暴力解法：\nfound = 0 for n in needles: if n in haystack: found += 1 集合解法：\nfound = len(needles \u0026amp; haystack) 即使不是 set 也能先转换为 set：\nfound = len(set(needles) \u0026amp; set(haystack)) ## 另一种写法 found = len(set(needles).intersection(haystack)) 集合支持的操作如下：\n散列表揭秘 这一部分的内容略微有点硬，请注意提前喝点水！\n",
   "keywords": [
     "Python"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n集合 集合的字面量是{1}、{1, 2}，和字典有点像，不同的是集合只有值没有键。\nset 构造方法 set 构造方法如下：\nmy_set = {1, 2, 3} my_set = set([1, 2, 3]) 前者比后者更快更易读，因为对于前者，Python 会利用一个专门的叫做 BUILD_SET 的字节码来创建集合。而对于后者，Python 必须先从 set 这个名字来查询构造方法，然后新建一个列表，最后再把这个列表传入到构造方法里。\n{}是空字典，空集合必须用set()。\n集合也有集合推导：\n\u003e\u003e\u003e my_set = {x for x in range(1, 4)} \u003e\u003e\u003e my_set {1, 2, 3} \u003e\u003e\u003e type(my_set) \u003cclass 'set'\u003e 集合还有个不可变类型叫做 frozenset，如同元组之于列表，它的构造函数如下：\n\u003e\u003e\u003e frozenset(range(10)) frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}) 只有这一种方法，没有字面量。\n集合的操作 集合的本质是许多唯一对象的聚集，它最常见的操作是用来去重：\n\u003e\u003e\u003e my_list = [1, 2, 2, 3] \u003e\u003e\u003e set(my_list) {1, 2, 3} \u003e\u003e\u003e list(set(my_list)) [1, 2, 3] 除此之外，集合还能进行数学运算，比如求交集、并集、差集等。示例，求 needles 的元素在 haystack 里出现的次数，暴力解法：\nfound = 0 for n in needles: if n in haystack: found += 1 集合解法：\nfound = len(needles \u0026 haystack) 即使不是 set 也能先转换为 set：\nfound = len(set(needles) \u0026 set(haystack)) ## 另一种写法 found = len(set(needles).intersection(haystack)) 集合支持的操作如下：\n散列表揭秘 这一部分的内容略微有点硬，请注意提前喝点水！\n从上篇的简介可以知道，散列表就是一张表，它通过计算一个关于键值的函数，将所需查询的数据映射到表中一个位置来访问记录。散列表其实是一个稀疏数组（总是有空白元素的数组称为稀疏数组），散列表里的单元叫作表元，在 dict 的散列表中，每个键值对占用一个表元，每个表元有两个部分，一个是对键的引用，另一个是对值的引用，因为所有表元的大小一致，所以可以通过偏移量来读取某个表元。\n为什么要用稀疏数组？举个例子，身份证号 411697199702076425，如果把它作为键存储到数组中，虽然能用 O(1)时间就找到，但是需要开辟一个 999999999999999999 大的空间。假如只有 1 的空间，就只能把最后一位作为键存储到数组中，多个身份证号的键就容易冲突，得多看 n 位才能找到，要用 O(n)时间。空间既不能太大，也不能太小，需要结合时间，在两者之间产生一个平衡，即空间和时间的平衡，所以要用稀疏数组！\nPython 会设法保证大概还有三分之一的表元是空的，用空间换时间，提高散列表查询效率。如果剩余空间不足，原有的散列表会被复制到一个更大的空间里面。\n散列表的键值，又称为散列值，Python 中可以用 hash()方法来计算所有内置类型对象的散列值。\n自定义类型实际上调用的是自定义的__hash__。\n如果两个对象在比较的时候是相等的，那么它们的散列值必须相等，否则散列表就不能正常运行了：\n\u003e\u003e\u003e a = 1 \u003e\u003e\u003e b = 1 \u003e\u003e\u003e a == b True \u003e\u003e\u003e hash(a) 1 \u003e\u003e\u003e hash(b) 1 \u003e\u003e\u003e a = \"x\" \u003e\u003e\u003e b = \"x\" \u003e\u003e\u003e a == b True \u003e\u003e\u003e hash(a) 706802421 \u003e\u003e\u003e hash(b) 706802421 越是相似但不相等的对象，它们的散列值的差别越大：\n\u003e\u003e\u003e a = 1.0001 \u003e\u003e\u003e b = 1.0002 \u003e\u003e\u003e hash(a) 783616733 \u003e\u003e\u003e hash(b) 1567233465 这是因为散列值是散列表索引，它们必须在索引空间尽量分散开来。\n我的理解是，散列值是要被尽量打散的，1.0001 和 1.0002 相差 0.0001，这个 0.0001 被打散后的值导致它们的散列值相差很大。\n了解了基本概念后，该看下散列表算法了（不用害怕，只有思路，没有代码）：\n为了获取 my_dict[search_key]背后的值：\n调用 hash(search_key)计算 search_key 的散列值。 把最低几位数字当做偏移量，在散列表里查找表元。 如果表元为空，返回 KeyError。 如果表元有值，表元里会有一对found_key:found_value。 检验 search_key == found_key，相等就返回 found_key。 不相等的情况称为散列冲突！为了解决冲突，算法会在散列值中另外再取几位，处理一下，把新得到的数字当做索引来寻找表元。 实际上散列冲突发生概率非常小，散列表查询效率非常高！\n添加新元素和更新现有键值的操作几乎一样，区别在于添加新元素时发现空表元，会放入一个新元素；更新现有键值时，会把原表里的值替换成新值。\n另外，添加新元素时，Python 会根据剩余空间大小决定是否要重新分配内容为它扩容。\n散列表与 dict dict 的键必须是可散列的：\n支持 hash()函数，通过__hash__()得到的散列值是不变的。 支持通过__eq__()来判断是否相等。 若 a == b 为真，则 hash(a) == hash(b)也为真。 所有由用户自定义的对象默认都是可散列的，因为它们的散列值由 id()来获取（符合第 1 条），而且它们都是不相等的（符合第 2 条和第 3 条）。\ndict 的实现是典型的空间换时间：键查询很快，在内存上的开销巨大！\ndict 键的次序取决于添加顺序，当往 dict 添加新键时，如果发生了散列冲突，新键可能会被放到另一个位置，键的位置不一样，次序也就不一样了。比如：\nmy_list = [(\"a\", 1), (\"b\", 2)] my_dict1 = dict(my_list) my_dict2 = dict(reversed(my_list)) print(my_dict1) # {'a': 1, 'b': 2} print(my_dict2) # {'b': 2, 'a': 1} print((my_dict1 == my_dict2)) # True 但是它们是相等的，因为它们所包含的数据是一样的。\n值得注意的是，往字典里添加新键可能会改变已有键的顺序！当空间不足，Python 会为字典扩容，新建一个更大的散列表，并把字典已有的元素添加进去，这个过程中可能会发生散列冲突，导致新散列表中键的次序变化。\n由此可知，不要对字典同时进行迭代和修改，循环很可能会跳过一些键，甚至是跳过那些字典中已经有的键。最好分成两步来做，首先对字典进行迭代，得出需要添加的内容，把这些内容放在一个新字典里；在迭代结束后再对原有字典进行更新。\n散列表与 set 集合的散列表里存放的只有元素的引用（就像在字典里只存放键而没有相应的值）。上一节讨论的散列表与 dict 的内容，对集合来说几乎都是适用的。\n在 set 加入 Python 以前，原书作者他们是把字典加上无意义的值当作集合来用的。\n小结 本文为下篇，介绍了集合，重点揭秘了散列表的原理，正是由于散列表的支撑，dict 和 set 的查询效率非常高，代价是空间换时间，内容占用也比较大，当数据量很大时，不适合用 dict 和 set，而应该考虑用元组或由具名元组构成的列表。散列表也给 dict 和 set 带来了限制，比如 dict 键的次序取决于添加顺序，往字典里添加新键可能会改变已有键的顺序等。\n参考资料：\n《流畅的 Python》\nhttps://www.jianshu.com/p/4e64fce04a38\n",
-  "wordCount" : "313",
+  "articleBody": "集合 集合的字面量是{1}、{1, 2}，和字典有点像，不同的是集合只有值没有键。\nset 构造方法 set 构造方法如下：\nmy_set = {1, 2, 3} my_set = set([1, 2, 3]) 前者比后者更快更易读，因为对于前者，Python 会利用一个专门的叫做 BUILD_SET 的字节码来创建集合。而对于后者，Python 必须先从 set 这个名字来查询构造方法，然后新建一个列表，最后再把这个列表传入到构造方法里。\n{}是空字典，空集合必须用set()。\n集合也有集合推导：\n\u003e\u003e\u003e my_set = {x for x in range(1, 4)} \u003e\u003e\u003e my_set {1, 2, 3} \u003e\u003e\u003e type(my_set) \u003cclass 'set'\u003e 集合还有个不可变类型叫做 frozenset，如同元组之于列表，它的构造函数如下：\n\u003e\u003e\u003e frozenset(range(10)) frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}) 只有这一种方法，没有字面量。\n集合的操作 集合的本质是许多唯一对象的聚集，它最常见的操作是用来去重：\n\u003e\u003e\u003e my_list = [1, 2, 2, 3] \u003e\u003e\u003e set(my_list) {1, 2, 3} \u003e\u003e\u003e list(set(my_list)) [1, 2, 3] 除此之外，集合还能进行数学运算，比如求交集、并集、差集等。示例，求 needles 的元素在 haystack 里出现的次数，暴力解法：\nfound = 0 for n in needles: if n in haystack: found += 1 集合解法：\nfound = len(needles \u0026 haystack) 即使不是 set 也能先转换为 set：\nfound = len(set(needles) \u0026 set(haystack)) ## 另一种写法 found = len(set(needles).intersection(haystack)) 集合支持的操作如下：\n散列表揭秘 这一部分的内容略微有点硬，请注意提前喝点水！\n从上篇的简介可以知道，散列表就是一张表，它通过计算一个关于键值的函数，将所需查询的数据映射到表中一个位置来访问记录。散列表其实是一个稀疏数组（总是有空白元素的数组称为稀疏数组），散列表里的单元叫作表元，在 dict 的散列表中，每个键值对占用一个表元，每个表元有两个部分，一个是对键的引用，另一个是对值的引用，因为所有表元的大小一致，所以可以通过偏移量来读取某个表元。\n为什么要用稀疏数组？举个例子，身份证号 411697199702076425，如果把它作为键存储到数组中，虽然能用 O(1)时间就找到，但是需要开辟一个 999999999999999999 大的空间。假如只有 1 的空间，就只能把最后一位作为键存储到数组中，多个身份证号的键就容易冲突，得多看 n 位才能找到，要用 O(n)时间。空间既不能太大，也不能太小，需要结合时间，在两者之间产生一个平衡，即空间和时间的平衡，所以要用稀疏数组！\nPython 会设法保证大概还有三分之一的表元是空的，用空间换时间，提高散列表查询效率。如果剩余空间不足，原有的散列表会被复制到一个更大的空间里面。\n散列表的键值，又称为散列值，Python 中可以用 hash()方法来计算所有内置类型对象的散列值。\n自定义类型实际上调用的是自定义的__hash__。\n如果两个对象在比较的时候是相等的，那么它们的散列值必须相等，否则散列表就不能正常运行了：\n\u003e\u003e\u003e a = 1 \u003e\u003e\u003e b = 1 \u003e\u003e\u003e a == b True \u003e\u003e\u003e hash(a) 1 \u003e\u003e\u003e hash(b) 1 \u003e\u003e\u003e a = \"x\" \u003e\u003e\u003e b = \"x\" \u003e\u003e\u003e a == b True \u003e\u003e\u003e hash(a) 706802421 \u003e\u003e\u003e hash(b) 706802421 越是相似但不相等的对象，它们的散列值的差别越大：\n\u003e\u003e\u003e a = 1.0001 \u003e\u003e\u003e b = 1.0002 \u003e\u003e\u003e hash(a) 783616733 \u003e\u003e\u003e hash(b) 1567233465 这是因为散列值是散列表索引，它们必须在索引空间尽量分散开来。\n我的理解是，散列值是要被尽量打散的，1.0001 和 1.0002 相差 0.0001，这个 0.0001 被打散后的值导致它们的散列值相差很大。\n了解了基本概念后，该看下散列表算法了（不用害怕，只有思路，没有代码）：\n为了获取 my_dict[search_key]背后的值：\n调用 hash(search_key)计算 search_key 的散列值。 把最低几位数字当做偏移量，在散列表里查找表元。 如果表元为空，返回 KeyError。 如果表元有值，表元里会有一对found_key:found_value。 检验 search_key == found_key，相等就返回 found_key。 不相等的情况称为散列冲突！为了解决冲突，算法会在散列值中另外再取几位，处理一下，把新得到的数字当做索引来寻找表元。 实际上散列冲突发生概率非常小，散列表查询效率非常高！\n添加新元素和更新现有键值的操作几乎一样，区别在于添加新元素时发现空表元，会放入一个新元素；更新现有键值时，会把原表里的值替换成新值。\n另外，添加新元素时，Python 会根据剩余空间大小决定是否要重新分配内容为它扩容。\n散列表与 dict dict 的键必须是可散列的：\n支持 hash()函数，通过__hash__()得到的散列值是不变的。 支持通过__eq__()来判断是否相等。 若 a == b 为真，则 hash(a) == hash(b)也为真。 所有由用户自定义的对象默认都是可散列的，因为它们的散列值由 id()来获取（符合第 1 条），而且它们都是不相等的（符合第 2 条和第 3 条）。\ndict 的实现是典型的空间换时间：键查询很快，在内存上的开销巨大！\ndict 键的次序取决于添加顺序，当往 dict 添加新键时，如果发生了散列冲突，新键可能会被放到另一个位置，键的位置不一样，次序也就不一样了。比如：\nmy_list = [(\"a\", 1), (\"b\", 2)] my_dict1 = dict(my_list) my_dict2 = dict(reversed(my_list)) print(my_dict1) # {'a': 1, 'b': 2} print(my_dict2) # {'b': 2, 'a': 1} print((my_dict1 == my_dict2)) # True 但是它们是相等的，因为它们所包含的数据是一样的。\n值得注意的是，往字典里添加新键可能会改变已有键的顺序！当空间不足，Python 会为字典扩容，新建一个更大的散列表，并把字典已有的元素添加进去，这个过程中可能会发生散列冲突，导致新散列表中键的次序变化。\n由此可知，不要对字典同时进行迭代和修改，循环很可能会跳过一些键，甚至是跳过那些字典中已经有的键。最好分成两步来做，首先对字典进行迭代，得出需要添加的内容，把这些内容放在一个新字典里；在迭代结束后再对原有字典进行更新。\n散列表与 set 集合的散列表里存放的只有元素的引用（就像在字典里只存放键而没有相应的值）。上一节讨论的散列表与 dict 的内容，对集合来说几乎都是适用的。\n在 set 加入 Python 以前，原书作者他们是把字典加上无意义的值当作集合来用的。\n小结 本文为下篇，介绍了集合，重点揭秘了散列表的原理，正是由于散列表的支撑，dict 和 set 的查询效率非常高，代价是空间换时间，内容占用也比较大，当数据量很大时，不适合用 dict 和 set，而应该考虑用元组或由具名元组构成的列表。散列表也给 dict 和 set 带来了限制，比如 dict 键的次序取决于添加顺序，往字典里添加新键可能会改变已有键的顺序等。\n参考资料：\n《流畅的 Python》\nhttps://www.jianshu.com/p/4e64fce04a38\n",
+  "wordCount" : "312",
   "inLanguage": "zh",
   "datePublished": "2026-01-15T00:00:00Z",
   "dateModified": "2026-01-15T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -199,7 +195,7 @@ found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -216,29 +212,7 @@ found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -284,10 +258,7 @@ found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<h1 id="集合">集合<a hidden class="anchor" aria-hidden="true" href="#集合">#</a></h1>
+  <div class="post-content md-content"><h1 id="集合">集合<a hidden class="anchor" aria-hidden="true" href="#集合">#</a></h1>
 <p>集合的字面量是{1}、{1, 2}，和字典有点像，不同的是集合只有值没有键。</p>
 <h2 id="set-构造方法">set 构造方法<a hidden class="anchor" aria-hidden="true" href="#set-构造方法">#</a></h2>
 <p>set 构造方法如下：</p>
@@ -463,7 +434,7 @@ found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -597,19 +568,6 @@ found = len(set(needles) &amp; set(haystack)) ## 另一种写法 found = len(set
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

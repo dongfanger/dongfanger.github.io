@@ -5,12 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>tep 支持 pytest-xdist 分布式执行用例及合并 Allure 报告 | 测试开发刚哥</title>
+<title>tep 支持 pytest-xdist 分布式执行用例及合并 Allure 报告 | 全栈开发刚哥</title>
 <meta name="keywords" content="tep">
 <meta name="description" content="
-本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-
-
 tep 近期更新频率较快，一方面是作者在积极投入到 tep 工具开发中；另一方面是我们聚集了 20 位小伙伴，一起合力打造EasyPytest 测试平台，teprunner 的 FastAPI 升级版本，依托于 tep，帮你高效管理 pytest 测试用例。陆续也会有平台开发日志发布，欢迎持续关注。
 
 tep0.11.1 版本升级内容：
@@ -27,10 +24,11 @@ pytest-xdist 会自动根据本地机器硬件配置，设置最优并发，并�
 执行时间从 50s 一下降到 5s，性能提升还是非常的明显。
 合并 Allure 报告
 pytest-xdist 分布式执行，只要把 allure 源文件，也就是那一堆 json 文件，存到同一个目录下，报告的数据就是一体的，不需要单独合并。但是有个问题，tep 封装了--tep-reports 命令行参数一键生成 Allure 报告，背后的逻辑是在 pytest_sessionfinish hook 函数里面实现的，分布式执行时，每个 xdist 的 node 都是一个单独的 session，多个 node 就会生成多份报告：
-c">
-<meta name="author" content="测试开发刚哥">
+c
+10 个 node 生成了 11 份报告，其中 1 份 master 节点生成的。pytest-xdist 的原理如图所示：">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E6%94%AF%E6%8C%81pytest-xdist%E5%88%86%E5%B8%83%E5%BC%8F%E6%89%A7%E8%A1%8C%E7%94%A8%E4%BE%8B%E5%8F%8A%E5%90%88%E5%B9%B6allure%E6%8A%A5%E5%91%8A/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -74,11 +72,7 @@ c">
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -88,11 +82,11 @@ c">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep%E6%94%AF%E6%8C%81pytest-xdist%E5%88%86%E5%B8%83%E5%BC%8F%E6%89%A7%E8%A1%8C%E7%94%A8%E4%BE%8B%E5%8F%8A%E5%90%88%E5%B9%B6allure%E6%8A%A5%E5%91%8A/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="tep 支持 pytest-xdist 分布式执行用例及合并 Allure 报告">
-  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-tep 近期更新频率较快，一方面是作者在积极投入到 tep 工具开发中；另一方面是我们聚集了 20 位小伙伴，一起合力打造EasyPytest 测试平台，teprunner 的 FastAPI 升级版本，依托于 tep，帮你高效管理 pytest 测试用例。陆续也会有平台开发日志发布，欢迎持续关注。
+  <meta property="og:description" content="tep 近期更新频率较快，一方面是作者在积极投入到 tep 工具开发中；另一方面是我们聚集了 20 位小伙伴，一起合力打造EasyPytest 测试平台，teprunner 的 FastAPI 升级版本，依托于 tep，帮你高效管理 pytest 测试用例。陆续也会有平台开发日志发布，欢迎持续关注。
 tep0.11.1 版本升级内容：
 1、pytest-xdist 分布式执行用例，合并 Allure 报告；
 2、global_vars 全局变量配置；
@@ -102,7 +96,8 @@ pytest -n auto pytest-xdist 会自动根据本地机器硬件配置，设置最�
 第一次串行，第二次 xdist 并行：
 执行时间从 50s 一下降到 5s，性能提升还是非常的明显。
 合并 Allure 报告 pytest-xdist 分布式执行，只要把 allure 源文件，也就是那一堆 json 文件，存到同一个目录下，报告的数据就是一体的，不需要单独合并。但是有个问题，tep 封装了--tep-reports 命令行参数一键生成 Allure 报告，背后的逻辑是在 pytest_sessionfinish hook 函数里面实现的，分布式执行时，每个 xdist 的 node 都是一个单独的 session，多个 node 就会生成多份报告：
-c">
+c
+10 个 node 生成了 11 份报告，其中 1 份 master 节点生成的。pytest-xdist 的原理如图所示：">
   <meta property="og:locale" content="zh_cn">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -112,8 +107,7 @@ c">
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="tep 支持 pytest-xdist 分布式执行用例及合并 Allure 报告">
-  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-tep 近期更新频率较快，一方面是作者在积极投入到 tep 工具开发中；另一方面是我们聚集了 20 位小伙伴，一起合力打造EasyPytest 测试平台，teprunner 的 FastAPI 升级版本，依托于 tep，帮你高效管理 pytest 测试用例。陆续也会有平台开发日志发布，欢迎持续关注。
+  <meta name="twitter:description" content="tep 近期更新频率较快，一方面是作者在积极投入到 tep 工具开发中；另一方面是我们聚集了 20 位小伙伴，一起合力打造EasyPytest 测试平台，teprunner 的 FastAPI 升级版本，依托于 tep，帮你高效管理 pytest 测试用例。陆续也会有平台开发日志发布，欢迎持续关注。
 tep0.11.1 版本升级内容：
 1、pytest-xdist 分布式执行用例，合并 Allure 报告；
 2、global_vars 全局变量配置；
@@ -123,7 +117,8 @@ pytest -n auto pytest-xdist 会自动根据本地机器硬件配置，设置最�
 第一次串行，第二次 xdist 并行：
 执行时间从 50s 一下降到 5s，性能提升还是非常的明显。
 合并 Allure 报告 pytest-xdist 分布式执行，只要把 allure 源文件，也就是那一堆 json 文件，存到同一个目录下，报告的数据就是一体的，不需要单独合并。但是有个问题，tep 封装了--tep-reports 命令行参数一键生成 Allure 报告，背后的逻辑是在 pytest_sessionfinish hook 函数里面实现的，分布式执行时，每个 xdist 的 node 都是一个单独的 session，多个 node 就会生成多份报告：
-c">
+c
+10 个 node 生成了 11 份报告，其中 1 份 master 节点生成的。pytest-xdist 的原理如图所示：">
 
 
 <script type="application/ld+json">
@@ -152,18 +147,18 @@ c">
   "@type": "BlogPosting",
   "headline": "tep 支持 pytest-xdist 分布式执行用例及合并 Allure 报告",
   "name": "tep 支持 pytest-xdist 分布式执行用例及合并 Allure 报告",
-  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\ntep 近期更新频率较快，一方面是作者在积极投入到 tep 工具开发中；另一方面是我们聚集了 20 位小伙伴，一起合力打造EasyPytest 测试平台，teprunner 的 FastAPI 升级版本，依托于 tep，帮你高效管理 pytest 测试用例。陆续也会有平台开发日志发布，欢迎持续关注。\ntep0.11.1 版本升级内容：\n1、pytest-xdist 分布式执行用例，合并 Allure 报告；\n2、global_vars 全局变量配置；\n分布式执行用例 借助于 pytest-xdist，在命令行执行时添加参数-n auto：\npytest -n auto pytest-xdist 会自动根据本地机器硬件配置，设置最优并发，并分发用例，分布式执行。\n测试时先运行 main.py，然后在 case100 目录下执行pytest -n auto --tep-reports：\n第一次串行，第二次 xdist 并行：\n执行时间从 50s 一下降到 5s，性能提升还是非常的明显。\n合并 Allure 报告 pytest-xdist 分布式执行，只要把 allure 源文件，也就是那一堆 json 文件，存到同一个目录下，报告的数据就是一体的，不需要单独合并。但是有个问题，tep 封装了--tep-reports 命令行参数一键生成 Allure 报告，背后的逻辑是在 pytest_sessionfinish hook 函数里面实现的，分布式执行时，每个 xdist 的 node 都是一个单独的 session，多个 node 就会生成多份报告：\nc\n",
+  "description": " tep 近期更新频率较快，一方面是作者在积极投入到 tep 工具开发中；另一方面是我们聚集了 20 位小伙伴，一起合力打造EasyPytest 测试平台，teprunner 的 FastAPI 升级版本，依托于 tep，帮你高效管理 pytest 测试用例。陆续也会有平台开发日志发布，欢迎持续关注。\ntep0.11.1 版本升级内容：\n1、pytest-xdist 分布式执行用例，合并 Allure 报告；\n2、global_vars 全局变量配置；\n分布式执行用例 借助于 pytest-xdist，在命令行执行时添加参数-n auto：\npytest -n auto pytest-xdist 会自动根据本地机器硬件配置，设置最优并发，并分发用例，分布式执行。\n测试时先运行 main.py，然后在 case100 目录下执行pytest -n auto --tep-reports：\n第一次串行，第二次 xdist 并行：\n执行时间从 50s 一下降到 5s，性能提升还是非常的明显。\n合并 Allure 报告 pytest-xdist 分布式执行，只要把 allure 源文件，也就是那一堆 json 文件，存到同一个目录下，报告的数据就是一体的，不需要单独合并。但是有个问题，tep 封装了--tep-reports 命令行参数一键生成 Allure 报告，背后的逻辑是在 pytest_sessionfinish hook 函数里面实现的，分布式执行时，每个 xdist 的 node 都是一个单独的 session，多个 node 就会生成多份报告：\nc\n10 个 node 生成了 11 份报告，其中 1 份 master 节点生成的。pytest-xdist 的原理如图所示：\n",
   "keywords": [
     "tep"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\ntep 近期更新频率较快，一方面是作者在积极投入到 tep 工具开发中；另一方面是我们聚集了 20 位小伙伴，一起合力打造EasyPytest 测试平台，teprunner 的 FastAPI 升级版本，依托于 tep，帮你高效管理 pytest 测试用例。陆续也会有平台开发日志发布，欢迎持续关注。\ntep0.11.1 版本升级内容：\n1、pytest-xdist 分布式执行用例，合并 Allure 报告；\n2、global_vars 全局变量配置；\n分布式执行用例 借助于 pytest-xdist，在命令行执行时添加参数-n auto：\npytest -n auto pytest-xdist 会自动根据本地机器硬件配置，设置最优并发，并分发用例，分布式执行。\n测试时先运行 main.py，然后在 case100 目录下执行pytest -n auto --tep-reports：\n第一次串行，第二次 xdist 并行：\n执行时间从 50s 一下降到 5s，性能提升还是非常的明显。\n合并 Allure 报告 pytest-xdist 分布式执行，只要把 allure 源文件，也就是那一堆 json 文件，存到同一个目录下，报告的数据就是一体的，不需要单独合并。但是有个问题，tep 封装了--tep-reports 命令行参数一键生成 Allure 报告，背后的逻辑是在 pytest_sessionfinish hook 函数里面实现的，分布式执行时，每个 xdist 的 node 都是一个单独的 session，多个 node 就会生成多份报告：\nc\n10 个 node 生成了 11 份报告，其中 1 份 master 节点生成的。pytest-xdist 的原理如图所示：\nmaster 节点不运行任何测试，只是通过一小部分消息与节点通信。子节点执行后会通过 workeroutput 把数据回传给 master 节点。所以只需要通过是否有 workeroutput 属性来判断 master 节点：\ndef _is_master(config): \"\"\" pytest-xdist分布式执行时，判断是主节点master还是子节点 主节点没有workerinput属性 \"\"\" return not hasattr(config, 'workerinput') 然后只在主节点的 pytest_sessionfinish，生成 1 次报告，就能避免生成多份报告。这样在 xdist 分布式执行模式下，--tep-reports也只会生成 1 份合并后的包含所有测试用例的 Allure HTML 报告。\n完整实现代码：\nimport time import shutil import allure_commons from allure_commons.logger import AllureFileLogger from allure_pytest.listener import AllureListener from allure_pytest.plugin import cleanup_factory reports_path = os.path.join(Project.root_dir, \"reports\") allure_source_dir_name = \".allure.source.temp\" allure_source_path = os.path.join(reports_path, allure_source_dir_name) def _tep_reports(config): \"\"\" --tep-reports命令行参数不能和allure命令行参数同时使用，否则可能出错 \"\"\" if config.getoption(\"--tep-reports\") and not config.getoption(\"allure_report_dir\"): return True return False def _is_master(config): \"\"\" pytest-xdist分布式执行时，判断是主节点master还是子节点 主节点没有workerinput属性 \"\"\" return not hasattr(config, 'workerinput') def pytest_addoption(parser): \"\"\" allure测试报告 命令行参数 \"\"\" parser.addoption( \"--tep-reports\", action=\"store_const\", const=True, help=\"Create tep allure HTML reports.\" ) def pytest_configure(config): \"\"\" 这段代码源自：https://github.com/allure-framework/allure-python/blob/master/allure-pytest/src/plugin.py 目的是生成allure源文件，用于生成HTML报告 \"\"\" if _tep_reports(config): if os.path.exists(allure_source_path): shutil.rmtree(allure_source_path) test_listener = AllureListener(config) config.pluginmanager.register(test_listener) allure_commons.plugin_manager.register(test_listener) config.add_cleanup(cleanup_factory(test_listener)) clean = config.option.clean_alluredir file_logger = AllureFileLogger(allure_source_path, clean) # allure_source allure_commons.plugin_manager.register(file_logger) config.add_cleanup(cleanup_factory(file_logger)) def pytest_sessionfinish(session): \"\"\" 测试运行结束后生成allure报告 \"\"\" if _tep_reports(session.config): if _is_master(session.config): # 只在master节点才生成报告 # 最近一份报告的历史数据，填充allure趋势图 if os.path.exists(reports_path): his_reports = os.listdir(reports_path) if allure_source_dir_name in his_reports: his_reports.remove(allure_source_dir_name) if his_reports: latest_report_history = os.path.join(reports_path, his_reports[-1], \"history\") shutil.copytree(latest_report_history, os.path.join(allure_source_path, \"history\")) current_time = time.strftime(\"%Y-%m-%d-%H-%M-%S\", time.localtime(time.time())) html_report_name = os.path.join(reports_path, \"report-\" + current_time) os.system(f\"allure generate {allure_source_path} -o {html_report_name} --clean\") shutil.rmtree(allure_source_path) global_vars 全局变量 在使用环境变量模版时，有些变量需要在多个模版重复设置，tep 新增了 global_vars 全局变量 fixture，可以将重复设置的变量，定义在resources/global_vars.yaml：\n然后引用 global_vars fixture 取值即可：\ndef test(global_vars): print(global_vars[\"desc\"]) 实现代码：\n@pytest.fixture(scope=\"session\") def global_vars(): \"\"\"全局变量，读取resources/global_vars.yaml，返回字典\"\"\" class Clazz(TepVars): def dict_(self): with open(os.path.join(Config.project_root_dir, \"resources\", \"global_vars.yaml\")) as f: return yaml.load(f.read(), Loader=yaml.FullLoader) return Clazz().dict_() 参考资料：\nhttps://github.com/pytest-dev/pytest-xdist\n官方文档 https://pytest-xdist.readthedocs.io/en/latest/\n如何从 pytest-xdist 节点获取数据 https://www.cnblogs.com/se7enjean/p/15924317.html\n博客介绍 https://blog.csdn.net/wangmcn/article/details/121080902\n",
-  "wordCount" : "303",
+  "articleBody": " tep 近期更新频率较快，一方面是作者在积极投入到 tep 工具开发中；另一方面是我们聚集了 20 位小伙伴，一起合力打造EasyPytest 测试平台，teprunner 的 FastAPI 升级版本，依托于 tep，帮你高效管理 pytest 测试用例。陆续也会有平台开发日志发布，欢迎持续关注。\ntep0.11.1 版本升级内容：\n1、pytest-xdist 分布式执行用例，合并 Allure 报告；\n2、global_vars 全局变量配置；\n分布式执行用例 借助于 pytest-xdist，在命令行执行时添加参数-n auto：\npytest -n auto pytest-xdist 会自动根据本地机器硬件配置，设置最优并发，并分发用例，分布式执行。\n测试时先运行 main.py，然后在 case100 目录下执行pytest -n auto --tep-reports：\n第一次串行，第二次 xdist 并行：\n执行时间从 50s 一下降到 5s，性能提升还是非常的明显。\n合并 Allure 报告 pytest-xdist 分布式执行，只要把 allure 源文件，也就是那一堆 json 文件，存到同一个目录下，报告的数据就是一体的，不需要单独合并。但是有个问题，tep 封装了--tep-reports 命令行参数一键生成 Allure 报告，背后的逻辑是在 pytest_sessionfinish hook 函数里面实现的，分布式执行时，每个 xdist 的 node 都是一个单独的 session，多个 node 就会生成多份报告：\nc\n10 个 node 生成了 11 份报告，其中 1 份 master 节点生成的。pytest-xdist 的原理如图所示：\nmaster 节点不运行任何测试，只是通过一小部分消息与节点通信。子节点执行后会通过 workeroutput 把数据回传给 master 节点。所以只需要通过是否有 workeroutput 属性来判断 master 节点：\ndef _is_master(config): \"\"\" pytest-xdist分布式执行时，判断是主节点master还是子节点 主节点没有workerinput属性 \"\"\" return not hasattr(config, 'workerinput') 然后只在主节点的 pytest_sessionfinish，生成 1 次报告，就能避免生成多份报告。这样在 xdist 分布式执行模式下，--tep-reports也只会生成 1 份合并后的包含所有测试用例的 Allure HTML 报告。\n完整实现代码：\nimport time import shutil import allure_commons from allure_commons.logger import AllureFileLogger from allure_pytest.listener import AllureListener from allure_pytest.plugin import cleanup_factory reports_path = os.path.join(Project.root_dir, \"reports\") allure_source_dir_name = \".allure.source.temp\" allure_source_path = os.path.join(reports_path, allure_source_dir_name) def _tep_reports(config): \"\"\" --tep-reports命令行参数不能和allure命令行参数同时使用，否则可能出错 \"\"\" if config.getoption(\"--tep-reports\") and not config.getoption(\"allure_report_dir\"): return True return False def _is_master(config): \"\"\" pytest-xdist分布式执行时，判断是主节点master还是子节点 主节点没有workerinput属性 \"\"\" return not hasattr(config, 'workerinput') def pytest_addoption(parser): \"\"\" allure测试报告 命令行参数 \"\"\" parser.addoption( \"--tep-reports\", action=\"store_const\", const=True, help=\"Create tep allure HTML reports.\" ) def pytest_configure(config): \"\"\" 这段代码源自：https://github.com/allure-framework/allure-python/blob/master/allure-pytest/src/plugin.py 目的是生成allure源文件，用于生成HTML报告 \"\"\" if _tep_reports(config): if os.path.exists(allure_source_path): shutil.rmtree(allure_source_path) test_listener = AllureListener(config) config.pluginmanager.register(test_listener) allure_commons.plugin_manager.register(test_listener) config.add_cleanup(cleanup_factory(test_listener)) clean = config.option.clean_alluredir file_logger = AllureFileLogger(allure_source_path, clean) # allure_source allure_commons.plugin_manager.register(file_logger) config.add_cleanup(cleanup_factory(file_logger)) def pytest_sessionfinish(session): \"\"\" 测试运行结束后生成allure报告 \"\"\" if _tep_reports(session.config): if _is_master(session.config): # 只在master节点才生成报告 # 最近一份报告的历史数据，填充allure趋势图 if os.path.exists(reports_path): his_reports = os.listdir(reports_path) if allure_source_dir_name in his_reports: his_reports.remove(allure_source_dir_name) if his_reports: latest_report_history = os.path.join(reports_path, his_reports[-1], \"history\") shutil.copytree(latest_report_history, os.path.join(allure_source_path, \"history\")) current_time = time.strftime(\"%Y-%m-%d-%H-%M-%S\", time.localtime(time.time())) html_report_name = os.path.join(reports_path, \"report-\" + current_time) os.system(f\"allure generate {allure_source_path} -o {html_report_name} --clean\") shutil.rmtree(allure_source_path) global_vars 全局变量 在使用环境变量模版时，有些变量需要在多个模版重复设置，tep 新增了 global_vars 全局变量 fixture，可以将重复设置的变量，定义在resources/global_vars.yaml：\n然后引用 global_vars fixture 取值即可：\ndef test(global_vars): print(global_vars[\"desc\"]) 实现代码：\n@pytest.fixture(scope=\"session\") def global_vars(): \"\"\"全局变量，读取resources/global_vars.yaml，返回字典\"\"\" class Clazz(TepVars): def dict_(self): with open(os.path.join(Config.project_root_dir, \"resources\", \"global_vars.yaml\")) as f: return yaml.load(f.read(), Loader=yaml.FullLoader) return Clazz().dict_() 参考资料：\nhttps://github.com/pytest-dev/pytest-xdist\n官方文档 https://pytest-xdist.readthedocs.io/en/latest/\n如何从 pytest-xdist 节点获取数据 https://www.cnblogs.com/se7enjean/p/15924317.html\n博客介绍 https://blog.csdn.net/wangmcn/article/details/121080902\n",
+  "wordCount" : "302",
   "inLanguage": "zh",
   "datePublished": "2026-01-15T00:00:00Z",
   "dateModified": "2026-01-15T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -171,7 +166,7 @@ c">
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -188,29 +183,7 @@ c">
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -257,9 +230,6 @@ c">
 </div>
   </header> 
   <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<blockquote>
 <p>tep 近期更新频率较快，一方面是作者在积极投入到 tep 工具开发中；另一方面是我们聚集了 20 位小伙伴，一起合力打造<strong>EasyPytest 测试平台</strong>，teprunner 的 FastAPI 升级版本，依托于 tep，<strong>帮你高效管理 pytest 测试用例</strong>。陆续也会有平台开发日志发布，欢迎持续关注。</p>
 </blockquote>
 <p>tep0.11.1 版本升级内容：</p>
@@ -427,7 +397,7 @@ c">
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -561,19 +531,6 @@ c">
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>关于 Python 闭包的一切 | 测试开发刚哥</title>
+<title>关于 Python 闭包的一切 | 全栈开发刚哥</title>
 <meta name="keywords" content="Python">
 <meta name="description" content="任何把函数当做一等对象的语言，它的设计者都要面对一个问题：作为一等对象的函数在某个作用域中定义，但是可能会在其他作用域中调用，如何处理自由变量？">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%85%B3%E4%BA%8Epython%E9%97%AD%E5%8C%85%E7%9A%84%E4%B8%80%E5%88%87/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%85%B3%E4%BA%8Epython%E9%97%AD%E5%8C%85%E7%9A%84%E4%B8%80%E5%88%87/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="关于 Python 闭包的一切">
   <meta property="og:description" content="任何把函数当做一等对象的语言，它的设计者都要面对一个问题：作为一等对象的函数在某个作用域中定义，但是可能会在其他作用域中调用，如何处理自由变量？">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Python"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n任何把函数当做一等对象的语言，它的设计者都要面对一个问题：作为一等对象的函数在某个作用域中定义，但是可能会在其他作用域中调用，如何处理自由变量？\n自由变量（free variable），未在局部作用域中绑定的变量。\n为了解决这个问题，Python 之父 Guido Van Rossum 设计了闭包，有如神来之笔，代码美学尽显。在讨论闭包之前，有必要先了解 Python 中的变量作用域。\n变量作用域 先看一个全局变量和自由变量的示例：\n\u003e\u003e\u003e b = 6 \u003e\u003e\u003e def f1(a): ... print(a) ... print(b) ... \u003e\u003e\u003e f1(3) 3 6 函数体外的 b 为全局变量，函数体内的 b 为自由变量。因为自由变量 b绑定到了全局变量，所以在函数 f1()中能正确 print。\n如果稍微改一下，那么函数体内的 b 就会从自由变量变成局部变量：\n\u003e\u003e\u003e b = 6 def f1(a): ... print(a) ... print(b) ... b = 9 ... \u003e\u003e\u003e f1(3) 3 Traceback (most recent call last): File \"\", line 1, in \u003cmodule\u003e File \"\", line 3, in f1 UnboundLocalError: local variable 'b' referenced before assignment 在函数 f1()后面加上b = 9报错：局部变量 b 在赋值前进行了引用。\n这不是缺陷，而是 Python 设计：Python 不要求声明变量，而是假定在函数定义体中赋值的变量是局部变量。\n如果想让解释器把 b 当做全局变量，那么需要使用 global 声明：\n\u003e\u003e\u003e b = 6 \u003e\u003e\u003e def f1(a): ... global b ... print(a) ... print(b) ... b = 9 ... \u003e\u003e\u003e f1(3) 3 6 闭包 回到文章开头的自由变量问题，假如有个叫做 avg 的函数，它的作用是计算系列值的均值，用类实现：\nclass Averager(): def __init__(self): self.series = [] def __call__(self, new_value): self.series.append(new_value) total = sum(self.series) return totle / len(self.series) avg = Averager() avg(10) # 10.0 avg(11) # 10.5 avg(12) # 11.0 类实现不存在自由变量问题，因为 self.series 是类属性。但是函数实现，进行函数嵌套时，问题就出现了：\ndef make_averager(): series = [] def averager(new_value): # series是自由变量 series.append(new_value) total = sum(series) return totle / len(series) return averager avg = make_averager() avg(10) # 10.0 avg(11) # 10.5 avg(12) # 11.0 函数 make_averager()在局部作用域中定义了 series 变量，它的内部函数 averager()的自由变量 series 绑定了这个值。但是在调用 avg(10)时，make_averager()函数已经 return 返回了，它的局部作用域也消失了。没有闭包的话，自由变量 series 一定会报错找不到定义。\n那么闭包是怎么做的呢？闭包是一种函数，它会保留定义时存在的自由变量的绑定，这样调用函数时，虽然定义作用域不可用了，但是仍然能使用那些绑定。\n如下图所示：\n闭包会保留自由变量 series 的绑定，在调用 avg(10)时继续使用这个绑定，即使 make_averager()函数的局部作用域已经消失。\nnonlocal 把上面示例的需求稍微优化下，只存储目前的总值和元素个数：\ndef make_averager(): count = 0 total = 0 def averager(new_value): count += 1 total += new_value return total / count return averager 运行后会报错：局部变量 count 在赋值前进行了引用。因为 count +=1 等同于 count = count + 1，存在赋值，count 就变成局部变量了。total 也是如此。\n这里如果把 count 和 total 通过 global 关键字声明为全局变量，显然是不合适的，它们作用域最多只扩展到 make_averager()函数内。为了解决这个问题，Python3 引入了 nonlocal 关键字声明：\ndef make_averager(): count = 0 total = 0 def averager(new_value): nonlocal count, total count += 1 total += new_value return total / count return averager nonlocal 的作用是把变量标记为自由变量，即使在函数中为变量赋值了，也仍然是自由变量。\n注意，对于列表、字典等可变类型来说，添加元素不是赋值，不会隐式创建局部变量。对于数字、字符串、元组等不可变类型以及None来说，赋值会隐式创建局部变量。示例：\ndef make_averager(): # 可变类型 count = {} def averager(new_value): print(count) # 成功 count[new_value] = new_value return count return averager 可变对象添加元素不是赋值，不会隐式创建局部变量。\ndef make_averager(): # 不可变类型 count = 1 def averager(new_value): print(count) # 报错 count = new_value return count return averager count 是不可变类型，赋值会隐式创建局部变量，报错：局部变量 count 在赋值前进行了引用。\ndef make_averager(): # None count = None def averager(new_value): print(count) # 报错 count = new_value return count return averager count 是 None，赋值会隐式创建局部变量，报错：局部变量 count 在赋值前进行了引用。\n小结 本文先介绍了全局变量、自由变量、局部变量的概念，这是理解闭包的前提。闭包就是用来解决函数嵌套时，自由变量如何处理的问题，它会保留自由变量的绑定，即使局部作用域已经消失。对于不可变类型和 None 来说，赋值会隐式创建局部变量，把自由变量转换为局部变量，这可能会导致程序报错：局部变量在赋值前进行了引用。除了使用 global 声明为全局变量外，还可以使用 nonlocal 声明把局部变量强制变为自由变量，实现闭包。\n参考资料：\n《流畅的 Python》\n",
-  "wordCount" : "362",
+  "articleBody": "任何把函数当做一等对象的语言，它的设计者都要面对一个问题：作为一等对象的函数在某个作用域中定义，但是可能会在其他作用域中调用，如何处理自由变量？\n自由变量（free variable），未在局部作用域中绑定的变量。\n为了解决这个问题，Python 之父 Guido Van Rossum 设计了闭包，有如神来之笔，代码美学尽显。在讨论闭包之前，有必要先了解 Python 中的变量作用域。\n变量作用域 先看一个全局变量和自由变量的示例：\n\u003e\u003e\u003e b = 6 \u003e\u003e\u003e def f1(a): ... print(a) ... print(b) ... \u003e\u003e\u003e f1(3) 3 6 函数体外的 b 为全局变量，函数体内的 b 为自由变量。因为自由变量 b绑定到了全局变量，所以在函数 f1()中能正确 print。\n如果稍微改一下，那么函数体内的 b 就会从自由变量变成局部变量：\n\u003e\u003e\u003e b = 6 def f1(a): ... print(a) ... print(b) ... b = 9 ... \u003e\u003e\u003e f1(3) 3 Traceback (most recent call last): File \"\", line 1, in \u003cmodule\u003e File \"\", line 3, in f1 UnboundLocalError: local variable 'b' referenced before assignment 在函数 f1()后面加上b = 9报错：局部变量 b 在赋值前进行了引用。\n这不是缺陷，而是 Python 设计：Python 不要求声明变量，而是假定在函数定义体中赋值的变量是局部变量。\n如果想让解释器把 b 当做全局变量，那么需要使用 global 声明：\n\u003e\u003e\u003e b = 6 \u003e\u003e\u003e def f1(a): ... global b ... print(a) ... print(b) ... b = 9 ... \u003e\u003e\u003e f1(3) 3 6 闭包 回到文章开头的自由变量问题，假如有个叫做 avg 的函数，它的作用是计算系列值的均值，用类实现：\nclass Averager(): def __init__(self): self.series = [] def __call__(self, new_value): self.series.append(new_value) total = sum(self.series) return totle / len(self.series) avg = Averager() avg(10) # 10.0 avg(11) # 10.5 avg(12) # 11.0 类实现不存在自由变量问题，因为 self.series 是类属性。但是函数实现，进行函数嵌套时，问题就出现了：\ndef make_averager(): series = [] def averager(new_value): # series是自由变量 series.append(new_value) total = sum(series) return totle / len(series) return averager avg = make_averager() avg(10) # 10.0 avg(11) # 10.5 avg(12) # 11.0 函数 make_averager()在局部作用域中定义了 series 变量，它的内部函数 averager()的自由变量 series 绑定了这个值。但是在调用 avg(10)时，make_averager()函数已经 return 返回了，它的局部作用域也消失了。没有闭包的话，自由变量 series 一定会报错找不到定义。\n那么闭包是怎么做的呢？闭包是一种函数，它会保留定义时存在的自由变量的绑定，这样调用函数时，虽然定义作用域不可用了，但是仍然能使用那些绑定。\n如下图所示：\n闭包会保留自由变量 series 的绑定，在调用 avg(10)时继续使用这个绑定，即使 make_averager()函数的局部作用域已经消失。\nnonlocal 把上面示例的需求稍微优化下，只存储目前的总值和元素个数：\ndef make_averager(): count = 0 total = 0 def averager(new_value): count += 1 total += new_value return total / count return averager 运行后会报错：局部变量 count 在赋值前进行了引用。因为 count +=1 等同于 count = count + 1，存在赋值，count 就变成局部变量了。total 也是如此。\n这里如果把 count 和 total 通过 global 关键字声明为全局变量，显然是不合适的，它们作用域最多只扩展到 make_averager()函数内。为了解决这个问题，Python3 引入了 nonlocal 关键字声明：\ndef make_averager(): count = 0 total = 0 def averager(new_value): nonlocal count, total count += 1 total += new_value return total / count return averager nonlocal 的作用是把变量标记为自由变量，即使在函数中为变量赋值了，也仍然是自由变量。\n注意，对于列表、字典等可变类型来说，添加元素不是赋值，不会隐式创建局部变量。对于数字、字符串、元组等不可变类型以及None来说，赋值会隐式创建局部变量。示例：\ndef make_averager(): # 可变类型 count = {} def averager(new_value): print(count) # 成功 count[new_value] = new_value return count return averager 可变对象添加元素不是赋值，不会隐式创建局部变量。\ndef make_averager(): # 不可变类型 count = 1 def averager(new_value): print(count) # 报错 count = new_value return count return averager count 是不可变类型，赋值会隐式创建局部变量，报错：局部变量 count 在赋值前进行了引用。\ndef make_averager(): # None count = None def averager(new_value): print(count) # 报错 count = new_value return count return averager count 是 None，赋值会隐式创建局部变量，报错：局部变量 count 在赋值前进行了引用。\n小结 本文先介绍了全局变量、自由变量、局部变量的概念，这是理解闭包的前提。闭包就是用来解决函数嵌套时，自由变量如何处理的问题，它会保留自由变量的绑定，即使局部作用域已经消失。对于不可变类型和 None 来说，赋值会隐式创建局部变量，把自由变量转换为局部变量，这可能会导致程序报错：局部变量在赋值前进行了引用。除了使用 global 声明为全局变量外，还可以使用 nonlocal 声明把局部变量强制变为自由变量，实现闭包。\n参考资料：\n《流畅的 Python》\n",
+  "wordCount" : "361",
   "inLanguage": "zh",
   "datePublished": "2026-01-20T00:00:00Z",
   "dateModified": "2026-01-20T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>任何把函数当做一等对象的语言，它的设计者都要面对一个问题：作为一等对象的函数在某个作用域中定义，但是可能会在其他作用域中调用，如何处理自由变量？</p>
+  <div class="post-content md-content"><p>任何把函数当做一等对象的语言，它的设计者都要面对一个问题：作为一等对象的函数在某个作用域中定义，但是可能会在其他作用域中调用，如何处理自由变量？</p>
 <blockquote>
 <p>自由变量（free variable），未在局部作用域中绑定的变量。</p>
 </blockquote>
@@ -398,7 +370,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -532,19 +504,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

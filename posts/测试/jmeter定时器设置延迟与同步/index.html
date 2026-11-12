@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>JMeter 定时器设置延迟与同步 | 测试开发刚哥</title>
+<title>JMeter 定时器设置延迟与同步 | 全栈开发刚哥</title>
 <meta name="keywords" content="性能测试, JMeter">
 <meta name="description" content="JMeter 定时器一般用来设置延迟与同步。它的作用域和优先级如下：">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AE%BE%E7%BD%AE%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%90%8C%E6%AD%A5/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="JMeter 定时器设置延迟与同步">
   <meta property="og:description" content="JMeter 定时器一般用来设置延迟与同步。它的作用域和优先级如下：">
   <meta property="og:locale" content="zh_cn">
@@ -115,14 +112,14 @@
   "keywords": [
     "性能测试", "JMeter"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nJMeter 定时器一般用来设置延迟与同步。它的作用域和优先级如下：\n定时器的优先级高于 Sampler。 在同一作用域（比如控制器下）有多个定时器存在，每个定时器都会执行。 在某一 Sampler 节点下的定时器，只对这个 Sampler 有效。 JMeter 一共有 9 种定时器：\nConstant Timer 固定值，多用来模拟思考时间。\nUniform Random Timer 随机时间，分布会更均匀。\nRandom Delay Maximum：随机延迟时间。\nConstant Delay Offset：固定延迟时间。\n示例：\n会让线程延迟在 2.0 到 2.1 秒之间。\nPrecise Throughput Timer 用的比较少，比 Constant Throughput Timer 更复杂更高级的用来控制吞吐量的一个定时器。\nConstant Throughput Timer 控制吞吐量，尽量保持 Sampler 产生的吞吐量（RPS）在一个固定的范围内。\nTarget throughput：目标吞吐量。JMeter 会根据吞吐量、并发线程数来计算迭代的时间间隔，如果吞吐量大过设定值，就增加；反之减少。\nCalculate Throughput based on：\nthis thread only：仅针对当前线程，每个线程互不干扰，分开计算需要延迟多少时间。\nall active threads：把所有线程的吞吐量合在一起作为因子计算。\nall active threads in current thread group：针对当前线程组中的所有线程。\nall active threads (shared)：在所有线程中，随便获取一个线程上次运行的实际来进行计算，结果随机不一定准确，只能努力控制吞吐量在某一个范围。\nall active threads in current thread group (shared)：在上面意思一样，范围是当前线程组。\nGaussian Random Timer 生成一个呈高斯分布的时间间隔，可以用来离散请求。\nDeviation：一个浮动范围的偏差值。\nConstant Delay Offset：固定延迟时间。\nJSR223 Timer 跟 BeanShell 类似，可以运行 JavaScript 等其他语言。\nJDK 集成了 JS 的运行引擎，可以运行 JavaScript 脚本，JSR223 是一个标准，为脚本引擎提供了统一的接口、统一的访问模式。\nPoisson Random Timer 随机时间，呈泊松分布。\nLambda：泊松分布的期望和方差。\nConstant Delay Offset：固定延迟时间。\nSynchronizing Timer 同步定时器，用来模拟多用户并发同一时刻发起请求。\nNumber of Simulated Users to Group by：等待 x 个用户（线程）集合后开始释放（发起请求）。\n默认为 0，等同于设置为线程租中的线程数量。\nTimeout in milliseconds：等待时长，如果等待这么长时间，还没有达到上个选项设置的数量，那么不再等待，立即释放已到达的线程。\n默认为 0，等待线程数达到上个选项设置的数量才释放。\nBeanShell Timer Reset Interpreter：是否每次迭代重置解释器，默认 False。官方建议在长时间运行的脚本中才设置为 True。\nParameters：入参，可以是单个变量，也可以是数组。\nFile Name：从脚本文件中读取 BeanShell 脚本。\nScript：\nctx：通过 JmeterContent 实例获取运行时信息，如log.error(ctx.getThreadNum().toString());。\nvars：访问或设置变量，如vars.get(\"name\")，vars.put(\"name\", \"dongfanger\")。\nprops：访问 JMeter 属性（%JMETER_HOME%/bin/jmeter.properties），如props.get(\"log_level.jmeter\")，props.put(\"log_level.jmeter\", \"ERROR\")。\nlog：在代码中调用 log 类来写日志，如log.error(\"loadtest\");。\nprev：可以访问前面 Sampler 的结果。\n示例：\n小结 本文首先介绍了 JMeter 定时器的作用域和优先级，然后分别介绍了各式各样的定时器，既能设置延迟，也能同步集合，可以固定可以随机，配置与编程并存，五花八门。\n参考资料：\n《全栈性能测试修炼宝典 JMeter 实战》\nhttps://blog.csdn.net/hwhua1986/article/details/78214923\n",
-  "wordCount" : "166",
+  "articleBody": "JMeter 定时器一般用来设置延迟与同步。它的作用域和优先级如下：\n定时器的优先级高于 Sampler。 在同一作用域（比如控制器下）有多个定时器存在，每个定时器都会执行。 在某一 Sampler 节点下的定时器，只对这个 Sampler 有效。 JMeter 一共有 9 种定时器：\nConstant Timer 固定值，多用来模拟思考时间。\nUniform Random Timer 随机时间，分布会更均匀。\nRandom Delay Maximum：随机延迟时间。\nConstant Delay Offset：固定延迟时间。\n示例：\n会让线程延迟在 2.0 到 2.1 秒之间。\nPrecise Throughput Timer 用的比较少，比 Constant Throughput Timer 更复杂更高级的用来控制吞吐量的一个定时器。\nConstant Throughput Timer 控制吞吐量，尽量保持 Sampler 产生的吞吐量（RPS）在一个固定的范围内。\nTarget throughput：目标吞吐量。JMeter 会根据吞吐量、并发线程数来计算迭代的时间间隔，如果吞吐量大过设定值，就增加；反之减少。\nCalculate Throughput based on：\nthis thread only：仅针对当前线程，每个线程互不干扰，分开计算需要延迟多少时间。\nall active threads：把所有线程的吞吐量合在一起作为因子计算。\nall active threads in current thread group：针对当前线程组中的所有线程。\nall active threads (shared)：在所有线程中，随便获取一个线程上次运行的实际来进行计算，结果随机不一定准确，只能努力控制吞吐量在某一个范围。\nall active threads in current thread group (shared)：在上面意思一样，范围是当前线程组。\nGaussian Random Timer 生成一个呈高斯分布的时间间隔，可以用来离散请求。\nDeviation：一个浮动范围的偏差值。\nConstant Delay Offset：固定延迟时间。\nJSR223 Timer 跟 BeanShell 类似，可以运行 JavaScript 等其他语言。\nJDK 集成了 JS 的运行引擎，可以运行 JavaScript 脚本，JSR223 是一个标准，为脚本引擎提供了统一的接口、统一的访问模式。\nPoisson Random Timer 随机时间，呈泊松分布。\nLambda：泊松分布的期望和方差。\nConstant Delay Offset：固定延迟时间。\nSynchronizing Timer 同步定时器，用来模拟多用户并发同一时刻发起请求。\nNumber of Simulated Users to Group by：等待 x 个用户（线程）集合后开始释放（发起请求）。\n默认为 0，等同于设置为线程租中的线程数量。\nTimeout in milliseconds：等待时长，如果等待这么长时间，还没有达到上个选项设置的数量，那么不再等待，立即释放已到达的线程。\n默认为 0，等待线程数达到上个选项设置的数量才释放。\nBeanShell Timer Reset Interpreter：是否每次迭代重置解释器，默认 False。官方建议在长时间运行的脚本中才设置为 True。\nParameters：入参，可以是单个变量，也可以是数组。\nFile Name：从脚本文件中读取 BeanShell 脚本。\nScript：\nctx：通过 JmeterContent 实例获取运行时信息，如log.error(ctx.getThreadNum().toString());。\nvars：访问或设置变量，如vars.get(\"name\")，vars.put(\"name\", \"dongfanger\")。\nprops：访问 JMeter 属性（%JMETER_HOME%/bin/jmeter.properties），如props.get(\"log_level.jmeter\")，props.put(\"log_level.jmeter\", \"ERROR\")。\nlog：在代码中调用 log 类来写日志，如log.error(\"loadtest\");。\nprev：可以访问前面 Sampler 的结果。\n示例：\n小结 本文首先介绍了 JMeter 定时器的作用域和优先级，然后分别介绍了各式各样的定时器，既能设置延迟，也能同步集合，可以固定可以随机，配置与编程并存，五花八门。\n参考资料：\n《全栈性能测试修炼宝典 JMeter 实战》\nhttps://blog.csdn.net/hwhua1986/article/details/78214923\n",
+  "wordCount" : "165",
   "inLanguage": "zh",
   "datePublished": "2026-01-11T00:00:00Z",
   "dateModified": "2026-01-11T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -130,7 +127,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -147,29 +144,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -215,10 +190,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>JMeter 定时器一般用来设置延迟与同步。它的作用域和优先级如下：</p>
+  <div class="post-content md-content"><p>JMeter 定时器一般用来设置延迟与同步。它的作用域和优先级如下：</p>
 <ul>
 <li>定时器的优先级高于 Sampler。</li>
 <li>在同一作用域（比如控制器下）有多个定时器存在，每个定时器都会执行。</li>
@@ -340,7 +312,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -474,19 +446,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

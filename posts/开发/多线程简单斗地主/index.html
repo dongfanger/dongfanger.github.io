@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>多线程简单斗地主 | 测试开发刚哥</title>
+<title>多线程简单斗地主 | 全栈开发刚哥</title>
 <meta name="keywords" content="Go">
 <meta name="description" content="多线程，通道，读写锁（单写多读），随机（洗牌），是本文涉及的主要知识点。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AE%80%E5%8D%95%E6%96%97%E5%9C%B0%E4%B8%BB/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AE%80%E5%8D%95%E6%96%97%E5%9C%B0%E4%B8%BB/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="多线程简单斗地主">
   <meta property="og:description" content="多线程，通道，读写锁（单写多读），随机（洗牌），是本文涉及的主要知识点。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Go"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n多线程，通道，读写锁（单写多读），随机（洗牌），是本文涉及的主要知识点。\n先看一下做出来的效果，因为是实验程序，跟真实的斗地主还是有差距，理解万岁！\n[发牌员]：洗牌咯。 刷刷刷... [发牌员]：牌洗好了。 [发牌员]：开始发牌。 [发牌员]：每个人17张牌。 [发牌员]：抢地主。 [fang]：哈哈，我是地主！ fang的牌是[♣9 ♦9 ♥A ♠9 ♣6 ♣5 ♦3 ♣10 ♥5 ♣8 ♠Q ♠A ♠8 ♦4 ♥4 ♦K ♥7 ♣A ♠K ♥3]，共20张。 dong的牌是[大王 ♦8 ♠5 小王 ♠6 ♣Q ♠10 ♣7 ♠3 ♦A ♦Q ♥J ♣K ♥6 ♥9 ♥Q ♣2]，共17张。 er的牌是[♣A ♠K ♥3 ♥2 ♠4 ♦2 ♦5 ♥K ♦10 ♠2 ♥8 ♦6 ♣4 ♦J ♣3 ♣J ♠7]，共17张。 [fang]：我开始出牌了。 [er]：我开始出牌了。 [dong]：我开始出牌了。 赢家是er。 基本流程是洗牌-\u003e发牌-\u003e抢地主-\u003e打牌-\u003egg。\n哈哈这个程序的精髓是，由于时(lan)间(de)有(xie)限(le)，打牌是哪个线程抢到了就出牌，直到牌出完了，就赢了。（多线程写斗地主，是我大学操作系统课程的实验项目，当时是完整实现了斗地主算法的，用的是 C++和 MFC，可以在界面上交互打牌）\n边看代码变讲。\n主函数\nfunc main() { // 洗牌 cards := shuffle() // 发牌 dealCards := deal(cards) // 抢地主 fmt.Println(\"[发牌员]：抢地主。\") go player(order[0], dealCards[0]) go player(order[1], dealCards[1]) go player(order[2], dealCards[2]) // Winner winner := \u003c-winner fmt.Printf(\"赢家是%s。\\n\", winner) } 解析：\n1.main里面是打牌的步骤，洗牌，发牌，抢地主，打牌，gg。 2.用go player()，开了3个线程，也就是3个玩家。 3.发牌的时候，是留了3张底牌的，存在通道“bottom”里面，抢地主的时候，3个线程就去取，谁先取到谁就是地主。 4.打牌打到最后，会往另外一个通道“winner”里面写值，谁先打完，就把自己的name存进去。 5.3个玩家在打牌的时候，main是阻塞的，等待从通道“winner”读取值，有玩家打完了，通道“winner”有值了，就激活。 洗牌函数\nfunc shuffle() []string { fmt.Println(\"[发牌员]：洗牌咯。\") fmt.Println(\"刷刷刷...\") cards := cards() rand.Seed(time.Now().UnixNano()) rand.Shuffle(len(cards), func(i, j int) { cards[i], cards[j] = cards[j], cards[i] }) fmt.Println(\"[发牌员]：牌洗好了。\") return cards } 解析：\n1.rand默认是假的随机，因为不管运行多少次都是一样的，需要设置种子，time.Now().UnixNano()，让每次随机结果都不同。 2.rand.Shuffle()洗牌，随机交换2个牌的位置。 发牌函数\nfunc deal(cards []string) [][]string { fmt.Println(\"[发牌员]：开始发牌。\") var dealCards [][]string dealCards = append(dealCards, cards[0:17]) dealCards = append(dealCards, cards[17:34]) dealCards = append(dealCards, cards[34:51]) fmt.Println(\"[发牌员]：每个人17张牌。\") go leaveBottom(cards[51:54]) return dealCards } 解析：\n1.因为已经洗了牌了，直接先切3份牌出来，每份17张。 2.留了3张底牌，放到通道“bottom”中。 3.如果这里不再开线程，会发生死锁！因为main本身也是个线程，直接存通道的话，会把main阻塞，直到有线程把通道的值读出去；而main阻塞后，是无法继续执行后面的代码的，也就无法再起3个玩家线程来读值了，就会发生死锁。 4.所以leaveBottom()起了一个单独的线程。 Desk 牌桌\ntype Desk struct { mutex sync.RWMutex playCards []string } func (d *Desk) write(card string) { d.mutex.Lock() defer d.mutex.Unlock() d.playCards = append(d.playCards, card) } func (d *Desk) read() []string { d.mutex.RLock() defer d.mutex.RUnlock() return d.playCards } 解析：\n1.定义了结构Desk，包括读写锁和牌桌上打的牌。 2.定义了write()和read()2个函数，3个线程可以同时读，但只能一次写，也就是单写多读锁。 player 函数\nfunc player(name string, hands []string) { landlord := \u003c-bottom if len(landlord) \u003e 0 { fmt.Printf(\"[%s]：哈哈，我是地主！\\n\", name) hands = append(hands, landlord...) desk.write(name) } fmt.Printf(\"%s的牌是%s，共%d张。\\n\", name, hands, len(hands)) time.Sleep(time.Second) i := 0 for true { playCards := desk.read() if playCards[len(playCards)-1] == name { if i == 1 { fmt.Printf(\"[%s]：我开始出牌了。\\n\", name) } desk.write(hands[i]) desk.write(order[(getOrderID(name)+1)%3]) i += 1 if i == len(hands) { winner \u003c- name break } } } } 解析：\n1.玩家函数，第一个参数是名字，第二个参数是手上拿的牌。 2.3个线程都有这样一段代码。 3.首先从通道“bottom”读取值，也就是抢地主。 4.抢到地主的玩家，会把底牌放到自己的手牌中，并且把自己的名字写到牌桌上（根据名字来看该谁出牌），地主先出牌。 5.for true {}循环不停的出牌，从第一张到最后一张，先从牌桌上看是不是自己的名字，是自己的名字才轮到出牌。 6.牌出完了，就把自己的名字写到通道“winner”，游戏结束。 本文的程序只是为了实验 go 的多线程特性，不具备可玩性，期待更多的同学请见谅。\n",
-  "wordCount" : "297",
+  "articleBody": "多线程，通道，读写锁（单写多读），随机（洗牌），是本文涉及的主要知识点。\n先看一下做出来的效果，因为是实验程序，跟真实的斗地主还是有差距，理解万岁！\n[发牌员]：洗牌咯。 刷刷刷... [发牌员]：牌洗好了。 [发牌员]：开始发牌。 [发牌员]：每个人17张牌。 [发牌员]：抢地主。 [fang]：哈哈，我是地主！ fang的牌是[♣9 ♦9 ♥A ♠9 ♣6 ♣5 ♦3 ♣10 ♥5 ♣8 ♠Q ♠A ♠8 ♦4 ♥4 ♦K ♥7 ♣A ♠K ♥3]，共20张。 dong的牌是[大王 ♦8 ♠5 小王 ♠6 ♣Q ♠10 ♣7 ♠3 ♦A ♦Q ♥J ♣K ♥6 ♥9 ♥Q ♣2]，共17张。 er的牌是[♣A ♠K ♥3 ♥2 ♠4 ♦2 ♦5 ♥K ♦10 ♠2 ♥8 ♦6 ♣4 ♦J ♣3 ♣J ♠7]，共17张。 [fang]：我开始出牌了。 [er]：我开始出牌了。 [dong]：我开始出牌了。 赢家是er。 基本流程是洗牌-\u003e发牌-\u003e抢地主-\u003e打牌-\u003egg。\n哈哈这个程序的精髓是，由于时(lan)间(de)有(xie)限(le)，打牌是哪个线程抢到了就出牌，直到牌出完了，就赢了。（多线程写斗地主，是我大学操作系统课程的实验项目，当时是完整实现了斗地主算法的，用的是 C++和 MFC，可以在界面上交互打牌）\n边看代码变讲。\n主函数\nfunc main() { // 洗牌 cards := shuffle() // 发牌 dealCards := deal(cards) // 抢地主 fmt.Println(\"[发牌员]：抢地主。\") go player(order[0], dealCards[0]) go player(order[1], dealCards[1]) go player(order[2], dealCards[2]) // Winner winner := \u003c-winner fmt.Printf(\"赢家是%s。\\n\", winner) } 解析：\n1.main里面是打牌的步骤，洗牌，发牌，抢地主，打牌，gg。 2.用go player()，开了3个线程，也就是3个玩家。 3.发牌的时候，是留了3张底牌的，存在通道“bottom”里面，抢地主的时候，3个线程就去取，谁先取到谁就是地主。 4.打牌打到最后，会往另外一个通道“winner”里面写值，谁先打完，就把自己的name存进去。 5.3个玩家在打牌的时候，main是阻塞的，等待从通道“winner”读取值，有玩家打完了，通道“winner”有值了，就激活。 洗牌函数\nfunc shuffle() []string { fmt.Println(\"[发牌员]：洗牌咯。\") fmt.Println(\"刷刷刷...\") cards := cards() rand.Seed(time.Now().UnixNano()) rand.Shuffle(len(cards), func(i, j int) { cards[i], cards[j] = cards[j], cards[i] }) fmt.Println(\"[发牌员]：牌洗好了。\") return cards } 解析：\n1.rand默认是假的随机，因为不管运行多少次都是一样的，需要设置种子，time.Now().UnixNano()，让每次随机结果都不同。 2.rand.Shuffle()洗牌，随机交换2个牌的位置。 发牌函数\nfunc deal(cards []string) [][]string { fmt.Println(\"[发牌员]：开始发牌。\") var dealCards [][]string dealCards = append(dealCards, cards[0:17]) dealCards = append(dealCards, cards[17:34]) dealCards = append(dealCards, cards[34:51]) fmt.Println(\"[发牌员]：每个人17张牌。\") go leaveBottom(cards[51:54]) return dealCards } 解析：\n1.因为已经洗了牌了，直接先切3份牌出来，每份17张。 2.留了3张底牌，放到通道“bottom”中。 3.如果这里不再开线程，会发生死锁！因为main本身也是个线程，直接存通道的话，会把main阻塞，直到有线程把通道的值读出去；而main阻塞后，是无法继续执行后面的代码的，也就无法再起3个玩家线程来读值了，就会发生死锁。 4.所以leaveBottom()起了一个单独的线程。 Desk 牌桌\ntype Desk struct { mutex sync.RWMutex playCards []string } func (d *Desk) write(card string) { d.mutex.Lock() defer d.mutex.Unlock() d.playCards = append(d.playCards, card) } func (d *Desk) read() []string { d.mutex.RLock() defer d.mutex.RUnlock() return d.playCards } 解析：\n1.定义了结构Desk，包括读写锁和牌桌上打的牌。 2.定义了write()和read()2个函数，3个线程可以同时读，但只能一次写，也就是单写多读锁。 player 函数\nfunc player(name string, hands []string) { landlord := \u003c-bottom if len(landlord) \u003e 0 { fmt.Printf(\"[%s]：哈哈，我是地主！\\n\", name) hands = append(hands, landlord...) desk.write(name) } fmt.Printf(\"%s的牌是%s，共%d张。\\n\", name, hands, len(hands)) time.Sleep(time.Second) i := 0 for true { playCards := desk.read() if playCards[len(playCards)-1] == name { if i == 1 { fmt.Printf(\"[%s]：我开始出牌了。\\n\", name) } desk.write(hands[i]) desk.write(order[(getOrderID(name)+1)%3]) i += 1 if i == len(hands) { winner \u003c- name break } } } } 解析：\n1.玩家函数，第一个参数是名字，第二个参数是手上拿的牌。 2.3个线程都有这样一段代码。 3.首先从通道“bottom”读取值，也就是抢地主。 4.抢到地主的玩家，会把底牌放到自己的手牌中，并且把自己的名字写到牌桌上（根据名字来看该谁出牌），地主先出牌。 5.for true {}循环不停的出牌，从第一张到最后一张，先从牌桌上看是不是自己的名字，是自己的名字才轮到出牌。 6.牌出完了，就把自己的名字写到通道“winner”，游戏结束。 本文的程序只是为了实验 go 的多线程特性，不具备可玩性，期待更多的同学请见谅。\n",
+  "wordCount" : "296",
   "inLanguage": "zh",
   "datePublished": "2026-01-02T00:00:00Z",
   "dateModified": "2026-01-02T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>多线程，通道，读写锁（单写多读），随机（洗牌），是本文涉及的主要知识点。</p>
+  <div class="post-content md-content"><p>多线程，通道，读写锁（单写多读），随机（洗牌），是本文涉及的主要知识点。</p>
 <p>先看一下做出来的效果，因为是实验程序，跟真实的斗地主还是有差距，理解万岁！</p>
 <pre tabindex="0"><code>[发牌员]：洗牌咯。
 刷刷刷...
@@ -376,7 +348,7 @@ er的牌是[♣A ♠K ♥3 ♥2 ♠4 ♦2 ♦5 ♥K ♦10 ♠2 ♥8 ♦6 ♣4 �
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -510,19 +482,6 @@ er的牌是[♣A ♠K ♥3 ♥2 ♠4 ♦2 ♦5 ♥K ♦10 ♠2 ♥8 ♦6 ♣4 �
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

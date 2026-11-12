@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>DRF 使用超链接 API 实现真正 RESTful | 测试开发刚哥</title>
+<title>DRF 使用超链接 API 实现真正 RESTful | 全栈开发刚哥</title>
 <meta name="keywords" content="Django">
 <meta name="description" content="很多 API 并不是真正的实现了 RESTful，而应该叫做 RPC (Remote Procedure Call 远程过程调用)，Roy Fielding 曾经提到了它们的区别，原文如下：">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E4%BD%BF%E7%94%A8%E8%B6%85%E9%93%BE%E6%8E%A5api%E5%AE%9E%E7%8E%B0%E7%9C%9F%E6%AD%A3restful/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E4%BD%BF%E7%94%A8%E8%B6%85%E9%93%BE%E6%8E%A5api%E5%AE%9E%E7%8E%B0%E7%9C%9F%E6%AD%A3restful/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="DRF 使用超链接 API 实现真正 RESTful">
   <meta property="og:description" content="很多 API 并不是真正的实现了 RESTful，而应该叫做 RPC (Remote Procedure Call 远程过程调用)，Roy Fielding 曾经提到了它们的区别，原文如下：">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Django"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n很多 API 并不是真正的实现了 RESTful，而应该叫做 RPC (Remote Procedure Call 远程过程调用)，Roy Fielding 曾经提到了它们的区别，原文如下：\nI am getting frustrated by the number of people calling any HTTP-based interface a REST API. Today’s example is the SocialSite REST API. That is RPC. It screams RPC. There is so much coupling on display that it should be given an X rating. What needs to be done to make the REST architectural style clear on the notion that hypertext is a constraint? In other words, if the engine of application state (and hence the API) is not being driven by hypertext, then it cannot be RESTful and cannot be a REST API. Period. Is there some broken manual somewhere that needs to be fixed? — Roy Fielding https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven 大概意思是，如果应用状态引擎（API）不是超文本驱动的，那么就不是 RESTful。\n我的理解是，像超文本一样携带一个地址，可以寻址定位信息，如超文本的 link 属性。\n超链接（Hypermedia）API Hypermedia 指的是，返回结果中提供链接，连向其他 API 方法，使得用户不查文档，也知道下一步应该做什么。比如，当用户向 api.example.com 的根目录发出请求，会得到这样一个文档：\n{\"link\": { \"rel\": \"collection https://www.example.com/zoos\", \"href\": \"https://api.example.com/zoos\", \"title\": \"List of zoos\", \"type\": \"application/vnd.yourformat+json\" }} 上面代码表示，文档中有一个 link 属性，用户读取这个属性就知道下一步该调用什么 API 了。rel 表示这个 API 与当前网址的关系（collection 关系，并给出该 collection 的网址），href 表示 API 的路径，title 表示 API 的标题，type 表示返回类型。\n摘取自：http://www.ruanyifeng.com/blog/2014/05/restful_api.html\n创建 api_root 的 Endpoint 回到教程的例子。在前面我们已经为snippets和users创建了 Endpoint，现在来创建根目录的 Endpoint，编辑snippets/views.py：\nfrom rest_framework.decorators import api_view from rest_framework.response import Response from rest_framework.reverse import reverse @api_view(['GET']) def api_root(request, format=None): return Response({ 'users': reverse('user-list', request=request, format=format), 'snippets': reverse('snippet-list', request=request, format=format) }) reverse()函数用来返回snippets/urls.py中 viewname 对应的 url，如path('users/', views.UserList.as_view(), name='user-list')。\n然后添加到snippets/urls.py中：\npath('', views.api_root), 创建 SnippetHighlight 的 Endpoint 还记得在上篇文章中提到的Snippet.highlighted字段么：\n我们现在为它创建 Endpoint，继续编辑snippets/views.py：\nfrom rest_framework import renderers from rest_framework.response import Response class SnippetHighlight(generics.GenericAPIView): queryset = Snippet.objects.all() renderer_classes = [renderers.StaticHTMLRenderer] def get(self, request, *args, **kwargs): snippet = self.get_object() return Response(snippet.highlighted) 然后添加到snippets/urls.py中：\npath('snippets//highlight/', views.SnippetHighlight.as_view()), 因为snippet.highlighted不是 JSON 而是 HTML，所以用[renderers.StaticHTMLRenderer]返回预渲染的（pre-rendered）HTML。\nHyperlinkedModelSerializer 在 Web API 设计中，一般有以下几种方式来表示实体之间的关系：\n主键 超链接 关系实体（the related entity），唯一标识符字段（a unique identifying slug field） 关系实体，默认字符串（the default string representation） 关系实体，嵌入到父类中（the parent representation） 其他自定义 前 2 个比较熟悉，后面几个有点不太懂，我理解是类似于数据库的关联关系表。\nDRF 支持以上所有方式，这里我们用 DRF 的HyperlinkedModelSerializer来实现真正的 RESTful。在snippets/serializers.py中把我们之前的代码：\nclass SnippetSerializer(serializers.ModelSerializer): owner = serializers.ReadOnlyField(source='owner.username') class Meta: model = Snippet fields = ['id', 'title', 'code', 'linenos', 'language', 'style', 'owner'] class UserSerializer(serializers.ModelSerializer): snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all()) class Meta: model = User fields = ['id', 'username', 'snippets'] 修改为：\nclass SnippetSerializer(serializers.HyperlinkedModelSerializer): owner = serializers.ReadOnlyField(source='owner.username') highlight = serializers.HyperlinkedIdentityField(view_name='snippet-highlight', format='html') class Meta: model = Snippet fields = ['url', 'id', 'highlight', 'owner', 'title', 'code', 'linenos', 'language', 'style'] class UserSerializer(serializers.HyperlinkedModelSerializer): snippets = serializers.HyperlinkedRelatedField(many=True, view_name='snippet-detail', read_only=True) class Meta: model = User fields = ['url', 'id', 'username', 'snippets'] 其中ModelSerializer换成了HyperlinkedModelSerializer，后者的区别如下：\n默认不包含id字段\n包含url字段，用HyperlinkedIdentityField表示\n源码：serializer_url_field = HyperlinkedIdentityField\n关系用HyperlinkedRelatedField表示，而不是PrimaryKeyRelatedField\n源码：serializer_related_field = HyperlinkedRelatedField\n由于用了 HyperlinkedModelSerializer，SnippetSerializer 和 UserSerializer 的 url 字段默认指向的是'{model_name}-detail' url pattern，这是 DRF 定义的，在示例中就是'snippet-detail' 和'user-detail'。新增的highlight字段和url字段是一样的类型，它指向的是'snippet-highlight'，而不是'snippet-detail'。\n修改 url pattern 既然已经提到了 url pattern，那么在snippets/urls.py中修改一下：\nfrom django.urls import path from rest_framework.urlpatterns import format_suffix_patterns from snippets import views ## API endpoints urlpatterns = format_suffix_patterns([ path('', views.api_root), path('snippets/', views.SnippetList.as_view(), name='snippet-list'), path('snippets//', views.SnippetDetail.as_view(), name='snippet-detail'), path('snippets//highlight/', views.SnippetHighlight.as_view(), name='snippet-highlight'), path('users/', views.UserList.as_view(), name='user-list'), path('users//', views.UserDetail.as_view(), name='user-detail') ]) name 就是在serializers.py和views.py中用到的。\n添加分页 REST 设计基本原则提到了：处理好分页。DRF 添加分页的方式很简单，编辑tutorial/settings.py文件：\nREST_FRAMEWORK = { 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', 'PAGE_SIZE': 10 } 小结 我之前是在学 SpringBoot 的时候了解过 RESTful API 的超链接 API，文章开头的那一段介绍就是当时写的笔记，DRF 提供了HyperlinkedModelSerializer来实现，还是比较好理解的，其中的细节需要在实战中再多多熟悉。\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/5-relationships-and-hyperlinked-apis/\nhttps://spring.io/guides/tutorials/rest/\n",
-  "wordCount" : "449",
+  "articleBody": "很多 API 并不是真正的实现了 RESTful，而应该叫做 RPC (Remote Procedure Call 远程过程调用)，Roy Fielding 曾经提到了它们的区别，原文如下：\nI am getting frustrated by the number of people calling any HTTP-based interface a REST API. Today’s example is the SocialSite REST API. That is RPC. It screams RPC. There is so much coupling on display that it should be given an X rating. What needs to be done to make the REST architectural style clear on the notion that hypertext is a constraint? In other words, if the engine of application state (and hence the API) is not being driven by hypertext, then it cannot be RESTful and cannot be a REST API. Period. Is there some broken manual somewhere that needs to be fixed? — Roy Fielding https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven 大概意思是，如果应用状态引擎（API）不是超文本驱动的，那么就不是 RESTful。\n我的理解是，像超文本一样携带一个地址，可以寻址定位信息，如超文本的 link 属性。\n超链接（Hypermedia）API Hypermedia 指的是，返回结果中提供链接，连向其他 API 方法，使得用户不查文档，也知道下一步应该做什么。比如，当用户向 api.example.com 的根目录发出请求，会得到这样一个文档：\n{\"link\": { \"rel\": \"collection https://www.example.com/zoos\", \"href\": \"https://api.example.com/zoos\", \"title\": \"List of zoos\", \"type\": \"application/vnd.yourformat+json\" }} 上面代码表示，文档中有一个 link 属性，用户读取这个属性就知道下一步该调用什么 API 了。rel 表示这个 API 与当前网址的关系（collection 关系，并给出该 collection 的网址），href 表示 API 的路径，title 表示 API 的标题，type 表示返回类型。\n摘取自：http://www.ruanyifeng.com/blog/2014/05/restful_api.html\n创建 api_root 的 Endpoint 回到教程的例子。在前面我们已经为snippets和users创建了 Endpoint，现在来创建根目录的 Endpoint，编辑snippets/views.py：\nfrom rest_framework.decorators import api_view from rest_framework.response import Response from rest_framework.reverse import reverse @api_view(['GET']) def api_root(request, format=None): return Response({ 'users': reverse('user-list', request=request, format=format), 'snippets': reverse('snippet-list', request=request, format=format) }) reverse()函数用来返回snippets/urls.py中 viewname 对应的 url，如path('users/', views.UserList.as_view(), name='user-list')。\n然后添加到snippets/urls.py中：\npath('', views.api_root), 创建 SnippetHighlight 的 Endpoint 还记得在上篇文章中提到的Snippet.highlighted字段么：\n我们现在为它创建 Endpoint，继续编辑snippets/views.py：\nfrom rest_framework import renderers from rest_framework.response import Response class SnippetHighlight(generics.GenericAPIView): queryset = Snippet.objects.all() renderer_classes = [renderers.StaticHTMLRenderer] def get(self, request, *args, **kwargs): snippet = self.get_object() return Response(snippet.highlighted) 然后添加到snippets/urls.py中：\npath('snippets//highlight/', views.SnippetHighlight.as_view()), 因为snippet.highlighted不是 JSON 而是 HTML，所以用[renderers.StaticHTMLRenderer]返回预渲染的（pre-rendered）HTML。\nHyperlinkedModelSerializer 在 Web API 设计中，一般有以下几种方式来表示实体之间的关系：\n主键 超链接 关系实体（the related entity），唯一标识符字段（a unique identifying slug field） 关系实体，默认字符串（the default string representation） 关系实体，嵌入到父类中（the parent representation） 其他自定义 前 2 个比较熟悉，后面几个有点不太懂，我理解是类似于数据库的关联关系表。\nDRF 支持以上所有方式，这里我们用 DRF 的HyperlinkedModelSerializer来实现真正的 RESTful。在snippets/serializers.py中把我们之前的代码：\nclass SnippetSerializer(serializers.ModelSerializer): owner = serializers.ReadOnlyField(source='owner.username') class Meta: model = Snippet fields = ['id', 'title', 'code', 'linenos', 'language', 'style', 'owner'] class UserSerializer(serializers.ModelSerializer): snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all()) class Meta: model = User fields = ['id', 'username', 'snippets'] 修改为：\nclass SnippetSerializer(serializers.HyperlinkedModelSerializer): owner = serializers.ReadOnlyField(source='owner.username') highlight = serializers.HyperlinkedIdentityField(view_name='snippet-highlight', format='html') class Meta: model = Snippet fields = ['url', 'id', 'highlight', 'owner', 'title', 'code', 'linenos', 'language', 'style'] class UserSerializer(serializers.HyperlinkedModelSerializer): snippets = serializers.HyperlinkedRelatedField(many=True, view_name='snippet-detail', read_only=True) class Meta: model = User fields = ['url', 'id', 'username', 'snippets'] 其中ModelSerializer换成了HyperlinkedModelSerializer，后者的区别如下：\n默认不包含id字段\n包含url字段，用HyperlinkedIdentityField表示\n源码：serializer_url_field = HyperlinkedIdentityField\n关系用HyperlinkedRelatedField表示，而不是PrimaryKeyRelatedField\n源码：serializer_related_field = HyperlinkedRelatedField\n由于用了 HyperlinkedModelSerializer，SnippetSerializer 和 UserSerializer 的 url 字段默认指向的是'{model_name}-detail' url pattern，这是 DRF 定义的，在示例中就是'snippet-detail' 和'user-detail'。新增的highlight字段和url字段是一样的类型，它指向的是'snippet-highlight'，而不是'snippet-detail'。\n修改 url pattern 既然已经提到了 url pattern，那么在snippets/urls.py中修改一下：\nfrom django.urls import path from rest_framework.urlpatterns import format_suffix_patterns from snippets import views ## API endpoints urlpatterns = format_suffix_patterns([ path('', views.api_root), path('snippets/', views.SnippetList.as_view(), name='snippet-list'), path('snippets//', views.SnippetDetail.as_view(), name='snippet-detail'), path('snippets//highlight/', views.SnippetHighlight.as_view(), name='snippet-highlight'), path('users/', views.UserList.as_view(), name='user-list'), path('users//', views.UserDetail.as_view(), name='user-detail') ]) name 就是在serializers.py和views.py中用到的。\n添加分页 REST 设计基本原则提到了：处理好分页。DRF 添加分页的方式很简单，编辑tutorial/settings.py文件：\nREST_FRAMEWORK = { 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', 'PAGE_SIZE': 10 } 小结 我之前是在学 SpringBoot 的时候了解过 RESTful API 的超链接 API，文章开头的那一段介绍就是当时写的笔记，DRF 提供了HyperlinkedModelSerializer来实现，还是比较好理解的，其中的细节需要在实战中再多多熟悉。\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/5-relationships-and-hyperlinked-apis/\nhttps://spring.io/guides/tutorials/rest/\n",
+  "wordCount" : "448",
   "inLanguage": "zh",
   "datePublished": "2026-01-11T00:00:00Z",
   "dateModified": "2026-01-11T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>很多 API 并不是真正的实现了 RESTful，而应该叫做 RPC (Remote Procedure Call 远程过程调用)，Roy Fielding 曾经提到了它们的区别，原文如下：</p>
+  <div class="post-content md-content"><p>很多 API 并不是真正的实现了 RESTful，而应该叫做 RPC (Remote Procedure Call 远程过程调用)，Roy Fielding 曾经提到了它们的区别，原文如下：</p>
 <pre tabindex="0"><code>I am getting frustrated by the number of people calling any HTTP-based interface a REST API. Today’s example is the SocialSite REST API. That is RPC. It screams RPC. There is so much coupling on display that it should be given an X rating.
 
 What needs to be done to make the REST architectural style clear on the notion that hypertext is a constraint? In other words, if the engine of application state (and hence the API) is not being driven by hypertext, then it cannot be RESTful and cannot be a REST API. Period. Is there some broken manual somewhere that needs to be fixed?
@@ -412,7 +384,7 @@ https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -546,19 +518,6 @@ https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

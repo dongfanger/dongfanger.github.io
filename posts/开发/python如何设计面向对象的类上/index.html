@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Python 如何设计面向对象的类（上） | 测试开发刚哥</title>
+<title>Python 如何设计面向对象的类（上） | 全栈开发刚哥</title>
 <meta name="keywords" content="Python">
 <meta name="description" content="Python 是一门高级语言，支持面向对象设计，如何设计一个符合 Python 风格的面向对象的类，是一个比较复杂的问题，本文提供一个参考，表达一种思路，探究一层原理。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%9A%84%E7%B1%BB%E4%B8%8A/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/python%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%9A%84%E7%B1%BB%E4%B8%8A/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="Python 如何设计面向对象的类（上）">
   <meta property="og:description" content="Python 是一门高级语言，支持面向对象设计，如何设计一个符合 Python 风格的面向对象的类，是一个比较复杂的问题，本文提供一个参考，表达一种思路，探究一层原理。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Python"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nPython 是一门高级语言，支持面向对象设计，如何设计一个符合 Python 风格的面向对象的类，是一个比较复杂的问题，本文提供一个参考，表达一种思路，探究一层原理。\n目标 期望实现的类具有以下基本行为：\n__repr__ 为 repr()提供支持，返回便于开发者理解的对象字符串表示形式。 __str__ 为 str()提供支持，返回便于用户理解的对象字符串表示形式。 __bytes__ 为 bytes()提供支持，返回对象的二进制表示形式。 __format__ 为 format()和 str.format()提供支持，使用特殊的格式代码显示对象的字符串表示形式。 Vector2d 是一个向量类，期望它能支持以下操作：\n\u003e\u003e\u003e v1 = Vector2d(3, 4) \u003e\u003e\u003e print(v1.x, v1.y) # 通过属性直接访问 3.0 4.0 \u003e\u003e\u003e x, y = v1 # 支持拆包 \u003e\u003e\u003e x, y (3.0, 4.0) \u003e\u003e\u003e v1 # 支持repr Vector2d(3.0, 4.0) \u003e\u003e\u003e v1_clone = eval(repr(v1)) # 验证repr描述准确 \u003e\u003e\u003e v1 == v1_clone # 支持==运算符 True \u003e\u003e\u003e print(v1) # 支持str (3.0, 4.0) \u003e\u003e\u003e octets = bytes(v1) # 支持bytes \u003e\u003e\u003e octets b'd\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x08@\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x10@' \u003e\u003e\u003e abs(v1) # 实现__abs__ 5.0 \u003e\u003e\u003e bool(v1), bool(Vector2d(0, 0)) # 实现__bool__ (True, False) 基本实现 代码与解析如下：\nfrom array import array import math class Vector2d: # Vector2d实例和二进制之间转换时使用 typecode = 'd' def __init__(self, x, y): # 转换为浮点数 self.x = float(x) self.y = float(y) def __iter__(self): # 生成器表达式，把Vector2d实例变成可迭代对象，这样才能拆包 return (i for i in (self.x, self.y)) def __repr__(self): class_name = type(self).__name__ # {!r}是个万能的格式符 # *self是拆包，*表示所有元素 return '{}({!r}, {!r})'.format(class_name, *self) def __str__(self): # Vector2d实例是可迭代对象，可以得到一个元组，并str return str(tuple(self)) def __bytes__(self): # 转换为二进制 return (bytes([ord(self.typecode)]) + bytes(array(self.typecode, self))) def __eq__(self, other): # 比较相等 return tuple(self) == tuple(other) def __abs__(self): # 向量的模是直角三角形的斜边长 return math.hypot(self.x, self.y) def __bool__(self): # 0.0是False，非零值是True return bool(abs(self)) @classmethod def frombytes(cls, octets): # classmethod不传self传cls typecode = chr(octets[0]) memv = memoryview(octets[1:]).cast(typecode) return cls(*memv) # 拆包后得到构造方法所需的一对参数 代码最后用到了@classmethod 装饰器，它容易跟@staticmethod 混淆。\n@classmethod的用法是：定义操作类，而不是操作实例的方法。常用来定义备选构造方法。\n@staticmethod其实就是个普通函数，只不过刚好放在了类的定义体里。实际定义在类中或模块中都可以。\n格式化显示 代码与解析如下：\ndef angle(self): return math.atan2(self.y, self.x) def __format__(self, fmt_spec=''): if fmt_spec.endswith('p'): # 以'p'结尾，使用极坐标 fmt_spec = fmt_spec[:-1] coords = (abs(self), self.angle()) # 计算极坐标(magnitude, angle) outer_fmt = '\u003c{}, {}\u003e' # 尖括号 else: coords = self # 不以'p'结尾，构建直角坐标(x, y) outer_fmt = '({}, {})' # 圆括号 components = (format(c, fmt_spec) for c in coords) # 使用内置format函数格式化字符串 return outer_fmt.format(*components) # 拆包后代入外层格式 它实现了以下效果：\n直角坐标：\n\u003e\u003e\u003e format(v1) '(3.0, 4.0)' \u003e\u003e\u003e format(v1, '.2f') '(3.00, 4.00)' \u003e\u003e\u003e format(v1, '.3e') '(3.000e+00, 4.000e+00)' 极坐标：\n\u003e\u003e\u003e format(Vector2d(1, 1), 'p') # doctest:+ELLIPSIS '\u003c1.414213..., 0.785398...\u003e' \u003e\u003e\u003e format(Vector2d(1, 1), '.3ep') '\u003c1.414e+00, 7.854e-01\u003e' \u003e\u003e\u003e format(Vector2d(1, 1), '0.5fp') '\u003c1.41421, 0.78540\u003e' 可散列的 实现__hash__特殊方法能让 Vector2d 变成可散列的，不过在这之前需要先让属性不可变，代码如下：\ndef __init__(self, x, y): # 双下划线前缀，变成私有的 self.__x = float(x) self.__y = float(y) @property # 标记为特性 def x(self): return self.__x @property def y(self): return self.__y 这样 x 和 y 就只读不可写了。\n属性名字的双下划线前缀叫做名称改写（name mangling），相当于_Vector2d__x和_Vector2d__y，能避免被子类覆盖。\n然后使用位运算符异或混合 x 和 y 的散列值：\ndef __hash__(self): return hash(self.x) ^ hash(self.y) 节省内存 Python 默认会把实例属性存储在__dict__字典里，字典的底层是散列表，数据量大了以后会消耗大量内存（以空间换时间）。通过__slots__类属性，能把实例属性存储到元组里，大大节省内存空间。\n示例：\nclass Vector2d: __slots__ = ('__x', '__y') typecode = 'd' 有几点需要注意：\n必须把所有属性都定义到__slots__元组中。 子类也必须定义__slots__。 实例如果要支持弱引用，需要把__weakref也加入__slots__。 覆盖类属性 实例覆盖 Python 有个很独特的特性：类属性可用于为实例属性提供默认值。实例代码中的 typecode 就能直接被 self.typecode 拿到。但是，如果为不存在的实例属性赋值，会新建实例属性，类属性不会受到影响，self.typecode 拿到的是实例属性的 typecode。\n示例：\n\u003e\u003e\u003e v1 = Vector2d(1, 2) \u003e\u003e\u003e v1.typecode = 'f' \u003e\u003e\u003e v1.typecode 'f' \u003e\u003e\u003e Vector2d.typecode 'd' 子类覆盖 类属性是公开的，所以可以直接通过Vector2d.typecode = 'f'进行修改。但是更符合 Python 风格的做法是定义子类：\nclass ShortVector2d(Vector2d): typecode = 'f' Django 基于类的视图大量使用了这个技术。\n小结 本文先介绍了如何实现特殊方法来设计一个 Python 风格的类，然后分别实现了格式化显示与可散列对象，使用__slots__能为类节省内存，最后讨论了类属性覆盖技术，子类覆盖是 Django 基于类的视图大量用到的技术。\n参考资料：\n《流畅的 Python》第 9 章 符合 Python 风格的对象\nhttps://www.jianshu.com/p/7fc0a177fd1f\n",
-  "wordCount" : "413",
+  "articleBody": "Python 是一门高级语言，支持面向对象设计，如何设计一个符合 Python 风格的面向对象的类，是一个比较复杂的问题，本文提供一个参考，表达一种思路，探究一层原理。\n目标 期望实现的类具有以下基本行为：\n__repr__ 为 repr()提供支持，返回便于开发者理解的对象字符串表示形式。 __str__ 为 str()提供支持，返回便于用户理解的对象字符串表示形式。 __bytes__ 为 bytes()提供支持，返回对象的二进制表示形式。 __format__ 为 format()和 str.format()提供支持，使用特殊的格式代码显示对象的字符串表示形式。 Vector2d 是一个向量类，期望它能支持以下操作：\n\u003e\u003e\u003e v1 = Vector2d(3, 4) \u003e\u003e\u003e print(v1.x, v1.y) # 通过属性直接访问 3.0 4.0 \u003e\u003e\u003e x, y = v1 # 支持拆包 \u003e\u003e\u003e x, y (3.0, 4.0) \u003e\u003e\u003e v1 # 支持repr Vector2d(3.0, 4.0) \u003e\u003e\u003e v1_clone = eval(repr(v1)) # 验证repr描述准确 \u003e\u003e\u003e v1 == v1_clone # 支持==运算符 True \u003e\u003e\u003e print(v1) # 支持str (3.0, 4.0) \u003e\u003e\u003e octets = bytes(v1) # 支持bytes \u003e\u003e\u003e octets b'd\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x08@\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x10@' \u003e\u003e\u003e abs(v1) # 实现__abs__ 5.0 \u003e\u003e\u003e bool(v1), bool(Vector2d(0, 0)) # 实现__bool__ (True, False) 基本实现 代码与解析如下：\nfrom array import array import math class Vector2d: # Vector2d实例和二进制之间转换时使用 typecode = 'd' def __init__(self, x, y): # 转换为浮点数 self.x = float(x) self.y = float(y) def __iter__(self): # 生成器表达式，把Vector2d实例变成可迭代对象，这样才能拆包 return (i for i in (self.x, self.y)) def __repr__(self): class_name = type(self).__name__ # {!r}是个万能的格式符 # *self是拆包，*表示所有元素 return '{}({!r}, {!r})'.format(class_name, *self) def __str__(self): # Vector2d实例是可迭代对象，可以得到一个元组，并str return str(tuple(self)) def __bytes__(self): # 转换为二进制 return (bytes([ord(self.typecode)]) + bytes(array(self.typecode, self))) def __eq__(self, other): # 比较相等 return tuple(self) == tuple(other) def __abs__(self): # 向量的模是直角三角形的斜边长 return math.hypot(self.x, self.y) def __bool__(self): # 0.0是False，非零值是True return bool(abs(self)) @classmethod def frombytes(cls, octets): # classmethod不传self传cls typecode = chr(octets[0]) memv = memoryview(octets[1:]).cast(typecode) return cls(*memv) # 拆包后得到构造方法所需的一对参数 代码最后用到了@classmethod 装饰器，它容易跟@staticmethod 混淆。\n@classmethod的用法是：定义操作类，而不是操作实例的方法。常用来定义备选构造方法。\n@staticmethod其实就是个普通函数，只不过刚好放在了类的定义体里。实际定义在类中或模块中都可以。\n格式化显示 代码与解析如下：\ndef angle(self): return math.atan2(self.y, self.x) def __format__(self, fmt_spec=''): if fmt_spec.endswith('p'): # 以'p'结尾，使用极坐标 fmt_spec = fmt_spec[:-1] coords = (abs(self), self.angle()) # 计算极坐标(magnitude, angle) outer_fmt = '\u003c{}, {}\u003e' # 尖括号 else: coords = self # 不以'p'结尾，构建直角坐标(x, y) outer_fmt = '({}, {})' # 圆括号 components = (format(c, fmt_spec) for c in coords) # 使用内置format函数格式化字符串 return outer_fmt.format(*components) # 拆包后代入外层格式 它实现了以下效果：\n直角坐标：\n\u003e\u003e\u003e format(v1) '(3.0, 4.0)' \u003e\u003e\u003e format(v1, '.2f') '(3.00, 4.00)' \u003e\u003e\u003e format(v1, '.3e') '(3.000e+00, 4.000e+00)' 极坐标：\n\u003e\u003e\u003e format(Vector2d(1, 1), 'p') # doctest:+ELLIPSIS '\u003c1.414213..., 0.785398...\u003e' \u003e\u003e\u003e format(Vector2d(1, 1), '.3ep') '\u003c1.414e+00, 7.854e-01\u003e' \u003e\u003e\u003e format(Vector2d(1, 1), '0.5fp') '\u003c1.41421, 0.78540\u003e' 可散列的 实现__hash__特殊方法能让 Vector2d 变成可散列的，不过在这之前需要先让属性不可变，代码如下：\ndef __init__(self, x, y): # 双下划线前缀，变成私有的 self.__x = float(x) self.__y = float(y) @property # 标记为特性 def x(self): return self.__x @property def y(self): return self.__y 这样 x 和 y 就只读不可写了。\n属性名字的双下划线前缀叫做名称改写（name mangling），相当于_Vector2d__x和_Vector2d__y，能避免被子类覆盖。\n然后使用位运算符异或混合 x 和 y 的散列值：\ndef __hash__(self): return hash(self.x) ^ hash(self.y) 节省内存 Python 默认会把实例属性存储在__dict__字典里，字典的底层是散列表，数据量大了以后会消耗大量内存（以空间换时间）。通过__slots__类属性，能把实例属性存储到元组里，大大节省内存空间。\n示例：\nclass Vector2d: __slots__ = ('__x', '__y') typecode = 'd' 有几点需要注意：\n必须把所有属性都定义到__slots__元组中。 子类也必须定义__slots__。 实例如果要支持弱引用，需要把__weakref也加入__slots__。 覆盖类属性 实例覆盖 Python 有个很独特的特性：类属性可用于为实例属性提供默认值。实例代码中的 typecode 就能直接被 self.typecode 拿到。但是，如果为不存在的实例属性赋值，会新建实例属性，类属性不会受到影响，self.typecode 拿到的是实例属性的 typecode。\n示例：\n\u003e\u003e\u003e v1 = Vector2d(1, 2) \u003e\u003e\u003e v1.typecode = 'f' \u003e\u003e\u003e v1.typecode 'f' \u003e\u003e\u003e Vector2d.typecode 'd' 子类覆盖 类属性是公开的，所以可以直接通过Vector2d.typecode = 'f'进行修改。但是更符合 Python 风格的做法是定义子类：\nclass ShortVector2d(Vector2d): typecode = 'f' Django 基于类的视图大量使用了这个技术。\n小结 本文先介绍了如何实现特殊方法来设计一个 Python 风格的类，然后分别实现了格式化显示与可散列对象，使用__slots__能为类节省内存，最后讨论了类属性覆盖技术，子类覆盖是 Django 基于类的视图大量用到的技术。\n参考资料：\n《流畅的 Python》第 9 章 符合 Python 风格的对象\nhttps://www.jianshu.com/p/7fc0a177fd1f\n",
+  "wordCount" : "412",
   "inLanguage": "zh",
   "datePublished": "2026-01-25T00:00:00Z",
   "dateModified": "2026-01-25T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>Python 是一门高级语言，支持面向对象设计，如何设计一个符合 Python 风格的面向对象的类，是一个比较复杂的问题，本文提供一个参考，表达一种思路，探究一层原理。</p>
+  <div class="post-content md-content"><p>Python 是一门高级语言，支持面向对象设计，如何设计一个符合 Python 风格的面向对象的类，是一个比较复杂的问题，本文提供一个参考，表达一种思路，探究一层原理。</p>
 <h1 id="目标">目标<a hidden class="anchor" aria-hidden="true" href="#目标">#</a></h1>
 <p>期望实现的类具有以下基本行为：</p>
 <ul>
@@ -432,7 +404,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -566,19 +538,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

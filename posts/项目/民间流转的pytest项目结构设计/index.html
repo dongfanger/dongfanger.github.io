@@ -5,12 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>民间流转的 pytest 项目结构设计 | 测试开发刚哥</title>
+<title>民间流转的 pytest 项目结构设计 | 全栈开发刚哥</title>
 <meta name="keywords" content="tep">
 <meta name="description" content="
-本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-
-
 创建上图的 pytest 项目结构，只需要一条命令即可：
 tep startproject demo
 
@@ -20,9 +17,9 @@ pip install tep==0.9.8
 fixtures 从 conftest.py 文件中单独拎了出来。这个设计与 Django 不谋而合，Django 也有个叫做 fixtures 的文件夹，用来存放测试数据。其实 pytest 的 fixture 的本意是可以用来做 setup 和 teardown 的，从这个意义来说，fixtures 就是存放测试数据的，比如封装登录接口为用例提供 token。
 utils 存放了一些工具。比如自带的 fastapi 项目，request 猴子补丁，mitmproxy 抓包自动生成用例。request 猴子补丁可以自定义日志输出格式，在发送请求前后完成任何你想做的操作。
 tep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下来的**《tep 完整教程帮你突破 pytest》**做好准备。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E6%B0%91%E9%97%B4%E6%B5%81%E8%BD%AC%E7%9A%84pytest%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -66,11 +63,7 @@ tep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下�
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -80,11 +73,11 @@ tep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下�
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E6%B0%91%E9%97%B4%E6%B5%81%E8%BD%AC%E7%9A%84pytest%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="民间流转的 pytest 项目结构设计">
-  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-创建上图的 pytest 项目结构，只需要一条命令即可：
+  <meta property="og:description" content="创建上图的 pytest 项目结构，只需要一条命令即可：
 tep startproject demo 前提是安装 tep0.9.8 版本：
 pip install tep==0.9.8 示例代码单独放在了 samples 文件夹下，可以放心将整个目录删除。其中的 db 演示了连接 MySQL 数据库，http 演示了 requests 常见用法和 tep request 的猴子补丁，login_pay 演示了从登陆到下单该如何编写脚本，包括 httprunner、mvc（不推荐）、tep（强烈推荐）三种写法。
 fixtures 从 conftest.py 文件中单独拎了出来。这个设计与 Django 不谋而合，Django 也有个叫做 fixtures 的文件夹，用来存放测试数据。其实 pytest 的 fixture 的本意是可以用来做 setup 和 teardown 的，从这个意义来说，fixtures 就是存放测试数据的，比如封装登录接口为用例提供 token。
@@ -99,8 +92,7 @@ tep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下�
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="民间流转的 pytest 项目结构设计">
-  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-创建上图的 pytest 项目结构，只需要一条命令即可：
+  <meta name="twitter:description" content="创建上图的 pytest 项目结构，只需要一条命令即可：
 tep startproject demo 前提是安装 tep0.9.8 版本：
 pip install tep==0.9.8 示例代码单独放在了 samples 文件夹下，可以放心将整个目录删除。其中的 db 演示了连接 MySQL 数据库，http 演示了 requests 常见用法和 tep request 的猴子补丁，login_pay 演示了从登陆到下单该如何编写脚本，包括 httprunner、mvc（不推荐）、tep（强烈推荐）三种写法。
 fixtures 从 conftest.py 文件中单独拎了出来。这个设计与 Django 不谋而合，Django 也有个叫做 fixtures 的文件夹，用来存放测试数据。其实 pytest 的 fixture 的本意是可以用来做 setup 和 teardown 的，从这个意义来说，fixtures 就是存放测试数据的，比如封装登录接口为用例提供 token。
@@ -134,18 +126,18 @@ tep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下�
   "@type": "BlogPosting",
   "headline": "民间流转的 pytest 项目结构设计",
   "name": "民间流转的 pytest 项目结构设计",
-  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n创建上图的 pytest 项目结构，只需要一条命令即可：\ntep startproject demo 前提是安装 tep0.9.8 版本：\npip install tep==0.9.8 示例代码单独放在了 samples 文件夹下，可以放心将整个目录删除。其中的 db 演示了连接 MySQL 数据库，http 演示了 requests 常见用法和 tep request 的猴子补丁，login_pay 演示了从登陆到下单该如何编写脚本，包括 httprunner、mvc（不推荐）、tep（强烈推荐）三种写法。\nfixtures 从 conftest.py 文件中单独拎了出来。这个设计与 Django 不谋而合，Django 也有个叫做 fixtures 的文件夹，用来存放测试数据。其实 pytest 的 fixture 的本意是可以用来做 setup 和 teardown 的，从这个意义来说，fixtures 就是存放测试数据的，比如封装登录接口为用例提供 token。\nutils 存放了一些工具。比如自带的 fastapi 项目，request 猴子补丁，mitmproxy 抓包自动生成用例。request 猴子补丁可以自定义日志输出格式，在发送请求前后完成任何你想做的操作。\ntep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下来的**《tep 完整教程帮你突破 pytest》**做好准备。\n",
+  "description": "\n创建上图的 pytest 项目结构，只需要一条命令即可：\ntep startproject demo 前提是安装 tep0.9.8 版本：\npip install tep==0.9.8 示例代码单独放在了 samples 文件夹下，可以放心将整个目录删除。其中的 db 演示了连接 MySQL 数据库，http 演示了 requests 常见用法和 tep request 的猴子补丁，login_pay 演示了从登陆到下单该如何编写脚本，包括 httprunner、mvc（不推荐）、tep（强烈推荐）三种写法。\nfixtures 从 conftest.py 文件中单独拎了出来。这个设计与 Django 不谋而合，Django 也有个叫做 fixtures 的文件夹，用来存放测试数据。其实 pytest 的 fixture 的本意是可以用来做 setup 和 teardown 的，从这个意义来说，fixtures 就是存放测试数据的，比如封装登录接口为用例提供 token。\nutils 存放了一些工具。比如自带的 fastapi 项目，request 猴子补丁，mitmproxy 抓包自动生成用例。request 猴子补丁可以自定义日志输出格式，在发送请求前后完成任何你想做的操作。\ntep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下来的**《tep 完整教程帮你突破 pytest》**做好准备。\n",
   "keywords": [
     "tep"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n创建上图的 pytest 项目结构，只需要一条命令即可：\ntep startproject demo 前提是安装 tep0.9.8 版本：\npip install tep==0.9.8 示例代码单独放在了 samples 文件夹下，可以放心将整个目录删除。其中的 db 演示了连接 MySQL 数据库，http 演示了 requests 常见用法和 tep request 的猴子补丁，login_pay 演示了从登陆到下单该如何编写脚本，包括 httprunner、mvc（不推荐）、tep（强烈推荐）三种写法。\nfixtures 从 conftest.py 文件中单独拎了出来。这个设计与 Django 不谋而合，Django 也有个叫做 fixtures 的文件夹，用来存放测试数据。其实 pytest 的 fixture 的本意是可以用来做 setup 和 teardown 的，从这个意义来说，fixtures 就是存放测试数据的，比如封装登录接口为用例提供 token。\nutils 存放了一些工具。比如自带的 fastapi 项目，request 猴子补丁，mitmproxy 抓包自动生成用例。request 猴子补丁可以自定义日志输出格式，在发送请求前后完成任何你想做的操作。\ntep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下来的**《tep 完整教程帮你突破 pytest》**做好准备。\n",
-  "wordCount" : "58",
+  "articleBody": "\n创建上图的 pytest 项目结构，只需要一条命令即可：\ntep startproject demo 前提是安装 tep0.9.8 版本：\npip install tep==0.9.8 示例代码单独放在了 samples 文件夹下，可以放心将整个目录删除。其中的 db 演示了连接 MySQL 数据库，http 演示了 requests 常见用法和 tep request 的猴子补丁，login_pay 演示了从登陆到下单该如何编写脚本，包括 httprunner、mvc（不推荐）、tep（强烈推荐）三种写法。\nfixtures 从 conftest.py 文件中单独拎了出来。这个设计与 Django 不谋而合，Django 也有个叫做 fixtures 的文件夹，用来存放测试数据。其实 pytest 的 fixture 的本意是可以用来做 setup 和 teardown 的，从这个意义来说，fixtures 就是存放测试数据的，比如封装登录接口为用例提供 token。\nutils 存放了一些工具。比如自带的 fastapi 项目，request 猴子补丁，mitmproxy 抓包自动生成用例。request 猴子补丁可以自定义日志输出格式，在发送请求前后完成任何你想做的操作。\ntep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下来的**《tep 完整教程帮你突破 pytest》**做好准备。\n",
+  "wordCount" : "57",
   "inLanguage": "zh",
   "datePublished": "2026-01-12T00:00:00Z",
   "dateModified": "2026-01-12T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -153,7 +145,7 @@ tep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下�
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -170,29 +162,7 @@ tep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下�
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -238,10 +208,7 @@ tep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下�
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p><img loading="lazy" src="../assets/d890fa29667248acb99bcd84bb794f0a.png"></p>
+  <div class="post-content md-content"><p><img loading="lazy" src="../assets/d890fa29667248acb99bcd84bb794f0a.png"></p>
 <p>创建上图的 pytest 项目结构，<strong>只需要一条命令即可</strong>：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>tep startproject demo
 </span></span></code></pre></div><p><img loading="lazy" src="../assets/8ef1c1ae74b04a1295e9a3c91a44aeac.png"></p>
@@ -279,7 +246,7 @@ tep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下�
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -413,19 +380,6 @@ tep0.9.8 版本正式发布，对项目脚手架进行了精简，是为接下�
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

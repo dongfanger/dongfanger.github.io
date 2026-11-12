@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>揭开 DRF 序列化技术的神秘面纱 | 测试开发刚哥</title>
+<title>揭开 DRF 序列化技术的神秘面纱 | 全栈开发刚哥</title>
 <meta name="keywords" content="Django">
 <meta name="description" content="在 RESTful API 中，接口返回的是 JSON，JSON 的内容对应的是数据库中的数据，DRF 是通过序列化（Serialization）的技术，把数据模型转换为 JSON 的，反之，叫做反序列化（deserialization）。本文就来揭开 2 揭开 DRF 序列化技术的神秘面纱技术的神秘面纱。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E6%8F%AD%E5%BC%80drf%E5%BA%8F%E5%88%97%E5%8C%96%E6%8A%80%E6%9C%AF%E7%9A%84%E7%A5%9E%E7%A7%98%E9%9D%A2%E7%BA%B1/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E6%8F%AD%E5%BC%80drf%E5%BA%8F%E5%88%97%E5%8C%96%E6%8A%80%E6%9C%AF%E7%9A%84%E7%A5%9E%E7%A7%98%E9%9D%A2%E7%BA%B1/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="揭开 DRF 序列化技术的神秘面纱">
   <meta property="og:description" content="在 RESTful API 中，接口返回的是 JSON，JSON 的内容对应的是数据库中的数据，DRF 是通过序列化（Serialization）的技术，把数据模型转换为 JSON 的，反之，叫做反序列化（deserialization）。本文就来揭开 2 揭开 DRF 序列化技术的神秘面纱技术的神秘面纱。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Django"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n在 RESTful API 中，接口返回的是 JSON，JSON 的内容对应的是数据库中的数据，DRF 是通过序列化（Serialization）的技术，把数据模型转换为 JSON 的，反之，叫做反序列化（deserialization）。本文就来揭开 2 揭开 DRF 序列化技术的神秘面纱技术的神秘面纱。\n创建虚拟环境 虚拟环境是独立的 Python 环境，可以和系统环境分离，只安装需要的包即可，使用以下命令创建并激活：\n# 创建Python虚拟环境 python -m venv env # 激活虚拟环境 env\\Scripts\\activate.bat # Mac中使用`source env/bin/activate` 退出虚拟环境用 deactivate。\n接着在虚拟环境中安装本文用到的包：\npip install django pip install djangorestframework pip install pygments # 代码高亮 创建项目 创建 project：\ndjango-admin startproject tutorial 创建 app：\ncd tutorial python manage.py startapp snippets 在tutorial/settings.py中的INSTALLED_APPS添加snippets和rest_framework：\nINSTALLED_APPS = [ ... 'rest_framework', 'snippets.apps.SnippetsConfig', ] 只有添加后，app 才会生效哦。\n创建 model 编辑snippets/models.py，创建 Snippet 模型：\nfrom django.db import models from pygments.lexers import get_all_lexers from pygments.styles import get_all_styles LEXERS = [item for item in get_all_lexers() if item[1]] LANGUAGE_CHOICES = sorted([(item[1][0], item[0]) for item in LEXERS]) STYLE_CHOICES = sorted([(item, item) for item in get_all_styles()]) class Snippet(models.Model): created = models.DateTimeField(auto_now_add=True) title = models.CharField(max_length=100, blank=True, default='') code = models.TextField() linenos = models.BooleanField(default=False) language = models.CharField(choices=LANGUAGE_CHOICES, default='python', max_length=100) style = models.CharField(choices=STYLE_CHOICES, default='friendly', max_length=100) class Meta: ordering = ['created'] Snippet 有 6 个字段，created、title、code、linenos、language、style。\n接着同步数据库：\npython manage.py makemigrations snippets python manage.py migrate 创建 Serializer rest_framework.serializers 的结构如下：\n查看 Python 模块中的成员，需要勾选：\n之前我们用过 HyperlinkedModelSerializer，是封装后的符合 RESTful 良好设计的序列化器，这里直接使用更底层的 Serializer。在snippets目录下创建serializers.py，添加以下代码：\nfrom rest_framework import serializers from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES class SnippetSerializer(serializers.Serializer): id = serializers.IntegerField(read_only=True) title = serializers.CharField(required=False, allow_blank=True, max_length=100) code = serializers.CharField(style={'base_template': 'textarea.html'}) linenos = serializers.BooleanField(required=False) language = serializers.ChoiceField(choices=LANGUAGE_CHOICES, default='python') style = serializers.ChoiceField(choices=STYLE_CHOICES, default='friendly') def create(self, validated_data): \"\"\" Create and return a new `Snippet` instance, given the validated data. \"\"\" return Snippet.objects.create(**validated_data) def update(self, instance, validated_data): \"\"\" Update and return an existing `Snippet` instance, given the validated data. \"\"\" instance.title = validated_data.get('title', instance.title) instance.code = validated_data.get('code', instance.code) instance.linenos = validated_data.get('linenos', instance.linenos) instance.language = validated_data.get('language', instance.language) instance.style = validated_data.get('style', instance.style) instance.save() return instance 代码第一部分定义了序列化/反序列化的字段，字段定义方式类似于 Form。第二部分的create()和update()方法定义了调用serializer.save()时，创建和更新实例的处理方式。\n玩玩 Serializer 既然已经创建好了 Serializer，何不玩玩它？只有玩了才知道序列化的技术细节。这里用到了 Django shell，可以在命令行实时看到输出结果：\npython manage.py shell 首先通过模型新增 2 条测试数据：\nfrom snippets.models import Snippet from snippets.serializers import SnippetSerializer from rest_framework.renderers import JSONRenderer from rest_framework.parsers import JSONParser snippet = Snippet(code='foo = \"bar\"\\n') snippet.save() snippet = Snippet(code='print(\"hello, world\")\\n') snippet.save() 接着把它序列化看看：\nserializer = SnippetSerializer(snippet) serializer.data # {'id': 2, 'title': '', 'code': 'print(\"hello, world\")\\n', 'linenos': False, 'language': 'python', 'style': 'friendly'} 因为snippet变量最后引用的是第 2 个数据模型的实例，所以这里只显示第 2 条数据。\nserializer.data 返回的是个字典，最后把字典转换为 JSON：\ncontent = JSONRenderer().render(serializer.data) content # b'{\"id\": 2, \"title\": \"\", \"code\": \"print(\\\\\"hello, world\\\\\")\\\\n\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\"}' 这就是序列化的过程，模型实例→Python 字典→JSON。\n反序列化的过程是类似的，先把 JSON 转换为 Python 字典：\nimport io stream = io.BytesIO(content) data = JSONParser().parse(stream) 再把字典转换为模型实例：\nserializer = SnippetSerializer(data=data) serializer.is_valid() # True serializer.validated_data # OrderedDict([('title', ''), ('code', 'print(\"hello, world\")\\n'), ('linenos', False), ('language', 'python'), ('style', 'friendly')]) serializer.save() # 因为 SnippetSerializer 的 create()方法代码是return Snippet.objects.create(**validated_data)，所以serializer.save()会在数据库中新增 1 条数据，并返回 Snippet 模型实例。\n另外，序列化对象不只有模型实例，也可以是数据集：\nserializer = SnippetSerializer(Snippet.objects.all(), many=True) serializer.data # [OrderedDict([('id', 1), ('title', ''), ('code', 'foo = \"bar\"\\n'), ('linenos', False), ('language', 'python'), ('style', 'friendly')]), OrderedDict([('id', 2), ('title', ''), ('code', 'print(\"hello, world\")\\n'), ('linenos', False), ('language', 'python'), ('style', 'friendly')]), OrderedDict([('id', 3), ('title', ''), ('code', 'print(\"hello, world\")'), ('linenos', False), ('language', 'python'), ('style', 'friendly')])] 使用 ModelSerializers rest_framework.serializers.Serializers 比较底层，需要重复定义 model 中的字段，DRF 的作者当然也想到了这个问题，并且给出了解决办法：把 Serializers 封装成 ModelSerializers。在snippets/serializers.py中替换SnippetSerializer为：\nclass SnippetSerializer(serializers.ModelSerializer): class Meta: model = Snippet fields = ['id', 'title', 'code', 'linenos', 'language', 'style'] 写法果然简洁了很多。使用 Django shell 打印出来看看：\nfrom snippets.serializers import SnippetSerializer serializer = SnippetSerializer() print(repr(serializer)) # SnippetSerializer(): # id = IntegerField(label='ID', read_only=True) # title = CharField(allow_blank=True, max_length=100, required=False) # code = CharField(style={'base_template': 'textarea.html'}) # linenos = BooleanField(required=False) # language = ChoiceField(choices=[('Clipper', 'FoxPro'), ('Cucumber', 'Gherkin'), ('RobotFramework', 'RobotFramework'), ('abap', 'ABAP'), ('ada', 'Ada')... # style = ChoiceField(choices=[('autumn', 'autumn'), ('borland', 'borland'), ('bw', 'bw'), ('colorful', 'colorful')... 和手动定义的字段一模一样。其实 ModelSerializer 并没有做额外的处理，我们可以从它的部分代码片段看到:\nserializer_field_mapping = { models.AutoField: IntegerField, models.BigIntegerField: IntegerField, models.BooleanField: BooleanField, # Default `create` and `update` behavior... def create(self, validated_data): def update(self, instance, validated_data): raise_errors_on_nested_writes('update', self, validated_data) 建立字段映射，定义create()和update()等方法，只做了最简单的封装。\n编写 views 我们之前用的是已经封装好的 rest_framework.viewsets，这里直接用 Django 原生的 view。在snippets/views.py中添加代码：\nfrom django.http import HttpResponse, JsonResponse from django.views.decorators.csrf import csrf_exempt from rest_framework.parsers import JSONParser from snippets.models import Snippet from snippets.serializers import SnippetSerializer 先创建 snippet_list 视图，返回 snippets 列表或者新建 1 个 snippet：\n@csrf_exempt def snippet_list(request): \"\"\" List all code snippets, or create a new snippet. \"\"\" if request.method == 'GET': snippets = Snippet.objects.all() serializer = SnippetSerializer(snippets, many=True) return JsonResponse(serializer.data, safe=False) elif request.method == 'POST': data = JSONParser().parse(request) serializer = SnippetSerializer(data=data) if serializer.is_valid(): serializer.save() return JsonResponse(serializer.data, status=201) return JsonResponse(serializer.errors, status=400) 本文示例中，客户端发起 POST 请求是不带 CSRF token 的，所以需要添加 csrf_exempt（exempt 翻译为免除）装饰器，允许跨域访问。这里只是演示，实际会使用django-cors-headers来解决跨域问题，而不是给每个 view 都加上@csrf_exempt。\nCSRF 是指跨站请求伪造，攻击者盗用你的身份，以你的名义发送恶意请求。CSRF token 是指服务器通过 token 来认证，如果请求中没有 token 或者 token 不匹配，那么就认为可能是 CSRF 而拒绝该请求。\n接着添加一个 view，对单个 snippet 进行删（delete）、改（update）、查（retrieve）：\n@csrf_exempt def snippet_detail(request, pk): \"\"\" Retrieve, update or delete a code snippet. \"\"\" try: snippet = Snippet.objects.get(pk=pk) except Snippet.DoesNotExist: return HttpResponse(status=404) if request.method == 'GET': serializer = SnippetSerializer(snippet) return JsonResponse(serializer.data) elif request.method == 'PUT': data = JSONParser().parse(request) serializer = SnippetSerializer(snippet, data=data) if serializer.is_valid(): serializer.save() return JsonResponse(serializer.data) return JsonResponse(serializer.errors, status=400) elif request.method == 'DELETE': snippet.delete() return HttpResponse(status=204) 注意，前面 create 返回的 status 为 201，这里 retrieve 返回的默认的 200，附上几个常见状态码：\n200 OK - GET/PUT/PATCH：服务器成功返回用户请求的数据，该操作是幂等的（Idempotent） 201 CREATED - POST：用户新建数据成功 204 NO content - DELETE：用户删除数据成功 400 Invalid request - POST/PUT/PATCH：用户发出的请求有错误，服务器没有进行新建或修改数据的操作，该操作是幂等的 401 Unauthorized - *：表示用户没有权限（令牌、用户名、密码错误） 403 Forbidden - *：表示用户得到授权（与 401 错误相对），但是访问是被禁止的 最后，添加路由，新建文件snippets/urls.py：\nfrom django.urls import path from snippets import views urlpatterns = [ path('snippets/', views.snippet_list), path('snippets//', views.snippet_detail), ] 再配置到tutorial/urls.py：\nfrom django.urls import path, include urlpatterns = [ path('', include('snippets.urls')), ] 测试 API 启动项目：\npython manage.py runserver 新开一个 Terminal，安装 HTTP 命令行工具：\npip install httpie 请求 snippets 列表：\nhttp http://127.0.0.1:8000/snippets/ HTTP/1.1 200 OK ... [ { \"id\": 1, \"title\": \"\", \"code\": \"foo = \\\"bar\\\"\\n\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\" }, { \"id\": 2, \"title\": \"\", \"code\": \"print(\\\"hello, world\\\")\\n\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\" } ] 请求 id 为 2 的 snippet：\nhttp http://127.0.0.1:8000/snippets/2/ HTTP/1.1 200 OK ... { \"id\": 2, \"title\": \"\", \"code\": \"print(\\\"hello, world\\\")\\n\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\" } 小结 不得不说 DRF 的 Tutorial 实践性很强，基本上照着做都能敲出来，体验比较好。序列化的过程，就是模型实例→Python 字典→JSON 的过程。通过本文也理解了在 app 中models.py→serializers.py→views.py→urls.py的代码编写顺序。\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/1-serialization/\nhttps://blog.csdn.net/yexudengzhidao/article/details/93527586\n",
-  "wordCount" : "878",
+  "articleBody": "在 RESTful API 中，接口返回的是 JSON，JSON 的内容对应的是数据库中的数据，DRF 是通过序列化（Serialization）的技术，把数据模型转换为 JSON 的，反之，叫做反序列化（deserialization）。本文就来揭开 2 揭开 DRF 序列化技术的神秘面纱技术的神秘面纱。\n创建虚拟环境 虚拟环境是独立的 Python 环境，可以和系统环境分离，只安装需要的包即可，使用以下命令创建并激活：\n# 创建Python虚拟环境 python -m venv env # 激活虚拟环境 env\\Scripts\\activate.bat # Mac中使用`source env/bin/activate` 退出虚拟环境用 deactivate。\n接着在虚拟环境中安装本文用到的包：\npip install django pip install djangorestframework pip install pygments # 代码高亮 创建项目 创建 project：\ndjango-admin startproject tutorial 创建 app：\ncd tutorial python manage.py startapp snippets 在tutorial/settings.py中的INSTALLED_APPS添加snippets和rest_framework：\nINSTALLED_APPS = [ ... 'rest_framework', 'snippets.apps.SnippetsConfig', ] 只有添加后，app 才会生效哦。\n创建 model 编辑snippets/models.py，创建 Snippet 模型：\nfrom django.db import models from pygments.lexers import get_all_lexers from pygments.styles import get_all_styles LEXERS = [item for item in get_all_lexers() if item[1]] LANGUAGE_CHOICES = sorted([(item[1][0], item[0]) for item in LEXERS]) STYLE_CHOICES = sorted([(item, item) for item in get_all_styles()]) class Snippet(models.Model): created = models.DateTimeField(auto_now_add=True) title = models.CharField(max_length=100, blank=True, default='') code = models.TextField() linenos = models.BooleanField(default=False) language = models.CharField(choices=LANGUAGE_CHOICES, default='python', max_length=100) style = models.CharField(choices=STYLE_CHOICES, default='friendly', max_length=100) class Meta: ordering = ['created'] Snippet 有 6 个字段，created、title、code、linenos、language、style。\n接着同步数据库：\npython manage.py makemigrations snippets python manage.py migrate 创建 Serializer rest_framework.serializers 的结构如下：\n查看 Python 模块中的成员，需要勾选：\n之前我们用过 HyperlinkedModelSerializer，是封装后的符合 RESTful 良好设计的序列化器，这里直接使用更底层的 Serializer。在snippets目录下创建serializers.py，添加以下代码：\nfrom rest_framework import serializers from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES class SnippetSerializer(serializers.Serializer): id = serializers.IntegerField(read_only=True) title = serializers.CharField(required=False, allow_blank=True, max_length=100) code = serializers.CharField(style={'base_template': 'textarea.html'}) linenos = serializers.BooleanField(required=False) language = serializers.ChoiceField(choices=LANGUAGE_CHOICES, default='python') style = serializers.ChoiceField(choices=STYLE_CHOICES, default='friendly') def create(self, validated_data): \"\"\" Create and return a new `Snippet` instance, given the validated data. \"\"\" return Snippet.objects.create(**validated_data) def update(self, instance, validated_data): \"\"\" Update and return an existing `Snippet` instance, given the validated data. \"\"\" instance.title = validated_data.get('title', instance.title) instance.code = validated_data.get('code', instance.code) instance.linenos = validated_data.get('linenos', instance.linenos) instance.language = validated_data.get('language', instance.language) instance.style = validated_data.get('style', instance.style) instance.save() return instance 代码第一部分定义了序列化/反序列化的字段，字段定义方式类似于 Form。第二部分的create()和update()方法定义了调用serializer.save()时，创建和更新实例的处理方式。\n玩玩 Serializer 既然已经创建好了 Serializer，何不玩玩它？只有玩了才知道序列化的技术细节。这里用到了 Django shell，可以在命令行实时看到输出结果：\npython manage.py shell 首先通过模型新增 2 条测试数据：\nfrom snippets.models import Snippet from snippets.serializers import SnippetSerializer from rest_framework.renderers import JSONRenderer from rest_framework.parsers import JSONParser snippet = Snippet(code='foo = \"bar\"\\n') snippet.save() snippet = Snippet(code='print(\"hello, world\")\\n') snippet.save() 接着把它序列化看看：\nserializer = SnippetSerializer(snippet) serializer.data # {'id': 2, 'title': '', 'code': 'print(\"hello, world\")\\n', 'linenos': False, 'language': 'python', 'style': 'friendly'} 因为snippet变量最后引用的是第 2 个数据模型的实例，所以这里只显示第 2 条数据。\nserializer.data 返回的是个字典，最后把字典转换为 JSON：\ncontent = JSONRenderer().render(serializer.data) content # b'{\"id\": 2, \"title\": \"\", \"code\": \"print(\\\\\"hello, world\\\\\")\\\\n\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\"}' 这就是序列化的过程，模型实例→Python 字典→JSON。\n反序列化的过程是类似的，先把 JSON 转换为 Python 字典：\nimport io stream = io.BytesIO(content) data = JSONParser().parse(stream) 再把字典转换为模型实例：\nserializer = SnippetSerializer(data=data) serializer.is_valid() # True serializer.validated_data # OrderedDict([('title', ''), ('code', 'print(\"hello, world\")\\n'), ('linenos', False), ('language', 'python'), ('style', 'friendly')]) serializer.save() # 因为 SnippetSerializer 的 create()方法代码是return Snippet.objects.create(**validated_data)，所以serializer.save()会在数据库中新增 1 条数据，并返回 Snippet 模型实例。\n另外，序列化对象不只有模型实例，也可以是数据集：\nserializer = SnippetSerializer(Snippet.objects.all(), many=True) serializer.data # [OrderedDict([('id', 1), ('title', ''), ('code', 'foo = \"bar\"\\n'), ('linenos', False), ('language', 'python'), ('style', 'friendly')]), OrderedDict([('id', 2), ('title', ''), ('code', 'print(\"hello, world\")\\n'), ('linenos', False), ('language', 'python'), ('style', 'friendly')]), OrderedDict([('id', 3), ('title', ''), ('code', 'print(\"hello, world\")'), ('linenos', False), ('language', 'python'), ('style', 'friendly')])] 使用 ModelSerializers rest_framework.serializers.Serializers 比较底层，需要重复定义 model 中的字段，DRF 的作者当然也想到了这个问题，并且给出了解决办法：把 Serializers 封装成 ModelSerializers。在snippets/serializers.py中替换SnippetSerializer为：\nclass SnippetSerializer(serializers.ModelSerializer): class Meta: model = Snippet fields = ['id', 'title', 'code', 'linenos', 'language', 'style'] 写法果然简洁了很多。使用 Django shell 打印出来看看：\nfrom snippets.serializers import SnippetSerializer serializer = SnippetSerializer() print(repr(serializer)) # SnippetSerializer(): # id = IntegerField(label='ID', read_only=True) # title = CharField(allow_blank=True, max_length=100, required=False) # code = CharField(style={'base_template': 'textarea.html'}) # linenos = BooleanField(required=False) # language = ChoiceField(choices=[('Clipper', 'FoxPro'), ('Cucumber', 'Gherkin'), ('RobotFramework', 'RobotFramework'), ('abap', 'ABAP'), ('ada', 'Ada')... # style = ChoiceField(choices=[('autumn', 'autumn'), ('borland', 'borland'), ('bw', 'bw'), ('colorful', 'colorful')... 和手动定义的字段一模一样。其实 ModelSerializer 并没有做额外的处理，我们可以从它的部分代码片段看到:\nserializer_field_mapping = { models.AutoField: IntegerField, models.BigIntegerField: IntegerField, models.BooleanField: BooleanField, # Default `create` and `update` behavior... def create(self, validated_data): def update(self, instance, validated_data): raise_errors_on_nested_writes('update', self, validated_data) 建立字段映射，定义create()和update()等方法，只做了最简单的封装。\n编写 views 我们之前用的是已经封装好的 rest_framework.viewsets，这里直接用 Django 原生的 view。在snippets/views.py中添加代码：\nfrom django.http import HttpResponse, JsonResponse from django.views.decorators.csrf import csrf_exempt from rest_framework.parsers import JSONParser from snippets.models import Snippet from snippets.serializers import SnippetSerializer 先创建 snippet_list 视图，返回 snippets 列表或者新建 1 个 snippet：\n@csrf_exempt def snippet_list(request): \"\"\" List all code snippets, or create a new snippet. \"\"\" if request.method == 'GET': snippets = Snippet.objects.all() serializer = SnippetSerializer(snippets, many=True) return JsonResponse(serializer.data, safe=False) elif request.method == 'POST': data = JSONParser().parse(request) serializer = SnippetSerializer(data=data) if serializer.is_valid(): serializer.save() return JsonResponse(serializer.data, status=201) return JsonResponse(serializer.errors, status=400) 本文示例中，客户端发起 POST 请求是不带 CSRF token 的，所以需要添加 csrf_exempt（exempt 翻译为免除）装饰器，允许跨域访问。这里只是演示，实际会使用django-cors-headers来解决跨域问题，而不是给每个 view 都加上@csrf_exempt。\nCSRF 是指跨站请求伪造，攻击者盗用你的身份，以你的名义发送恶意请求。CSRF token 是指服务器通过 token 来认证，如果请求中没有 token 或者 token 不匹配，那么就认为可能是 CSRF 而拒绝该请求。\n接着添加一个 view，对单个 snippet 进行删（delete）、改（update）、查（retrieve）：\n@csrf_exempt def snippet_detail(request, pk): \"\"\" Retrieve, update or delete a code snippet. \"\"\" try: snippet = Snippet.objects.get(pk=pk) except Snippet.DoesNotExist: return HttpResponse(status=404) if request.method == 'GET': serializer = SnippetSerializer(snippet) return JsonResponse(serializer.data) elif request.method == 'PUT': data = JSONParser().parse(request) serializer = SnippetSerializer(snippet, data=data) if serializer.is_valid(): serializer.save() return JsonResponse(serializer.data) return JsonResponse(serializer.errors, status=400) elif request.method == 'DELETE': snippet.delete() return HttpResponse(status=204) 注意，前面 create 返回的 status 为 201，这里 retrieve 返回的默认的 200，附上几个常见状态码：\n200 OK - GET/PUT/PATCH：服务器成功返回用户请求的数据，该操作是幂等的（Idempotent） 201 CREATED - POST：用户新建数据成功 204 NO content - DELETE：用户删除数据成功 400 Invalid request - POST/PUT/PATCH：用户发出的请求有错误，服务器没有进行新建或修改数据的操作，该操作是幂等的 401 Unauthorized - *：表示用户没有权限（令牌、用户名、密码错误） 403 Forbidden - *：表示用户得到授权（与 401 错误相对），但是访问是被禁止的 最后，添加路由，新建文件snippets/urls.py：\nfrom django.urls import path from snippets import views urlpatterns = [ path('snippets/', views.snippet_list), path('snippets//', views.snippet_detail), ] 再配置到tutorial/urls.py：\nfrom django.urls import path, include urlpatterns = [ path('', include('snippets.urls')), ] 测试 API 启动项目：\npython manage.py runserver 新开一个 Terminal，安装 HTTP 命令行工具：\npip install httpie 请求 snippets 列表：\nhttp http://127.0.0.1:8000/snippets/ HTTP/1.1 200 OK ... [ { \"id\": 1, \"title\": \"\", \"code\": \"foo = \\\"bar\\\"\\n\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\" }, { \"id\": 2, \"title\": \"\", \"code\": \"print(\\\"hello, world\\\")\\n\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\" } ] 请求 id 为 2 的 snippet：\nhttp http://127.0.0.1:8000/snippets/2/ HTTP/1.1 200 OK ... { \"id\": 2, \"title\": \"\", \"code\": \"print(\\\"hello, world\\\")\\n\", \"linenos\": false, \"language\": \"python\", \"style\": \"friendly\" } 小结 不得不说 DRF 的 Tutorial 实践性很强，基本上照着做都能敲出来，体验比较好。序列化的过程，就是模型实例→Python 字典→JSON 的过程。通过本文也理解了在 app 中models.py→serializers.py→views.py→urls.py的代码编写顺序。\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/1-serialization/\nhttps://blog.csdn.net/yexudengzhidao/article/details/93527586\n",
+  "wordCount" : "877",
   "inLanguage": "zh",
   "datePublished": "2026-01-07T00:00:00Z",
   "dateModified": "2026-01-07T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>在 RESTful API 中，接口返回的是 JSON，JSON 的内容对应的是数据库中的数据，DRF 是通过序列化（Serialization）的技术，把数据模型转换为 JSON 的，反之，叫做反序列化（deserialization）。本文就来揭开 2 揭开 DRF 序列化技术的神秘面纱技术的神秘面纱。</p>
+  <div class="post-content md-content"><p>在 RESTful API 中，接口返回的是 JSON，JSON 的内容对应的是数据库中的数据，DRF 是通过序列化（Serialization）的技术，把数据模型转换为 JSON 的，反之，叫做反序列化（deserialization）。本文就来揭开 2 揭开 DRF 序列化技术的神秘面纱技术的神秘面纱。</p>
 <h1 id="创建虚拟环境">创建虚拟环境<a hidden class="anchor" aria-hidden="true" href="#创建虚拟环境">#</a></h1>
 <p>虚拟环境是独立的 Python 环境，可以和系统环境分离，只安装需要的包即可，使用以下命令创建并激活：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#57606a"># 创建Python虚拟环境</span>
@@ -557,7 +529,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -691,19 +663,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

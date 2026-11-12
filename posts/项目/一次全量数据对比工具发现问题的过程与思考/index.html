@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>一次全量数据对比工具发现问题的过程与思考 | 测试开发刚哥</title>
+<title>一次全量数据对比工具发现问题的过程与思考 | 全栈开发刚哥</title>
 <meta name="keywords" content="小工具">
 <meta name="description" content="如果没有这次全量数据对比工具，那么也许这个历史问题会继续隐藏着，直到发生线上事故才暴露出来，毕竟人工抽样验证发现的概率只有5.8%。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E4%B8%80%E6%AC%A1%E5%85%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%AF%94%E5%B7%A5%E5%85%B7%E5%8F%91%E7%8E%B0%E9%97%AE%E9%A2%98%E7%9A%84%E8%BF%87%E7%A8%8B%E4%B8%8E%E6%80%9D%E8%80%83/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/%E4%B8%80%E6%AC%A1%E5%85%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%AF%94%E5%B7%A5%E5%85%B7%E5%8F%91%E7%8E%B0%E9%97%AE%E9%A2%98%E7%9A%84%E8%BF%87%E7%A8%8B%E4%B8%8E%E6%80%9D%E8%80%83/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="一次全量数据对比工具发现问题的过程与思考">
   <meta property="og:description" content="如果没有这次全量数据对比工具，那么也许这个历史问题会继续隐藏着，直到发生线上事故才暴露出来，毕竟人工抽样验证发现的概率只有5.8%。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "小工具"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n如果没有这次全量数据对比工具，那么也许这个历史问题会继续隐藏着，直到发生线上事故才暴露出来，毕竟人工抽样验证发现的概率只有5.8%。\n背景是发票系统有 18500 个电子发票订单被财务系统驳回了，驳回原因是财务系统上线了全电发票需求，上线后电子发票枚举被误删，无法处理电子发票。需要我们发票系统对这 18500 电子发票订单，重新触发提票，让发票能正常开出来。也就是，我们需要刷数。刷数是个高危操作，极易引发线上问题。\n经验教训告诉我们，刷数虽然是一种处理线上问题的方法，但是也特别容易引起二次事故。对于刷数，我们需要像新需求一样对待，经过完备的需求分析、设计评审、代码评审。主要考虑以下 3 点：\n刷数范围，怎么筛选问题数据，评审过滤条件；\n刷数程序，怎么修复问题数据，评审代码逻辑；\n验证方法，怎么验证修复数据，分析测试场景；\n在刷数实施前，群里报备，周知相关方及相关人员。先试刷，验证无问题后，再全刷，最后验证问题数据已经得以修复。这一套刷数流程，通过加强前期评审，能很好地预防缺陷，增强刷数成功的信心。但是人工评估可能遗漏场景，可能对真实数据情况把握不全，刷数的关键还在于最后的数据验证。\n抽样验证还是全量验证，这是一个问题。抽样验证是人工随机挑几个数据进行验证，我们通常倾向于使用抽样验证，一是抽样验证是一种科学的有效的验证方法，虽然它存在一定概率的遗漏，但是很多时候是可以接受的风险；二是抽样验证也是无奈之举，找不到办法进行全量验证。我们遇到的困难是，数据存在 ES 中，批量把所有数据查出来很麻烦，也无法直接编写校验逻辑，全量验证似乎是不可能的。\n全量验证有 2 个思路：\n如果能直连库，那么先提数，再写程序对比；\n如果只能 WEB 页面查数，那么使用 Python 爬虫提数，再写程序对比；\n后者适用于我们的情况。ES 能通过 WEB 页面查询数据，只要是 WEB 页面，即使有 Cookie，也能爬取到接口数据。F12 抓包到查询接口的 URL、Cookie、入参后，使用 Python 的 requests 库可以爬取查询结果数据：\nurl = 'http://xxx' headers = { 'Cookie': 'xxx', 'Content-Type': 'application/json' } response = request('get', url=url, headers=headers) result = response.json() 我们使用这种方式，传入订单号，查询到了申请单数据，以便进行对比校验逻辑。而订单号，研发打在了日志里，需要下载日志文件后，进行解析，可以使用 Python 切片：\norders = set() with open('some.log') as f: for line in f.read().splitlines(): if 'xxx' in line: orders.add(line[line.index('orderId='):line.index(',已执行')].replace('orderId=', '')) print(len(orders)) with open('orders.txt', 'w') as f: f.writelines(','.join(orders)) .index可以定位到关键词的索引，然后[:]切片获取指定内容。\n日志解析订单号+爬虫获取申请单+编写对比校验逻辑，全量数据对比工具就完成了。可是 18500 单，上万级别数据，要全部对比完，至少要几个小时。是时候使用多线程了。\n多线程第一步，拆解数据，将 18500 单拆成以 100 单为一组的列表：\ndef split_list(lst, size): \"\"\" 将列表 lst 拆分成每份 size 个元素的子列表，并返回一个包含所有子列表的列表。 \"\"\" return [lst[i:i + size] for i in range(0, len(lst), size)] 多线程第二步，队列提数，让多个线程依次从列表中取出数据，每个线程每次取不同的数据：\nimport threading ### 待处理的数据列表 data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] ### 创建锁对象 lock = threading.Lock() ### 定义线程函数 def process_data(): global data while True: # 加锁 lock.acquire() # 如果列表为空，说明所有数据已被处理完毕，退出循环 if len(data) == 0: lock.release() break # 取出列表中的第一个数据 num = data.pop(0) # 释放锁 lock.release() # 对数据进行处理 print(\"Processing data:\", num) ### 创建多个线程 threads = [] for i in range(5): t = threading.Thread(target=process_data) threads.append(t) ### 启动所有线程 for t in threads: t.start() ### 等待所有线程结束 for t in threads: t.join() print(\"All data processed.\") 阻塞队列是通过加锁来实现的，每个线程在取数前先加锁，然后pop(0)取出列表中的第一个数据，再释放锁。上述程序修改①data②数据处理逻辑③线程数即可使用。\n对比工具使用多线程后，运行时间从小时级别降到了分钟级别。当天研发本来以为要跑很久，准备第二天再来看，就先撤了。我执着了一下多线程实现，在 ChatGPT 帮助下，很快就把结果跑出来。赶紧打电话摇人，让研发回来看问题，研发那时刚到家，掏出钥匙把门打开。在全量对比前，我们也都做了一轮抽样验证，均没有发现任何问题。18500 单全量对比，发现有 1064 单存在问题，能抽样发现的概率只有 5.8%。\n总结，分析这些问题原因：\n遗漏了 1 种数据情况，评估不到位\n未考虑到刷数环境影响，在预发环境刷数，上下游环境都是预发，可能跟线上版本不一样，尤其是做写操作时，格外需要注意\n刷数程序本身缺陷，这个缺陷隐藏在一段用了很多次刷数的历史代码里面，不是 100%会导致问题\n可以发现，大数据量验证，人工无法百分百保证数据准确性，抽样检查，94.2%概率发现不了问题。最稳妥的办法，还是全量对比，让每条数据，都经过对比规则的检验。\n",
-  "wordCount" : "214",
+  "articleBody": "如果没有这次全量数据对比工具，那么也许这个历史问题会继续隐藏着，直到发生线上事故才暴露出来，毕竟人工抽样验证发现的概率只有5.8%。\n背景是发票系统有 18500 个电子发票订单被财务系统驳回了，驳回原因是财务系统上线了全电发票需求，上线后电子发票枚举被误删，无法处理电子发票。需要我们发票系统对这 18500 电子发票订单，重新触发提票，让发票能正常开出来。也就是，我们需要刷数。刷数是个高危操作，极易引发线上问题。\n经验教训告诉我们，刷数虽然是一种处理线上问题的方法，但是也特别容易引起二次事故。对于刷数，我们需要像新需求一样对待，经过完备的需求分析、设计评审、代码评审。主要考虑以下 3 点：\n刷数范围，怎么筛选问题数据，评审过滤条件；\n刷数程序，怎么修复问题数据，评审代码逻辑；\n验证方法，怎么验证修复数据，分析测试场景；\n在刷数实施前，群里报备，周知相关方及相关人员。先试刷，验证无问题后，再全刷，最后验证问题数据已经得以修复。这一套刷数流程，通过加强前期评审，能很好地预防缺陷，增强刷数成功的信心。但是人工评估可能遗漏场景，可能对真实数据情况把握不全，刷数的关键还在于最后的数据验证。\n抽样验证还是全量验证，这是一个问题。抽样验证是人工随机挑几个数据进行验证，我们通常倾向于使用抽样验证，一是抽样验证是一种科学的有效的验证方法，虽然它存在一定概率的遗漏，但是很多时候是可以接受的风险；二是抽样验证也是无奈之举，找不到办法进行全量验证。我们遇到的困难是，数据存在 ES 中，批量把所有数据查出来很麻烦，也无法直接编写校验逻辑，全量验证似乎是不可能的。\n全量验证有 2 个思路：\n如果能直连库，那么先提数，再写程序对比；\n如果只能 WEB 页面查数，那么使用 Python 爬虫提数，再写程序对比；\n后者适用于我们的情况。ES 能通过 WEB 页面查询数据，只要是 WEB 页面，即使有 Cookie，也能爬取到接口数据。F12 抓包到查询接口的 URL、Cookie、入参后，使用 Python 的 requests 库可以爬取查询结果数据：\nurl = 'http://xxx' headers = { 'Cookie': 'xxx', 'Content-Type': 'application/json' } response = request('get', url=url, headers=headers) result = response.json() 我们使用这种方式，传入订单号，查询到了申请单数据，以便进行对比校验逻辑。而订单号，研发打在了日志里，需要下载日志文件后，进行解析，可以使用 Python 切片：\norders = set() with open('some.log') as f: for line in f.read().splitlines(): if 'xxx' in line: orders.add(line[line.index('orderId='):line.index(',已执行')].replace('orderId=', '')) print(len(orders)) with open('orders.txt', 'w') as f: f.writelines(','.join(orders)) .index可以定位到关键词的索引，然后[:]切片获取指定内容。\n日志解析订单号+爬虫获取申请单+编写对比校验逻辑，全量数据对比工具就完成了。可是 18500 单，上万级别数据，要全部对比完，至少要几个小时。是时候使用多线程了。\n多线程第一步，拆解数据，将 18500 单拆成以 100 单为一组的列表：\ndef split_list(lst, size): \"\"\" 将列表 lst 拆分成每份 size 个元素的子列表，并返回一个包含所有子列表的列表。 \"\"\" return [lst[i:i + size] for i in range(0, len(lst), size)] 多线程第二步，队列提数，让多个线程依次从列表中取出数据，每个线程每次取不同的数据：\nimport threading ### 待处理的数据列表 data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] ### 创建锁对象 lock = threading.Lock() ### 定义线程函数 def process_data(): global data while True: # 加锁 lock.acquire() # 如果列表为空，说明所有数据已被处理完毕，退出循环 if len(data) == 0: lock.release() break # 取出列表中的第一个数据 num = data.pop(0) # 释放锁 lock.release() # 对数据进行处理 print(\"Processing data:\", num) ### 创建多个线程 threads = [] for i in range(5): t = threading.Thread(target=process_data) threads.append(t) ### 启动所有线程 for t in threads: t.start() ### 等待所有线程结束 for t in threads: t.join() print(\"All data processed.\") 阻塞队列是通过加锁来实现的，每个线程在取数前先加锁，然后pop(0)取出列表中的第一个数据，再释放锁。上述程序修改①data②数据处理逻辑③线程数即可使用。\n对比工具使用多线程后，运行时间从小时级别降到了分钟级别。当天研发本来以为要跑很久，准备第二天再来看，就先撤了。我执着了一下多线程实现，在 ChatGPT 帮助下，很快就把结果跑出来。赶紧打电话摇人，让研发回来看问题，研发那时刚到家，掏出钥匙把门打开。在全量对比前，我们也都做了一轮抽样验证，均没有发现任何问题。18500 单全量对比，发现有 1064 单存在问题，能抽样发现的概率只有 5.8%。\n总结，分析这些问题原因：\n遗漏了 1 种数据情况，评估不到位\n未考虑到刷数环境影响，在预发环境刷数，上下游环境都是预发，可能跟线上版本不一样，尤其是做写操作时，格外需要注意\n刷数程序本身缺陷，这个缺陷隐藏在一段用了很多次刷数的历史代码里面，不是 100%会导致问题\n可以发现，大数据量验证，人工无法百分百保证数据准确性，抽样检查，94.2%概率发现不了问题。最稳妥的办法，还是全量对比，让每条数据，都经过对比规则的检验。\n",
+  "wordCount" : "213",
   "inLanguage": "zh",
   "datePublished": "2026-01-03T00:00:00Z",
   "dateModified": "2026-01-03T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>如果没有这次全量数据对比工具，那么也许这个历史问题会继续隐藏着，直到发生线上事故才暴露出来，毕竟人工抽样验证发现的概率只有<strong>5.8%</strong>。</p>
+  <div class="post-content md-content"><p>如果没有这次全量数据对比工具，那么也许这个历史问题会继续隐藏着，直到发生线上事故才暴露出来，毕竟人工抽样验证发现的概率只有<strong>5.8%</strong>。</p>
 <p>背景是发票系统有 18500 个电子发票订单被财务系统驳回了，驳回原因是财务系统上线了全电发票需求，上线后电子发票枚举被误删，无法处理电子发票。需要我们发票系统对这 18500 电子发票订单，重新触发提票，让发票能正常开出来。也就是，我们需要刷数。刷数是个高危操作，极易引发线上问题。</p>
 <p>经验教训告诉我们，刷数虽然是一种处理线上问题的方法，但是也特别容易引起二次事故。对于刷数，我们需要像新需求一样对待，经过完备的需求分析、设计评审、代码评审。主要考虑以下 3 点：</p>
 <ul>
@@ -351,7 +323,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -485,19 +457,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

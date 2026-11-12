@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>JMeter 四种参数化方式 | 测试开发刚哥</title>
+<title>JMeter 四种参数化方式 | 全栈开发刚哥</title>
 <meta name="keywords" content="性能测试, JMeter">
 <meta name="description" content="JMeter 参数化是指把固定的数据动态化，这样更贴合实际的模拟用户请求，比如模拟多个不同账号。JMeter 一共有四种参数化方式，分别是：">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E5%9B%9B%E7%A7%8D%E5%8F%82%E6%95%B0%E5%8C%96%E6%96%B9%E5%BC%8F/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E5%9B%9B%E7%A7%8D%E5%8F%82%E6%95%B0%E5%8C%96%E6%96%B9%E5%BC%8F/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="JMeter 四种参数化方式">
   <meta property="og:description" content="JMeter 参数化是指把固定的数据动态化，这样更贴合实际的模拟用户请求，比如模拟多个不同账号。JMeter 一共有四种参数化方式，分别是：">
   <meta property="og:locale" content="zh_cn">
@@ -115,14 +112,14 @@
   "keywords": [
     "性能测试", "JMeter"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nJMeter 参数化是指把固定的数据动态化，这样更贴合实际的模拟用户请求，比如模拟多个不同账号。JMeter 一共有四种参数化方式，分别是：\nCSV Data Set Config Function Helper User Defined Variables User Parameters CSV Data Set Config 所属组件：Config Element。\nName 带业务含义的名字。\nComments 可以为空的注释。\nConfigure the CSV Data Source 【Filename】文件名，可以是相对路径也可以是绝对路径。推荐使用相对路径，好处是脚本迁移或者分发到多台远程负载机，不改脚本就能直接复用。相对路径的根节点是%JMETER_HOME%\\bin，把 CSV 文件放到这个目录或其子目录下。\n注意，打开方式选择 bin 目录下 jmeter.bat 或快捷方式才会把 bin 作为相对路径的根节点。如果把 bin 目录加入系统环境变量后，用 cmd 执行 jmeter 命令打开，那么相对路径的根节点是 cmd 的工作目录，比如C:\\Users\\dongfanger\\Desktop。\n【File encoding】文件编码，推荐用UTF-8。\n【Variable Names (comma-delimited)】定义的变量名，用逗号隔开，与 CSV 文件的列一一对应。变量比列多，多余的变量取不到值；变量比列少，多余的列不会被取值。此选项可以为空。\n【Ignore first line (only used if Variable Names is not empty)】**上一个选项的变量名为空时，此选项生效。**它会把 CSV 文件的第一行的列名作为变量名，并在取值时忽略第一行。\n【Delimiter (use '\\t' for tab)】CSV 文件分隔符，默认为逗号，也可以用制表符。\n【Allow quoted data】是否允许引用数据，比如双引号\"dongfanger,pass\",1111，允许后能拆分出dongfanger,pass和1111。\n【Recycle on EOF】设置为 True 时，循环遍历 CSV 文件。\n【Stop thread on EOF】设置为 True 时，遍历完 CSV 文件就结束线程。\nEOF 是 End Of File 缩写，文件结束符。JMeter 在测试执行过程中每个线程每次迭代会从参数文件中新取一行数据，从头遍历到尾。\n【Sharing mode】有三种共享模式：默认为 All threads，对所有线程共享；Current thread group 只对当前线程组中的线程共享；Current thread 仅当前线程获取。\n比如 2 个线程组，每个线程组 2 个线程，共享同一个 csv 文件，那么迭代 1 次这 4 个线程会分别取前 4 条数据，互不重复；迭代 2 次这 4 个线程会分别取前 8 条数据，互不重复。\nUser Defined Variables 所属组件：Config Element。\nJMeter 有两个 User Defined Variables，它们的区别是：Test Plan 的 User Defined Variables 作用域是全局的，配置元件的 User Defined Variables 作用域可以是全局的也可以是局部的。\n表格共三列，第一列是 Name 变量名，第二列是 Value 变量值，第三列是 Description 描述。表格下方的功能按钮，用来对表格进行增删改查和上下移动，还能直接从剪贴板添加。\n定义好的变量通过${}格式来使用，比如变量 a 值为 1，使用时写作${a}。这个地方定义的实际上是字符串常量，比如刚才已经定义了一个变量名 a 变量值 1，再定义变量名 b 变量值${a} + 1，b 的实际值不是整型 2 而是字符串\"${a} + 1\"。\nUser Parameters 所属组件：Pre Processors。由于 User Parameters 属于前置处理器，所以它只会对当前 Sampler 生效。\nName 名字 带业务含义的名字。\nComments 注释 可以为空的注释。\nUpdate Once Per Iteration 经过反复多次试验，勾选与否没看出区别。官方解释如下：\nA flag to indicate whether the User Parameters element should update its variables only once per iteration. if you embed functions into the UP, then you may need greater control over how often the values of the variables are updated. Keep this box checked to ensure the values are updated each time through the UP’s parent controller. Uncheck the box, and the UP will update the parameters for every sample request made within its scope.\n从各文章截图总结，一般会勾选上这个选项。\nParameters 表格列 Name 指变量名，表格列 User_x 指某个用户的变量值。下方有 6 个按钮，分别是“添加变量”、“删除变量”、“添加用户”、“删除用户”、“上移”、“下移”。每个线程分配一个变量值；如果线程数大于 User_x，那么会循环取值。\nUser Parameters 在参数较少的情况下使用。\nFunction Helper 函数除了参数化，还可以用来做运算，字符编码格式转换，获取运行时参数等，下篇文章专门来写。\n小结 本文介绍了配置组件里面的 CSV Data Set Config 和 User Defined Variables，作用域可全局可局部。接着介绍了前置处理器 User Parameters，只对当前 Sampler 生效。但都有局限性，为了帮助我们更好地进行参数化，JMeter 提供了一组函数来帮我们生成需要的数据，这些函数在有个地方能够进行编辑，它就是：Function Helper。\n参考资料：\n《全栈性能测试修炼宝典 JMeter 实战》\nhttp://tutorialjmeter.blogspot.com/2017/05/pre-processor-in-jmeter.html\nhttps://jmeter.apache.org/usermanual/component_reference.html#User_Parameters\n",
-  "wordCount" : "303",
+  "articleBody": "JMeter 参数化是指把固定的数据动态化，这样更贴合实际的模拟用户请求，比如模拟多个不同账号。JMeter 一共有四种参数化方式，分别是：\nCSV Data Set Config Function Helper User Defined Variables User Parameters CSV Data Set Config 所属组件：Config Element。\nName 带业务含义的名字。\nComments 可以为空的注释。\nConfigure the CSV Data Source 【Filename】文件名，可以是相对路径也可以是绝对路径。推荐使用相对路径，好处是脚本迁移或者分发到多台远程负载机，不改脚本就能直接复用。相对路径的根节点是%JMETER_HOME%\\bin，把 CSV 文件放到这个目录或其子目录下。\n注意，打开方式选择 bin 目录下 jmeter.bat 或快捷方式才会把 bin 作为相对路径的根节点。如果把 bin 目录加入系统环境变量后，用 cmd 执行 jmeter 命令打开，那么相对路径的根节点是 cmd 的工作目录，比如C:\\Users\\dongfanger\\Desktop。\n【File encoding】文件编码，推荐用UTF-8。\n【Variable Names (comma-delimited)】定义的变量名，用逗号隔开，与 CSV 文件的列一一对应。变量比列多，多余的变量取不到值；变量比列少，多余的列不会被取值。此选项可以为空。\n【Ignore first line (only used if Variable Names is not empty)】**上一个选项的变量名为空时，此选项生效。**它会把 CSV 文件的第一行的列名作为变量名，并在取值时忽略第一行。\n【Delimiter (use '\\t' for tab)】CSV 文件分隔符，默认为逗号，也可以用制表符。\n【Allow quoted data】是否允许引用数据，比如双引号\"dongfanger,pass\",1111，允许后能拆分出dongfanger,pass和1111。\n【Recycle on EOF】设置为 True 时，循环遍历 CSV 文件。\n【Stop thread on EOF】设置为 True 时，遍历完 CSV 文件就结束线程。\nEOF 是 End Of File 缩写，文件结束符。JMeter 在测试执行过程中每个线程每次迭代会从参数文件中新取一行数据，从头遍历到尾。\n【Sharing mode】有三种共享模式：默认为 All threads，对所有线程共享；Current thread group 只对当前线程组中的线程共享；Current thread 仅当前线程获取。\n比如 2 个线程组，每个线程组 2 个线程，共享同一个 csv 文件，那么迭代 1 次这 4 个线程会分别取前 4 条数据，互不重复；迭代 2 次这 4 个线程会分别取前 8 条数据，互不重复。\nUser Defined Variables 所属组件：Config Element。\nJMeter 有两个 User Defined Variables，它们的区别是：Test Plan 的 User Defined Variables 作用域是全局的，配置元件的 User Defined Variables 作用域可以是全局的也可以是局部的。\n表格共三列，第一列是 Name 变量名，第二列是 Value 变量值，第三列是 Description 描述。表格下方的功能按钮，用来对表格进行增删改查和上下移动，还能直接从剪贴板添加。\n定义好的变量通过${}格式来使用，比如变量 a 值为 1，使用时写作${a}。这个地方定义的实际上是字符串常量，比如刚才已经定义了一个变量名 a 变量值 1，再定义变量名 b 变量值${a} + 1，b 的实际值不是整型 2 而是字符串\"${a} + 1\"。\nUser Parameters 所属组件：Pre Processors。由于 User Parameters 属于前置处理器，所以它只会对当前 Sampler 生效。\nName 名字 带业务含义的名字。\nComments 注释 可以为空的注释。\nUpdate Once Per Iteration 经过反复多次试验，勾选与否没看出区别。官方解释如下：\nA flag to indicate whether the User Parameters element should update its variables only once per iteration. if you embed functions into the UP, then you may need greater control over how often the values of the variables are updated. Keep this box checked to ensure the values are updated each time through the UP’s parent controller. Uncheck the box, and the UP will update the parameters for every sample request made within its scope.\n从各文章截图总结，一般会勾选上这个选项。\nParameters 表格列 Name 指变量名，表格列 User_x 指某个用户的变量值。下方有 6 个按钮，分别是“添加变量”、“删除变量”、“添加用户”、“删除用户”、“上移”、“下移”。每个线程分配一个变量值；如果线程数大于 User_x，那么会循环取值。\nUser Parameters 在参数较少的情况下使用。\nFunction Helper 函数除了参数化，还可以用来做运算，字符编码格式转换，获取运行时参数等，下篇文章专门来写。\n小结 本文介绍了配置组件里面的 CSV Data Set Config 和 User Defined Variables，作用域可全局可局部。接着介绍了前置处理器 User Parameters，只对当前 Sampler 生效。但都有局限性，为了帮助我们更好地进行参数化，JMeter 提供了一组函数来帮我们生成需要的数据，这些函数在有个地方能够进行编辑，它就是：Function Helper。\n参考资料：\n《全栈性能测试修炼宝典 JMeter 实战》\nhttp://tutorialjmeter.blogspot.com/2017/05/pre-processor-in-jmeter.html\nhttps://jmeter.apache.org/usermanual/component_reference.html#User_Parameters\n",
+  "wordCount" : "302",
   "inLanguage": "zh",
   "datePublished": "2026-01-08T00:00:00Z",
   "dateModified": "2026-01-08T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -130,7 +127,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -147,29 +144,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -215,10 +190,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>JMeter 参数化是指<strong>把固定的数据动态化</strong>，这样更贴合实际的模拟用户请求，比如模拟多个不同账号。JMeter 一共有四种参数化方式，分别是：</p>
+  <div class="post-content md-content"><p>JMeter 参数化是指<strong>把固定的数据动态化</strong>，这样更贴合实际的模拟用户请求，比如模拟多个不同账号。JMeter 一共有四种参数化方式，分别是：</p>
 <ul>
 <li>CSV Data Set Config</li>
 <li>Function Helper</li>
@@ -335,7 +307,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -469,19 +441,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

@@ -5,12 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>代码评审，揭示黑盒背后的真相 | 测试开发刚哥</title>
+<title>代码评审，揭示黑盒背后的真相 | 全栈开发刚哥</title>
 <meta name="keywords" content="白盒测试">
-<meta name="description" content="
-本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-
-一、引言
+<meta name="description" content="一、引言
 黑盒测试犹如案发现场，只能根据表象推断事件经过。
 代码评审即深入调查，挖掘蛛丝马迹的线索，揭示背后的真相。
 &ldquo;They think I am hiding in the shadows, but I am the shadows.&rdquo;
@@ -77,10 +74,30 @@ Code Diff
 
 代码评审要求测试人员具备代码能力，理解编程语言，掌握软件设计，熟悉代码结构和架构，多与开发同学交流，共同优化代码质量。
 六、代码评审的实际案例
-1、空指针异常">
-<meta name="author" content="测试开发刚哥">
+1、空指针异常
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+
+    private final SqlSessionTemplate sqlSessionTemplate;
+    
+    @Autowired
+    public UserService(SqlSessionTemplate sqlSessionTemplate) {
+        this.sqlSessionTemplate = sqlSessionTemplate;
+    }
+    
+    public void getUserById(String userId) {
+        User user = sqlSessionTemplate.selectOne(&#34;com.example.mapper.UserMapper.getUserById&#34;, userId);
+        System.out.println(user.getName()); // 可能导致空指针异常
+    }
+}
+如果取到的 user 对象为空，就会导致空指针异常。">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E4%BB%A3%E7%A0%81%E8%AF%84%E5%AE%A1%E6%8F%AD%E7%A4%BA%E9%BB%91%E7%9B%92%E8%83%8C%E5%90%8E%E7%9A%84%E7%9C%9F%E7%9B%B8/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -124,11 +141,7 @@ Code Diff
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -138,11 +151,11 @@ Code Diff
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/%E4%BB%A3%E7%A0%81%E8%AF%84%E5%AE%A1%E6%8F%AD%E7%A4%BA%E9%BB%91%E7%9B%92%E8%83%8C%E5%90%8E%E7%9A%84%E7%9C%9F%E7%9B%B8/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="代码评审，揭示黑盒背后的真相">
-  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-一、引言 黑盒测试犹如案发现场，只能根据表象推断事件经过。
+  <meta property="og:description" content="一、引言 黑盒测试犹如案发现场，只能根据表象推断事件经过。
 代码评审即深入调查，挖掘蛛丝马迹的线索，揭示背后的真相。
 “They think I am hiding in the shadows, but I am the shadows.”
 二、黑盒测试与白盒测试的区别 黑盒测试存在一些局限性：
@@ -172,7 +185,8 @@ Code Diff
 关注核心业务代码逻辑，使用条件覆盖、路径覆盖等方法设计测试用例
 优化测试用例，针对代码实现考虑异常、边界、幂等、并发等场景
 代码评审要求测试人员具备代码能力，理解编程语言，掌握软件设计，熟悉代码结构和架构，多与开发同学交流，共同优化代码质量。
-六、代码评审的实际案例 1、空指针异常">
+六、代码评审的实际案例 1、空指针异常
+import org.mybatis.spring.SqlSessionTemplate; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.stereotype.Service; @Service public class UserService { private final SqlSessionTemplate sqlSessionTemplate; @Autowired public UserService(SqlSessionTemplate sqlSessionTemplate) { this.sqlSessionTemplate = sqlSessionTemplate; } public void getUserById(String userId) { User user = sqlSessionTemplate.selectOne(&#34;com.example.mapper.UserMapper.getUserById&#34;, userId); System.out.println(user.getName()); // 可能导致空指针异常 } } 如果取到的 user 对象为空，就会导致空指针异常。">
   <meta property="og:locale" content="zh_cn">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -182,8 +196,7 @@ Code Diff
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="代码评审，揭示黑盒背后的真相">
-  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-一、引言 黑盒测试犹如案发现场，只能根据表象推断事件经过。
+  <meta name="twitter:description" content="一、引言 黑盒测试犹如案发现场，只能根据表象推断事件经过。
 代码评审即深入调查，挖掘蛛丝马迹的线索，揭示背后的真相。
 “They think I am hiding in the shadows, but I am the shadows.”
 二、黑盒测试与白盒测试的区别 黑盒测试存在一些局限性：
@@ -213,7 +226,8 @@ Code Diff
 关注核心业务代码逻辑，使用条件覆盖、路径覆盖等方法设计测试用例
 优化测试用例，针对代码实现考虑异常、边界、幂等、并发等场景
 代码评审要求测试人员具备代码能力，理解编程语言，掌握软件设计，熟悉代码结构和架构，多与开发同学交流，共同优化代码质量。
-六、代码评审的实际案例 1、空指针异常">
+六、代码评审的实际案例 1、空指针异常
+import org.mybatis.spring.SqlSessionTemplate; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.stereotype.Service; @Service public class UserService { private final SqlSessionTemplate sqlSessionTemplate; @Autowired public UserService(SqlSessionTemplate sqlSessionTemplate) { this.sqlSessionTemplate = sqlSessionTemplate; } public void getUserById(String userId) { User user = sqlSessionTemplate.selectOne(&#34;com.example.mapper.UserMapper.getUserById&#34;, userId); System.out.println(user.getName()); // 可能导致空指针异常 } } 如果取到的 user 对象为空，就会导致空指针异常。">
 
 
 <script type="application/ld+json">
@@ -242,18 +256,18 @@ Code Diff
   "@type": "BlogPosting",
   "headline": "代码评审，揭示黑盒背后的真相",
   "name": "代码评审，揭示黑盒背后的真相",
-  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n一、引言 黑盒测试犹如案发现场，只能根据表象推断事件经过。\n代码评审即深入调查，挖掘蛛丝马迹的线索，揭示背后的真相。\n\u0026ldquo;They think I am hiding in the shadows, but I am the shadows.\u0026rdquo;\n二、黑盒测试与白盒测试的区别 黑盒测试存在一些局限性：\n可能无法发现与系统实现相关的问题\n可能无法覆盖所有的测试场景\n测试效率较低，比如准备物料、模拟场景\n强依赖需求文档，如果文档不全，测试会漏\n对于测试人员来说，可以在代码评审阶段，通过白盒测试改进测试的质量和效率。\n三、代码评审的定义和意义 代码评审，Code Review（CR），是一种通过检查代码来提高代码质量的过程。\n对于测试人员来说，参与代码评审，可以尽量提前发现问题，减少修复代价，提高效能。\n四、代码评审的形式 多人讨论\n组织会议，研发牵头讲解代码，架构和测试参与，讨论交流。这是最普遍的一种形式。\nCode Diff\n查看 Code Diff，可以借助 Gitlab 或 IDEA，比较分支差异或版本差异。\n对比时机：\n提测前和测试中，自行走查代码\n发现缺陷，定位代码原因\n修复缺陷后，评估影响范围\n上线前，是否夹带代码\n精准测试\n评估测试用例的代码覆盖率，查漏补缺，Jacoco 的 on-the-fly 模式支持动态收集代码覆盖率数据。\n五、代码评审的方法 面向业务，面向业务，面向业务。重要的事情说三遍。\n刚开始做代码评审，很容易把注意力集中在找代码规范问题上面，比如命名不规范、注释不清楚、代码实现冗长等。这些问题不是测试人员关注的重点，需要由研发团队或代码扫描工具来解决。\n在做 Code Diff 时，也没必要把每个文件、每行代码的意思搞懂，比如研发对代码结构做了调整，在 diff 时要梳理清楚的话，ROI 会非常低，因为既消耗时间，又发现不了问题。\n那该怎么做代码评审呢？ 关注业务：\n跟需求文档比较，哪些需求是遗漏的，哪些代码是补充的，哪些代码是夹带的\n关注核心业务代码逻辑，使用条件覆盖、路径覆盖等方法设计测试用例\n优化测试用例，针对代码实现考虑异常、边界、幂等、并发等场景\n代码评审要求测试人员具备代码能力，理解编程语言，掌握软件设计，熟悉代码结构和架构，多与开发同学交流，共同优化代码质量。\n六、代码评审的实际案例 1、空指针异常\n",
+  "description": "一、引言 黑盒测试犹如案发现场，只能根据表象推断事件经过。\n代码评审即深入调查，挖掘蛛丝马迹的线索，揭示背后的真相。\n\u0026ldquo;They think I am hiding in the shadows, but I am the shadows.\u0026rdquo;\n二、黑盒测试与白盒测试的区别 黑盒测试存在一些局限性：\n可能无法发现与系统实现相关的问题\n可能无法覆盖所有的测试场景\n测试效率较低，比如准备物料、模拟场景\n强依赖需求文档，如果文档不全，测试会漏\n对于测试人员来说，可以在代码评审阶段，通过白盒测试改进测试的质量和效率。\n三、代码评审的定义和意义 代码评审，Code Review（CR），是一种通过检查代码来提高代码质量的过程。\n对于测试人员来说，参与代码评审，可以尽量提前发现问题，减少修复代价，提高效能。\n四、代码评审的形式 多人讨论\n组织会议，研发牵头讲解代码，架构和测试参与，讨论交流。这是最普遍的一种形式。\nCode Diff\n查看 Code Diff，可以借助 Gitlab 或 IDEA，比较分支差异或版本差异。\n对比时机：\n提测前和测试中，自行走查代码\n发现缺陷，定位代码原因\n修复缺陷后，评估影响范围\n上线前，是否夹带代码\n精准测试\n评估测试用例的代码覆盖率，查漏补缺，Jacoco 的 on-the-fly 模式支持动态收集代码覆盖率数据。\n五、代码评审的方法 面向业务，面向业务，面向业务。重要的事情说三遍。\n刚开始做代码评审，很容易把注意力集中在找代码规范问题上面，比如命名不规范、注释不清楚、代码实现冗长等。这些问题不是测试人员关注的重点，需要由研发团队或代码扫描工具来解决。\n在做 Code Diff 时，也没必要把每个文件、每行代码的意思搞懂，比如研发对代码结构做了调整，在 diff 时要梳理清楚的话，ROI 会非常低，因为既消耗时间，又发现不了问题。\n那该怎么做代码评审呢？ 关注业务：\n跟需求文档比较，哪些需求是遗漏的，哪些代码是补充的，哪些代码是夹带的\n关注核心业务代码逻辑，使用条件覆盖、路径覆盖等方法设计测试用例\n优化测试用例，针对代码实现考虑异常、边界、幂等、并发等场景\n代码评审要求测试人员具备代码能力，理解编程语言，掌握软件设计，熟悉代码结构和架构，多与开发同学交流，共同优化代码质量。\n六、代码评审的实际案例 1、空指针异常\nimport org.mybatis.spring.SqlSessionTemplate; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.stereotype.Service; @Service public class UserService { private final SqlSessionTemplate sqlSessionTemplate; @Autowired public UserService(SqlSessionTemplate sqlSessionTemplate) { this.sqlSessionTemplate = sqlSessionTemplate; } public void getUserById(String userId) { User user = sqlSessionTemplate.selectOne(\u0026#34;com.example.mapper.UserMapper.getUserById\u0026#34;, userId); System.out.println(user.getName()); // 可能导致空指针异常 } } 如果取到的 user 对象为空，就会导致空指针异常。\n",
   "keywords": [
     "白盒测试"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n一、引言 黑盒测试犹如案发现场，只能根据表象推断事件经过。\n代码评审即深入调查，挖掘蛛丝马迹的线索，揭示背后的真相。\n“They think I am hiding in the shadows, but I am the shadows.”\n二、黑盒测试与白盒测试的区别 黑盒测试存在一些局限性：\n可能无法发现与系统实现相关的问题\n可能无法覆盖所有的测试场景\n测试效率较低，比如准备物料、模拟场景\n强依赖需求文档，如果文档不全，测试会漏\n对于测试人员来说，可以在代码评审阶段，通过白盒测试改进测试的质量和效率。\n三、代码评审的定义和意义 代码评审，Code Review（CR），是一种通过检查代码来提高代码质量的过程。\n对于测试人员来说，参与代码评审，可以尽量提前发现问题，减少修复代价，提高效能。\n四、代码评审的形式 多人讨论\n组织会议，研发牵头讲解代码，架构和测试参与，讨论交流。这是最普遍的一种形式。\nCode Diff\n查看 Code Diff，可以借助 Gitlab 或 IDEA，比较分支差异或版本差异。\n对比时机：\n提测前和测试中，自行走查代码\n发现缺陷，定位代码原因\n修复缺陷后，评估影响范围\n上线前，是否夹带代码\n精准测试\n评估测试用例的代码覆盖率，查漏补缺，Jacoco 的 on-the-fly 模式支持动态收集代码覆盖率数据。\n五、代码评审的方法 面向业务，面向业务，面向业务。重要的事情说三遍。\n刚开始做代码评审，很容易把注意力集中在找代码规范问题上面，比如命名不规范、注释不清楚、代码实现冗长等。这些问题不是测试人员关注的重点，需要由研发团队或代码扫描工具来解决。\n在做 Code Diff 时，也没必要把每个文件、每行代码的意思搞懂，比如研发对代码结构做了调整，在 diff 时要梳理清楚的话，ROI 会非常低，因为既消耗时间，又发现不了问题。\n那该怎么做代码评审呢？ 关注业务：\n跟需求文档比较，哪些需求是遗漏的，哪些代码是补充的，哪些代码是夹带的\n关注核心业务代码逻辑，使用条件覆盖、路径覆盖等方法设计测试用例\n优化测试用例，针对代码实现考虑异常、边界、幂等、并发等场景\n代码评审要求测试人员具备代码能力，理解编程语言，掌握软件设计，熟悉代码结构和架构，多与开发同学交流，共同优化代码质量。\n六、代码评审的实际案例 1、空指针异常\nimport org.mybatis.spring.SqlSessionTemplate; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.stereotype.Service; @Service public class UserService { private final SqlSessionTemplate sqlSessionTemplate; @Autowired public UserService(SqlSessionTemplate sqlSessionTemplate) { this.sqlSessionTemplate = sqlSessionTemplate; } public void getUserById(String userId) { User user = sqlSessionTemplate.selectOne(\"com.example.mapper.UserMapper.getUserById\", userId); System.out.println(user.getName()); // 可能导致空指针异常 } } 如果取到的 user 对象为空，就会导致空指针异常。\n2、String 类型判空用 StringUtils.isBlank()，Collection 类判空用 CollectionUtils.isEmpty()\nimport org.apache.commons.lang3.StringUtils; public class ExampleStringUtils { public static void main(String[] args) { String str1 = \"\"; String str2 = null; String str3 = \" \"; if (StringUtils.isBlank(str1)) { System.out.println(\"str1 is blank or null\"); } if (StringUtils.isBlank(str2)) { System.out.println(\"str2 is blank or null\"); } if (StringUtils.isBlank(str3)) { System.out.println(\"str3 is blank or null\"); } } } import org.apache.commons.collections4.CollectionUtils; import java.util.ArrayList; import java.util.List; public class ExampleCollectionUtils { public static void main(String[] args) { List\u003cString\u003e list1 = new ArrayList\u003c\u003e(); List\u003cString\u003e list2 = null; if (CollectionUtils.isEmpty(list1)) { System.out.println(\"list1 is empty or null\"); } if (CollectionUtils.isEmpty(list2)) { System.out.println(\"list2 is empty or null\"); } } } 3、写操作的事务一致性\n@Service public class UserService { private final UserMapper userMapper; private final AccountMapper accountMapper; // 省略构造方法 public void addUserAndDeductBalance(User user, double amount) { try { userMapper.insertUser(user); // 插入用户信息 accountMapper.deductBalance(user.getAccountId(), amount); // 扣除账户余额 // 其他写操作... } catch (Exception e) { // 处理异常 } } } 没有使用 @Transactional，不会进行事务管理和回滚，如果执行accountMapper.deductBalance()时异常，那么已经执行的 userMapper.insertUser() 操作无法回滚，用户信息被插入但账户余额未扣除，导致数据的不一致性。\n4、根据判断条件补充用例\npublic class ECommerceSystem { public static void main(String[] args) { String productCategory = \"electronics\"; float productPrice = 999.99f; int userPoints = 100; if (\"electronics\".equals(productCategory)) { if (productPrice \u003e 1000) { if (userPoints \u003e 50) { applyDiscount(0.2f); } else { applyDiscount(0.1f); } } else { if (userPoints \u003e 100) { applyDiscount(0.15f); } else { applyDiscount(0.05f); } } } else if (\"clothing\".equals(productCategory)) { if (productPrice \u003e 500) { if (userPoints \u003e 100) { applyDiscount(0.3f); } else { applyDiscount(0.2f); } } else { if (userPoints \u003e 50) { applyDiscount(0.1f); } else { applyDiscount(0.05f); } } } else { if (productPrice \u003e 100) { if (userPoints \u003e 10) { applyDiscount(0.1f); } else { applyDiscount(0.05f); } } } } private static void applyDiscount(float discount) { System.out.println(\"Applying discount of \" + discount * 100 + \"%\"); // 执行折扣逻辑 } } 复杂的判断条件，文档很可能描述不全所有场景，需要针对代码实现，补充测试用例。\n5、代码放在不同位置，影响范围变小\npublic class ShoppingCart { private List\u003cProduct\u003e products = new ArrayList\u003c\u003e(); public void addToCart(Product product) { products.add(product); updateCartTotal(); } public void removeFromCart(Product product) { products.remove(product); updateCartTotal(); } private void updateCartTotal() { float total = 0; for (Product product : products) { total += product.getPrice(); } System.out.println(\"Cart Total: \" + total); } } public class Product { private String name; private float price; // constructor, getters and setters public float getPrice() { return price; } } 如果需要更改计算总金额的逻辑，只需修改 updateCartTotal() 方法即可，而不需要修改调用该方法的其他部分代码，测试点更少，影响面更小。\n6、for 循环性能优化\npublic class PerformanceOptimization { public static void main(String[] args) { List\u003cInteger\u003e numbers = Arrays.asList(1, 2, 3, 4, 5); // 原始的 for 循环 long startTime = System.nanoTime(); for (int i = 0; i \u003c numbers.size(); i++) { int number = numbers.get(i); System.out.println(number); } long endTime = System.nanoTime(); long elapsedTime = endTime - startTime; System.out.println(\"原始 for 循环耗时: \" + elapsedTime + \" 纳秒\"); // 使用增强 for 循环 startTime = System.nanoTime(); for (int number : numbers) { System.out.println(number); } endTime = System.nanoTime(); elapsedTime = endTime - startTime; System.out.println(\"增强 for 循环耗时: \" + elapsedTime + \" 纳秒\"); } } 如果 for 循环里面接口调用或计算量大，可能会导致性能问题。\n7、finally 块的 return 覆盖 try-catch 块中的 return\npublic class ReturnInFinally { public static void main(String[] args) { System.out.println(testMethod()); } public static int testMethod() { try { System.out.println(\"Inside try block\"); return 1; } catch (Exception ex) { System.out.println(\"Inside catch block\"); return 2; } finally { System.out.println(\"Inside finally block\"); return 3; } } } 如果确实需要在 finally 块中执行一些清理或资源释放操作，并希望保留 try-catch 块中的返回结果，可以将返回值存储在一个变量中，在 finally 块之后再进行返回。\n8、多表同时更新，使用分布式事务\ntry { // 开启分布式事务 beginDistributedTransaction(); // 执行事务操作1 updateTable1(); // 执行事务操作2 updateTable2(); // 执行事务操作3 updateTable3(); // 提交分布式事务 commitDistributedTransaction(); } catch (Exception e) { // 回滚分布式事务 rollbackDistributedTransaction(); // 处理异常 handleException(e); } 假设有两个服务，一个是订单服务，负责处理用户下单和创建订单；另一个是库存服务，负责管理商品的库存数量。当用户下单时，订单服务需要创建订单并扣减对应商品的库存。可能会出现数据不一致：在订单服务创建订单之后，库存服务还未扣减库存的情况下发生了故障，导致订单已经创建但库存没有被正确扣减。这会导致订单和库存之间的数据不一致。如果只是简单地依次执行两个操作，无法保证它们的原子性。\n9、幂等\npublic class OrderService { public String createOrder(OrderData orderData) { // 生成订单号 String orderId = generateOrderId(); // 检查订单是否已经存在 if (!isOrderExist(orderId)) { // 创建订单 saveOrder(orderId, orderData); // 扣减库存 decreaseInventory(orderData); return \"订单创建成功\"; } else { return \"订单已存在\"; } } private String generateOrderId() { // 省略具体实现 return \"123456789\"; } private boolean isOrderExist(String orderId) { // 省略具体实现 return false; } private void saveOrder(String orderId, OrderData orderData) { // 省略具体实现 } private void decreaseInventory(OrderData orderData) { // 省略具体实现 } } 如果发起重复请求，上个请求还未处理完，可能会重复创建相同订单。考虑使用分布式锁来保证接口的幂等性。\n10、执行频率高的代码日志，增加级别判断\nimport org.slf4j.Logger; import org.slf4j.LoggerFactory; public class MyClass { private static final Logger logger = LoggerFactory.getLogger(MyClass.class); public void myMethod() { // 判断日志级别是否为 INFO if (logger.isInfoEnabled()) { String message = \"This is an info message.\"; logger.info(message); } } } 11、枚举类\npublic enum InvoiceStatus { PENDING(\"待处理\"), APPROVED(\"已批准\"), REJECTED(\"已拒绝\"), CANCELLED(\"已取消\"), PAID(\"已支付\"); // 省略定义 } 如果筛选几个枚举作为状态判断，可能不准确。\n12、更多业务类案例：\n代码未找到需求相关实现，参考需求文档\n上下游接口字段未对齐，参考接口文档\n修改了公共方法，回归范围扩大\n修改了方法 A1，未修改方法 A2，A1 和 A2 是不同入口，都需要修改\n七、总结 从业务需求角度出发，剖析代码逻辑，运用测试经验，以更高的效率，发现更多的缺陷，这就是代码评审带来的烧脑体验。\n",
-  "wordCount" : "805",
+  "articleBody": "一、引言 黑盒测试犹如案发现场，只能根据表象推断事件经过。\n代码评审即深入调查，挖掘蛛丝马迹的线索，揭示背后的真相。\n“They think I am hiding in the shadows, but I am the shadows.”\n二、黑盒测试与白盒测试的区别 黑盒测试存在一些局限性：\n可能无法发现与系统实现相关的问题\n可能无法覆盖所有的测试场景\n测试效率较低，比如准备物料、模拟场景\n强依赖需求文档，如果文档不全，测试会漏\n对于测试人员来说，可以在代码评审阶段，通过白盒测试改进测试的质量和效率。\n三、代码评审的定义和意义 代码评审，Code Review（CR），是一种通过检查代码来提高代码质量的过程。\n对于测试人员来说，参与代码评审，可以尽量提前发现问题，减少修复代价，提高效能。\n四、代码评审的形式 多人讨论\n组织会议，研发牵头讲解代码，架构和测试参与，讨论交流。这是最普遍的一种形式。\nCode Diff\n查看 Code Diff，可以借助 Gitlab 或 IDEA，比较分支差异或版本差异。\n对比时机：\n提测前和测试中，自行走查代码\n发现缺陷，定位代码原因\n修复缺陷后，评估影响范围\n上线前，是否夹带代码\n精准测试\n评估测试用例的代码覆盖率，查漏补缺，Jacoco 的 on-the-fly 模式支持动态收集代码覆盖率数据。\n五、代码评审的方法 面向业务，面向业务，面向业务。重要的事情说三遍。\n刚开始做代码评审，很容易把注意力集中在找代码规范问题上面，比如命名不规范、注释不清楚、代码实现冗长等。这些问题不是测试人员关注的重点，需要由研发团队或代码扫描工具来解决。\n在做 Code Diff 时，也没必要把每个文件、每行代码的意思搞懂，比如研发对代码结构做了调整，在 diff 时要梳理清楚的话，ROI 会非常低，因为既消耗时间，又发现不了问题。\n那该怎么做代码评审呢？ 关注业务：\n跟需求文档比较，哪些需求是遗漏的，哪些代码是补充的，哪些代码是夹带的\n关注核心业务代码逻辑，使用条件覆盖、路径覆盖等方法设计测试用例\n优化测试用例，针对代码实现考虑异常、边界、幂等、并发等场景\n代码评审要求测试人员具备代码能力，理解编程语言，掌握软件设计，熟悉代码结构和架构，多与开发同学交流，共同优化代码质量。\n六、代码评审的实际案例 1、空指针异常\nimport org.mybatis.spring.SqlSessionTemplate; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.stereotype.Service; @Service public class UserService { private final SqlSessionTemplate sqlSessionTemplate; @Autowired public UserService(SqlSessionTemplate sqlSessionTemplate) { this.sqlSessionTemplate = sqlSessionTemplate; } public void getUserById(String userId) { User user = sqlSessionTemplate.selectOne(\"com.example.mapper.UserMapper.getUserById\", userId); System.out.println(user.getName()); // 可能导致空指针异常 } } 如果取到的 user 对象为空，就会导致空指针异常。\n2、String 类型判空用 StringUtils.isBlank()，Collection 类判空用 CollectionUtils.isEmpty()\nimport org.apache.commons.lang3.StringUtils; public class ExampleStringUtils { public static void main(String[] args) { String str1 = \"\"; String str2 = null; String str3 = \" \"; if (StringUtils.isBlank(str1)) { System.out.println(\"str1 is blank or null\"); } if (StringUtils.isBlank(str2)) { System.out.println(\"str2 is blank or null\"); } if (StringUtils.isBlank(str3)) { System.out.println(\"str3 is blank or null\"); } } } import org.apache.commons.collections4.CollectionUtils; import java.util.ArrayList; import java.util.List; public class ExampleCollectionUtils { public static void main(String[] args) { List\u003cString\u003e list1 = new ArrayList\u003c\u003e(); List\u003cString\u003e list2 = null; if (CollectionUtils.isEmpty(list1)) { System.out.println(\"list1 is empty or null\"); } if (CollectionUtils.isEmpty(list2)) { System.out.println(\"list2 is empty or null\"); } } } 3、写操作的事务一致性\n@Service public class UserService { private final UserMapper userMapper; private final AccountMapper accountMapper; // 省略构造方法 public void addUserAndDeductBalance(User user, double amount) { try { userMapper.insertUser(user); // 插入用户信息 accountMapper.deductBalance(user.getAccountId(), amount); // 扣除账户余额 // 其他写操作... } catch (Exception e) { // 处理异常 } } } 没有使用 @Transactional，不会进行事务管理和回滚，如果执行accountMapper.deductBalance()时异常，那么已经执行的 userMapper.insertUser() 操作无法回滚，用户信息被插入但账户余额未扣除，导致数据的不一致性。\n4、根据判断条件补充用例\npublic class ECommerceSystem { public static void main(String[] args) { String productCategory = \"electronics\"; float productPrice = 999.99f; int userPoints = 100; if (\"electronics\".equals(productCategory)) { if (productPrice \u003e 1000) { if (userPoints \u003e 50) { applyDiscount(0.2f); } else { applyDiscount(0.1f); } } else { if (userPoints \u003e 100) { applyDiscount(0.15f); } else { applyDiscount(0.05f); } } } else if (\"clothing\".equals(productCategory)) { if (productPrice \u003e 500) { if (userPoints \u003e 100) { applyDiscount(0.3f); } else { applyDiscount(0.2f); } } else { if (userPoints \u003e 50) { applyDiscount(0.1f); } else { applyDiscount(0.05f); } } } else { if (productPrice \u003e 100) { if (userPoints \u003e 10) { applyDiscount(0.1f); } else { applyDiscount(0.05f); } } } } private static void applyDiscount(float discount) { System.out.println(\"Applying discount of \" + discount * 100 + \"%\"); // 执行折扣逻辑 } } 复杂的判断条件，文档很可能描述不全所有场景，需要针对代码实现，补充测试用例。\n5、代码放在不同位置，影响范围变小\npublic class ShoppingCart { private List\u003cProduct\u003e products = new ArrayList\u003c\u003e(); public void addToCart(Product product) { products.add(product); updateCartTotal(); } public void removeFromCart(Product product) { products.remove(product); updateCartTotal(); } private void updateCartTotal() { float total = 0; for (Product product : products) { total += product.getPrice(); } System.out.println(\"Cart Total: \" + total); } } public class Product { private String name; private float price; // constructor, getters and setters public float getPrice() { return price; } } 如果需要更改计算总金额的逻辑，只需修改 updateCartTotal() 方法即可，而不需要修改调用该方法的其他部分代码，测试点更少，影响面更小。\n6、for 循环性能优化\npublic class PerformanceOptimization { public static void main(String[] args) { List\u003cInteger\u003e numbers = Arrays.asList(1, 2, 3, 4, 5); // 原始的 for 循环 long startTime = System.nanoTime(); for (int i = 0; i \u003c numbers.size(); i++) { int number = numbers.get(i); System.out.println(number); } long endTime = System.nanoTime(); long elapsedTime = endTime - startTime; System.out.println(\"原始 for 循环耗时: \" + elapsedTime + \" 纳秒\"); // 使用增强 for 循环 startTime = System.nanoTime(); for (int number : numbers) { System.out.println(number); } endTime = System.nanoTime(); elapsedTime = endTime - startTime; System.out.println(\"增强 for 循环耗时: \" + elapsedTime + \" 纳秒\"); } } 如果 for 循环里面接口调用或计算量大，可能会导致性能问题。\n7、finally 块的 return 覆盖 try-catch 块中的 return\npublic class ReturnInFinally { public static void main(String[] args) { System.out.println(testMethod()); } public static int testMethod() { try { System.out.println(\"Inside try block\"); return 1; } catch (Exception ex) { System.out.println(\"Inside catch block\"); return 2; } finally { System.out.println(\"Inside finally block\"); return 3; } } } 如果确实需要在 finally 块中执行一些清理或资源释放操作，并希望保留 try-catch 块中的返回结果，可以将返回值存储在一个变量中，在 finally 块之后再进行返回。\n8、多表同时更新，使用分布式事务\ntry { // 开启分布式事务 beginDistributedTransaction(); // 执行事务操作1 updateTable1(); // 执行事务操作2 updateTable2(); // 执行事务操作3 updateTable3(); // 提交分布式事务 commitDistributedTransaction(); } catch (Exception e) { // 回滚分布式事务 rollbackDistributedTransaction(); // 处理异常 handleException(e); } 假设有两个服务，一个是订单服务，负责处理用户下单和创建订单；另一个是库存服务，负责管理商品的库存数量。当用户下单时，订单服务需要创建订单并扣减对应商品的库存。可能会出现数据不一致：在订单服务创建订单之后，库存服务还未扣减库存的情况下发生了故障，导致订单已经创建但库存没有被正确扣减。这会导致订单和库存之间的数据不一致。如果只是简单地依次执行两个操作，无法保证它们的原子性。\n9、幂等\npublic class OrderService { public String createOrder(OrderData orderData) { // 生成订单号 String orderId = generateOrderId(); // 检查订单是否已经存在 if (!isOrderExist(orderId)) { // 创建订单 saveOrder(orderId, orderData); // 扣减库存 decreaseInventory(orderData); return \"订单创建成功\"; } else { return \"订单已存在\"; } } private String generateOrderId() { // 省略具体实现 return \"123456789\"; } private boolean isOrderExist(String orderId) { // 省略具体实现 return false; } private void saveOrder(String orderId, OrderData orderData) { // 省略具体实现 } private void decreaseInventory(OrderData orderData) { // 省略具体实现 } } 如果发起重复请求，上个请求还未处理完，可能会重复创建相同订单。考虑使用分布式锁来保证接口的幂等性。\n10、执行频率高的代码日志，增加级别判断\nimport org.slf4j.Logger; import org.slf4j.LoggerFactory; public class MyClass { private static final Logger logger = LoggerFactory.getLogger(MyClass.class); public void myMethod() { // 判断日志级别是否为 INFO if (logger.isInfoEnabled()) { String message = \"This is an info message.\"; logger.info(message); } } } 11、枚举类\npublic enum InvoiceStatus { PENDING(\"待处理\"), APPROVED(\"已批准\"), REJECTED(\"已拒绝\"), CANCELLED(\"已取消\"), PAID(\"已支付\"); // 省略定义 } 如果筛选几个枚举作为状态判断，可能不准确。\n12、更多业务类案例：\n代码未找到需求相关实现，参考需求文档\n上下游接口字段未对齐，参考接口文档\n修改了公共方法，回归范围扩大\n修改了方法 A1，未修改方法 A2，A1 和 A2 是不同入口，都需要修改\n七、总结 从业务需求角度出发，剖析代码逻辑，运用测试经验，以更高的效率，发现更多的缺陷，这就是代码评审带来的烧脑体验。\n",
+  "wordCount" : "804",
   "inLanguage": "zh",
   "datePublished": "2026-01-02T00:00:00Z",
   "dateModified": "2026-01-02T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -261,7 +275,7 @@ Code Diff
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -278,29 +292,7 @@ Code Diff
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -346,10 +338,7 @@ Code Diff
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<h1 id="一引言">一、引言<a hidden class="anchor" aria-hidden="true" href="#一引言">#</a></h1>
+  <div class="post-content md-content"><h1 id="一引言">一、引言<a hidden class="anchor" aria-hidden="true" href="#一引言">#</a></h1>
 <p>黑盒测试犹如案发现场，只能根据表象推断事件经过。</p>
 <p>代码评审即深入调查，挖掘蛛丝马迹的线索，揭示背后的真相。</p>
 <p>&ldquo;They think I am hiding in the shadows, but I am the shadows.&rdquo;</p>
@@ -776,7 +765,7 @@ Code Diff
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -910,19 +899,6 @@ Code Diff
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

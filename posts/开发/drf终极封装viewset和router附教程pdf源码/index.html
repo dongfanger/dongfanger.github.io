@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>DRF 终极封装 ViewSet 和 Router 附教程 PDF 源码 | 测试开发刚哥</title>
+<title>DRF 终极封装 ViewSet 和 Router 附教程 PDF 源码 | 全栈开发刚哥</title>
 <meta name="keywords" content="Django">
 <meta name="description" content="在 DRF 官方教程的学习过程中，一个很明显的感受是框架在不断地进行封装，我们自己写框架/工具/脚本/平台也可以模仿模仿，先完成底层代码，再做多层封装，让使用者很容易就上手操作。本文是教程的最后一篇，介绍 ViewSets 和 Routers。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E7%BB%88%E6%9E%81%E5%B0%81%E8%A3%85viewset%E5%92%8Crouter%E9%99%84%E6%95%99%E7%A8%8Bpdf%E6%BA%90%E7%A0%81/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/drf%E7%BB%88%E6%9E%81%E5%B0%81%E8%A3%85viewset%E5%92%8Crouter%E9%99%84%E6%95%99%E7%A8%8Bpdf%E6%BA%90%E7%A0%81/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="DRF 终极封装 ViewSet 和 Router 附教程 PDF 源码">
   <meta property="og:description" content="在 DRF 官方教程的学习过程中，一个很明显的感受是框架在不断地进行封装，我们自己写框架/工具/脚本/平台也可以模仿模仿，先完成底层代码，再做多层封装，让使用者很容易就上手操作。本文是教程的最后一篇，介绍 ViewSets 和 Routers。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Django"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n在 DRF 官方教程的学习过程中，一个很明显的感受是框架在不断地进行封装，我们自己写框架/工具/脚本/平台也可以模仿模仿，先完成底层代码，再做多层封装，让使用者很容易就上手操作。本文是教程的最后一篇，介绍 ViewSets 和 Routers。\nViewSets 先看看之前在给 User 模型创建 Endpoint 时，我们新增的 2 个视图：\nclass UserList(generics.ListAPIView): queryset = User.objects.all() serializer_class = UserSerializer class UserDetail(generics.RetrieveAPIView): queryset = User.objects.all() serializer_class = UserSerializer DRF 提供了rest_framework.viewsets：\n可以把它们合成一个视图。\nset 是集合的意思，ViewSets 就是视图集合。\nReadOnlyModelViewSet 我们先使用ReadOnlyModelViewSet把UserList和UserDetail视图合并成一个UserViewSet：\nfrom rest_framework import viewsets class UserViewSet(viewsets.ReadOnlyModelViewSet): \"\"\" This viewset automatically provides `list` and `retrieve` actions. \"\"\" queryset = User.objects.all() serializer_class = UserSerializer viewsets.ReadOnlyModelViewSet是只读视图集合，源码如下：\nclass ReadOnlyModelViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet): \"\"\" A viewset that provides default `list()` and `retrieve()` actions. \"\"\" pass 它继承了mixins.RetrieveModelMixin、mixins.ListModelMixin和GenericViewSet：\nmixins.RetrieveModelMixin\nclass RetrieveModelMixin: \"\"\" Retrieve a model instance. \"\"\" def retrieve(self, request, *args, **kwargs): instance = self.get_object() serializer = self.get_serializer(instance) return Response(serializer.data) mixins.ListModelMixin\nclass ListModelMixin: \"\"\" List a queryset. \"\"\" def list(self, request, *args, **kwargs): queryset = self.filter_queryset(self.get_queryset()) page = self.paginate_queryset(queryset) if page is not None: serializer = self.get_serializer(page, many=True) return self.get_paginated_response(serializer.data) serializer = self.get_serializer(queryset, many=True) return Response(serializer.data) viewsets.GenericViewSet\nclass GenericViewSet(ViewSetMixin, generics.GenericAPIView): \"\"\" The GenericViewSet class does not provide any actions by default, but does include the base set of generic view behavior, such as the `get_object` and `get_queryset` methods. \"\"\" pass 从源码可以看出，它提供了list()和retrieve()2 个方法，正好对应UserList和UserDetail。\nModelViewSet 再使用ModelViewSet把SnippetList、SnippetDetail和SnippetHighlight视图合并成一个SnippetViewSet：\nfrom rest_framework.decorators import action from rest_framework.response import Response from rest_framework import permissions class SnippetViewSet(viewsets.ModelViewSet): \"\"\" This viewset automatically provides `list`, `create`, `retrieve`, `update` and `destroy` actions. Additionally we also provide an extra `highlight` action. \"\"\" queryset = Snippet.objects.all() serializer_class = SnippetSerializer permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly] @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer]) def highlight(self, request, *args, **kwargs): snippet = self.get_object() return Response(snippet.highlighted) def perform_create(self, serializer): serializer.save(owner=self.request.user) @action装饰器用来创建除了create/update/delete以外的 action，默认为GET请求，如果想改为POST请求，可以添加参数methods，它的源码如下：\ndef action(methods=None, detail=None, url_path=None, url_name=None, **kwargs): \"\"\" Mark a ViewSet method as a routable action. `@action`-decorated functions will be endowed with a `mapping` property, a `MethodMapper` that can be used to add additional method-based behaviors on the routed action. :param methods: A list of HTTP method names this action responds to. Defaults to GET only. :param detail: Required. Determines whether this action applies to instance/detail requests or collection/list requests. :param url_path: Define the URL segment for this action. Defaults to the name of the method decorated. :param url_name: Define the internal (`reverse`) URL name for this action. Defaults to the name of the method decorated with underscores replaced with dashes. :param kwargs: Additional properties to set on the view. This can be used to override viewset-level *_classes settings, equivalent to how the `@renderer_classes` etc. decorators work for function- based API views. \"\"\" methods = ['get'] if (methods is None) else methods methods = [method.lower() for method in methods] assert detail is not None, ( \"@action() missing required argument: 'detail'\" ) # name and suffix are mutually exclusive if 'name' in kwargs and 'suffix' in kwargs: raise TypeError(\"`name` and `suffix` are mutually exclusive arguments.\") def decorator(func): func.mapping = MethodMapper(func, methods) func.detail = detail func.url_path = url_path if url_path else func.__name__ func.url_name = url_name if url_name else func.__name__.replace('_', '-') # These kwargs will end up being passed to `ViewSet.as_view()` within # the router, which eventually delegates to Django's CBV `View`, # which assigns them as instance attributes for each request. func.kwargs = kwargs # Set descriptive arguments for viewsets if 'name' not in kwargs and 'suffix' not in kwargs: func.kwargs['name'] = pretty_name(func.__name__) func.kwargs['description'] = func.__doc__ or None return func return decorator viewsets.ModelViewSet包含了增删改查视图集合，源码如下：\nclass ModelViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, mixins.ListModelMixin, GenericViewSet): \"\"\" A viewset that provides default `create()`, `retrieve()`, `update()`, `partial_update()`, `destroy()` and `list()` actions. \"\"\" pass 它继承了mixins.CreateModelMixin、mixins.RetrieveModelMixin、mixins.UpdateModelMixin、mixins.DestroyModelMixin、mixins.ListModelMixin、GenericViewSet：\n其中mixins.RetrieveModelMixin、mixins.ListModelMixin和GenericViewSet在前面已经介绍过了\nmixins.CreateModelMixin\nclass CreateModelMixin: \"\"\" Create a model instance. \"\"\" def create(self, request, *args, **kwargs): serializer = self.get_serializer(data=request.data) serializer.is_valid(raise_exception=True) self.perform_create(serializer) headers = self.get_success_headers(serializer.data) return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers) def perform_create(self, serializer): serializer.save() def get_success_headers(self, data): try: return {'Location': str(data[api_settings.URL_FIELD_NAME])} except (TypeError, KeyError): return {} mixins.UpdateModelMixin\nclass UpdateModelMixin: \"\"\" Update a model instance. \"\"\" def update(self, request, *args, **kwargs): partial = kwargs.pop('partial', False) instance = self.get_object() serializer = self.get_serializer(instance, data=request.data, partial=partial) serializer.is_valid(raise_exception=True) self.perform_update(serializer) if getattr(instance, '_prefetched_objects_cache', None): # If 'prefetch_related' has been applied to a queryset, we need to # forcibly invalidate the prefetch cache on the instance. instance._prefetched_objects_cache = {} return Response(serializer.data) def perform_update(self, serializer): serializer.save() def partial_update(self, request, *args, **kwargs): kwargs['partial'] = True return self.update(request, *args, **kwargs) mixins.DestroyModelMixin\nclass DestroyModelMixin: \"\"\" Destroy a model instance. \"\"\" def destroy(self, request, *args, **kwargs): instance = self.get_object() self.perform_destroy(instance) return Response(status=status.HTTP_204_NO_CONTENT) def perform_destroy(self, instance): instance.delete() 修改 URLConf 视图改为ViewSet后，需要同时修改 URLConf，编辑snippets/urls.py：\nfrom snippets.views import SnippetViewSet, UserViewSet, api_root from rest_framework import renderers snippet_list = SnippetViewSet.as_view({ 'get': 'list', 'post': 'create' }) snippet_detail = SnippetViewSet.as_view({ 'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy' }) snippet_highlight = SnippetViewSet.as_view({ 'get': 'highlight' }, renderer_classes=[renderers.StaticHTMLRenderer]) user_list = UserViewSet.as_view({ 'get': 'list' }) user_detail = UserViewSet.as_view({ 'get': 'retrieve' }) urlpatterns = format_suffix_patterns([ path('', api_root), path('snippets/', snippet_list, name='snippet-list'), path('snippets//', snippet_detail, name='snippet-detail'), path('snippets//highlight/', snippet_highlight, name='snippet-highlight'), path('users/', user_list, name='user-list'), path('users//', user_detail, name='user-detail') ]) 注意，ViewSet需要绑定 http methods 和 action，以指定请求方法对应的处理动作。\nRouters 使用ViewSet的一大好处是可以自动配置路由，DRF 提供了rest_framework.routers：\n我们重新编写snippets/urls.py看看是什么效果：\nfrom django.urls import path, include from rest_framework.routers import DefaultRouter from snippets import views ## Create a router and register our viewsets with it. router = DefaultRouter() router.register(r'snippets', views.SnippetViewSet) router.register(r'users', views.UserViewSet) ## The API URLs are now determined automatically by the router. urlpatterns = [ path('', include(router.urls)), ] 真是厉害！这封装简直高级！而且DefaultRouter提供了 API 根目录的 Endpoint，我们甚至可以把views.py中的api_root也删了。\n小结 本文是官方教程学习笔记的最后一篇了。可以从教程中了解到从函数视图到类视图，从 View 到 ViewSet 是如何封装起来的，实际运用中并不一定全部都得用类视图和 ViewSet，还是需要平衡选择。后续还会有 DRF 系列的文章输出，不过作为阶段性成果，我把这 7 篇文章导成了 PDF，和最后一版的源码，打包一起上传了，需要的话，可以在公众号后台回复【drf】获取：\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/6-viewsets-and-routers/\n",
-  "wordCount" : "831",
+  "articleBody": "在 DRF 官方教程的学习过程中，一个很明显的感受是框架在不断地进行封装，我们自己写框架/工具/脚本/平台也可以模仿模仿，先完成底层代码，再做多层封装，让使用者很容易就上手操作。本文是教程的最后一篇，介绍 ViewSets 和 Routers。\nViewSets 先看看之前在给 User 模型创建 Endpoint 时，我们新增的 2 个视图：\nclass UserList(generics.ListAPIView): queryset = User.objects.all() serializer_class = UserSerializer class UserDetail(generics.RetrieveAPIView): queryset = User.objects.all() serializer_class = UserSerializer DRF 提供了rest_framework.viewsets：\n可以把它们合成一个视图。\nset 是集合的意思，ViewSets 就是视图集合。\nReadOnlyModelViewSet 我们先使用ReadOnlyModelViewSet把UserList和UserDetail视图合并成一个UserViewSet：\nfrom rest_framework import viewsets class UserViewSet(viewsets.ReadOnlyModelViewSet): \"\"\" This viewset automatically provides `list` and `retrieve` actions. \"\"\" queryset = User.objects.all() serializer_class = UserSerializer viewsets.ReadOnlyModelViewSet是只读视图集合，源码如下：\nclass ReadOnlyModelViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet): \"\"\" A viewset that provides default `list()` and `retrieve()` actions. \"\"\" pass 它继承了mixins.RetrieveModelMixin、mixins.ListModelMixin和GenericViewSet：\nmixins.RetrieveModelMixin\nclass RetrieveModelMixin: \"\"\" Retrieve a model instance. \"\"\" def retrieve(self, request, *args, **kwargs): instance = self.get_object() serializer = self.get_serializer(instance) return Response(serializer.data) mixins.ListModelMixin\nclass ListModelMixin: \"\"\" List a queryset. \"\"\" def list(self, request, *args, **kwargs): queryset = self.filter_queryset(self.get_queryset()) page = self.paginate_queryset(queryset) if page is not None: serializer = self.get_serializer(page, many=True) return self.get_paginated_response(serializer.data) serializer = self.get_serializer(queryset, many=True) return Response(serializer.data) viewsets.GenericViewSet\nclass GenericViewSet(ViewSetMixin, generics.GenericAPIView): \"\"\" The GenericViewSet class does not provide any actions by default, but does include the base set of generic view behavior, such as the `get_object` and `get_queryset` methods. \"\"\" pass 从源码可以看出，它提供了list()和retrieve()2 个方法，正好对应UserList和UserDetail。\nModelViewSet 再使用ModelViewSet把SnippetList、SnippetDetail和SnippetHighlight视图合并成一个SnippetViewSet：\nfrom rest_framework.decorators import action from rest_framework.response import Response from rest_framework import permissions class SnippetViewSet(viewsets.ModelViewSet): \"\"\" This viewset automatically provides `list`, `create`, `retrieve`, `update` and `destroy` actions. Additionally we also provide an extra `highlight` action. \"\"\" queryset = Snippet.objects.all() serializer_class = SnippetSerializer permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly] @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer]) def highlight(self, request, *args, **kwargs): snippet = self.get_object() return Response(snippet.highlighted) def perform_create(self, serializer): serializer.save(owner=self.request.user) @action装饰器用来创建除了create/update/delete以外的 action，默认为GET请求，如果想改为POST请求，可以添加参数methods，它的源码如下：\ndef action(methods=None, detail=None, url_path=None, url_name=None, **kwargs): \"\"\" Mark a ViewSet method as a routable action. `@action`-decorated functions will be endowed with a `mapping` property, a `MethodMapper` that can be used to add additional method-based behaviors on the routed action. :param methods: A list of HTTP method names this action responds to. Defaults to GET only. :param detail: Required. Determines whether this action applies to instance/detail requests or collection/list requests. :param url_path: Define the URL segment for this action. Defaults to the name of the method decorated. :param url_name: Define the internal (`reverse`) URL name for this action. Defaults to the name of the method decorated with underscores replaced with dashes. :param kwargs: Additional properties to set on the view. This can be used to override viewset-level *_classes settings, equivalent to how the `@renderer_classes` etc. decorators work for function- based API views. \"\"\" methods = ['get'] if (methods is None) else methods methods = [method.lower() for method in methods] assert detail is not None, ( \"@action() missing required argument: 'detail'\" ) # name and suffix are mutually exclusive if 'name' in kwargs and 'suffix' in kwargs: raise TypeError(\"`name` and `suffix` are mutually exclusive arguments.\") def decorator(func): func.mapping = MethodMapper(func, methods) func.detail = detail func.url_path = url_path if url_path else func.__name__ func.url_name = url_name if url_name else func.__name__.replace('_', '-') # These kwargs will end up being passed to `ViewSet.as_view()` within # the router, which eventually delegates to Django's CBV `View`, # which assigns them as instance attributes for each request. func.kwargs = kwargs # Set descriptive arguments for viewsets if 'name' not in kwargs and 'suffix' not in kwargs: func.kwargs['name'] = pretty_name(func.__name__) func.kwargs['description'] = func.__doc__ or None return func return decorator viewsets.ModelViewSet包含了增删改查视图集合，源码如下：\nclass ModelViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, mixins.ListModelMixin, GenericViewSet): \"\"\" A viewset that provides default `create()`, `retrieve()`, `update()`, `partial_update()`, `destroy()` and `list()` actions. \"\"\" pass 它继承了mixins.CreateModelMixin、mixins.RetrieveModelMixin、mixins.UpdateModelMixin、mixins.DestroyModelMixin、mixins.ListModelMixin、GenericViewSet：\n其中mixins.RetrieveModelMixin、mixins.ListModelMixin和GenericViewSet在前面已经介绍过了\nmixins.CreateModelMixin\nclass CreateModelMixin: \"\"\" Create a model instance. \"\"\" def create(self, request, *args, **kwargs): serializer = self.get_serializer(data=request.data) serializer.is_valid(raise_exception=True) self.perform_create(serializer) headers = self.get_success_headers(serializer.data) return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers) def perform_create(self, serializer): serializer.save() def get_success_headers(self, data): try: return {'Location': str(data[api_settings.URL_FIELD_NAME])} except (TypeError, KeyError): return {} mixins.UpdateModelMixin\nclass UpdateModelMixin: \"\"\" Update a model instance. \"\"\" def update(self, request, *args, **kwargs): partial = kwargs.pop('partial', False) instance = self.get_object() serializer = self.get_serializer(instance, data=request.data, partial=partial) serializer.is_valid(raise_exception=True) self.perform_update(serializer) if getattr(instance, '_prefetched_objects_cache', None): # If 'prefetch_related' has been applied to a queryset, we need to # forcibly invalidate the prefetch cache on the instance. instance._prefetched_objects_cache = {} return Response(serializer.data) def perform_update(self, serializer): serializer.save() def partial_update(self, request, *args, **kwargs): kwargs['partial'] = True return self.update(request, *args, **kwargs) mixins.DestroyModelMixin\nclass DestroyModelMixin: \"\"\" Destroy a model instance. \"\"\" def destroy(self, request, *args, **kwargs): instance = self.get_object() self.perform_destroy(instance) return Response(status=status.HTTP_204_NO_CONTENT) def perform_destroy(self, instance): instance.delete() 修改 URLConf 视图改为ViewSet后，需要同时修改 URLConf，编辑snippets/urls.py：\nfrom snippets.views import SnippetViewSet, UserViewSet, api_root from rest_framework import renderers snippet_list = SnippetViewSet.as_view({ 'get': 'list', 'post': 'create' }) snippet_detail = SnippetViewSet.as_view({ 'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy' }) snippet_highlight = SnippetViewSet.as_view({ 'get': 'highlight' }, renderer_classes=[renderers.StaticHTMLRenderer]) user_list = UserViewSet.as_view({ 'get': 'list' }) user_detail = UserViewSet.as_view({ 'get': 'retrieve' }) urlpatterns = format_suffix_patterns([ path('', api_root), path('snippets/', snippet_list, name='snippet-list'), path('snippets//', snippet_detail, name='snippet-detail'), path('snippets//highlight/', snippet_highlight, name='snippet-highlight'), path('users/', user_list, name='user-list'), path('users//', user_detail, name='user-detail') ]) 注意，ViewSet需要绑定 http methods 和 action，以指定请求方法对应的处理动作。\nRouters 使用ViewSet的一大好处是可以自动配置路由，DRF 提供了rest_framework.routers：\n我们重新编写snippets/urls.py看看是什么效果：\nfrom django.urls import path, include from rest_framework.routers import DefaultRouter from snippets import views ## Create a router and register our viewsets with it. router = DefaultRouter() router.register(r'snippets', views.SnippetViewSet) router.register(r'users', views.UserViewSet) ## The API URLs are now determined automatically by the router. urlpatterns = [ path('', include(router.urls)), ] 真是厉害！这封装简直高级！而且DefaultRouter提供了 API 根目录的 Endpoint，我们甚至可以把views.py中的api_root也删了。\n小结 本文是官方教程学习笔记的最后一篇了。可以从教程中了解到从函数视图到类视图，从 View 到 ViewSet 是如何封装起来的，实际运用中并不一定全部都得用类视图和 ViewSet，还是需要平衡选择。后续还会有 DRF 系列的文章输出，不过作为阶段性成果，我把这 7 篇文章导成了 PDF，和最后一版的源码，打包一起上传了，需要的话，可以在公众号后台回复【drf】获取：\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/6-viewsets-and-routers/\n",
+  "wordCount" : "830",
   "inLanguage": "zh",
   "datePublished": "2026-01-12T00:00:00Z",
   "dateModified": "2026-01-12T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>在 DRF 官方教程的学习过程中，一个很明显的感受是框架在不断地进行封装，我们自己写框架/工具/脚本/平台也可以模仿模仿，先完成底层代码，再做多层封装，让使用者很容易就上手操作。本文是教程的最后一篇，介绍 ViewSets 和 Routers。</p>
+  <div class="post-content md-content"><p>在 DRF 官方教程的学习过程中，一个很明显的感受是框架在不断地进行封装，我们自己写框架/工具/脚本/平台也可以模仿模仿，先完成底层代码，再做多层封装，让使用者很容易就上手操作。本文是教程的最后一篇，介绍 ViewSets 和 Routers。</p>
 <h1 id="viewsets">ViewSets<a hidden class="anchor" aria-hidden="true" href="#viewsets">#</a></h1>
 <p>先看看之前在给 User 模型创建 Endpoint 时，我们新增的 2 个视图：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">UserList</span><span style="color:#1f2328">(</span>generics<span style="color:#0550ae">.</span>ListAPIView<span style="color:#1f2328">):</span>
@@ -535,7 +507,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -669,19 +641,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

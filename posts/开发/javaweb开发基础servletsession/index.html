@@ -5,12 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>JavaWeb 开发基础 ServletSession | 测试开发刚哥</title>
+<title>JavaWeb 开发基础 ServletSession | 全栈开发刚哥</title>
 <meta name="keywords" content="JavaWeb">
-<meta name="description" content="
-本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-
-Session 是什么
+<meta name="description" content="Session 是什么
 在 Web 应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于 HTTP 协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session 通过在服务器端存储用户状态信息，并在客户端使用一个唯一的 Session ID 来标识用户，从而实现状态保持。
 Session 工作原理如下：
 
@@ -35,9 +32,9 @@ Cookie 是存储在客户端浏览器中的小数据片段。它们会随着每�
 服务器使用 Cookie 中的会话 ID 来检索用户的会话数据
 
 ">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servletsession/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -81,11 +78,7 @@ Cookie 是存储在客户端浏览器中的小数据片段。它们会随着每�
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -95,11 +88,11 @@ Cookie 是存储在客户端浏览器中的小数据片段。它们会随着每�
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/javaweb%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80servletsession/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="JavaWeb 开发基础 ServletSession">
-  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-Session 是什么 在 Web 应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于 HTTP 协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session 通过在服务器端存储用户状态信息，并在客户端使用一个唯一的 Session ID 来标识用户，从而实现状态保持。
+  <meta property="og:description" content="Session 是什么 在 Web 应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于 HTTP 协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session 通过在服务器端存储用户状态信息，并在客户端使用一个唯一的 Session ID 来标识用户，从而实现状态保持。
 Session 工作原理如下：
 创建 Session：当用户第一次访问 Web 应用程序时，服务器创建一个新的 Session，并生成一个唯一的 Session ID 发送 Session ID：服务器将 Session ID 发送给客户端，通常通过 HTTP 响应头中的 Set-Cookie 字段 存储 Session ID：客户端浏览器将 Session ID 存储在 Cookie 中，并在后续请求中将其发送回服务器 识别 Session：服务器通过接收到的 Session ID 识别用户的会话，并从服务器端存储中获取相应的 Session 数据 四种主要技术 Cookies Hidden Form Field URL Rewriting HttpSession 1. Cookies（Cookie） Cookie 是存储在客户端浏览器中的小数据片段。它们会随着每个 HTTP 请求一起发送到服务器，可以用来存储会话标识符。
 工作原理
@@ -113,8 +106,7 @@ Session 工作原理如下：
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="JavaWeb 开发基础 ServletSession">
-  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-Session 是什么 在 Web 应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于 HTTP 协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session 通过在服务器端存储用户状态信息，并在客户端使用一个唯一的 Session ID 来标识用户，从而实现状态保持。
+  <meta name="twitter:description" content="Session 是什么 在 Web 应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于 HTTP 协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session 通过在服务器端存储用户状态信息，并在客户端使用一个唯一的 Session ID 来标识用户，从而实现状态保持。
 Session 工作原理如下：
 创建 Session：当用户第一次访问 Web 应用程序时，服务器创建一个新的 Session，并生成一个唯一的 Session ID 发送 Session ID：服务器将 Session ID 发送给客户端，通常通过 HTTP 响应头中的 Set-Cookie 字段 存储 Session ID：客户端浏览器将 Session ID 存储在 Cookie 中，并在后续请求中将其发送回服务器 识别 Session：服务器通过接收到的 Session ID 识别用户的会话，并从服务器端存储中获取相应的 Session 数据 四种主要技术 Cookies Hidden Form Field URL Rewriting HttpSession 1. Cookies（Cookie） Cookie 是存储在客户端浏览器中的小数据片段。它们会随着每个 HTTP 请求一起发送到服务器，可以用来存储会话标识符。
 工作原理
@@ -147,18 +139,18 @@ Session 工作原理如下：
   "@type": "BlogPosting",
   "headline": "JavaWeb 开发基础 ServletSession",
   "name": "JavaWeb 开发基础 ServletSession",
-  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nSession 是什么 在 Web 应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于 HTTP 协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session 通过在服务器端存储用户状态信息，并在客户端使用一个唯一的 Session ID 来标识用户，从而实现状态保持。\nSession 工作原理如下：\n创建 Session：当用户第一次访问 Web 应用程序时，服务器创建一个新的 Session，并生成一个唯一的 Session ID 发送 Session ID：服务器将 Session ID 发送给客户端，通常通过 HTTP 响应头中的 Set-Cookie 字段 存储 Session ID：客户端浏览器将 Session ID 存储在 Cookie 中，并在后续请求中将其发送回服务器 识别 Session：服务器通过接收到的 Session ID 识别用户的会话，并从服务器端存储中获取相应的 Session 数据 四种主要技术 Cookies Hidden Form Field URL Rewriting HttpSession 1. Cookies（Cookie） Cookie 是存储在客户端浏览器中的小数据片段。它们会随着每个 HTTP 请求一起发送到服务器，可以用来存储会话标识符。\n工作原理\n当用户第一次访问网站时，服务器生成一个唯一的会话 ID，并将其作为 Cookie 发送到客户端浏览器 浏览器存储这个 Cookie，并在后续请求中将其发送回服务器 服务器使用 Cookie 中的会话 ID 来检索用户的会话数据 ",
+  "description": "Session 是什么 在 Web 应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于 HTTP 协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session 通过在服务器端存储用户状态信息，并在客户端使用一个唯一的 Session ID 来标识用户，从而实现状态保持。\nSession 工作原理如下：\n创建 Session：当用户第一次访问 Web 应用程序时，服务器创建一个新的 Session，并生成一个唯一的 Session ID 发送 Session ID：服务器将 Session ID 发送给客户端，通常通过 HTTP 响应头中的 Set-Cookie 字段 存储 Session ID：客户端浏览器将 Session ID 存储在 Cookie 中，并在后续请求中将其发送回服务器 识别 Session：服务器通过接收到的 Session ID 识别用户的会话，并从服务器端存储中获取相应的 Session 数据 四种主要技术 Cookies Hidden Form Field URL Rewriting HttpSession 1. Cookies（Cookie） Cookie 是存储在客户端浏览器中的小数据片段。它们会随着每个 HTTP 请求一起发送到服务器，可以用来存储会话标识符。\n工作原理\n当用户第一次访问网站时，服务器生成一个唯一的会话 ID，并将其作为 Cookie 发送到客户端浏览器 浏览器存储这个 Cookie，并在后续请求中将其发送回服务器 服务器使用 Cookie 中的会话 ID 来检索用户的会话数据 ",
   "keywords": [
     "JavaWeb"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nSession 是什么 在 Web 应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于 HTTP 协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session 通过在服务器端存储用户状态信息，并在客户端使用一个唯一的 Session ID 来标识用户，从而实现状态保持。\nSession 工作原理如下：\n创建 Session：当用户第一次访问 Web 应用程序时，服务器创建一个新的 Session，并生成一个唯一的 Session ID 发送 Session ID：服务器将 Session ID 发送给客户端，通常通过 HTTP 响应头中的 Set-Cookie 字段 存储 Session ID：客户端浏览器将 Session ID 存储在 Cookie 中，并在后续请求中将其发送回服务器 识别 Session：服务器通过接收到的 Session ID 识别用户的会话，并从服务器端存储中获取相应的 Session 数据 四种主要技术 Cookies Hidden Form Field URL Rewriting HttpSession 1. Cookies（Cookie） Cookie 是存储在客户端浏览器中的小数据片段。它们会随着每个 HTTP 请求一起发送到服务器，可以用来存储会话标识符。\n工作原理\n当用户第一次访问网站时，服务器生成一个唯一的会话 ID，并将其作为 Cookie 发送到客户端浏览器 浏览器存储这个 Cookie，并在后续请求中将其发送回服务器 服务器使用 Cookie 中的会话 ID 来检索用户的会话数据 优点\n对用户透明 由浏览器自动管理 可以存储少量数据 缺点\n用户可以在浏览器中禁用 Cookie 存储容量有限（通常每个 Cookie 大约 4KB） 如果处理不当，可能存在安全问题（例如 Cookie 盗窃） 示例\nimport javax.servlet.http.Cookie; // 在Servlet中设置Cookie Cookie sessionCookie = new Cookie(\"JSESSIONID\", session.getId()); sessionCookie.setMaxAge(30 * 60); // 30分钟 response.addCookie(sessionCookie); // 在Servlet中检索Cookie Cookie[] cookies = request.getCookies(); // 从请求获取Cookie if (cookies != null) { for (Cookie cookie : cookies) { if (\"JSESSIONID\".equals(cookie.getName())) { String sessionId = cookie.getValue(); // 使用会话ID检索会话数据 } } } Cookie 有两种类型：\n非持久性 Cookie（Non-persistent cookie），也称为会话 Cookie（Session cookie），仅在浏览器会话期间有效。当用户关闭浏览器时，这些 Cookie 会被自动删除。适用于需要在用户会话期间保持状态的信息，如购物车内容、临时会话 ID 等。\n持久性 Cookie（Persistent cookie），在浏览器会话结束后仍然有效，直到达到指定的过期时间或被用户手动删除。它们存储在客户端的硬盘上。适用于需要在多个会话之间保持状态的信息，如记住用户登录状态、用户偏好设置等。\n2. 隐藏表单字段（Hidden Form Field） 隐藏表单字段用于在 HTML 表单中存储会话数据。当表单提交时，这些数据会发送到服务器。\n工作原理\n服务器生成一个唯一的会话 ID，并将其作为隐藏字段包含在 HTML 表单中 当用户提交表单时，隐藏字段会随表单数据一起发送到服务器 服务器从隐藏字段中检索会话 ID，并使用它来访问用户的会话数据 优点\n实现简单 不依赖于浏览器设置（例如 Cookie） 缺点\n仅适用于表单提交 需要修改所有表单以包含隐藏字段 不适用于跨多个页面跟踪会话（没有表单的页面） 示例\n\u003cform action=\"submitForm\" method=\"post\"\u003e \u003cinput type=\"hidden\" name=\"sessionId\" value=\"\u003c%= session.getId() %\u003e\"\u003e \u003cinput type=\"submit\" value=\"提交\"\u003e \u003c/form\u003e 3. URL 重写（URL Rewriting） URL 重写涉及将会话 ID 附加到每个请求的 URL 中。这种技术确保会话 ID 随每个请求一起发送到服务器。\n工作原理\n服务器生成一个唯一的会话 ID，并将其作为查询参数附加到 URL 中 会话 ID 包含在服务器生成的所有后续 URL 中 服务器从 URL 中检索会话 ID，并使用它来访问用户的会话数据 优点\n即使禁用 Cookie 也能工作 可以跨多个页面跟踪会话 缺点\nURL 变得更长且不易读 需要修改所有 URL 以包含会话 ID 如果会话 ID 暴露在 URL 中，可能存在安全风险 示例\n// 生成带有会话ID的URL // http://localhost:8080/myapp/nextPage.jsp;jsessionid=1234567890ABCDEF1234567890ABCDEF String url = response.encodeURL(\"nextPage.jsp\"); // 从URL中检索会话ID String sessionId = request.getParameter(\"jsessionid\"); 4. HttpSession HttpSession 接口提供了一种内置的会话跟踪机制。它抽象了底层的会话跟踪技术（例如 Cookie、URL 重写），并提供了一个简单的 API 来管理会话数据。\n工作原理\n服务器为每个用户会话创建一个 HttpSession 对象 会话 ID 由服务器管理，可以存储在 Cookie 或 URL 中 HttpSession 对象提供了存储和检索会话属性的方法 优点\n简单且方便的 API 抽象了底层的会话跟踪机制 自动处理会话的创建、过期和失效 缺点\n依赖于服务器的会话管理实现 可能需要额外配置以实现会话持久化和集群 示例\n// 创建或检索会话 HttpSession session = request.getSession(); // 在会话中存储属性 session.setAttribute(\"username\", \"JohnDoe\"); // 从会话中检索属性 String username = (String) session.getAttribute(\"username\"); // 使会话失效 session.invalidate(); 在多数情况下，使用 HttpSession 是最方便和有效的方法，因为它抽象了底层的会话跟踪机制，并提供了一个简单的 API 来管理会话数据。\n为什么 request.getSession()能拿到 session？\nHttpSession 抽象了底层的会话跟踪技术，实际上请求的 sessionid 还是通过 cookie 或 url，从客户端发给服务器的，比如 cookie，服务器响应（第一次请求时创建会话）：\nHTTP/1.1 200 OK Set-Cookie: JSESSIONID=1234567890ABCDEF1234567890ABCDEF; Path=/; HttpOnly Content-Type: text/html 客户端请求（后续请求中包含 sessionid）：\nGET /myapp/urlRewriting HTTP/1.1 Host: example.com Cookie: JSESSIONID=1234567890ABCDEF1234567890ABCDEF HttpSession 是一个封装好的接口，提供了一组方法，简化了 Session 管理。\n参考资料：\nhttps://www.javatpoint.com/session-tracking-in-servlets\nChatGPT\n",
-  "wordCount" : "337",
+  "articleBody": "Session 是什么 在 Web 应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于 HTTP 协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session 通过在服务器端存储用户状态信息，并在客户端使用一个唯一的 Session ID 来标识用户，从而实现状态保持。\nSession 工作原理如下：\n创建 Session：当用户第一次访问 Web 应用程序时，服务器创建一个新的 Session，并生成一个唯一的 Session ID 发送 Session ID：服务器将 Session ID 发送给客户端，通常通过 HTTP 响应头中的 Set-Cookie 字段 存储 Session ID：客户端浏览器将 Session ID 存储在 Cookie 中，并在后续请求中将其发送回服务器 识别 Session：服务器通过接收到的 Session ID 识别用户的会话，并从服务器端存储中获取相应的 Session 数据 四种主要技术 Cookies Hidden Form Field URL Rewriting HttpSession 1. Cookies（Cookie） Cookie 是存储在客户端浏览器中的小数据片段。它们会随着每个 HTTP 请求一起发送到服务器，可以用来存储会话标识符。\n工作原理\n当用户第一次访问网站时，服务器生成一个唯一的会话 ID，并将其作为 Cookie 发送到客户端浏览器 浏览器存储这个 Cookie，并在后续请求中将其发送回服务器 服务器使用 Cookie 中的会话 ID 来检索用户的会话数据 优点\n对用户透明 由浏览器自动管理 可以存储少量数据 缺点\n用户可以在浏览器中禁用 Cookie 存储容量有限（通常每个 Cookie 大约 4KB） 如果处理不当，可能存在安全问题（例如 Cookie 盗窃） 示例\nimport javax.servlet.http.Cookie; // 在Servlet中设置Cookie Cookie sessionCookie = new Cookie(\"JSESSIONID\", session.getId()); sessionCookie.setMaxAge(30 * 60); // 30分钟 response.addCookie(sessionCookie); // 在Servlet中检索Cookie Cookie[] cookies = request.getCookies(); // 从请求获取Cookie if (cookies != null) { for (Cookie cookie : cookies) { if (\"JSESSIONID\".equals(cookie.getName())) { String sessionId = cookie.getValue(); // 使用会话ID检索会话数据 } } } Cookie 有两种类型：\n非持久性 Cookie（Non-persistent cookie），也称为会话 Cookie（Session cookie），仅在浏览器会话期间有效。当用户关闭浏览器时，这些 Cookie 会被自动删除。适用于需要在用户会话期间保持状态的信息，如购物车内容、临时会话 ID 等。\n持久性 Cookie（Persistent cookie），在浏览器会话结束后仍然有效，直到达到指定的过期时间或被用户手动删除。它们存储在客户端的硬盘上。适用于需要在多个会话之间保持状态的信息，如记住用户登录状态、用户偏好设置等。\n2. 隐藏表单字段（Hidden Form Field） 隐藏表单字段用于在 HTML 表单中存储会话数据。当表单提交时，这些数据会发送到服务器。\n工作原理\n服务器生成一个唯一的会话 ID，并将其作为隐藏字段包含在 HTML 表单中 当用户提交表单时，隐藏字段会随表单数据一起发送到服务器 服务器从隐藏字段中检索会话 ID，并使用它来访问用户的会话数据 优点\n实现简单 不依赖于浏览器设置（例如 Cookie） 缺点\n仅适用于表单提交 需要修改所有表单以包含隐藏字段 不适用于跨多个页面跟踪会话（没有表单的页面） 示例\n\u003cform action=\"submitForm\" method=\"post\"\u003e \u003cinput type=\"hidden\" name=\"sessionId\" value=\"\u003c%= session.getId() %\u003e\"\u003e \u003cinput type=\"submit\" value=\"提交\"\u003e \u003c/form\u003e 3. URL 重写（URL Rewriting） URL 重写涉及将会话 ID 附加到每个请求的 URL 中。这种技术确保会话 ID 随每个请求一起发送到服务器。\n工作原理\n服务器生成一个唯一的会话 ID，并将其作为查询参数附加到 URL 中 会话 ID 包含在服务器生成的所有后续 URL 中 服务器从 URL 中检索会话 ID，并使用它来访问用户的会话数据 优点\n即使禁用 Cookie 也能工作 可以跨多个页面跟踪会话 缺点\nURL 变得更长且不易读 需要修改所有 URL 以包含会话 ID 如果会话 ID 暴露在 URL 中，可能存在安全风险 示例\n// 生成带有会话ID的URL // http://localhost:8080/myapp/nextPage.jsp;jsessionid=1234567890ABCDEF1234567890ABCDEF String url = response.encodeURL(\"nextPage.jsp\"); // 从URL中检索会话ID String sessionId = request.getParameter(\"jsessionid\"); 4. HttpSession HttpSession 接口提供了一种内置的会话跟踪机制。它抽象了底层的会话跟踪技术（例如 Cookie、URL 重写），并提供了一个简单的 API 来管理会话数据。\n工作原理\n服务器为每个用户会话创建一个 HttpSession 对象 会话 ID 由服务器管理，可以存储在 Cookie 或 URL 中 HttpSession 对象提供了存储和检索会话属性的方法 优点\n简单且方便的 API 抽象了底层的会话跟踪机制 自动处理会话的创建、过期和失效 缺点\n依赖于服务器的会话管理实现 可能需要额外配置以实现会话持久化和集群 示例\n// 创建或检索会话 HttpSession session = request.getSession(); // 在会话中存储属性 session.setAttribute(\"username\", \"JohnDoe\"); // 从会话中检索属性 String username = (String) session.getAttribute(\"username\"); // 使会话失效 session.invalidate(); 在多数情况下，使用 HttpSession 是最方便和有效的方法，因为它抽象了底层的会话跟踪机制，并提供了一个简单的 API 来管理会话数据。\n为什么 request.getSession()能拿到 session？\nHttpSession 抽象了底层的会话跟踪技术，实际上请求的 sessionid 还是通过 cookie 或 url，从客户端发给服务器的，比如 cookie，服务器响应（第一次请求时创建会话）：\nHTTP/1.1 200 OK Set-Cookie: JSESSIONID=1234567890ABCDEF1234567890ABCDEF; Path=/; HttpOnly Content-Type: text/html 客户端请求（后续请求中包含 sessionid）：\nGET /myapp/urlRewriting HTTP/1.1 Host: example.com Cookie: JSESSIONID=1234567890ABCDEF1234567890ABCDEF HttpSession 是一个封装好的接口，提供了一组方法，简化了 Session 管理。\n参考资料：\nhttps://www.javatpoint.com/session-tracking-in-servlets\nChatGPT\n",
+  "wordCount" : "336",
   "inLanguage": "zh",
   "datePublished": "2026-01-07T00:00:00Z",
   "dateModified": "2026-01-07T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -166,7 +158,7 @@ Session 工作原理如下：
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -183,29 +175,7 @@ Session 工作原理如下：
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -251,10 +221,7 @@ Session 工作原理如下：
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<h1 id="session-是什么">Session 是什么<a hidden class="anchor" aria-hidden="true" href="#session-是什么">#</a></h1>
+  <div class="post-content md-content"><h1 id="session-是什么">Session 是什么<a hidden class="anchor" aria-hidden="true" href="#session-是什么">#</a></h1>
 <p>在 Web 应用程序中，Session（会话）是用于在多个请求之间保持用户状态的一种机制。由于 HTTP 协议是无状态的，每个请求都是独立的，服务器无法直接知道两个请求是否来自同一个用户。Session 通过在服务器端存储用户状态信息，并在客户端使用一个唯一的 Session ID 来标识用户，从而实现状态保持。</p>
 <p>Session 工作原理如下：</p>
 <ol>
@@ -460,7 +427,7 @@ Cookie: JSESSIONID=1234567890ABCDEF1234567890ABCDEF
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -594,19 +561,6 @@ Cookie: JSESSIONID=1234567890ABCDEF1234567890ABCDEF
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

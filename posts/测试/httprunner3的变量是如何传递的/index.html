@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>HttpRunner3 的变量是如何传递的 | 测试开发刚哥</title>
+<title>HttpRunner3 的变量是如何传递的 | 全栈开发刚哥</title>
 <meta name="keywords" content="HttpRunner">
 <meta name="description" content="HttpRunner3 的变量可以在测试类的用例配置中通过variables添加，也可以在测试步骤中使用extract()、with_jmespath()提取出来放到变量x，再用$x传递给下一个接口使用，比如登录到下单流程的部分测试脚本如下：">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/httprunner3%E7%9A%84%E5%8F%98%E9%87%8F%E6%98%AF%E5%A6%82%E4%BD%95%E4%BC%A0%E9%80%92%E7%9A%84/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/httprunner3%E7%9A%84%E5%8F%98%E9%87%8F%E6%98%AF%E5%A6%82%E4%BD%95%E4%BC%A0%E9%80%92%E7%9A%84/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="HttpRunner3 的变量是如何传递的">
   <meta property="og:description" content="HttpRunner3 的变量可以在测试类的用例配置中通过variables添加，也可以在测试步骤中使用extract()、with_jmespath()提取出来放到变量x，再用$x传递给下一个接口使用，比如登录到下单流程的部分测试脚本如下：">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "HttpRunner"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nHttpRunner3 的变量可以在测试类的用例配置中通过variables添加，也可以在测试步骤中使用extract()、with_jmespath()提取出来放到变量x，再用$x传递给下一个接口使用，比如登录到下单流程的部分测试脚本如下：\nfrom httprunner import HttpRunner, Config, Step, RunRequest class TestLoginPay(HttpRunner): config = ( Config(\"登录到下单流程\") .variables( **{ \"skuNum\": \"3\" } ) .base_url(\"http://127.0.0.1:5000\") ) teststeps = [ Step( RunRequest(\"登录\") .post(\"/login\") .with_headers(**{\"Content-Type\": \"application/json\"}) .with_json({\"username\": \"dongfanger\", \"password\": \"123456\"}) .extract() .with_jmespath(\"body.token\", \"token\") .validate() .assert_equal(\"status_code\", 200) ), Step( RunRequest(\"搜索商品\") .get(\"searchSku?skuName=电子书\") .with_headers(**{\"token\": \"$token\"}) .extract() .with_jmespath(\"body.skuId\", \"skuId\") .with_jmespath(\"body.price\", \"skuPrice\") .validate() .assert_equal(\"status_code\", 200) ), ] 首先来看用例配置的这段代码：\nconfig = ( Config(\"登录到下单流程\") .variables( **{ \"skuNum\": \"3\" } ) .base_url(\"http://127.0.0.1:5000\") ) 是怎么实现的。Config 的定义如下：\nclass Config(object): def __init__(self, name: Text): self.__name = name self.__variables = {} self.__base_url = \"\" self.__verify = False self.__export = [] self.__weight = 1 caller_frame = inspect.stack()[1] self.__path = caller_frame.filename @property def name(self) -\u003e Text: return self.__name @property def path(self) -\u003e Text: return self.__path @property def weight(self) -\u003e int: return self.__weight def variables(self, **variables) -\u003e \"Config\": self.__variables.update(variables) return self def base_url(self, base_url: Text) -\u003e \"Config\": self.__base_url = base_url return self def verify(self, verify: bool) -\u003e \"Config\": self.__verify = verify return self def export(self, *export_var_name: Text) -\u003e \"Config\": self.__export.extend(export_var_name) return self def locust_weight(self, weight: int) -\u003e \"Config\": self.__weight = weight return self def perform(self) -\u003e TConfig: return TConfig( name=self.__name, base_url=self.__base_url, verify=self.__verify, variables=self.__variables, export=list(set(self.__export)), path=self.__path, weight=self.__weight, ) 其中 variables 的定义是：\ndef variables(self, **variables) -\u003e \"Config\": self.__variables.update(variables) return self self.__variables = {}是个字典。为什么要加个前缀**呢？这个**换个模样估计就看懂了：\ndef foo(**kwargs): print(kwargs) \u003e\u003e\u003e foo(x=1, y=2) {'x': 1, 'y': 2} \u003e\u003e\u003e foo(**{'x': 1, 'y': 2}) {'x': 1, 'y': 2} self.__variables.update(variables)里面的 upate 方法是字典添加到字典里，比如：\ntinydict = {'Name': 'Zara', 'Age': 7} tinydict2 = {'Sex': 'female' } tinydict.update(tinydict2) # {'Age': 7, 'Name': 'Zara', 'Sex': 'female'} 整个方法的意思就是从variables中取出variables字典，然后添加到self.__variables字典里。\n这个 Config 会在 runner.py 里面的 HttpRunner 类初始化时加载到self.__config：\ndef __init_tests__(self) -\u003e NoReturn: self.__config = self.config.perform() self.__teststeps = [] for step in self.teststeps: self.__teststeps.append(step.perform()) 然后self.__config会在各个地方调用。比如在__run_step_request中把 base_url 拼装起来。：\n## prepare arguments method = parsed_request_dict.pop(\"method\") url_path = parsed_request_dict.pop(\"url\") url = build_url(self.__config.base_url, url_path) parsed_request_dict[\"verify\"] = self.__config.verify parsed_request_dict[\"json\"] = parsed_request_dict.pop(\"req_json\", {}) 而接下来的代码是真把我看晕了。\n第一个问题：config 里面的变量是怎么用到测试步骤里面的？\n答案就是：\nstep.variables = merge_variables(step.variables, self.__config.variables) 通过 merge_variables 函数合并到了 step.variables，step 是下面这个类的实例：\nclass TStep(BaseModel): name: Name request: Union[TRequest, None] = None testcase: Union[Text, Callable, None] = None variables: VariablesMapping = {} setup_hooks: Hooks = [] teardown_hooks: Hooks = [] # used to extract request's response field extract: VariablesMapping = {} # used to export session variables from referenced testcase export: Export = [] validators: Validators = Field([], alias=\"validate\") validate_script: List[Text] = [] step.variables 在 run_testcase 里面赋值：\n第一部分是把前面步骤提取的变量合并进来。 第二部分是把用例配置里面的变量合并进来，这就是第一个问题的答案。 第二个问题：变量是怎么提取出来的？\n先看看 RequestWithOptionalArgs 类的 extract 方法：\ndef extract(self) -\u003e StepRequestExtraction: return StepRequestExtraction(self.__step_context) class StepRequestExtraction(object): def __init__(self, step_context: TStep): self.__step_context = step_context def with_jmespath(self, jmes_path: Text, var_name: Text) -\u003e \"StepRequestExtraction\": self.__step_context.extract[var_name] = jmes_path return self # def with_regex(self): # # TODO: extract response html with regex # pass # # def with_jsonpath(self): # # TODO: extract response json with jsonpath # pass def validate(self) -\u003e StepRequestValidation: return StepRequestValidation(self.__step_context) def perform(self) -\u003e TStep: return self.__step_context 这就是在测试脚本中用到的 extract()和 with_jmespath()。\n可以看到作者这里写了 TODO 支持正则表达式和 JsonPath 表达式。\n然后把变量名和 JmesPath 表达式存入了self.__step_context.extract中，这会用在：\n从而传入另外这个 ResponseObject 类的 extract 方法：\n然后self._search_jmespath根据表达式把值找到：\ndef _search_jmespath(self, expr: Text) -\u003e Any: resp_obj_meta = { \"status_code\": self.status_code, \"headers\": self.headers, \"cookies\": self.cookies, \"body\": self.body, } if not expr.startswith(tuple(resp_obj_meta.keys())): return expr try: check_value = jmespath.search(expr, resp_obj_meta) except JMESPathError as ex: logger.error( f\"failed to search with jmespath\\n\" f\"expression: {expr}\\n\" f\"data: {resp_obj_meta}\\n\" f\"exception: {ex}\" ) raise return check_value 存入 extract_mapping 中：\n再存入step_data.export_vars：\n然后在__run_step中返回：\n最后通过 extracted_variables 存入到self.__session_variables中：\nself.__session_variables是 runner.py 模块中 HttpRunne 类的属性，可以理解为一个 session 级别的变量池。\n第三个问题：为什么用$就能直接使用变量？\n在 run_testcase 方法中有一段代码，解析变量：\n## parse variables step.variables = parse_variables_mapping( step.variables, self.__project_meta.functions ) parse_variables_mapping 的定义如下：\ndef parse_variables_mapping( variables_mapping: VariablesMapping, functions_mapping: FunctionsMapping = None ) -\u003e VariablesMapping: parsed_variables: VariablesMapping = {} while len(parsed_variables) != len(variables_mapping): for var_name in variables_mapping: if var_name in parsed_variables: continue var_value = variables_mapping[var_name] variables = extract_variables(var_value) # check if reference variable itself if var_name in variables: # e.g. # variables_mapping = {\"token\": \"abc$token\"} # variables_mapping = {\"key\": [\"$key\", 2]} raise exceptions.VariableNotFound(var_name) # check if reference variable not in variables_mapping not_defined_variables = [ v_name for v_name in variables if v_name not in variables_mapping ] if not_defined_variables: # e.g. {\"varA\": \"123$varB\", \"varB\": \"456$varC\"} # e.g. {\"varC\": \"${sum_two($a, $b)}\"} raise exceptions.VariableNotFound(not_defined_variables) try: parsed_value = parse_data( var_value, parsed_variables, functions_mapping ) except exceptions.VariableNotFound: continue parsed_variables[var_name] = parsed_value return parsed_variables 非常的复杂。其中有个函数 extract_variables：\ndef extract_variables(content: Any) -\u003e Set: \"\"\" extract all variables in content recursively. \"\"\" if isinstance(content, (list, set, tuple)): variables = set() for item in content: variables = variables | extract_variables(item) return variables elif isinstance(content, dict): variables = set() for key, value in content.items(): variables = variables | extract_variables(value) return variables elif isinstance(content, str): return set(regex_findall_variables(content)) return set() 里面有个 regex_findall_variables 函数：\ndef regex_findall_variables(raw_string: Text) -\u003e List[Text]: try: match_start_position = raw_string.index(\"$\", 0) except ValueError: return [] vars_list = [] while match_start_position \u003c len(raw_string): # Notice: notation priority # $$ \u003e $var # search $$ dollar_match = dolloar_regex_compile.match(raw_string, match_start_position) if dollar_match: match_start_position = dollar_match.end() continue # search variable like ${var} or $var var_match = variable_regex_compile.match(raw_string, match_start_position) if var_match: var_name = var_match.group(1) or var_match.group(2) vars_list.append(var_name) match_start_position = var_match.end() continue curr_position = match_start_position try: # find next $ location match_start_position = raw_string.index(\"$\", curr_position + 1) except ValueError: # break while loop break return vars_list 在这个函数中看到了$符号的身影，就是在这里解析的了。而整个解析过程那是相当的复杂，没有用现成的包，而是作者自己实现的。并且还有个长达 548 行的 parser_test.py 测试代码，要说清楚，估计得另外再写一篇专项文章了。\n",
-  "wordCount" : "804",
+  "articleBody": "HttpRunner3 的变量可以在测试类的用例配置中通过variables添加，也可以在测试步骤中使用extract()、with_jmespath()提取出来放到变量x，再用$x传递给下一个接口使用，比如登录到下单流程的部分测试脚本如下：\nfrom httprunner import HttpRunner, Config, Step, RunRequest class TestLoginPay(HttpRunner): config = ( Config(\"登录到下单流程\") .variables( **{ \"skuNum\": \"3\" } ) .base_url(\"http://127.0.0.1:5000\") ) teststeps = [ Step( RunRequest(\"登录\") .post(\"/login\") .with_headers(**{\"Content-Type\": \"application/json\"}) .with_json({\"username\": \"dongfanger\", \"password\": \"123456\"}) .extract() .with_jmespath(\"body.token\", \"token\") .validate() .assert_equal(\"status_code\", 200) ), Step( RunRequest(\"搜索商品\") .get(\"searchSku?skuName=电子书\") .with_headers(**{\"token\": \"$token\"}) .extract() .with_jmespath(\"body.skuId\", \"skuId\") .with_jmespath(\"body.price\", \"skuPrice\") .validate() .assert_equal(\"status_code\", 200) ), ] 首先来看用例配置的这段代码：\nconfig = ( Config(\"登录到下单流程\") .variables( **{ \"skuNum\": \"3\" } ) .base_url(\"http://127.0.0.1:5000\") ) 是怎么实现的。Config 的定义如下：\nclass Config(object): def __init__(self, name: Text): self.__name = name self.__variables = {} self.__base_url = \"\" self.__verify = False self.__export = [] self.__weight = 1 caller_frame = inspect.stack()[1] self.__path = caller_frame.filename @property def name(self) -\u003e Text: return self.__name @property def path(self) -\u003e Text: return self.__path @property def weight(self) -\u003e int: return self.__weight def variables(self, **variables) -\u003e \"Config\": self.__variables.update(variables) return self def base_url(self, base_url: Text) -\u003e \"Config\": self.__base_url = base_url return self def verify(self, verify: bool) -\u003e \"Config\": self.__verify = verify return self def export(self, *export_var_name: Text) -\u003e \"Config\": self.__export.extend(export_var_name) return self def locust_weight(self, weight: int) -\u003e \"Config\": self.__weight = weight return self def perform(self) -\u003e TConfig: return TConfig( name=self.__name, base_url=self.__base_url, verify=self.__verify, variables=self.__variables, export=list(set(self.__export)), path=self.__path, weight=self.__weight, ) 其中 variables 的定义是：\ndef variables(self, **variables) -\u003e \"Config\": self.__variables.update(variables) return self self.__variables = {}是个字典。为什么要加个前缀**呢？这个**换个模样估计就看懂了：\ndef foo(**kwargs): print(kwargs) \u003e\u003e\u003e foo(x=1, y=2) {'x': 1, 'y': 2} \u003e\u003e\u003e foo(**{'x': 1, 'y': 2}) {'x': 1, 'y': 2} self.__variables.update(variables)里面的 upate 方法是字典添加到字典里，比如：\ntinydict = {'Name': 'Zara', 'Age': 7} tinydict2 = {'Sex': 'female' } tinydict.update(tinydict2) # {'Age': 7, 'Name': 'Zara', 'Sex': 'female'} 整个方法的意思就是从variables中取出variables字典，然后添加到self.__variables字典里。\n这个 Config 会在 runner.py 里面的 HttpRunner 类初始化时加载到self.__config：\ndef __init_tests__(self) -\u003e NoReturn: self.__config = self.config.perform() self.__teststeps = [] for step in self.teststeps: self.__teststeps.append(step.perform()) 然后self.__config会在各个地方调用。比如在__run_step_request中把 base_url 拼装起来。：\n## prepare arguments method = parsed_request_dict.pop(\"method\") url_path = parsed_request_dict.pop(\"url\") url = build_url(self.__config.base_url, url_path) parsed_request_dict[\"verify\"] = self.__config.verify parsed_request_dict[\"json\"] = parsed_request_dict.pop(\"req_json\", {}) 而接下来的代码是真把我看晕了。\n第一个问题：config 里面的变量是怎么用到测试步骤里面的？\n答案就是：\nstep.variables = merge_variables(step.variables, self.__config.variables) 通过 merge_variables 函数合并到了 step.variables，step 是下面这个类的实例：\nclass TStep(BaseModel): name: Name request: Union[TRequest, None] = None testcase: Union[Text, Callable, None] = None variables: VariablesMapping = {} setup_hooks: Hooks = [] teardown_hooks: Hooks = [] # used to extract request's response field extract: VariablesMapping = {} # used to export session variables from referenced testcase export: Export = [] validators: Validators = Field([], alias=\"validate\") validate_script: List[Text] = [] step.variables 在 run_testcase 里面赋值：\n第一部分是把前面步骤提取的变量合并进来。 第二部分是把用例配置里面的变量合并进来，这就是第一个问题的答案。 第二个问题：变量是怎么提取出来的？\n先看看 RequestWithOptionalArgs 类的 extract 方法：\ndef extract(self) -\u003e StepRequestExtraction: return StepRequestExtraction(self.__step_context) class StepRequestExtraction(object): def __init__(self, step_context: TStep): self.__step_context = step_context def with_jmespath(self, jmes_path: Text, var_name: Text) -\u003e \"StepRequestExtraction\": self.__step_context.extract[var_name] = jmes_path return self # def with_regex(self): # # TODO: extract response html with regex # pass # # def with_jsonpath(self): # # TODO: extract response json with jsonpath # pass def validate(self) -\u003e StepRequestValidation: return StepRequestValidation(self.__step_context) def perform(self) -\u003e TStep: return self.__step_context 这就是在测试脚本中用到的 extract()和 with_jmespath()。\n可以看到作者这里写了 TODO 支持正则表达式和 JsonPath 表达式。\n然后把变量名和 JmesPath 表达式存入了self.__step_context.extract中，这会用在：\n从而传入另外这个 ResponseObject 类的 extract 方法：\n然后self._search_jmespath根据表达式把值找到：\ndef _search_jmespath(self, expr: Text) -\u003e Any: resp_obj_meta = { \"status_code\": self.status_code, \"headers\": self.headers, \"cookies\": self.cookies, \"body\": self.body, } if not expr.startswith(tuple(resp_obj_meta.keys())): return expr try: check_value = jmespath.search(expr, resp_obj_meta) except JMESPathError as ex: logger.error( f\"failed to search with jmespath\\n\" f\"expression: {expr}\\n\" f\"data: {resp_obj_meta}\\n\" f\"exception: {ex}\" ) raise return check_value 存入 extract_mapping 中：\n再存入step_data.export_vars：\n然后在__run_step中返回：\n最后通过 extracted_variables 存入到self.__session_variables中：\nself.__session_variables是 runner.py 模块中 HttpRunne 类的属性，可以理解为一个 session 级别的变量池。\n第三个问题：为什么用$就能直接使用变量？\n在 run_testcase 方法中有一段代码，解析变量：\n## parse variables step.variables = parse_variables_mapping( step.variables, self.__project_meta.functions ) parse_variables_mapping 的定义如下：\ndef parse_variables_mapping( variables_mapping: VariablesMapping, functions_mapping: FunctionsMapping = None ) -\u003e VariablesMapping: parsed_variables: VariablesMapping = {} while len(parsed_variables) != len(variables_mapping): for var_name in variables_mapping: if var_name in parsed_variables: continue var_value = variables_mapping[var_name] variables = extract_variables(var_value) # check if reference variable itself if var_name in variables: # e.g. # variables_mapping = {\"token\": \"abc$token\"} # variables_mapping = {\"key\": [\"$key\", 2]} raise exceptions.VariableNotFound(var_name) # check if reference variable not in variables_mapping not_defined_variables = [ v_name for v_name in variables if v_name not in variables_mapping ] if not_defined_variables: # e.g. {\"varA\": \"123$varB\", \"varB\": \"456$varC\"} # e.g. {\"varC\": \"${sum_two($a, $b)}\"} raise exceptions.VariableNotFound(not_defined_variables) try: parsed_value = parse_data( var_value, parsed_variables, functions_mapping ) except exceptions.VariableNotFound: continue parsed_variables[var_name] = parsed_value return parsed_variables 非常的复杂。其中有个函数 extract_variables：\ndef extract_variables(content: Any) -\u003e Set: \"\"\" extract all variables in content recursively. \"\"\" if isinstance(content, (list, set, tuple)): variables = set() for item in content: variables = variables | extract_variables(item) return variables elif isinstance(content, dict): variables = set() for key, value in content.items(): variables = variables | extract_variables(value) return variables elif isinstance(content, str): return set(regex_findall_variables(content)) return set() 里面有个 regex_findall_variables 函数：\ndef regex_findall_variables(raw_string: Text) -\u003e List[Text]: try: match_start_position = raw_string.index(\"$\", 0) except ValueError: return [] vars_list = [] while match_start_position \u003c len(raw_string): # Notice: notation priority # $$ \u003e $var # search $$ dollar_match = dolloar_regex_compile.match(raw_string, match_start_position) if dollar_match: match_start_position = dollar_match.end() continue # search variable like ${var} or $var var_match = variable_regex_compile.match(raw_string, match_start_position) if var_match: var_name = var_match.group(1) or var_match.group(2) vars_list.append(var_name) match_start_position = var_match.end() continue curr_position = match_start_position try: # find next $ location match_start_position = raw_string.index(\"$\", curr_position + 1) except ValueError: # break while loop break return vars_list 在这个函数中看到了$符号的身影，就是在这里解析的了。而整个解析过程那是相当的复杂，没有用现成的包，而是作者自己实现的。并且还有个长达 548 行的 parser_test.py 测试代码，要说清楚，估计得另外再写一篇专项文章了。\n",
+  "wordCount" : "803",
   "inLanguage": "zh",
   "datePublished": "2026-01-04T00:00:00Z",
   "dateModified": "2026-01-04T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>HttpRunner3 的变量可以在测试类的用例配置中通过<code>variables</code>添加，也可以在测试步骤中使用<code>extract()</code>、<code>with_jmespath()</code>提取出来放到变量<code>x</code>，再用<code>$x</code>传递给下一个接口使用，比如登录到下单流程的部分测试脚本如下：</p>
+  <div class="post-content md-content"><p>HttpRunner3 的变量可以在测试类的用例配置中通过<code>variables</code>添加，也可以在测试步骤中使用<code>extract()</code>、<code>with_jmespath()</code>提取出来放到变量<code>x</code>，再用<code>$x</code>传递给下一个接口使用，比如登录到下单流程的部分测试脚本如下：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">httprunner</span> <span style="color:#cf222e">import</span> HttpRunner<span style="color:#1f2328">,</span> Config<span style="color:#1f2328">,</span> Step<span style="color:#1f2328">,</span> RunRequest
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>
@@ -573,7 +545,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -707,19 +679,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Python 技术栈性能测试工具 Locust 入门 | 测试开发刚哥</title>
+<title>Python 技术栈性能测试工具 Locust 入门 | 全栈开发刚哥</title>
 <meta name="keywords" content="性能测试, Locust">
 <meta name="description" content="Locust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7locust%E5%85%A5%E9%97%A8/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/python%E6%8A%80%E6%9C%AF%E6%A0%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7locust%E5%85%A5%E9%97%A8/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="Python 技术栈性能测试工具 Locust 入门">
   <meta property="og:description" content="Locust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：">
   <meta property="og:locale" content="zh_cn">
@@ -115,14 +112,14 @@
   "keywords": [
     "性能测试", "Locust"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nLocust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：\nLocust 并不小众，从它 Github 的 Star 数量就可见一斑：\n截止文章写作时，一共15951Star。\nLocust 生态良好，它已在多家外企（包括世界 500 强）投入使用：\n如此看来，Locust 是非常值得学习和掌握的一款工具。\nPython 的魔力在于化繁为简，基于 Python 的 Locust 也能给仍然困惑于性能测试的我们带来启发。\nLocust 特点 以纯 Python 方式编写用户脚本，提供极大自由度。 用户脚本可以串行方式编写，Locust 会通过轻量级进程/协程产生并发，无需自己做并发编程。 并发量大，借助于 gevent 库，Locust 能产生成千上万并发请求。 开销小，Locust 用户运行时开销很小。 良好的 Web UI 对性能结果实时监测。 能测任何系统任何协议，只需要写个 client 即可。 开放 REST API，尽情发挥。 安装 Locust 需要 Python 版本3.6及以上。\n执行 pip 命令：\n$ pip install locust 验证安装成功：\n$ locust -V 安装时会一并安装依赖库：\nInstalling collected packages: Werkzeug, pywin32, zope.event, greenlet, gevent, geventhttpclient, itsdangerous, flask, Flask-BasicAuth, ConfigArgParse, pyzmq, psutil, locust\n能看出来 flask 为 Locust 提供了 Web 功能。\n快速上手 使用 Locust 一般按照以下步骤进行：\n编写 Python 用户脚本。 使用locust命令执行性能测试。 （可选）通过 Web 界面监测结果。 示例代码如下，新建 locustfile.py 文件：\nimport time from locust import HttpUser, task, between class QuickstartUser(HttpUser): wait_time = between(1, 2.5) @task def hello_world(self): self.client.get(\"/hello\") self.client.get(\"/world\") @task(3) def view_items(self): for item_id in range(10): self.client.get(f\"/item?id={item_id}\", name=\"/item\") time.sleep(1) def on_start(self): self.client.post(\"/login\", json={\"username\":\"foo\", \"password\":\"bar\"}) 路径切换到 locustfile.py 文件所在目录，执行命令：\n$ locust 也可以通过-f指定某个目录文件：\n$ locust -f locust_files/my_locust_file.py 运行后，打开http://127.0.0.1:8089看到 Web 界面：\n填写信息后，就能开始压测了。Web 界面提供了结果统计数据：\n和性能指标走势图：\n脚本解析 示例脚本解析如下：\n## Locust用户脚本就是Python模块 import time from locust import HttpUser, task, between ## 类继承自HttpUser class QuickstartUser(HttpUser): # 每个模拟用户等待1~2.5秒 wait_time = between(1, 2.5) # 被@task装饰的才会并发执行 @task def hello_world(self): # client属性是HttpSession实例，用来发送HTTP请求 self.client.get(\"/hello\") self.client.get(\"/world\") # 每个类只会有一个task被选中执行 # 3代表weight权重 # 权重越大越容易被选中执行 # view_items比hello_wolrd多3倍概率被选中执行 @task(3) def view_items(self): for item_id in range(10): # name参数作用是把统计结果按同一名称进行分组 # 这里防止URL参数不同会产生10个不同记录不便于观察 # 把10个汇总成1个\"/item\"记录 self.client.get(f\"/item?id={item_id}\", name=\"/item\") time.sleep(1) # 每个模拟用户开始运行时都会执行 def on_start(self): self.client.post(\"/login\", json={\"username\":\"foo\", \"password\":\"bar\"}) 小结 本文先了解了 Locust 的背景和生态，它是值得学习的，对于 Python 技术栈来说更加如此。接着介绍了使用 pip 命令安装 Locust，其中发现顺带安装了 flask，Locust 的 Web 功能是 flask 提供的。然后给出了一段示例代码，按照步骤上手 Locust。最后对示例代码进行了解析，浅尝辄止。locustfile 实际上该怎么写呢？\n参考资料：\nhttps://locust.io/\nhttps://docs.locust.io/en/stable/\n",
-  "wordCount" : "234",
+  "articleBody": "Locust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：\nLocust 并不小众，从它 Github 的 Star 数量就可见一斑：\n截止文章写作时，一共15951Star。\nLocust 生态良好，它已在多家外企（包括世界 500 强）投入使用：\n如此看来，Locust 是非常值得学习和掌握的一款工具。\nPython 的魔力在于化繁为简，基于 Python 的 Locust 也能给仍然困惑于性能测试的我们带来启发。\nLocust 特点 以纯 Python 方式编写用户脚本，提供极大自由度。 用户脚本可以串行方式编写，Locust 会通过轻量级进程/协程产生并发，无需自己做并发编程。 并发量大，借助于 gevent 库，Locust 能产生成千上万并发请求。 开销小，Locust 用户运行时开销很小。 良好的 Web UI 对性能结果实时监测。 能测任何系统任何协议，只需要写个 client 即可。 开放 REST API，尽情发挥。 安装 Locust 需要 Python 版本3.6及以上。\n执行 pip 命令：\n$ pip install locust 验证安装成功：\n$ locust -V 安装时会一并安装依赖库：\nInstalling collected packages: Werkzeug, pywin32, zope.event, greenlet, gevent, geventhttpclient, itsdangerous, flask, Flask-BasicAuth, ConfigArgParse, pyzmq, psutil, locust\n能看出来 flask 为 Locust 提供了 Web 功能。\n快速上手 使用 Locust 一般按照以下步骤进行：\n编写 Python 用户脚本。 使用locust命令执行性能测试。 （可选）通过 Web 界面监测结果。 示例代码如下，新建 locustfile.py 文件：\nimport time from locust import HttpUser, task, between class QuickstartUser(HttpUser): wait_time = between(1, 2.5) @task def hello_world(self): self.client.get(\"/hello\") self.client.get(\"/world\") @task(3) def view_items(self): for item_id in range(10): self.client.get(f\"/item?id={item_id}\", name=\"/item\") time.sleep(1) def on_start(self): self.client.post(\"/login\", json={\"username\":\"foo\", \"password\":\"bar\"}) 路径切换到 locustfile.py 文件所在目录，执行命令：\n$ locust 也可以通过-f指定某个目录文件：\n$ locust -f locust_files/my_locust_file.py 运行后，打开http://127.0.0.1:8089看到 Web 界面：\n填写信息后，就能开始压测了。Web 界面提供了结果统计数据：\n和性能指标走势图：\n脚本解析 示例脚本解析如下：\n## Locust用户脚本就是Python模块 import time from locust import HttpUser, task, between ## 类继承自HttpUser class QuickstartUser(HttpUser): # 每个模拟用户等待1~2.5秒 wait_time = between(1, 2.5) # 被@task装饰的才会并发执行 @task def hello_world(self): # client属性是HttpSession实例，用来发送HTTP请求 self.client.get(\"/hello\") self.client.get(\"/world\") # 每个类只会有一个task被选中执行 # 3代表weight权重 # 权重越大越容易被选中执行 # view_items比hello_wolrd多3倍概率被选中执行 @task(3) def view_items(self): for item_id in range(10): # name参数作用是把统计结果按同一名称进行分组 # 这里防止URL参数不同会产生10个不同记录不便于观察 # 把10个汇总成1个\"/item\"记录 self.client.get(f\"/item?id={item_id}\", name=\"/item\") time.sleep(1) # 每个模拟用户开始运行时都会执行 def on_start(self): self.client.post(\"/login\", json={\"username\":\"foo\", \"password\":\"bar\"}) 小结 本文先了解了 Locust 的背景和生态，它是值得学习的，对于 Python 技术栈来说更加如此。接着介绍了使用 pip 命令安装 Locust，其中发现顺带安装了 flask，Locust 的 Web 功能是 flask 提供的。然后给出了一段示例代码，按照步骤上手 Locust。最后对示例代码进行了解析，浅尝辄止。locustfile 实际上该怎么写呢？\n参考资料：\nhttps://locust.io/\nhttps://docs.locust.io/en/stable/\n",
+  "wordCount" : "233",
   "inLanguage": "zh",
   "datePublished": "2026-01-16T00:00:00Z",
   "dateModified": "2026-01-16T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -130,7 +127,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -147,29 +144,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -215,10 +190,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>Locust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：</p>
+  <div class="post-content md-content"><p>Locust 是一款 Python 技术栈的开源的性能测试工具。Locust 直译为蝗虫，寓意着它能产生蝗虫般成千上万的并发用户：</p>
 <p><img loading="lazy" src="../assets/487a564e747b495695a20ce9ee1ce686.png"></p>
 <p>Locust 并不小众，从它 Github 的 Star 数量就可见一斑：</p>
 <p><img loading="lazy" src="../assets/27ad4e3170094374a6493b602f3301b0.png"></p>
@@ -366,7 +338,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -500,19 +472,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

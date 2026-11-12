@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>FastAPI 使用 typing 类型提示 | 测试开发刚哥</title>
+<title>FastAPI 使用 typing 类型提示 | 全栈开发刚哥</title>
 <meta name="keywords" content="FastAPI">
 <meta name="description" content="typing 是 Python 标准库，用来做类型提示。FastAPI 使用 typing 做了：">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/fastapi%E4%BD%BF%E7%94%A8typing%E7%B1%BB%E5%9E%8B%E6%8F%90%E7%A4%BA/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/fastapi%E4%BD%BF%E7%94%A8typing%E7%B1%BB%E5%9E%8B%E6%8F%90%E7%A4%BA/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="FastAPI 使用 typing 类型提示">
   <meta property="og:description" content="typing 是 Python 标准库，用来做类型提示。FastAPI 使用 typing 做了：">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "FastAPI"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\ntyping 是 Python 标准库，用来做类型提示。FastAPI 使用 typing 做了：\n编辑器支持；\n类型检查；\n定义类型，request path parameters, query parameters, headers, bodies, dependencies 等等；\n类型转换；\n数据验证，并且在验证失败时自动生成错误；\nOpenAPI 文档，自动生成接口参数；\n编辑器支持 typing 先看个简单的例子：\ndef get_full_name(first_name, last_name): full_name = first_name.title() + \" \" + last_name.title() return full_name print(get_full_name(\"john\", \"doe\")) 输出：\nJohn Doe 也就是把首字母转换成大写后，用空格拼接起来。\n假如在写程序时，你并不知道这个转换大写的函数名是title，那么你会输入.之后查看：\n结果根据没有提示。\n添加 typing 类型提示：\ndef get_full_name(first_name: str, last_name: str): full_name = first_name.title() + \" \" + last_name.title() return full_name print(get_full_name(\"john\", \"doe\")) 再试一把：\n有了。\n再比如：\ndef get_name_with_age(name: str, age: int): name_with_age = name + \" is this old: \" + age return name_with_age 因为明确了类型，编辑器会做类型检查。\n声明类型 简单类型：\nint float bool bytes def get_items(item_a: str, item_b: int, item_c: float, item_d: bool, item_e: bytes): return item_a, item_b, item_c, item_d, item_d, item_e List\nPython 不同版本对 typing 的支持是不一样的，3.6 以上版本：\nfrom typing import List def process_items(items: List[str]): for item in items: print(item) 而 3.9 以上版本：\ndef process_items(items: list[str]): for item in items: print(item) 不需要 import typing，小写的 list 就行，跟常规用法一致。\n这样编辑器就能提供支持：\nTuple 和 Set\n3.9 以上版本：\ndef process_items(items_t: tuple[int, int, str], items_s: set[bytes]): return items_t, items_s Dict\n3.9 以上版本：\ndef process_items(prices: dict[str, float]): for item_name, item_price in prices.items(): print(item_name) print(item_price) Union\n多种类型，比如 int 或 str。\n3.6 以上版本：\nfrom typing import Union def process_item(item: Union[int, str]): print(item) 3.10 以上版本：\ndef process_item(item: int | str): print(item) 不需要 import，使用|就可以了。\nNone\n可能为 None。\n3.6 以上版本：\nfrom typing import Optional def say_hi(name: Optional[str] = None): if name is not None: print(f\"Hey {name}!\") else: print(\"Hello World\") from typing import Union def say_hi(name: Union[str, None] = None): if name is not None: print(f\"Hey {name}!\") else: print(\"Hello World\") 3.10 以上版本：\ndef say_hi(name: str | None = None): if name is not None: print(f\"Hey {name}!\") else: print(\"Hello World\") Classes\n把某个类作为类型提示：\nclass Person: def __init__(self, name: str): self.name = name def get_person_name(one_person: Person): return one_person.name 也能得到编辑器支持：\nPydantic 模型 Pydantic 模型有点类似于 Java 的 POJO，就是定义一个类，里面有一堆属性，这些属性都有类型。在实例化的时候，会做类型检查或类型转换。\nfrom datetime import datetime from pydantic import BaseModel class User(BaseModel): id: int name = \"John Doe\" signup_ts: datetime | None = None friends: list[int] = [] external_data = { \"id\": \"123\", \"signup_ts\": \"2017-06-01 12:22\", \"friends\": [1, \"2\", b\"3\"], } user = User(**external_data) print(user) ## \u003e User id=123 name='John Doe' signup_ts=datetime.datetime(2017, 6, 1, 12, 22) friends=[1, 2, 3] print(user.id) ## \u003e 123 注意，类型提示使用的是:，初始化赋值使用的是=。\nPydantic 对于可选类型有个特殊语法...，表示可以为 None，但是必填：\nfrom pydantic import BaseModel, Field, ValidationError class Model(BaseModel): a: int | None b: int | None = ... c: int | None = Field(...) print(Model(b=1, c=2)) #\u003e a=None b=1 c=2 try: Model(a=1, b=2) except ValidationError as e: print(e) \"\"\" 1 validation error for Model c field required (type=value_error.missing) \"\"\" a、b、c 都能接受 None，比如Model(a=None, b=None, c=None)；\na 可选，比如Model(b=1, c=2)是 ok 的；\nb 和 c 都是必填，比如Model(a=1, b=2)会报错；\nPython 版本 从示例代码来看，Python3.10 版本提供了更简洁的语法，能让代码看起来更优雅。而且 Python3.10 版本也引入了 switch 语句，如果没有什么历史原因，推荐大家使用 Python3.10 版本。\n参考资料：\nPython Types Intro - FastAPI https://fastapi.tiangolo.com/python-types/\n",
-  "wordCount" : "436",
+  "articleBody": "typing 是 Python 标准库，用来做类型提示。FastAPI 使用 typing 做了：\n编辑器支持；\n类型检查；\n定义类型，request path parameters, query parameters, headers, bodies, dependencies 等等；\n类型转换；\n数据验证，并且在验证失败时自动生成错误；\nOpenAPI 文档，自动生成接口参数；\n编辑器支持 typing 先看个简单的例子：\ndef get_full_name(first_name, last_name): full_name = first_name.title() + \" \" + last_name.title() return full_name print(get_full_name(\"john\", \"doe\")) 输出：\nJohn Doe 也就是把首字母转换成大写后，用空格拼接起来。\n假如在写程序时，你并不知道这个转换大写的函数名是title，那么你会输入.之后查看：\n结果根据没有提示。\n添加 typing 类型提示：\ndef get_full_name(first_name: str, last_name: str): full_name = first_name.title() + \" \" + last_name.title() return full_name print(get_full_name(\"john\", \"doe\")) 再试一把：\n有了。\n再比如：\ndef get_name_with_age(name: str, age: int): name_with_age = name + \" is this old: \" + age return name_with_age 因为明确了类型，编辑器会做类型检查。\n声明类型 简单类型：\nint float bool bytes def get_items(item_a: str, item_b: int, item_c: float, item_d: bool, item_e: bytes): return item_a, item_b, item_c, item_d, item_d, item_e List\nPython 不同版本对 typing 的支持是不一样的，3.6 以上版本：\nfrom typing import List def process_items(items: List[str]): for item in items: print(item) 而 3.9 以上版本：\ndef process_items(items: list[str]): for item in items: print(item) 不需要 import typing，小写的 list 就行，跟常规用法一致。\n这样编辑器就能提供支持：\nTuple 和 Set\n3.9 以上版本：\ndef process_items(items_t: tuple[int, int, str], items_s: set[bytes]): return items_t, items_s Dict\n3.9 以上版本：\ndef process_items(prices: dict[str, float]): for item_name, item_price in prices.items(): print(item_name) print(item_price) Union\n多种类型，比如 int 或 str。\n3.6 以上版本：\nfrom typing import Union def process_item(item: Union[int, str]): print(item) 3.10 以上版本：\ndef process_item(item: int | str): print(item) 不需要 import，使用|就可以了。\nNone\n可能为 None。\n3.6 以上版本：\nfrom typing import Optional def say_hi(name: Optional[str] = None): if name is not None: print(f\"Hey {name}!\") else: print(\"Hello World\") from typing import Union def say_hi(name: Union[str, None] = None): if name is not None: print(f\"Hey {name}!\") else: print(\"Hello World\") 3.10 以上版本：\ndef say_hi(name: str | None = None): if name is not None: print(f\"Hey {name}!\") else: print(\"Hello World\") Classes\n把某个类作为类型提示：\nclass Person: def __init__(self, name: str): self.name = name def get_person_name(one_person: Person): return one_person.name 也能得到编辑器支持：\nPydantic 模型 Pydantic 模型有点类似于 Java 的 POJO，就是定义一个类，里面有一堆属性，这些属性都有类型。在实例化的时候，会做类型检查或类型转换。\nfrom datetime import datetime from pydantic import BaseModel class User(BaseModel): id: int name = \"John Doe\" signup_ts: datetime | None = None friends: list[int] = [] external_data = { \"id\": \"123\", \"signup_ts\": \"2017-06-01 12:22\", \"friends\": [1, \"2\", b\"3\"], } user = User(**external_data) print(user) ## \u003e User id=123 name='John Doe' signup_ts=datetime.datetime(2017, 6, 1, 12, 22) friends=[1, 2, 3] print(user.id) ## \u003e 123 注意，类型提示使用的是:，初始化赋值使用的是=。\nPydantic 对于可选类型有个特殊语法...，表示可以为 None，但是必填：\nfrom pydantic import BaseModel, Field, ValidationError class Model(BaseModel): a: int | None b: int | None = ... c: int | None = Field(...) print(Model(b=1, c=2)) #\u003e a=None b=1 c=2 try: Model(a=1, b=2) except ValidationError as e: print(e) \"\"\" 1 validation error for Model c field required (type=value_error.missing) \"\"\" a、b、c 都能接受 None，比如Model(a=None, b=None, c=None)；\na 可选，比如Model(b=1, c=2)是 ok 的；\nb 和 c 都是必填，比如Model(a=1, b=2)会报错；\nPython 版本 从示例代码来看，Python3.10 版本提供了更简洁的语法，能让代码看起来更优雅。而且 Python3.10 版本也引入了 switch 语句，如果没有什么历史原因，推荐大家使用 Python3.10 版本。\n参考资料：\nPython Types Intro - FastAPI https://fastapi.tiangolo.com/python-types/\n",
+  "wordCount" : "435",
   "inLanguage": "zh",
   "datePublished": "2026-01-04T00:00:00Z",
   "dateModified": "2026-01-04T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>typing 是 Python 标准库，用来做类型提示。FastAPI 使用 typing 做了：</p>
+  <div class="post-content md-content"><p>typing 是 Python 标准库，用来做类型提示。FastAPI 使用 typing 做了：</p>
 <ul>
 <li>
 <p>编辑器支持；</p>
@@ -451,7 +423,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -585,19 +557,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

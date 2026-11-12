@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>录制脚本与元素定位 | 测试开发刚哥</title>
+<title>录制脚本与元素定位 | 全栈开发刚哥</title>
 <meta name="keywords" content="Playwright">
 <meta name="description" content="UI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BD%95%E5%88%B6%E8%84%9A%E6%9C%AC%E4%B8%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="录制脚本与元素定位">
   <meta property="og:description" content="UI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Playwright"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nUI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。\n并且 Playwright 会优先选择稳定的元素定位方式，通常是 role, text 和 test id。\n前置条件：\n安装 node.js 执行 playwright install 安装测试版浏览器 安装完成后执行命令，启动 Codegen：\nplaywright codegen 也可以指定 URL 进行启动：\nplaywright codegen demo.playwright.dev/todomvc 启动后会打开 2 个窗口：\n1 个是测试版浏览器，也就是进行操作的页面。1 个是监视器，会实时生成脚本，可以在右上角的 Target 切换不同语言，Python 就选择 Pytest。\n更多用法请咨询 AI：\n元素定位 提示词： 访问https://playwright.dev/python/docs/locators，提取最重要的10点 Playwright Locators 核心 10 点（官方文档核心提炼）\n定位器核心特性：Locators 是 Playwright 自动等待和重试机制的核心，代表任意时刻查找页面元素的方式，每次执行操作都会重新定位最新的 DOM 元素，适配页面重渲染场景。\n推荐定位器优先级：优先使用面向用户的内置定位器，而非 CSS/XPath，官方推荐顺序核心为：get_by_role() \u003e get_by_test_id() \u003e 文本 / 标签类定位器，避免依赖 DOM 结构的选择器导致用例不稳定。\n核心内置定位器及适用场景\n提供 7 种官方推荐定位器，各有明确适用场景：\nget_by_role()：按 W3C ARIA 角色 / 可访问名称定位（如按钮、复选框），最贴合用户操作视角； get_by_label()：定位带标签的表单控件（如输入框）； get_by_test_id()：按 data-testid 定位（最稳定，不受页面文本 / 样式变化影响）； 其余：get_by_text()（非交互元素文本）、get_by_placeholder()（无标签表单）、get_by_alt_text()（图片）、get_by_title()（带 title 属性元素）。 定位器可链式调用：所有创建定位器的方法（如 get_by_role()/get_by_label()）可在 Locator/FrameLocator 上调用，支持逐层缩小定位范围（如先定位 iframe，再定位内部按钮）。\n强大的过滤能力：通过 locator.filter()实现精准筛选，支持 4 种过滤方式：按文本（has_text/has_not_text）、按子元素（has/has_not）、正则匹配文本，且可多过滤条件链式组合。\n定位器运算符\n支持 3 种复合定位逻辑，满足复杂场景：\nand_()：同时匹配多个定位器（如角色为按钮且含指定 title）； or_()：匹配任意一个定位器（如处理弹窗 / 目标元素二选一场景）； 嵌套定位：在父定位器内匹配子定位器（如对话框内的保存按钮）。 严格模式特性：Locators 默认开启严格模式，单个元素操作若匹配多个元素会抛出异常（如 click()）；多元素操作（如 count()）可正常执行，可通过 first/last/nth()显式取消严格校验（不推荐）。\n原生支持 Shadow DOM：所有定位器默认穿透 Shadow DOM（XPath 除外），闭模式 Shadow DOM 不支持，可直接按普通元素方式定位 Shadow DOM 内的元素。\n列表元素处理方案：针对列表提供全套操作，包括：断言列表数量（to_have_count）、断言列表文本（to_have_text）、精准获取指定项（文本 / Test ID / 过滤），避免直接使用 nth()（易因页面顺序变化失效）。\nCSS/XPath 的使用规范：官方不推荐使用 CSS/XPath（易因 DOM 结构变化失效），仅在无其他方案时使用 page.locator()，且禁止使用超长嵌套的 CSS/XPath 选择器，替代方案为定义 Test ID 或使用角色定位。\n题外话 这篇文章是我第一次使用 AI 生成文字，写文章的效率提升了很多。但是怎么提高文章质量？如何选择话题？哪些内容能对读者有帮助？是接下来需要重点思考和调整的。纯粹的知识搬运，受众只会越来越少。“能帮助读者拓展认知的好文章”，也许是我努力的方向。\n参考资料\nhttps://playwright.dev/python/docs/codegen\nhttps://playwright.dev/python/docs/locators\nhttps://playwright.dev/python/docs/other-locators\n",
-  "wordCount" : "147",
+  "articleBody": "UI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。\n并且 Playwright 会优先选择稳定的元素定位方式，通常是 role, text 和 test id。\n前置条件：\n安装 node.js 执行 playwright install 安装测试版浏览器 安装完成后执行命令，启动 Codegen：\nplaywright codegen 也可以指定 URL 进行启动：\nplaywright codegen demo.playwright.dev/todomvc 启动后会打开 2 个窗口：\n1 个是测试版浏览器，也就是进行操作的页面。1 个是监视器，会实时生成脚本，可以在右上角的 Target 切换不同语言，Python 就选择 Pytest。\n更多用法请咨询 AI：\n元素定位 提示词： 访问https://playwright.dev/python/docs/locators，提取最重要的10点 Playwright Locators 核心 10 点（官方文档核心提炼）\n定位器核心特性：Locators 是 Playwright 自动等待和重试机制的核心，代表任意时刻查找页面元素的方式，每次执行操作都会重新定位最新的 DOM 元素，适配页面重渲染场景。\n推荐定位器优先级：优先使用面向用户的内置定位器，而非 CSS/XPath，官方推荐顺序核心为：get_by_role() \u003e get_by_test_id() \u003e 文本 / 标签类定位器，避免依赖 DOM 结构的选择器导致用例不稳定。\n核心内置定位器及适用场景\n提供 7 种官方推荐定位器，各有明确适用场景：\nget_by_role()：按 W3C ARIA 角色 / 可访问名称定位（如按钮、复选框），最贴合用户操作视角； get_by_label()：定位带标签的表单控件（如输入框）； get_by_test_id()：按 data-testid 定位（最稳定，不受页面文本 / 样式变化影响）； 其余：get_by_text()（非交互元素文本）、get_by_placeholder()（无标签表单）、get_by_alt_text()（图片）、get_by_title()（带 title 属性元素）。 定位器可链式调用：所有创建定位器的方法（如 get_by_role()/get_by_label()）可在 Locator/FrameLocator 上调用，支持逐层缩小定位范围（如先定位 iframe，再定位内部按钮）。\n强大的过滤能力：通过 locator.filter()实现精准筛选，支持 4 种过滤方式：按文本（has_text/has_not_text）、按子元素（has/has_not）、正则匹配文本，且可多过滤条件链式组合。\n定位器运算符\n支持 3 种复合定位逻辑，满足复杂场景：\nand_()：同时匹配多个定位器（如角色为按钮且含指定 title）； or_()：匹配任意一个定位器（如处理弹窗 / 目标元素二选一场景）； 嵌套定位：在父定位器内匹配子定位器（如对话框内的保存按钮）。 严格模式特性：Locators 默认开启严格模式，单个元素操作若匹配多个元素会抛出异常（如 click()）；多元素操作（如 count()）可正常执行，可通过 first/last/nth()显式取消严格校验（不推荐）。\n原生支持 Shadow DOM：所有定位器默认穿透 Shadow DOM（XPath 除外），闭模式 Shadow DOM 不支持，可直接按普通元素方式定位 Shadow DOM 内的元素。\n列表元素处理方案：针对列表提供全套操作，包括：断言列表数量（to_have_count）、断言列表文本（to_have_text）、精准获取指定项（文本 / Test ID / 过滤），避免直接使用 nth()（易因页面顺序变化失效）。\nCSS/XPath 的使用规范：官方不推荐使用 CSS/XPath（易因 DOM 结构变化失效），仅在无其他方案时使用 page.locator()，且禁止使用超长嵌套的 CSS/XPath 选择器，替代方案为定义 Test ID 或使用角色定位。\n题外话 这篇文章是我第一次使用 AI 生成文字，写文章的效率提升了很多。但是怎么提高文章质量？如何选择话题？哪些内容能对读者有帮助？是接下来需要重点思考和调整的。纯粹的知识搬运，受众只会越来越少。“能帮助读者拓展认知的好文章”，也许是我努力的方向。\n参考资料\nhttps://playwright.dev/python/docs/codegen\nhttps://playwright.dev/python/docs/locators\nhttps://playwright.dev/python/docs/other-locators\n",
+  "wordCount" : "146",
   "inLanguage": "zh",
   "datePublished": "2026-01-01T00:00:00Z",
   "dateModified": "2026-01-01T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>UI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。</p>
+  <div class="post-content md-content"><p>UI 自动化最麻烦的就是定位元素，好在 Playwright 支持录制脚本，可以在界面进行操作，快速获取元素定位，生成测试脚本。</p>
 <p>并且 Playwright 会优先选择稳定的元素定位方式，通常是 role, text 和 test id。</p>
 <p>前置条件：</p>
 <ul>
@@ -324,7 +296,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -458,19 +430,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

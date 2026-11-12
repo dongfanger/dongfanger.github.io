@@ -5,12 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>pytestx 容器化执行引擎 | 测试开发刚哥</title>
+<title>pytestx 容器化执行引擎 | 全栈开发刚哥</title>
 <meta name="keywords" content="pytestx">
-<meta name="description" content="
-本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-
-系统架构
+<meta name="description" content="系统架构
 
 前端、后端、pytest 均以Docker容器运行服务，单独的容器化执行引擎，项目环境隔离，即用即取，用完即弃，简单，高效。
 
@@ -43,9 +40,9 @@ pytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告
 pytestx 平台更轻、更薄，移除了用例管理、任务关联用例相关功能代码，只保留真正的任务调度功能，backend 的 requirements.txt 解耦，只保留后端依赖，pytest 相关依赖转移到 tep-project。
 那如何管理用例呢？约定大于配置，我们约定 pytest 项目已经通过目录维护好了一个稳定的自动化用例集，也就是说需要通过平台任务调度的用例，都统一存放在目录 X 下，这些用例基本不需要维护，可以每日稳定执行，然后将目录 X 配置到平台任务信息中，按指定目录执行用例集。对于那些不够稳定的用例，就不能放到目录 X 下，需要调试好以后再纳入。
 为什么不用 marker？pytest 的 marker 确实可以给测试用例打标记，也有人是手动建立任务和用例进行映射，这些方式都不如维护一个稳定的自动化用例集方便，在我们公司平台上，也是维护用例集，作为基础用例集。使用 pytest 项目同理。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/pytestx%E5%AE%B9%E5%99%A8%E5%8C%96%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -89,11 +86,7 @@ pytestx 平台更轻、更薄，移除了用例管理、任务关联用例相关
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -103,11 +96,11 @@ pytestx 平台更轻、更薄，移除了用例管理、任务关联用例相关
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/pytestx%E5%AE%B9%E5%99%A8%E5%8C%96%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="pytestx 容器化执行引擎">
-  <meta property="og:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-系统架构 前端、后端、pytest 均以Docker容器运行服务，单独的容器化执行引擎，项目环境隔离，即用即取，用完即弃，简单，高效。
+  <meta property="og:description" content="系统架构 前端、后端、pytest 均以Docker容器运行服务，单独的容器化执行引擎，项目环境隔离，即用即取，用完即弃，简单，高效。
 前端容器：页面交互，请求后端，展示 HTML 报告
 后端容器：接收前端请求，启动任务，构建镜像，触发运行 pytest，挂载 HTML 报告
 pytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告
@@ -130,8 +123,7 @@ pytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="pytestx 容器化执行引擎">
-  <meta name="twitter:description" content="本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。
-系统架构 前端、后端、pytest 均以Docker容器运行服务，单独的容器化执行引擎，项目环境隔离，即用即取，用完即弃，简单，高效。
+  <meta name="twitter:description" content="系统架构 前端、后端、pytest 均以Docker容器运行服务，单独的容器化执行引擎，项目环境隔离，即用即取，用完即弃，简单，高效。
 前端容器：页面交互，请求后端，展示 HTML 报告
 后端容器：接收前端请求，启动任务，构建镜像，触发运行 pytest，挂载 HTML 报告
 pytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告
@@ -173,18 +165,18 @@ pytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告
   "@type": "BlogPosting",
   "headline": "pytestx 容器化执行引擎",
   "name": "pytestx 容器化执行引擎",
-  "description": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n系统架构 前端、后端、pytest 均以Docker容器运行服务，单独的容器化执行引擎，项目环境隔离，即用即取，用完即弃，简单，高效。\n前端容器：页面交互，请求后端，展示 HTML 报告\n后端容器：接收前端请求，启动任务，构建镜像，触发运行 pytest，挂载 HTML 报告\npytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告\n说明：构建镜像目前是在宿主机启动后端服务来执行 docker 命令的，暂未支持 Kubernetes 编排。宿主机安装了 Docker，启动服务后，可以执行 docker 命令。如果采用容器部署后端，容器里面不包含 Docker，无法构建，个人想法是可以借助 K8S 来编排，当前版本还未实现\n系统流程 支持 2 种运行模式配置：容器和本地。\n容器模式：判断是否支持 docker，如果支持，构建 pytest 镜像，在构建时，通过 git 拉取项目代码，再运行容器，按照指定目录执行 pytest，生成测试报告，并将报告文件挂载到后端。如果不支持，降级为本地运行。\n本地模式：模拟容器行为，在本地目录拉取代码，执行 pytest，生成测试报告。\n效果展示 任务管理：\n容器模式：\n本地模式：\n平台大改造 pytestx 平台更轻、更薄，移除了用例管理、任务关联用例相关功能代码，只保留真正的任务调度功能，backend 的 requirements.txt 解耦，只保留后端依赖，pytest 相关依赖转移到 tep-project。\n那如何管理用例呢？约定大于配置，我们约定 pytest 项目已经通过目录维护好了一个稳定的自动化用例集，也就是说需要通过平台任务调度的用例，都统一存放在目录 X 下，这些用例基本不需要维护，可以每日稳定执行，然后将目录 X 配置到平台任务信息中，按指定目录执行用例集。对于那些不够稳定的用例，就不能放到目录 X 下，需要调试好以后再纳入。\n为什么不用 marker？pytest 的 marker 确实可以给测试用例打标记，也有人是手动建立任务和用例进行映射，这些方式都不如维护一个稳定的自动化用例集方便，在我们公司平台上，也是维护用例集，作为基础用例集。使用 pytest 项目同理。\n",
+  "description": "系统架构 前端、后端、pytest 均以Docker容器运行服务，单独的容器化执行引擎，项目环境隔离，即用即取，用完即弃，简单，高效。\n前端容器：页面交互，请求后端，展示 HTML 报告\n后端容器：接收前端请求，启动任务，构建镜像，触发运行 pytest，挂载 HTML 报告\npytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告\n说明：构建镜像目前是在宿主机启动后端服务来执行 docker 命令的，暂未支持 Kubernetes 编排。宿主机安装了 Docker，启动服务后，可以执行 docker 命令。如果采用容器部署后端，容器里面不包含 Docker，无法构建，个人想法是可以借助 K8S 来编排，当前版本还未实现\n系统流程 支持 2 种运行模式配置：容器和本地。\n容器模式：判断是否支持 docker，如果支持，构建 pytest 镜像，在构建时，通过 git 拉取项目代码，再运行容器，按照指定目录执行 pytest，生成测试报告，并将报告文件挂载到后端。如果不支持，降级为本地运行。\n本地模式：模拟容器行为，在本地目录拉取代码，执行 pytest，生成测试报告。\n效果展示 任务管理：\n容器模式：\n本地模式：\n平台大改造 pytestx 平台更轻、更薄，移除了用例管理、任务关联用例相关功能代码，只保留真正的任务调度功能，backend 的 requirements.txt 解耦，只保留后端依赖，pytest 相关依赖转移到 tep-project。\n那如何管理用例呢？约定大于配置，我们约定 pytest 项目已经通过目录维护好了一个稳定的自动化用例集，也就是说需要通过平台任务调度的用例，都统一存放在目录 X 下，这些用例基本不需要维护，可以每日稳定执行，然后将目录 X 配置到平台任务信息中，按指定目录执行用例集。对于那些不够稳定的用例，就不能放到目录 X 下，需要调试好以后再纳入。\n为什么不用 marker？pytest 的 marker 确实可以给测试用例打标记，也有人是手动建立任务和用例进行映射，这些方式都不如维护一个稳定的自动化用例集方便，在我们公司平台上，也是维护用例集，作为基础用例集。使用 pytest 项目同理。\n",
   "keywords": [
     "pytestx"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\n系统架构 前端、后端、pytest 均以Docker容器运行服务，单独的容器化执行引擎，项目环境隔离，即用即取，用完即弃，简单，高效。\n前端容器：页面交互，请求后端，展示 HTML 报告\n后端容器：接收前端请求，启动任务，构建镜像，触发运行 pytest，挂载 HTML 报告\npytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告\n说明：构建镜像目前是在宿主机启动后端服务来执行 docker 命令的，暂未支持 Kubernetes 编排。宿主机安装了 Docker，启动服务后，可以执行 docker 命令。如果采用容器部署后端，容器里面不包含 Docker，无法构建，个人想法是可以借助 K8S 来编排，当前版本还未实现\n系统流程 支持 2 种运行模式配置：容器和本地。\n容器模式：判断是否支持 docker，如果支持，构建 pytest 镜像，在构建时，通过 git 拉取项目代码，再运行容器，按照指定目录执行 pytest，生成测试报告，并将报告文件挂载到后端。如果不支持，降级为本地运行。\n本地模式：模拟容器行为，在本地目录拉取代码，执行 pytest，生成测试报告。\n效果展示 任务管理：\n容器模式：\n本地模式：\n平台大改造 pytestx 平台更轻、更薄，移除了用例管理、任务关联用例相关功能代码，只保留真正的任务调度功能，backend 的 requirements.txt 解耦，只保留后端依赖，pytest 相关依赖转移到 tep-project。\n那如何管理用例呢？约定大于配置，我们约定 pytest 项目已经通过目录维护好了一个稳定的自动化用例集，也就是说需要通过平台任务调度的用例，都统一存放在目录 X 下，这些用例基本不需要维护，可以每日稳定执行，然后将目录 X 配置到平台任务信息中，按指定目录执行用例集。对于那些不够稳定的用例，就不能放到目录 X 下，需要调试好以后再纳入。\n为什么不用 marker？pytest 的 marker 确实可以给测试用例打标记，也有人是手动建立任务和用例进行映射，这些方式都不如维护一个稳定的自动化用例集方便，在我们公司平台上，也是维护用例集，作为基础用例集。使用 pytest 项目同理。\n核心代码 一键部署\n#!/bin/bash PkgName='backend' Dockerfile='./deploy/Dockerfile.backend' DockerContext=./ echo \"Start build image...\" docker build -f $Dockerfile -t $PkgName $DockerContext if [ $? -eq 0 ] then echo \"Build docker image success\" echo \"Start run image...\" docker run -p 8000:80 $PkgName else echo \"Build docker image failed\" fi FROM python:3.8 ENV LANG C.UTF-8 ENV TZ=Asia/Shanghai RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \u0026\u0026 echo 'Asia/Shanghai' \u003e/etc/timezone WORKDIR /app COPY ./backend . RUN pip install -r ./requirements.txt -i \\ https://pypi.tuna.tsinghua.edu.cn/simple \\ --default-timeout=3000 CMD [\"python\", \"./manage.py\", \"runserver\", \"0.0.0.0:80\"] 数据库表\n更精简，只有 project 和 task 两张表，简化平台功能，聚焦任务调度：\n需要说明的是，如果多人运行任务，只会存储最后一次执行结果，这个问题不是核心，个人精力有限，不打算在开源项目中开发，更侧重于实现任务调度，供大家参考\n执行任务\nsettings 配置任务模式，判断执行不同分支：\ndef run(self): logger.info(\"任务开始执行\") if settings.TASK_RUN_MODE == TaskRunMode.DOCKER: # 容器模式 try: self.execute_by_docker() except Exception as e: logger.info(e) if e == TaskException.DockerNotSupportedException: logger.info(\"降级为本地执行\") self.execute_by_local() if settings.TASK_RUN_MODE == TaskRunMode.LOCAL: # 本地模式 self.execute_by_local() self.save_task() 容器模式\n先根据docker -v命令判断是否支持 docker，然后 docker build，再 docker run\ndef execute_by_docker(self): logger.info(\"运行模式：容器\") output = subprocess.getoutput(\"docker -v\") logger.info(output) if \"not found\" in output: raise TaskException.DockerNotSupportedException build_args = [ f'--build-arg CMD_GIT_CLONE=\"{self.cmd_git_clone}\"', f'--build-arg GIT_NAME=\"{self.git_name}\"', f'--build-arg EXEC_DIR=\"{self.exec_dir}\"', f'--build-arg REPORT_NAME=\"{self.report_name}\"', ] cmd = f\"docker build {' '.join(build_args)} -f {self.dockerfile_pytest} -t {self.git_name} {BASE_DIR}\" logger.info(cmd) output = subprocess.getoutput(cmd) logger.info(output) cmd = f\"docker run -v {REPORT_PATH}:/app/{os.path.join(self.exec_dir, 'reports')} {self.git_name}\" logger.info(cmd) output = subprocess.getoutput(cmd) logger.info(output) 将项目仓库、执行目录、报告名称信息，通过参数传入 Dockerfile.pytest\nFROM python:3.8 ENV LANG C.UTF-8 ENV TZ=Asia/Shanghai ARG CMD_GIT_CLONE ARG GIT_NAME ARG EXEC_DIR ARG REPORT_NAME RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \u0026\u0026 echo 'Asia/Shanghai' \u003e/etc/timezone WORKDIR /app RUN $CMD_GIT_CLONE RUN pip install -r ./$GIT_NAME/requirements.txt -i \\ https://pypi.tuna.tsinghua.edu.cn/simple \\ --default-timeout=3000 WORKDIR $EXEC_DIR ENV HTML_NAME=$REPORT_NAME CMD [\"pytest\", \"--html=./reports/$HTML_NAME\", \"--self-contained-html\"] docker run 的-v参数将容器报告挂载在后端服务，当报告生成后，后端服务也会生成一份报告文件。再将文件内容返给前端展示：\ndef report(request, *args, **kwargs): task_id = kwargs[\"task_id\"] task = Task.objects.get(id=task_id) report_path = task.report_path with open(os.path.join(REPORT_PATH, report_path), 'r', encoding=\"utf8\") as f: html_content = f.read() return HttpResponse(html_content, content_type='text/html') 测试报告使用的 pytest-html，重数据内容，轻外观样式。\n本地模式\n模拟容器行为，把本地.local目录当做容器，拉代码，执行 pytest，生成报告，复制报告到报告文件夹，删除本地目录：\ndef execute_by_local(self): logger.info(\"运行模式：本地\") os.makedirs(self.local_path, exist_ok=True) os.chdir(self.local_path) cmd_list = [self.cmd_git_clone, self.cmd_pytest] for cmd in cmd_list: logger.info(cmd) output = subprocess.getoutput(cmd) if output: logger.info(output) os.makedirs(REPORT_PATH, exist_ok=True) shutil.copy2(self.project_report_path, REPORT_PATH) shutil.rmtree(LOCAL_PATH) 本地模式，主要用于本地调试，在缺失 Docker 环境时，也能调试其他功能。\n配置\nTASK_RUN_MODE = TaskRunMode.DOCKER LOCAL_PATH = os.path.join(BASE_DIR, \".local\") REPORT_PATH = os.path.join(BASE_DIR, \"task\", \"report\") class TaskRunner: def __init__(self, task_id, run_user_id): self.task_id = task_id self.directory = Task.objects.get(id=task_id).directory self.project_id = Task.objects.get(id=task_id).project_id self.git_repository = Project.objects.get(id=self.project_id).git_repository self.git_branch = Project.objects.get(id=self.project_id).git_branch self.git_name = re.findall(r\"^.*/(.*).git\", self.git_repository)[0] self.local_path = os.path.join(LOCAL_PATH, str(uuid.uuid1()).replace(\"-\", \"\")) self.run_user_id = run_user_id self.current_time = time.strftime(\"%Y-%m-%d-%H-%M-%S\", time.localtime(time.time())) self.report_name = f\"{str(self.git_name)}-{self.task_id}-{self.run_user_id}-{self.current_time}.html\" self.project_report_path = os.path.join(self.local_path, self.git_name, \"reports\", self.report_name) self.dockerfile_pytest = os.path.join(DEPLOY_PATH, \"Dockerfile.pytest\") self.exec_dir = os.path.join(self.git_name, self.directory) self.cmd_git_clone = f\"git clone -b {self.git_branch} {self.git_repository}\" self.cmd_pytest = f\"pytest {self.exec_dir} --html={self.project_report_path} --self-contained-html\" tep-project 更新 1、整合 fixture，功能类放在 fixture_function 模块，数据类放在其他模块，突出fixture 存放数据概念，比如登录接口 fixture_login 存储用户名密码、数据库 fixture_mysql 存储连接信息、文件 fixture_file_data 存储文件路径\n2、改造 fixture_login，数据类 fixture 代码更简洁\nimport pytest from loguru import logger @pytest.fixture(scope=\"session\") def login(http, file_data): logger.info(\"----------------开始登录----------------\") response = http( \"post\", url=file_data[\"domain\"] + \"/api/users/login\", headers={\"Content-Type\": \"application/json\"}, json={\"username\": \"admin\", \"password\": \"qa123456\"} ) assert response.status_code \u003c 400 logger.info(\"----------------登录成功----------------\") response = response.json() return {\"Content-Type\": \"application/json\", \"Authorization\": f\"Bearer {response['token']}\"} @pytest.fixture(scope=\"session\") def login_xdist(http, tep_context_manager, file_data): \"\"\" 该login只会在整个运行期间执行一次 \"\"\" def produce_expensive_data(variable): logger.info(\"----------------开始登录----------------\") response = http( \"post\", url=variable[\"domain\"] + \"/api/users/login\", headers={\"Content-Type\": \"application/json\"}, json={\"username\": \"admin\", \"password\": \"qa123456\"} ) assert response.status_code \u003c 400 logger.info(\"----------------登录成功----------------\") return response.json() response = tep_context_manager(produce_expensive_data, file_data) return {\"Authorization\": \"Bearer \" + response[\"token\"]} 3、改造 fixture_mysql，支持维护多个连接，并且保持简洁\nfixture_function.py\n@pytest.fixture(scope=\"class\") def executor(): class Executor: def __init__(self, db): self.db = db self.cursor = db.cursor() def execute_sql(self, sql): try: self.cursor.execute(sql) self.db.commit() except Exception as e: print(e) self.db.rollback() return self.cursor return Executor fixture_mysql.py\n@pytest.fixture(scope=\"class\") def mysql_execute(executor): db = pymysql.connect(host=\"host\", port=3306, user=\"root\", password=\"password\", database=\"database\") yield executor(db).execute_sql db.close() @pytest.fixture(scope=\"class\") def mysql_execute_x(executor): db = pymysql.connect(host=\"x\", port=3306, user=\"x\", password=\"x\", database=\"x\") yield executor(db).execute_sql db.close() 4、改造 fixture_file_data，并添加示例 test_file_data.py\nimport os import pytest from conftest import RESOURCE_PATH @pytest.fixture(scope=\"session\") def file_data(resource): file_path = os.path.join(RESOURCE_PATH, \"demo.yaml\") return resource(file_path).get_data() @pytest.fixture(scope=\"session\") def file_data_json(resource): file_path = os.path.join(RESOURCE_PATH, \"demo.json\") return resource(file_path).get_data() 5、添加接口复用的示例代码\ntests/base就是平台调度使用的稳定自动化用例集。\n接口代码复用设计 5 条用例：\ntest_search_sku.py：搜索商品，前置条件：登录\ntest_add_cart.py：添加购物车，前置条件：登录，搜索商品\ntest_order.py：下单，前置条件：登录，搜索商品，添加购物车\ntest_pay.py：支付，前置条件：登录，搜索商品，添加购物车，下单\ntest_flow.py：完整流程\n怎么设计？\n登录，每条用例前置条件都依赖，定义为 fixture_login，放在 fixtures 目录下\n搜索商品，test_search_sku.py 用例本身不需要复用，被前置条件依赖 3 次，可以复用\n①定义为 fixture_search_sku 放在 fixtures❌ 弊端：导致 fixtures 臃肿\n②复制用例文件，允许多份代码，平行展开✅ 好处：高度解耦，不用担心依赖问题\n总结，定义为 fixture 需要具备底层性，足够精炼。对于业务接口用例的前置条件，尽量在用例文件内部处理，保持文件解耦，遵循独立可运行的原则。\n复制多份文件？需要修改的话要改多份文件？\n是的，但这种情况极少。我能想到的情况：一、框架设计不成熟，动了底层设计，二、接口不稳定，改了公共接口，三、用例设计不合理，不能算是自动化。接口自动化要做好的前提，其实就是框架成熟，接口稳定，用例设计合理，满足这些前提以后，沉淀下来的自动化用例，几乎不需要大批量修改，更多的是要针对每条用例，去修改内部的数据，以满足不同场景的测试需要。也就是说，针对某个用例修改这个用例的数据，是更常见的行为。\n如果项目变动实在太大，整个自动化都不能用了，不管是做封装还是平行展开，维护量都非常大，耦合度太高的话，反而还不好改。\n跟着 pytestx 学习接口自动化框架设计，更简单，更快速，更高效\nhttps://github.com/dongfanger/pytestx\nhttps://gitee.com/dongfanger/tep-project\n",
-  "wordCount" : "667",
+  "articleBody": "系统架构 前端、后端、pytest 均以Docker容器运行服务，单独的容器化执行引擎，项目环境隔离，即用即取，用完即弃，简单，高效。\n前端容器：页面交互，请求后端，展示 HTML 报告\n后端容器：接收前端请求，启动任务，构建镜像，触发运行 pytest，挂载 HTML 报告\npytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告\n说明：构建镜像目前是在宿主机启动后端服务来执行 docker 命令的，暂未支持 Kubernetes 编排。宿主机安装了 Docker，启动服务后，可以执行 docker 命令。如果采用容器部署后端，容器里面不包含 Docker，无法构建，个人想法是可以借助 K8S 来编排，当前版本还未实现\n系统流程 支持 2 种运行模式配置：容器和本地。\n容器模式：判断是否支持 docker，如果支持，构建 pytest 镜像，在构建时，通过 git 拉取项目代码，再运行容器，按照指定目录执行 pytest，生成测试报告，并将报告文件挂载到后端。如果不支持，降级为本地运行。\n本地模式：模拟容器行为，在本地目录拉取代码，执行 pytest，生成测试报告。\n效果展示 任务管理：\n容器模式：\n本地模式：\n平台大改造 pytestx 平台更轻、更薄，移除了用例管理、任务关联用例相关功能代码，只保留真正的任务调度功能，backend 的 requirements.txt 解耦，只保留后端依赖，pytest 相关依赖转移到 tep-project。\n那如何管理用例呢？约定大于配置，我们约定 pytest 项目已经通过目录维护好了一个稳定的自动化用例集，也就是说需要通过平台任务调度的用例，都统一存放在目录 X 下，这些用例基本不需要维护，可以每日稳定执行，然后将目录 X 配置到平台任务信息中，按指定目录执行用例集。对于那些不够稳定的用例，就不能放到目录 X 下，需要调试好以后再纳入。\n为什么不用 marker？pytest 的 marker 确实可以给测试用例打标记，也有人是手动建立任务和用例进行映射，这些方式都不如维护一个稳定的自动化用例集方便，在我们公司平台上，也是维护用例集，作为基础用例集。使用 pytest 项目同理。\n核心代码 一键部署\n#!/bin/bash PkgName='backend' Dockerfile='./deploy/Dockerfile.backend' DockerContext=./ echo \"Start build image...\" docker build -f $Dockerfile -t $PkgName $DockerContext if [ $? -eq 0 ] then echo \"Build docker image success\" echo \"Start run image...\" docker run -p 8000:80 $PkgName else echo \"Build docker image failed\" fi FROM python:3.8 ENV LANG C.UTF-8 ENV TZ=Asia/Shanghai RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \u0026\u0026 echo 'Asia/Shanghai' \u003e/etc/timezone WORKDIR /app COPY ./backend . RUN pip install -r ./requirements.txt -i \\ https://pypi.tuna.tsinghua.edu.cn/simple \\ --default-timeout=3000 CMD [\"python\", \"./manage.py\", \"runserver\", \"0.0.0.0:80\"] 数据库表\n更精简，只有 project 和 task 两张表，简化平台功能，聚焦任务调度：\n需要说明的是，如果多人运行任务，只会存储最后一次执行结果，这个问题不是核心，个人精力有限，不打算在开源项目中开发，更侧重于实现任务调度，供大家参考\n执行任务\nsettings 配置任务模式，判断执行不同分支：\ndef run(self): logger.info(\"任务开始执行\") if settings.TASK_RUN_MODE == TaskRunMode.DOCKER: # 容器模式 try: self.execute_by_docker() except Exception as e: logger.info(e) if e == TaskException.DockerNotSupportedException: logger.info(\"降级为本地执行\") self.execute_by_local() if settings.TASK_RUN_MODE == TaskRunMode.LOCAL: # 本地模式 self.execute_by_local() self.save_task() 容器模式\n先根据docker -v命令判断是否支持 docker，然后 docker build，再 docker run\ndef execute_by_docker(self): logger.info(\"运行模式：容器\") output = subprocess.getoutput(\"docker -v\") logger.info(output) if \"not found\" in output: raise TaskException.DockerNotSupportedException build_args = [ f'--build-arg CMD_GIT_CLONE=\"{self.cmd_git_clone}\"', f'--build-arg GIT_NAME=\"{self.git_name}\"', f'--build-arg EXEC_DIR=\"{self.exec_dir}\"', f'--build-arg REPORT_NAME=\"{self.report_name}\"', ] cmd = f\"docker build {' '.join(build_args)} -f {self.dockerfile_pytest} -t {self.git_name} {BASE_DIR}\" logger.info(cmd) output = subprocess.getoutput(cmd) logger.info(output) cmd = f\"docker run -v {REPORT_PATH}:/app/{os.path.join(self.exec_dir, 'reports')} {self.git_name}\" logger.info(cmd) output = subprocess.getoutput(cmd) logger.info(output) 将项目仓库、执行目录、报告名称信息，通过参数传入 Dockerfile.pytest\nFROM python:3.8 ENV LANG C.UTF-8 ENV TZ=Asia/Shanghai ARG CMD_GIT_CLONE ARG GIT_NAME ARG EXEC_DIR ARG REPORT_NAME RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \u0026\u0026 echo 'Asia/Shanghai' \u003e/etc/timezone WORKDIR /app RUN $CMD_GIT_CLONE RUN pip install -r ./$GIT_NAME/requirements.txt -i \\ https://pypi.tuna.tsinghua.edu.cn/simple \\ --default-timeout=3000 WORKDIR $EXEC_DIR ENV HTML_NAME=$REPORT_NAME CMD [\"pytest\", \"--html=./reports/$HTML_NAME\", \"--self-contained-html\"] docker run 的-v参数将容器报告挂载在后端服务，当报告生成后，后端服务也会生成一份报告文件。再将文件内容返给前端展示：\ndef report(request, *args, **kwargs): task_id = kwargs[\"task_id\"] task = Task.objects.get(id=task_id) report_path = task.report_path with open(os.path.join(REPORT_PATH, report_path), 'r', encoding=\"utf8\") as f: html_content = f.read() return HttpResponse(html_content, content_type='text/html') 测试报告使用的 pytest-html，重数据内容，轻外观样式。\n本地模式\n模拟容器行为，把本地.local目录当做容器，拉代码，执行 pytest，生成报告，复制报告到报告文件夹，删除本地目录：\ndef execute_by_local(self): logger.info(\"运行模式：本地\") os.makedirs(self.local_path, exist_ok=True) os.chdir(self.local_path) cmd_list = [self.cmd_git_clone, self.cmd_pytest] for cmd in cmd_list: logger.info(cmd) output = subprocess.getoutput(cmd) if output: logger.info(output) os.makedirs(REPORT_PATH, exist_ok=True) shutil.copy2(self.project_report_path, REPORT_PATH) shutil.rmtree(LOCAL_PATH) 本地模式，主要用于本地调试，在缺失 Docker 环境时，也能调试其他功能。\n配置\nTASK_RUN_MODE = TaskRunMode.DOCKER LOCAL_PATH = os.path.join(BASE_DIR, \".local\") REPORT_PATH = os.path.join(BASE_DIR, \"task\", \"report\") class TaskRunner: def __init__(self, task_id, run_user_id): self.task_id = task_id self.directory = Task.objects.get(id=task_id).directory self.project_id = Task.objects.get(id=task_id).project_id self.git_repository = Project.objects.get(id=self.project_id).git_repository self.git_branch = Project.objects.get(id=self.project_id).git_branch self.git_name = re.findall(r\"^.*/(.*).git\", self.git_repository)[0] self.local_path = os.path.join(LOCAL_PATH, str(uuid.uuid1()).replace(\"-\", \"\")) self.run_user_id = run_user_id self.current_time = time.strftime(\"%Y-%m-%d-%H-%M-%S\", time.localtime(time.time())) self.report_name = f\"{str(self.git_name)}-{self.task_id}-{self.run_user_id}-{self.current_time}.html\" self.project_report_path = os.path.join(self.local_path, self.git_name, \"reports\", self.report_name) self.dockerfile_pytest = os.path.join(DEPLOY_PATH, \"Dockerfile.pytest\") self.exec_dir = os.path.join(self.git_name, self.directory) self.cmd_git_clone = f\"git clone -b {self.git_branch} {self.git_repository}\" self.cmd_pytest = f\"pytest {self.exec_dir} --html={self.project_report_path} --self-contained-html\" tep-project 更新 1、整合 fixture，功能类放在 fixture_function 模块，数据类放在其他模块，突出fixture 存放数据概念，比如登录接口 fixture_login 存储用户名密码、数据库 fixture_mysql 存储连接信息、文件 fixture_file_data 存储文件路径\n2、改造 fixture_login，数据类 fixture 代码更简洁\nimport pytest from loguru import logger @pytest.fixture(scope=\"session\") def login(http, file_data): logger.info(\"----------------开始登录----------------\") response = http( \"post\", url=file_data[\"domain\"] + \"/api/users/login\", headers={\"Content-Type\": \"application/json\"}, json={\"username\": \"admin\", \"password\": \"qa123456\"} ) assert response.status_code \u003c 400 logger.info(\"----------------登录成功----------------\") response = response.json() return {\"Content-Type\": \"application/json\", \"Authorization\": f\"Bearer {response['token']}\"} @pytest.fixture(scope=\"session\") def login_xdist(http, tep_context_manager, file_data): \"\"\" 该login只会在整个运行期间执行一次 \"\"\" def produce_expensive_data(variable): logger.info(\"----------------开始登录----------------\") response = http( \"post\", url=variable[\"domain\"] + \"/api/users/login\", headers={\"Content-Type\": \"application/json\"}, json={\"username\": \"admin\", \"password\": \"qa123456\"} ) assert response.status_code \u003c 400 logger.info(\"----------------登录成功----------------\") return response.json() response = tep_context_manager(produce_expensive_data, file_data) return {\"Authorization\": \"Bearer \" + response[\"token\"]} 3、改造 fixture_mysql，支持维护多个连接，并且保持简洁\nfixture_function.py\n@pytest.fixture(scope=\"class\") def executor(): class Executor: def __init__(self, db): self.db = db self.cursor = db.cursor() def execute_sql(self, sql): try: self.cursor.execute(sql) self.db.commit() except Exception as e: print(e) self.db.rollback() return self.cursor return Executor fixture_mysql.py\n@pytest.fixture(scope=\"class\") def mysql_execute(executor): db = pymysql.connect(host=\"host\", port=3306, user=\"root\", password=\"password\", database=\"database\") yield executor(db).execute_sql db.close() @pytest.fixture(scope=\"class\") def mysql_execute_x(executor): db = pymysql.connect(host=\"x\", port=3306, user=\"x\", password=\"x\", database=\"x\") yield executor(db).execute_sql db.close() 4、改造 fixture_file_data，并添加示例 test_file_data.py\nimport os import pytest from conftest import RESOURCE_PATH @pytest.fixture(scope=\"session\") def file_data(resource): file_path = os.path.join(RESOURCE_PATH, \"demo.yaml\") return resource(file_path).get_data() @pytest.fixture(scope=\"session\") def file_data_json(resource): file_path = os.path.join(RESOURCE_PATH, \"demo.json\") return resource(file_path).get_data() 5、添加接口复用的示例代码\ntests/base就是平台调度使用的稳定自动化用例集。\n接口代码复用设计 5 条用例：\ntest_search_sku.py：搜索商品，前置条件：登录\ntest_add_cart.py：添加购物车，前置条件：登录，搜索商品\ntest_order.py：下单，前置条件：登录，搜索商品，添加购物车\ntest_pay.py：支付，前置条件：登录，搜索商品，添加购物车，下单\ntest_flow.py：完整流程\n怎么设计？\n登录，每条用例前置条件都依赖，定义为 fixture_login，放在 fixtures 目录下\n搜索商品，test_search_sku.py 用例本身不需要复用，被前置条件依赖 3 次，可以复用\n①定义为 fixture_search_sku 放在 fixtures❌ 弊端：导致 fixtures 臃肿\n②复制用例文件，允许多份代码，平行展开✅ 好处：高度解耦，不用担心依赖问题\n总结，定义为 fixture 需要具备底层性，足够精炼。对于业务接口用例的前置条件，尽量在用例文件内部处理，保持文件解耦，遵循独立可运行的原则。\n复制多份文件？需要修改的话要改多份文件？\n是的，但这种情况极少。我能想到的情况：一、框架设计不成熟，动了底层设计，二、接口不稳定，改了公共接口，三、用例设计不合理，不能算是自动化。接口自动化要做好的前提，其实就是框架成熟，接口稳定，用例设计合理，满足这些前提以后，沉淀下来的自动化用例，几乎不需要大批量修改，更多的是要针对每条用例，去修改内部的数据，以满足不同场景的测试需要。也就是说，针对某个用例修改这个用例的数据，是更常见的行为。\n如果项目变动实在太大，整个自动化都不能用了，不管是做封装还是平行展开，维护量都非常大，耦合度太高的话，反而还不好改。\n跟着 pytestx 学习接口自动化框架设计，更简单，更快速，更高效\nhttps://github.com/dongfanger/pytestx\nhttps://gitee.com/dongfanger/tep-project\n",
+  "wordCount" : "666",
   "inLanguage": "zh",
   "datePublished": "2026-01-03T00:00:00Z",
   "dateModified": "2026-01-03T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -192,7 +184,7 @@ pytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -209,29 +201,7 @@ pytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -277,10 +247,7 @@ pytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<h1 id="系统架构">系统架构<a hidden class="anchor" aria-hidden="true" href="#系统架构">#</a></h1>
+  <div class="post-content md-content"><h1 id="系统架构">系统架构<a hidden class="anchor" aria-hidden="true" href="#系统架构">#</a></h1>
 <p><img loading="lazy" src="../assets/5a917ce9454040089ddd36f52930b7b6.png"></p>
 <p>前端、后端、pytest 均以<strong>Docker</strong>容器运行服务，单独的容器化执行引擎，项目环境隔离，即用即取，用完即弃，简单，高效。</p>
 <ul>
@@ -639,7 +606,7 @@ pytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -773,19 +740,6 @@ pytest 容器：拉取项目代码，指定目录执行，生成 HTML 报告
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

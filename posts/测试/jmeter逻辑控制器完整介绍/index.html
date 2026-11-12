@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>JMeter 逻辑控制器完整介绍 | 测试开发刚哥</title>
+<title>JMeter 逻辑控制器完整介绍 | 全栈开发刚哥</title>
 <meta name="keywords" content="性能测试, JMeter">
 <meta name="description" content="JMeter 逻辑控制器可以对元件的执行逻辑进行控制，就像编程一样，实现业务需求。">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E9%80%BB%E8%BE%91%E6%8E%A7%E5%88%B6%E5%99%A8%E5%AE%8C%E6%95%B4%E4%BB%8B%E7%BB%8D/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E6%B5%8B%E8%AF%95/jmeter%E9%80%BB%E8%BE%91%E6%8E%A7%E5%88%B6%E5%99%A8%E5%AE%8C%E6%95%B4%E4%BB%8B%E7%BB%8D/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="JMeter 逻辑控制器完整介绍">
   <meta property="og:description" content="JMeter 逻辑控制器可以对元件的执行逻辑进行控制，就像编程一样，实现业务需求。">
   <meta property="og:locale" content="zh_cn">
@@ -115,14 +112,14 @@
   "keywords": [
     "性能测试", "JMeter"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nJMeter 逻辑控制器可以对元件的执行逻辑进行控制，就像编程一样，实现业务需求。\nJMeter 包括了以下逻辑控制器：\n一共 17 种。除了仅一次控制器外，其他控制器下可以嵌套别的种类的逻辑控制器。\nIf Controller 控制此节点下的元件是否运行。\nExpression：可以使用变量表达式或 JavaScript。\n勾选 Interpret Condition as Variable Expression 表示使用变量表达式，建议勾选上。\nUse status of last Sample 表示判断上个取样器是否成功，点击后会把${JMeterThread.last_sample_ok}添加到 Expression 输入框中：\nEvaluate for all children：判断条件是否针对所有的子节点，默认不勾选，只在 If Controller 入口处判断一次，否则每次节点都会进行判断。\nTransaction Controller 事务控制器能够帮我们把一堆请求归到一个大的事务中去，在报告分析时更方便。\nGenerate parent sample：是否生成父取样结果，勾选后有两个效果，一是 Aggregate Report 会看到 Transaction Controller 字样，它把节点下的取样器的运行结果（如消耗时间）累加在一起（注意事务控制器下如果有多个取样器，全部取样器都运行成功，整个事务控制器才算成功），比如：\n二是 View Return Tree 中会看到多一个结果，比如：\nInclude duration of timer and pre-post processors in generated sample：包括定时器和前置-后置处理器的耗时，建议不用勾选，不然会影响统计结果。\nLoop Controller 跟线程组的 Loop 设置一样。最终执行次数 = 线程组执行次数 x 循环控制器执行次数，比如线程组设置 3 次，循环控制器设置 6 次，那么控制器下面的元件会执行 18 次。\nWhile Controller 其子节点下的元件将一直运行直到 While 条件为 false。\nCondition：接受变量表达式与变量，比如${inputVar}\u003c10，当 inputVar=7 时，它的子节点将一直运行下去。\n另外提供以下三个常量：\nBlank：当循环中有取样器失败后停止。 LAST：当循环前有取样器失败则不进入循环。 Otherwise：当判断条件为 false 时停止循环。 Critical Section Controller 加锁让多线程顺序执行。\n比如，不加锁，3 个线程是并行执行的。：\n加锁以后，变成顺序执行了：\nForEach Controller Input variable prefix：输入变量前缀。可以是用户自定义变量里面的多个变量如 id_1, id_2, id_3（这里就填写id）：\n也可以是正则表达式提取器匹配到的多个值（这里就填写varName）：\nStart index for loop (exclusive)：循环变量下标起点（不包括自己）。\nEnd index for loop (inclusive)：循环变量下标终点（包括自己）。\nOutput variable name：输出变量名，比如 returnVar，通过${returnVar}引用。\nAdd \"_\" before number：变量前缀后是否加“_”作为分隔符。\n示例：\nInclude Controller 类似于程序中的函数，可以把其他.jmx文件包含进来。\n被导入的测试计划有特殊要求：不能有线程组，只能包含简单控制器及控制器下的元件。\n比如一个查询订单的业务操作用 Sampler 来模拟，然后放到简单控制器中作为一个执行单元，别的地方也要用到时，就可以不重写直接引用过来。\nInterleave Controller 其节点下的取样器会交替执行。\n比如：\n1 个线程迭代 3 次，执行顺序是 1 3, 2 3, 1 3。\nIgnore sub-controller blocks：不执行子控制器，只执行当前这个交替控制器。比如：\n1 个线程迭代 4 次，执行顺序是 1, 2, 3, 1，Loop Controller 失效。注意，1 2 3 是交替执行的，每次迭代只执行其中一个。（如果不勾选，Loop 设置为 2，那么执行顺序是：1, 2, 3 3, 1）\n嵌套的例子：\n1 个线程迭代 5 次，执行顺序是：1, 3, 2, 4, 1。\nInterleave across threads：跨线程交替运行。比如：\n3 个线程 2 次迭代，不勾选的执行顺序：1 2, 1 2, 1 2；勾选的执行顺序：1 2, 2 3, 3 4。\nOnce Only Controller 其子元件只运行一次。比如只登录一次，只读取一次 CSV，只连一次数据库。\n注意，子节点放个 CSV Data Set Config，可以让每个线程只读一次，然后使用同一条数据进行反复请求。\n多个线程是一行一行取值的，不会重复。\n比如：\n2 个线程 3 次迭代，那么：\n线程 a 只读一次，取到尾号 1845 这条数据，然后用这条数据迭代请求 3 次。 线程 b 只读一次，取到尾号 0740 这条数据，然后用这条数据迭代请求 3 次。 Random Controller 节点下的元件随机运行，运行顺序不定。\nIgnore sub-controller blocks：不执行子控制器，只执行当前这个交替控制器。\nRandom Order Controller 节点下的元件随机执行，且每个元件只执行一次。\nRecording Controller 没用。\nRuntime Controller 用来控制其子元件的执行时长。\nRuntime 单位为秒，默认为 1，去掉 1 或者设置为 0，它的子元件不执行。\nSimple Controller 简单控制器很简单，就是用来给 Sampler 分组的。它指定了一个执行单元，不会改变元件的执行顺序。\n示例：\nThroughput Controller 控制子元件的执行次数（不能控制吞吐量，想控制吞吐量可以使用 Constant Throughput Timer）。\nPercent Executions：按执行次数的百分比来计算控制的执行次数，此时 Throughput 取值是 0~100。\nTotal Executions：按 Throughput 的值来指定执行次数。\nPer User：只对 Total Executions 生效，勾选后每个线程单独计算，不勾选则所有线程加起来计算。比如 2 个线程，每个线程迭代 10 次，Throughput 值为 6,，勾选 Per User 则分别计算分别执行 6 次共 12 次；不勾选 Per User 则加起来计算，共执行 6 次。\nModule Controller 在当前测试计划中引入新的测试片段，测试片段由控制器、取样器及辅助元件构成，能够完成负载的模拟。\n示例：\n把测试片段里面的 Loop Controller 引了进来。\nModule To Run：下拉列表，选择引入哪一个脚本片段（既包括测试片段也包括当前测试计划的控制器）。\nSwitch Controller 类似于高级语言中的 Switch 逻辑控制语句。\nSwitch Value：可以为数字，匹配取样器编号（子节点中取样器编号从 0 开始），不指定或指定编号超出了子节点数，则运行第 0 个取样器；也可以为字符，匹配取样器名称，匹配不上就会默认查找名称为 default 的取样器，如果没有则不运行。\n小结 本文对 JMeter 所有控制器进行了介绍，从这些控制器能感受到 JMeter 之所以这么流行，是因为它实在太成熟了，这里面的技术需要多少沉淀才能做得出来呀。有时间一定得看看 JMeter 的源码深度学习下。\n参考资料：\n《全栈性能测试修炼宝典 JMeter 实战》\n",
-  "wordCount" : "328",
+  "articleBody": "JMeter 逻辑控制器可以对元件的执行逻辑进行控制，就像编程一样，实现业务需求。\nJMeter 包括了以下逻辑控制器：\n一共 17 种。除了仅一次控制器外，其他控制器下可以嵌套别的种类的逻辑控制器。\nIf Controller 控制此节点下的元件是否运行。\nExpression：可以使用变量表达式或 JavaScript。\n勾选 Interpret Condition as Variable Expression 表示使用变量表达式，建议勾选上。\nUse status of last Sample 表示判断上个取样器是否成功，点击后会把${JMeterThread.last_sample_ok}添加到 Expression 输入框中：\nEvaluate for all children：判断条件是否针对所有的子节点，默认不勾选，只在 If Controller 入口处判断一次，否则每次节点都会进行判断。\nTransaction Controller 事务控制器能够帮我们把一堆请求归到一个大的事务中去，在报告分析时更方便。\nGenerate parent sample：是否生成父取样结果，勾选后有两个效果，一是 Aggregate Report 会看到 Transaction Controller 字样，它把节点下的取样器的运行结果（如消耗时间）累加在一起（注意事务控制器下如果有多个取样器，全部取样器都运行成功，整个事务控制器才算成功），比如：\n二是 View Return Tree 中会看到多一个结果，比如：\nInclude duration of timer and pre-post processors in generated sample：包括定时器和前置-后置处理器的耗时，建议不用勾选，不然会影响统计结果。\nLoop Controller 跟线程组的 Loop 设置一样。最终执行次数 = 线程组执行次数 x 循环控制器执行次数，比如线程组设置 3 次，循环控制器设置 6 次，那么控制器下面的元件会执行 18 次。\nWhile Controller 其子节点下的元件将一直运行直到 While 条件为 false。\nCondition：接受变量表达式与变量，比如${inputVar}\u003c10，当 inputVar=7 时，它的子节点将一直运行下去。\n另外提供以下三个常量：\nBlank：当循环中有取样器失败后停止。 LAST：当循环前有取样器失败则不进入循环。 Otherwise：当判断条件为 false 时停止循环。 Critical Section Controller 加锁让多线程顺序执行。\n比如，不加锁，3 个线程是并行执行的。：\n加锁以后，变成顺序执行了：\nForEach Controller Input variable prefix：输入变量前缀。可以是用户自定义变量里面的多个变量如 id_1, id_2, id_3（这里就填写id）：\n也可以是正则表达式提取器匹配到的多个值（这里就填写varName）：\nStart index for loop (exclusive)：循环变量下标起点（不包括自己）。\nEnd index for loop (inclusive)：循环变量下标终点（包括自己）。\nOutput variable name：输出变量名，比如 returnVar，通过${returnVar}引用。\nAdd \"_\" before number：变量前缀后是否加“_”作为分隔符。\n示例：\nInclude Controller 类似于程序中的函数，可以把其他.jmx文件包含进来。\n被导入的测试计划有特殊要求：不能有线程组，只能包含简单控制器及控制器下的元件。\n比如一个查询订单的业务操作用 Sampler 来模拟，然后放到简单控制器中作为一个执行单元，别的地方也要用到时，就可以不重写直接引用过来。\nInterleave Controller 其节点下的取样器会交替执行。\n比如：\n1 个线程迭代 3 次，执行顺序是 1 3, 2 3, 1 3。\nIgnore sub-controller blocks：不执行子控制器，只执行当前这个交替控制器。比如：\n1 个线程迭代 4 次，执行顺序是 1, 2, 3, 1，Loop Controller 失效。注意，1 2 3 是交替执行的，每次迭代只执行其中一个。（如果不勾选，Loop 设置为 2，那么执行顺序是：1, 2, 3 3, 1）\n嵌套的例子：\n1 个线程迭代 5 次，执行顺序是：1, 3, 2, 4, 1。\nInterleave across threads：跨线程交替运行。比如：\n3 个线程 2 次迭代，不勾选的执行顺序：1 2, 1 2, 1 2；勾选的执行顺序：1 2, 2 3, 3 4。\nOnce Only Controller 其子元件只运行一次。比如只登录一次，只读取一次 CSV，只连一次数据库。\n注意，子节点放个 CSV Data Set Config，可以让每个线程只读一次，然后使用同一条数据进行反复请求。\n多个线程是一行一行取值的，不会重复。\n比如：\n2 个线程 3 次迭代，那么：\n线程 a 只读一次，取到尾号 1845 这条数据，然后用这条数据迭代请求 3 次。 线程 b 只读一次，取到尾号 0740 这条数据，然后用这条数据迭代请求 3 次。 Random Controller 节点下的元件随机运行，运行顺序不定。\nIgnore sub-controller blocks：不执行子控制器，只执行当前这个交替控制器。\nRandom Order Controller 节点下的元件随机执行，且每个元件只执行一次。\nRecording Controller 没用。\nRuntime Controller 用来控制其子元件的执行时长。\nRuntime 单位为秒，默认为 1，去掉 1 或者设置为 0，它的子元件不执行。\nSimple Controller 简单控制器很简单，就是用来给 Sampler 分组的。它指定了一个执行单元，不会改变元件的执行顺序。\n示例：\nThroughput Controller 控制子元件的执行次数（不能控制吞吐量，想控制吞吐量可以使用 Constant Throughput Timer）。\nPercent Executions：按执行次数的百分比来计算控制的执行次数，此时 Throughput 取值是 0~100。\nTotal Executions：按 Throughput 的值来指定执行次数。\nPer User：只对 Total Executions 生效，勾选后每个线程单独计算，不勾选则所有线程加起来计算。比如 2 个线程，每个线程迭代 10 次，Throughput 值为 6,，勾选 Per User 则分别计算分别执行 6 次共 12 次；不勾选 Per User 则加起来计算，共执行 6 次。\nModule Controller 在当前测试计划中引入新的测试片段，测试片段由控制器、取样器及辅助元件构成，能够完成负载的模拟。\n示例：\n把测试片段里面的 Loop Controller 引了进来。\nModule To Run：下拉列表，选择引入哪一个脚本片段（既包括测试片段也包括当前测试计划的控制器）。\nSwitch Controller 类似于高级语言中的 Switch 逻辑控制语句。\nSwitch Value：可以为数字，匹配取样器编号（子节点中取样器编号从 0 开始），不指定或指定编号超出了子节点数，则运行第 0 个取样器；也可以为字符，匹配取样器名称，匹配不上就会默认查找名称为 default 的取样器，如果没有则不运行。\n小结 本文对 JMeter 所有控制器进行了介绍，从这些控制器能感受到 JMeter 之所以这么流行，是因为它实在太成熟了，这里面的技术需要多少沉淀才能做得出来呀。有时间一定得看看 JMeter 的源码深度学习下。\n参考资料：\n《全栈性能测试修炼宝典 JMeter 实战》\n",
+  "wordCount" : "327",
   "inLanguage": "zh",
   "datePublished": "2026-01-10T00:00:00Z",
   "dateModified": "2026-01-10T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -130,7 +127,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -147,29 +144,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -215,10 +190,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>JMeter 逻辑控制器可以对元件的执行逻辑进行控制，就像编程一样，实现业务需求。</p>
+  <div class="post-content md-content"><p>JMeter 逻辑控制器可以对元件的执行逻辑进行控制，就像编程一样，实现业务需求。</p>
 <p>JMeter 包括了以下逻辑控制器：</p>
 <p><img loading="lazy" src="../assets/4645adf38f1743bcae6d9dc2e7442fb8.png"></p>
 <p>一共 17 种。除了仅一次控制器外，其他控制器下可以嵌套别的种类的逻辑控制器。</p>
@@ -398,7 +370,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -532,19 +504,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

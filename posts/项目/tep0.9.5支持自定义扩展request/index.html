@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>tep0.9.5 支持自定义扩展 request | 测试开发刚哥</title>
+<title>tep0.9.5 支持自定义扩展 request | 全栈开发刚哥</title>
 <meta name="keywords" content="tep">
 <meta name="description" content="tep0.9.5 更新了以下内容：">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep0.9.5%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95request/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E9%A1%B9%E7%9B%AE/tep0.9.5%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95request/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="tep0.9.5 支持自定义扩展 request">
   <meta property="og:description" content="tep0.9.5 更新了以下内容：">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "tep"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\ntep0.9.5 更新了以下内容：\n自定义 request 请求日志 Allure 报告添加 request 描述 猴子补丁扩展 request fixtures 支持多层级目录 FastAPI 替代 Flask 升级 tep 到 0.9.5 版本，使用tep startproject demo创建项目脚手架，开箱即用以上新功能。\n1.自定义 request 请求日志 tep 默认的 request 请求日志如下所示：\n2022-01-22 20:00:26.335 | INFO | tep.client:tep_request_monkey_patch:44 - method:\"post\" url:\"http://127.0.0.1:5000/login\" headers:{\"Content-Type\": \"application/json\"} json:{\"username\": \"dongfanger\", \"password\": \"123456\"} status:200 response:{\"token\":\"de2e3ffu29\"} elapsed:0.000s 全部都在一行，假如想换行显示，那么可以在utils/http_client.py文件中修改 request_monkey_patch 代码：\n在测试代码中把from tep.client import request改成from utils.http_client import request：\n日志就会变成换行显示了：\n2022-01-22 20:04:05.379 | INFO | utils.http_client:request_monkey_patch:38 - method:\"post\" headers:{\"Content-Type\": \"application/json\"} json:{\"username\": \"dongfanger\", \"password\": \"123456\"} status:200 response:{\"token\":\"de2e3ffu29\"} elapsed:0.000s 2.Allure 报告添加 request 描述 tep 的 Allure 报告默认会有个request \u0026 response：\n可以给 request 添加 desc 参数，在 Allure 测试报告中添加描述：\n运行以下命令，然后打开 Allure 测试报告：\npytest -s test_request_monkey_patch.py --tep-reports 3.猴子补丁扩展 request 前面的“自定义 request 请求日志”和“Allure 报告添加 request 描述”已经展示了如何通过猴子补丁扩展日志和扩展报告，您还可以为 request 扩展更多想要的功能，只需要实现utils/http_client.py里面的 request_monkey_patch 函数即可：\n#!/usr/bin/python ## encoding=utf-8 import decimal import json import time import allure from loguru import logger from tep import client from tep.client import TepResponse def request_monkey_patch(req, *args, **kwargs): start = time.process_time() desc = \"\" if \"desc\" in kwargs: desc = kwargs.get(\"desc\") kwargs.pop(\"desc\") response = req(*args, **kwargs) end = time.process_time() elapsed = str(decimal.Decimal(\"%.3f\" % float(end - start))) + \"s\" log4a = \"{}\\n{}status:{}\\nresponse:{}\\nelapsed:{}\" try: kv = \"\" for k, v in kwargs.items(): # if not json, str() try: v = json.dumps(v, ensure_ascii=False) except TypeError: v = str(v) kv += f\"{k}:{v}\\n\" if args: method = f'\\nmethod:\"{args[0]}\" ' else: method = \"\" request_response = log4a.format(method, kv, response.status_code, response.text, elapsed) logger.info(request_response) allure.attach(request_response, f'{desc} request \u0026 response', allure.attachment_type.TEXT) except AttributeError: logger.error(\"request failed\") except TypeError: logger.warning(log4a) return TepResponse(response) def request(method, url, **kwargs): client.tep_request_monkey_patch = request_monkey_patch return client.request(method, url, **kwargs) 4.fixtures 支持多层级目录 tep 之前一直只能支持 fixtures 的根目录的fixture_*.py文件自动导入，现在能支持多层级目录了：\n测试代码test_multi_fixture.py：\n#!/usr/bin/python ## encoding=utf-8 def test(fixture_second, fixture_three): pass 能运行成功。自动导入多层目录的代码实现如下：\n## 自动导入fixtures _fixtures_dir = os.path.join(_project_dir, \"fixtures\") for root, _, files in os.walk(_fixtures_dir): for file in files: if file.startswith(\"fixture_\") and file.endswith(\".py\"): full_path = os.path.join(root, file) import_path = full_path.replace(_fixtures_dir, \"\").replace(\"\\\\\", \".\").replace(\"/\", \".\").replace(\".py\", \"\") try: fixture_path = \"fixtures\" + import_path exec(f\"from {fixture_path} import *\") except: fixture_path = \".fixtures\" + import_path exec(f\"from {fixture_path} import *\") 5.FastAPI 替代 Flask 因为 HttpRunner 用的 FastAPI，所以我也把 Flask 替换成了 FastAPI，在utils/fastapi_mock.py文件中可以找到代码实现的简易 Mock：\n#!/usr/bin/python ## encoding=utf-8 import uvicorn from fastapi import FastAPI, Request app = FastAPI() @app.post(\"/login\") async def login(req: Request): body = await req.json() if body[\"username\"] == \"dongfanger\" and body[\"password\"] == \"123456\": return {\"token\": \"de2e3ffu29\"} return \"\" @app.get(\"/searchSku\") def search_sku(req: Request): if req.headers.get(\"token\") == \"de2e3ffu29\" and req.query_params.get(\"skuName\") == \"电子书\": return {\"skuId\": \"222\", \"price\": \"2.3\"} return \"\" @app.post(\"/addCart\") async def add_cart(req: Request): body = await req.json() if req.headers.get(\"token\") == \"de2e3ffu29\" and body[\"skuId\"] == \"222\": return {\"skuId\": \"222\", \"price\": \"2.3\", \"skuNum\": \"3\", \"totalPrice\": \"6.9\"} return \"\" @app.post(\"/order\") async def order(req: Request): body = await req.json() if req.headers.get(\"token\") == \"de2e3ffu29\" and body[\"skuId\"] == \"222\": return {\"orderId\": \"333\"} return \"\" @app.post(\"/pay\") async def pay(req: Request): body = await req.json() if req.headers.get(\"token\") == \"de2e3ffu29\" and body[\"orderId\"] == \"333\": return {\"success\": \"true\"} return \"\" if __name__ == '__main__': uvicorn.run(\"fastapi_mock:app\", host=\"127.0.0.1\", port=5000) 最后，感谢@zhangwk02 提交的 Pull requests，虽然写的代码被我全部优化了，但是提供了很棒的想法和动力。\n",
-  "wordCount" : "458",
+  "articleBody": "tep0.9.5 更新了以下内容：\n自定义 request 请求日志 Allure 报告添加 request 描述 猴子补丁扩展 request fixtures 支持多层级目录 FastAPI 替代 Flask 升级 tep 到 0.9.5 版本，使用tep startproject demo创建项目脚手架，开箱即用以上新功能。\n1.自定义 request 请求日志 tep 默认的 request 请求日志如下所示：\n2022-01-22 20:00:26.335 | INFO | tep.client:tep_request_monkey_patch:44 - method:\"post\" url:\"http://127.0.0.1:5000/login\" headers:{\"Content-Type\": \"application/json\"} json:{\"username\": \"dongfanger\", \"password\": \"123456\"} status:200 response:{\"token\":\"de2e3ffu29\"} elapsed:0.000s 全部都在一行，假如想换行显示，那么可以在utils/http_client.py文件中修改 request_monkey_patch 代码：\n在测试代码中把from tep.client import request改成from utils.http_client import request：\n日志就会变成换行显示了：\n2022-01-22 20:04:05.379 | INFO | utils.http_client:request_monkey_patch:38 - method:\"post\" headers:{\"Content-Type\": \"application/json\"} json:{\"username\": \"dongfanger\", \"password\": \"123456\"} status:200 response:{\"token\":\"de2e3ffu29\"} elapsed:0.000s 2.Allure 报告添加 request 描述 tep 的 Allure 报告默认会有个request \u0026 response：\n可以给 request 添加 desc 参数，在 Allure 测试报告中添加描述：\n运行以下命令，然后打开 Allure 测试报告：\npytest -s test_request_monkey_patch.py --tep-reports 3.猴子补丁扩展 request 前面的“自定义 request 请求日志”和“Allure 报告添加 request 描述”已经展示了如何通过猴子补丁扩展日志和扩展报告，您还可以为 request 扩展更多想要的功能，只需要实现utils/http_client.py里面的 request_monkey_patch 函数即可：\n#!/usr/bin/python ## encoding=utf-8 import decimal import json import time import allure from loguru import logger from tep import client from tep.client import TepResponse def request_monkey_patch(req, *args, **kwargs): start = time.process_time() desc = \"\" if \"desc\" in kwargs: desc = kwargs.get(\"desc\") kwargs.pop(\"desc\") response = req(*args, **kwargs) end = time.process_time() elapsed = str(decimal.Decimal(\"%.3f\" % float(end - start))) + \"s\" log4a = \"{}\\n{}status:{}\\nresponse:{}\\nelapsed:{}\" try: kv = \"\" for k, v in kwargs.items(): # if not json, str() try: v = json.dumps(v, ensure_ascii=False) except TypeError: v = str(v) kv += f\"{k}:{v}\\n\" if args: method = f'\\nmethod:\"{args[0]}\" ' else: method = \"\" request_response = log4a.format(method, kv, response.status_code, response.text, elapsed) logger.info(request_response) allure.attach(request_response, f'{desc} request \u0026 response', allure.attachment_type.TEXT) except AttributeError: logger.error(\"request failed\") except TypeError: logger.warning(log4a) return TepResponse(response) def request(method, url, **kwargs): client.tep_request_monkey_patch = request_monkey_patch return client.request(method, url, **kwargs) 4.fixtures 支持多层级目录 tep 之前一直只能支持 fixtures 的根目录的fixture_*.py文件自动导入，现在能支持多层级目录了：\n测试代码test_multi_fixture.py：\n#!/usr/bin/python ## encoding=utf-8 def test(fixture_second, fixture_three): pass 能运行成功。自动导入多层目录的代码实现如下：\n## 自动导入fixtures _fixtures_dir = os.path.join(_project_dir, \"fixtures\") for root, _, files in os.walk(_fixtures_dir): for file in files: if file.startswith(\"fixture_\") and file.endswith(\".py\"): full_path = os.path.join(root, file) import_path = full_path.replace(_fixtures_dir, \"\").replace(\"\\\\\", \".\").replace(\"/\", \".\").replace(\".py\", \"\") try: fixture_path = \"fixtures\" + import_path exec(f\"from {fixture_path} import *\") except: fixture_path = \".fixtures\" + import_path exec(f\"from {fixture_path} import *\") 5.FastAPI 替代 Flask 因为 HttpRunner 用的 FastAPI，所以我也把 Flask 替换成了 FastAPI，在utils/fastapi_mock.py文件中可以找到代码实现的简易 Mock：\n#!/usr/bin/python ## encoding=utf-8 import uvicorn from fastapi import FastAPI, Request app = FastAPI() @app.post(\"/login\") async def login(req: Request): body = await req.json() if body[\"username\"] == \"dongfanger\" and body[\"password\"] == \"123456\": return {\"token\": \"de2e3ffu29\"} return \"\" @app.get(\"/searchSku\") def search_sku(req: Request): if req.headers.get(\"token\") == \"de2e3ffu29\" and req.query_params.get(\"skuName\") == \"电子书\": return {\"skuId\": \"222\", \"price\": \"2.3\"} return \"\" @app.post(\"/addCart\") async def add_cart(req: Request): body = await req.json() if req.headers.get(\"token\") == \"de2e3ffu29\" and body[\"skuId\"] == \"222\": return {\"skuId\": \"222\", \"price\": \"2.3\", \"skuNum\": \"3\", \"totalPrice\": \"6.9\"} return \"\" @app.post(\"/order\") async def order(req: Request): body = await req.json() if req.headers.get(\"token\") == \"de2e3ffu29\" and body[\"skuId\"] == \"222\": return {\"orderId\": \"333\"} return \"\" @app.post(\"/pay\") async def pay(req: Request): body = await req.json() if req.headers.get(\"token\") == \"de2e3ffu29\" and body[\"orderId\"] == \"333\": return {\"success\": \"true\"} return \"\" if __name__ == '__main__': uvicorn.run(\"fastapi_mock:app\", host=\"127.0.0.1\", port=5000) 最后，感谢@zhangwk02 提交的 Pull requests，虽然写的代码被我全部优化了，但是提供了很棒的想法和动力。\n",
+  "wordCount" : "457",
   "inLanguage": "zh",
   "datePublished": "2026-01-10T00:00:00Z",
   "dateModified": "2026-01-10T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>tep0.9.5 更新了以下内容：</p>
+  <div class="post-content md-content"><p>tep0.9.5 更新了以下内容：</p>
 <ol>
 <li>自定义 request 请求日志</li>
 <li>Allure 报告添加 request 描述</li>
@@ -414,7 +386,7 @@ elapsed:0.000s
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -548,19 +520,6 @@ elapsed:0.000s
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>

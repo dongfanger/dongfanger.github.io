@@ -5,12 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>快用 DjangoRESTframework 写写 API 吧 | 测试开发刚哥</title>
+<title>快用 DjangoRESTframework 写写 API 吧 | 全栈开发刚哥</title>
 <meta name="keywords" content="Django">
 <meta name="description" content="Django 默认是前后端绑定的，提供了 Template 和 Form，现在流行前后端分离项目，Python 大佬坐不住了，于是便有了 Django REST framework：https://github.com/tomchristie">
-<meta name="author" content="测试开发刚哥">
+<meta name="author" content="刚哥">
 <link rel="canonical" href="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BF%AB%E7%94%A8djangorestframework%E5%86%99%E5%86%99api%E5%90%A7/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.ed6a9383eae89d64fea95a99049fd89c6675358af3f16330f8e45b64c3339da2.css" integrity="sha256-7WqTg&#43;ronWT&#43;qVqZBJ/YnGZ1NYrz8WMw&#43;ORbZMMznaI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.468a316ea9103554ade5e1454efe8d1fceffa2a30ffe31e6b79d3940d5dec222.css" integrity="sha256-RooxbqkQNVSt5eFFTv6NH87/oqMP/jHmt505QNXewiI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://dongfanger.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://dongfanger.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://dongfanger.github.io/favicon-32x32.png">
@@ -54,11 +54,7 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.querySelector("html").dataset.theme = 'dark';
     } else {
         document.querySelector("html").dataset.theme = 'light';
@@ -68,8 +64,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/700.css">
 <meta property="og:url" content="https://dongfanger.github.io/posts/%E5%BC%80%E5%8F%91/%E5%BF%AB%E7%94%A8djangorestframework%E5%86%99%E5%86%99api%E5%90%A7/">
-  <meta property="og:site_name" content="测试开发刚哥">
+  <meta property="og:site_name" content="全栈开发刚哥">
   <meta property="og:title" content="快用 DjangoRESTframework 写写 API 吧">
   <meta property="og:description" content="Django 默认是前后端绑定的，提供了 Template 和 Form，现在流行前后端分离项目，Python 大佬坐不住了，于是便有了 Django REST framework：https://github.com/tomchristie">
   <meta property="og:locale" content="zh_cn">
@@ -114,14 +111,14 @@
   "keywords": [
     "Django"
   ],
-  "articleBody": " 本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。\nDjango 默认是前后端绑定的，提供了 Template 和 Form，现在流行前后端分离项目，Python 大佬坐不住了，于是便有了 Django REST framework：https://github.com/tomchristie\n官网：https://www.django-rest-framework.org/\nDjango REST framework（简称 DRF）是个 Python 技术栈的后端框架，用来构建 RESTful API。\nRESTful API REST，是指 REpresentational State Transfer，有个精辟的解释什么是 RESTful：\n看 URL 就知道要什么 看 Method 就知道干什么 看 Status Code 就知道结果如何 良好的 RESTful API 设计的基本原则是：\n返回 JSON 严禁乱用状态码 处理好分页 返回具体的实体数据而不是返回通用的 JSON 数据 请求对象有默认值 创建项目 接下来我们使用 DRF 创建一个简单的 API，允许管理员查看和编辑用户和组。\n先创建名为tutorial的 project 和名为quickstart的 app：\n# 创建项目目录 mkdir tutorial cd tutorial # 创建Python虚拟环境 python -m venv env # 激活虚拟环境 env\\Scripts\\activate.bat # Mac中使用`source env/bin/activate` # 在虚拟环境中安装Django和Django REST framework pip install django pip install djangorestframework # 创建project，注意最后有个“.”，表示在当前目录创建 django-admin startproject tutorial . cd tutorial # 创建app django-admin startapp quickstart cd .. 创建好的目录结构如下：\n$ pwd /tutorial $ find . . ./manage.py ./tutorial ./tutorial/__init__.py ./tutorial/quickstart ./tutorial/quickstart/__init__.py ./tutorial/quickstart/admin.py ./tutorial/quickstart/apps.py ./tutorial/quickstart/migrations ./tutorial/quickstart/migrations/__init__.py ./tutorial/quickstart/models.py ./tutorial/quickstart/tests.py ./tutorial/quickstart/views.py ./tutorial/settings.py ./tutorial/urls.py ./tutorial/wsgi.py 一般不会把 app 放到 project 里面，这里是为了避免命名冲突。\n接着同步数据库：\npython manage.py migrate 然后创建一个超级管理员，密码password123：\npython manage.py createsuperuser --email admin@example.com --username admin Serializers 序列化是指把数据库模型转换为 JSON。新建模块tutorial/quickstart/serializers.py：\nfrom django.contrib.auth.models import User, Group from rest_framework import serializers class UserSerializer(serializers.HyperlinkedModelSerializer): class Meta: model = User fields = ['url', 'username', 'email', 'groups'] class GroupSerializer(serializers.HyperlinkedModelSerializer): class Meta: model = Group fields = ['url', 'name'] Views 视图用来接受 Web 请求并且返回 Web 响应。打开tutorial/quickstart/views.py，添加代码：\nfrom django.contrib.auth.models import User, Group from rest_framework import viewsets from rest_framework import permissions from tutorial.quickstart.serializers import UserSerializer, GroupSerializer class UserViewSet(viewsets.ModelViewSet): \"\"\" API endpoint that allows users to be viewed or edited. \"\"\" queryset = User.objects.all().order_by('-date_joined') serializer_class = UserSerializer permission_classes = [permissions.IsAuthenticated] class GroupViewSet(viewsets.ModelViewSet): \"\"\" API endpoint that allows groups to be viewed or edited. \"\"\" queryset = Group.objects.all() serializer_class = GroupSerializer permission_classes = [permissions.IsAuthenticated] URLs 配置路由，打开tutorial/urls.py，添加代码：\nfrom django.urls import include, path from rest_framework import routers from tutorial.quickstart import views router = routers.DefaultRouter() router.register(r'users', views.UserViewSet) router.register(r'groups', views.GroupViewSet) # Wire up our API using automatic URL routing. # Additionally, we include login URLs for the browsable API. urlpatterns = [ path('', include(router.urls)), path('api-auth/', include('rest_framework.urls', namespace='rest_framework')) ] 因为这里用的不是 view 而是 viewsets，所以可以自动生成 API 的 URLconf，只需要注册 class 即可。\n也可以不用 viewsets，用 view，再自定义 API URL。\nPagination 分页用来控制每页返回多少数据，在tutorial/settings.py中添加：\nREST_FRAMEWORK = { 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', 'PAGE_SIZE': 10 } Settings 在tutorial/settings.py中，把'rest_framework'添加到INSTALLED_APPS：\nINSTALLED_APPS = [ ... 'rest_framework', ] 测试 API 启动项目：\npython manage.py runserver 访问http://127.0.0.1:8000/users/，点击右上角用超管登录，即可看到：\n小结 本文是 Django REST framework 系列的开篇，内容参考的是官网的 Tutorial。学了 Django 再看 DRF，思路清晰多了，虽然我代码能力不强，但总是在追求规范和标准，难道是因为做测试的职业病么？\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/quickstart/\nhttp://www.ruanyifeng.com/blog/2014/05/restful_api.html\n",
-  "wordCount" : "349",
+  "articleBody": "Django 默认是前后端绑定的，提供了 Template 和 Form，现在流行前后端分离项目，Python 大佬坐不住了，于是便有了 Django REST framework：https://github.com/tomchristie\n官网：https://www.django-rest-framework.org/\nDjango REST framework（简称 DRF）是个 Python 技术栈的后端框架，用来构建 RESTful API。\nRESTful API REST，是指 REpresentational State Transfer，有个精辟的解释什么是 RESTful：\n看 URL 就知道要什么 看 Method 就知道干什么 看 Status Code 就知道结果如何 良好的 RESTful API 设计的基本原则是：\n返回 JSON 严禁乱用状态码 处理好分页 返回具体的实体数据而不是返回通用的 JSON 数据 请求对象有默认值 创建项目 接下来我们使用 DRF 创建一个简单的 API，允许管理员查看和编辑用户和组。\n先创建名为tutorial的 project 和名为quickstart的 app：\n# 创建项目目录 mkdir tutorial cd tutorial # 创建Python虚拟环境 python -m venv env # 激活虚拟环境 env\\Scripts\\activate.bat # Mac中使用`source env/bin/activate` # 在虚拟环境中安装Django和Django REST framework pip install django pip install djangorestframework # 创建project，注意最后有个“.”，表示在当前目录创建 django-admin startproject tutorial . cd tutorial # 创建app django-admin startapp quickstart cd .. 创建好的目录结构如下：\n$ pwd /tutorial $ find . . ./manage.py ./tutorial ./tutorial/__init__.py ./tutorial/quickstart ./tutorial/quickstart/__init__.py ./tutorial/quickstart/admin.py ./tutorial/quickstart/apps.py ./tutorial/quickstart/migrations ./tutorial/quickstart/migrations/__init__.py ./tutorial/quickstart/models.py ./tutorial/quickstart/tests.py ./tutorial/quickstart/views.py ./tutorial/settings.py ./tutorial/urls.py ./tutorial/wsgi.py 一般不会把 app 放到 project 里面，这里是为了避免命名冲突。\n接着同步数据库：\npython manage.py migrate 然后创建一个超级管理员，密码password123：\npython manage.py createsuperuser --email admin@example.com --username admin Serializers 序列化是指把数据库模型转换为 JSON。新建模块tutorial/quickstart/serializers.py：\nfrom django.contrib.auth.models import User, Group from rest_framework import serializers class UserSerializer(serializers.HyperlinkedModelSerializer): class Meta: model = User fields = ['url', 'username', 'email', 'groups'] class GroupSerializer(serializers.HyperlinkedModelSerializer): class Meta: model = Group fields = ['url', 'name'] Views 视图用来接受 Web 请求并且返回 Web 响应。打开tutorial/quickstart/views.py，添加代码：\nfrom django.contrib.auth.models import User, Group from rest_framework import viewsets from rest_framework import permissions from tutorial.quickstart.serializers import UserSerializer, GroupSerializer class UserViewSet(viewsets.ModelViewSet): \"\"\" API endpoint that allows users to be viewed or edited. \"\"\" queryset = User.objects.all().order_by('-date_joined') serializer_class = UserSerializer permission_classes = [permissions.IsAuthenticated] class GroupViewSet(viewsets.ModelViewSet): \"\"\" API endpoint that allows groups to be viewed or edited. \"\"\" queryset = Group.objects.all() serializer_class = GroupSerializer permission_classes = [permissions.IsAuthenticated] URLs 配置路由，打开tutorial/urls.py，添加代码：\nfrom django.urls import include, path from rest_framework import routers from tutorial.quickstart import views router = routers.DefaultRouter() router.register(r'users', views.UserViewSet) router.register(r'groups', views.GroupViewSet) # Wire up our API using automatic URL routing. # Additionally, we include login URLs for the browsable API. urlpatterns = [ path('', include(router.urls)), path('api-auth/', include('rest_framework.urls', namespace='rest_framework')) ] 因为这里用的不是 view 而是 viewsets，所以可以自动生成 API 的 URLconf，只需要注册 class 即可。\n也可以不用 viewsets，用 view，再自定义 API URL。\nPagination 分页用来控制每页返回多少数据，在tutorial/settings.py中添加：\nREST_FRAMEWORK = { 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', 'PAGE_SIZE': 10 } Settings 在tutorial/settings.py中，把'rest_framework'添加到INSTALLED_APPS：\nINSTALLED_APPS = [ ... 'rest_framework', ] 测试 API 启动项目：\npython manage.py runserver 访问http://127.0.0.1:8000/users/，点击右上角用超管登录，即可看到：\n小结 本文是 Django REST framework 系列的开篇，内容参考的是官网的 Tutorial。学了 Django 再看 DRF，思路清晰多了，虽然我代码能力不强，但总是在追求规范和标准，难道是因为做测试的职业病么？\n参考资料：\nhttps://www.django-rest-framework.org/tutorial/quickstart/\nhttp://www.ruanyifeng.com/blog/2014/05/restful_api.html\n",
+  "wordCount" : "348",
   "inLanguage": "zh",
   "datePublished": "2026-01-06T00:00:00Z",
   "dateModified": "2026-01-06T00:00:00Z",
   "author":{
     "@type": "Person",
-    "name": "测试开发刚哥"
+    "name": "刚哥"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -129,7 +126,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "测试开发刚哥",
+    "name": "全栈开发刚哥",
     "logo": {
       "@type": "ImageObject",
       "url": "https://dongfanger.github.io/favicon.ico"
@@ -146,29 +143,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://dongfanger.github.io/" accesskey="h" title="测试开发刚哥 (Alt + H)">测试开发刚哥</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
+            <a href="https://dongfanger.github.io/" accesskey="h" title="首页 (Alt + H)">首页</a>
         </div>
         <ul id="menu" class="menu">
             <li>
@@ -214,10 +189,7 @@
 
 </div>
   </header> 
-  <div class="post-content md-content"><blockquote>
-<p>本书作者：测试开发刚哥，文章版权归个人所有，未经授权请勿转载。</p>
-</blockquote>
-<p>Django 默认是前后端绑定的，提供了 Template 和 Form，现在流行前后端分离项目，Python 大佬坐不住了，于是便有了 Django REST framework：https://github.com/tomchristie</p>
+  <div class="post-content md-content"><p>Django 默认是前后端绑定的，提供了 Template 和 Form，现在流行前后端分离项目，Python 大佬坐不住了，于是便有了 Django REST framework：https://github.com/tomchristie</p>
 <p><img loading="lazy" src="../assets/047a92282a2245989d6d750b109260ee.png"></p>
 <p>官网：https://www.django-rest-framework.org/</p>
 <p><img loading="lazy" src="../assets/6b2686e1ac8a471786e4c869c700eddb.png"></p>
@@ -412,7 +384,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://dongfanger.github.io/">测试开发刚哥</a></span> · 
+        <span>&copy; 2026 <a href="https://dongfanger.github.io/">全栈开发刚哥</a></span> · 
 
     
     
@@ -546,19 +518,6 @@
             scrollTicking = false;
         });
     }, { passive: true });
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
 </script>
 <script>
